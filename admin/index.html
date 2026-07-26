@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Review Board — BloxCore Admin</title>
+<link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-inner">
+    <a href="/" class="brand"><span class="brand-mark">⚓</span> BloxCore</a>
+    <button class="nav-toggle" aria-label="Toggle menu">☰</button>
+    <ul class="nav-links">
+      <li><a href="/">Home</a></li>
+      <li><a href="/challenges/">Challenges</a></li>
+      <li><a href="/leaderboard/">Leaderboard</a></li>
+      <li id="nav-auth-slot" style="display:flex; gap:20px; align-items:center;"></li>
+    </ul>
+  </div>
+</nav>
+
+<section class="section">
+  <div class="container">
+    <h1 style="font-size:1.8rem;">Review Board</h1>
+    <p class="muted" style="margin-top:-8px;">Pending bounty submissions awaiting a stamp.</p>
+
+    <div id="pending-list" class="grid" style="margin-top:24px;">
+      <div class="skeleton" style="height:260px;"></div>
+    </div>
+  </div>
+</section>
+
+<footer class="site-footer">
+  <div class="container">BloxCore admin panel — visible only to reviewers.</div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="/js/supabase-client.js"></script>
+<script src="/js/nav.js"></script>
+<script src="/js/admin.js"></script>
+</body>
+</html>

@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BloxCore — Bounty Board for Blox Fruits</title>
+<meta name="description" content="Take on Blox Fruits challenges, submit proof, and climb the ranks from Rookie to Pirate King.">
+<link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-inner">
+    <a href="/" class="brand"><span class="brand-mark">⚓</span> BloxCore</a>
+    <button class="nav-toggle" aria-label="Toggle menu">☰</button>
+    <ul class="nav-links">
+      <li><a href="/">Home</a></li>
+      <li><a href="/challenges/">Challenges</a></li>
+      <li><a href="/leaderboard/">Leaderboard</a></li>
+      <li id="nav-auth-slot" style="display:flex; gap:20px; align-items:center;"></li>
+    </ul>
+  </div>
+</nav>
+
+<header class="section">
+  <div class="container" style="display:grid; grid-template-columns: 1.1fr 0.9fr; gap: 48px; align-items:center;">
+    <div>
+      <p class="muted" style="font-family: var(--font-mono); text-transform:uppercase; letter-spacing:0.08em; font-size:0.85rem;">A Blox Fruits community board</p>
+      <h1 style="font-size: 2.8rem; line-height:1.1;">Every bounty starts with one job done.</h1>
+      <p class="muted" style="font-size:1.05rem; max-width:520px;">
+        Take on challenges pulled straight from the Grand Line grind — defeat bosses, awaken fruits, master styles.
+        Submit your proof, get reviewed, and watch your name climb from Rookie to Pirate King.
+      </p>
+      <div style="display:flex; gap:14px; margin-top:24px; flex-wrap:wrap;">
+        <a href="/auth/" class="btn btn-primary">Start Your Bounty</a>
+        <a href="/challenges/" class="btn btn-ghost">Browse Challenges</a>
+      </div>
+    </div>
+    <div class="poster" style="max-width:320px; justify-self:center; transform: rotate(-3deg);">
+      <p class="poster-eyebrow">★ WANTED ★</p>
+      <p class="poster-title">First Blood</p>
+      <p class="poster-body">Defeat your first Marine grunt and screenshot the kill feed.</p>
+      <p class="poster-reward">+15 XP</p>
+      <div class="center" style="margin-top:10px;"><span class="tag tag-easy">Easy</span></div>
+    </div>
+  </div>
+</header>
+
+<section class="section" style="padding-top:0;">
+  <div class="container">
+    <h2 class="center" style="font-size:1.6rem;">How the loop works</h2>
+    <div class="grid" style="margin-top:32px;">
+      <div class="panel">
+        <h3 style="font-size:1.05rem; color:var(--brass-bright);">01 · Pick a Bounty</h3>
+        <p class="muted">Browse live challenges by difficulty — from easy first kills to legendary raid clears.</p>
+      </div>
+      <div class="panel">
+        <h3 style="font-size:1.05rem; color:var(--brass-bright);">02 · Submit Proof</h3>
+        <p class="muted">Upload a screenshot showing you completed it. No proof, no XP — keeps the board honest.</p>
+      </div>
+      <div class="panel">
+        <h3 style="font-size:1.05rem; color:var(--brass-bright);">03 · Get Reviewed</h3>
+        <p class="muted">The crew reviews submissions and stamps them approved or sends them back.</p>
+      </div>
+      <div class="panel">
+        <h3 style="font-size:1.05rem; color:var(--brass-bright);">04 · Rank Up</h3>
+        <p class="muted">Approved bounties add XP. Level up and your title climbs — Rookie to Pirate King.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section" style="padding-top:0;">
+  <div class="container panel" style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:20px;">
+    <div>
+      <h2 style="font-size:1.4rem; margin-bottom:6px;">Ready to make a name for yourself?</h2>
+      <p class="muted" style="margin:0;">Sign up with email or Discord — it takes a minute.</p>
+    </div>
+    <a href="/auth/" class="btn btn-primary">Join BloxCore</a>
+  </div>
+</section>
+
+<footer class="site-footer">
+  <div class="container">BloxCore is an unofficial fan-made community project for Blox Fruits players. Not affiliated with the game's developers.</div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="/js/supabase-client.js"></script>
+<script src="/js/nav.js"></script>
+</body>
+</html>

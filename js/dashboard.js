@@ -1,0 +1,79 @@
+// BloxCore — dashboard.html logic
+
+document.addEventListener('DOMContentLoaded', async () => {
+  const auth = await requireAuth();
+  if (!auth) return;
+  const { user, profile } = auth;
+
+  renderProfileCard(profile);
+  await loadSubmissions(user.id);
+});
+
+function renderProfileCard(profile) {
+  const card = document.getElementById('profile-card');
+  const title = rankTitleForLevel(profile.level);
+  const progress = xpProgress(profile.xp, profile.level);
+
+  card.innerHTML = `
+    <div class="stamp">
+      <span class="stamp-level">${profile.level}</span>
+      <span class="stamp-label">Level</span>
+    </div>
+    <div style="flex:1; min-width:220px;">
+      <div class="flex-between" style="align-items:baseline;">
+        <div>
+          <p class="muted" style="margin:0; font-size:0.85rem;">${escapeHtml(profile.username)}</p>
+          <p class="rank-title" style="margin:2px 0 10px;">${title}</p>
+        </div>
+        <p class="muted" style="font-family:var(--font-mono); font-size:0.85rem; margin:0;">
+          ${progress.current} / ${progress.needed} XP
+        </p>
+      </div>
+      <div class="xp-bar"><div class="xp-bar-fill" style="width:${progress.pct}%;"></div></div>
+    </div>
+  `;
+}
+
+async function loadSubmissions(userId) {
+  const list = document.getElementById('submissions-list');
+
+  const { data, error } = await sb
+    .from('submissions')
+    .select('id, status, submitted_at, admin_note, challenges(title, xp_reward, difficulty)')
+    .eq('user_id', userId)
+    .order('submitted_at', { ascending: false });
+
+  if (error) {
+    list.innerHTML = `<p class="muted">Couldn't load your submissions right now.</p>`;
+    console.error(error);
+    return;
+  }
+
+  if (!data.length) {
+    list.innerHTML = `
+      <div class="empty-state" style="grid-column: 1 / -1;">
+        <p>No bounties claimed yet.</p>
+        <a href="/challenges/" class="btn btn-primary" style="margin-top:12px;">Browse Challenges</a>
+      </div>`;
+    return;
+  }
+
+  list.innerHTML = data.map(renderSubmissionCard).join('');
+}
+
+function renderSubmissionCard(sub) {
+  const statusClass = sub.status === 'approved' ? 'stamp-approved' : sub.status === 'rejected' ? 'stamp-rejected' : '';
+  const statusColor = sub.status === 'approved' ? 'var(--sea)' : sub.status === 'rejected' ? 'var(--blood)' : 'var(--brass)';
+  return `
+    <div class="panel" style="display:flex; gap:16px; align-items:flex-start;">
+      <div class="stamp ${statusClass}" style="width:56px; height:56px; transform: rotate(-6deg);">
+        <span class="stamp-label" style="font-size:0.52rem;">${sub.status.toUpperCase()}</span>
+      </div>
+      <div style="flex:1;">
+        <p style="margin:0 0 4px; font-weight:700;">${escapeHtml(sub.challenges?.title || 'Challenge')}</p>
+        <p class="muted" style="margin:0 0 6px; font-size:0.82rem;">${formatDate(sub.submitted_at)} · +${sub.challenges?.xp_reward ?? 0} XP</p>
+        ${sub.admin_note ? `<p style="margin:0; font-size:0.85rem; color:${statusColor};">"${escapeHtml(sub.admin_note)}"</p>` : ''}
+      </div>
+    </div>
+  `;
+}

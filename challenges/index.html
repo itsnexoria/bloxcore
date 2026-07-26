@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Challenges — BloxCore</title>
+<link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-inner">
+    <a href="/" class="brand"><span class="brand-mark">⚓</span> BloxCore</a>
+    <button class="nav-toggle" aria-label="Toggle menu">☰</button>
+    <ul class="nav-links">
+      <li><a href="/">Home</a></li>
+      <li><a href="/challenges/">Challenges</a></li>
+      <li><a href="/leaderboard/">Leaderboard</a></li>
+      <li id="nav-auth-slot" style="display:flex; gap:20px; align-items:center;"></li>
+    </ul>
+  </div>
+</nav>
+
+<section class="section">
+  <div class="container">
+    <div class="flex-between">
+      <h1 style="font-size:1.8rem;">The Bounty Board</h1>
+      <div style="display:flex; gap:10px;">
+        <select id="difficulty-filter">
+          <option value="">All Difficulties</option>
+          <option value="easy">Easy</option>
+          <option value="medium">Medium</option>
+          <option value="hard">Hard</option>
+          <option value="legendary">Legendary</option>
+        </select>
+      </div>
+    </div>
+
+    <div id="challenges-grid" class="grid" style="margin-top:12px;">
+      <div class="skeleton" style="height:220px;"></div>
+      <div class="skeleton" style="height:220px;"></div>
+      <div class="skeleton" style="height:220px;"></div>
+    </div>
+  </div>
+</section>
+
+<!-- Submit proof modal -->
+<div id="submit-modal" style="display:none; position:fixed; inset:0; background:rgba(6,15,26,0.85); z-index:200; align-items:center; justify-content:center; padding:20px;">
+  <div class="panel" style="max-width:420px; width:100%;">
+    <h3 id="modal-challenge-title" style="font-size:1.1rem;">Submit Proof</h3>
+    <form id="submit-form">
+      <label for="screenshot">Screenshot</label>
+      <input type="file" id="screenshot" accept="image/*" required>
+      <p class="field-error" id="submit-error" style="display:none;"></p>
+      <div style="display:flex; gap:10px; margin-top:6px;">
+        <button type="button" class="btn btn-ghost" id="modal-cancel">Cancel</button>
+        <button type="submit" class="btn btn-primary btn-block">Submit for Review</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<footer class="site-footer">
+  <div class="container">BloxCore is an unofficial fan-made community project for Blox Fruits players.</div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="/js/supabase-client.js"></script>
+<script src="/js/nav.js"></script>
+<script src="/js/challenges.js"></script>
+</body>
+</html>
