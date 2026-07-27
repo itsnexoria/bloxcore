@@ -43,6 +43,10 @@
       </div>
 
       <form id="profile-form">
+        <label for="display_name">Display Name</label>
+        <input type="text" id="display_name" minlength="2" maxlength="24" placeholder="How other pirates see your name">
+        <p class="muted" style="font-size:0.76rem; margin:-12px 0 16px;">Your login handle (@<span id="username-hint"></span>) stays the same — this is just what shows on your profile, the leaderboard, and the activity feed.</p>
+
         <label for="bio">Bio</label>
         <textarea id="bio" rows="3" maxlength="300" placeholder="Tell other pirates about yourself…"></textarea>
 
@@ -52,40 +56,51 @@
         <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
           <div>
             <label for="pirate_bounty">Pirate Bounty</label>
-            <input type="number" id="pirate_bounty" min="0" step="1" placeholder="0">
+            <select id="pirate_bounty"></select>
           </div>
           <div>
             <label for="marine_bounty">Marine Bounty</label>
-            <input type="number" id="marine_bounty" min="0" step="1" placeholder="0">
+            <select id="marine_bounty"></select>
           </div>
         </div>
 
         <p class="muted" style="font-size:0.78rem; text-transform:uppercase; letter-spacing:0.05em; margin:20px 0 10px;">Your Build</p>
-        <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
-          <div>
-            <label for="build_fruit">Fruit</label>
-            <select id="build_fruit"></select>
-          </div>
-          <div>
-            <label for="build_race">Race</label>
-            <select id="build_race"></select>
-          </div>
-          <div>
-            <label for="build_sword">Sword</label>
-            <select id="build_sword"></select>
-          </div>
-          <div>
-            <label for="build_gun">Gun</label>
-            <select id="build_gun"></select>
-          </div>
-          <div>
-            <label for="build_melee">Fighting Style</label>
-            <select id="build_melee"></select>
-          </div>
-          <div>
-            <label for="build_accessory">Accessory</label>
-            <select id="build_accessory"></select>
-          </div>
+        <div class="build-picker-grid">
+          <input type="hidden" id="build_fruit">
+          <button type="button" class="build-picker-btn" data-build-key="fruit">
+            <span class="build-picker-label">Fruit</span>
+            <span class="build-picker-value" data-empty="— Choose —">— Choose —</span>
+          </button>
+
+          <input type="hidden" id="build_race">
+          <button type="button" class="build-picker-btn" data-build-key="race">
+            <span class="build-picker-label">Race</span>
+            <span class="build-picker-value" data-empty="— Choose —">— Choose —</span>
+          </button>
+
+          <input type="hidden" id="build_sword">
+          <button type="button" class="build-picker-btn" data-build-key="sword">
+            <span class="build-picker-label">Sword</span>
+            <span class="build-picker-value" data-empty="— Choose —">— Choose —</span>
+          </button>
+
+          <input type="hidden" id="build_gun">
+          <button type="button" class="build-picker-btn" data-build-key="gun">
+            <span class="build-picker-label">Gun</span>
+            <span class="build-picker-value" data-empty="— Choose —">— Choose —</span>
+          </button>
+
+          <input type="hidden" id="build_melee">
+          <button type="button" class="build-picker-btn" data-build-key="melee">
+            <span class="build-picker-label">Fighting Style</span>
+            <span class="build-picker-value" data-empty="— Choose —">— Choose —</span>
+          </button>
+
+          <input type="hidden" id="build_accessory">
+          <button type="button" class="build-picker-btn" data-build-key="accessory">
+            <span class="build-picker-label">Accessory</span>
+            <span class="build-picker-value" data-empty="— Choose —">— Choose —</span>
+          </button>
         </div>
 
         <p class="muted" style="font-size:0.78rem; text-transform:uppercase; letter-spacing:0.05em; margin:20px 0 10px;">Social Links</p>
@@ -104,6 +119,18 @@
     </div>
   </div>
 </section>
+
+<!-- Shared build picker modal — filled dynamically for whichever slot was clicked -->
+<div id="build-picker-modal" class="build-modal-overlay">
+  <div class="panel build-modal">
+    <div class="flex-between" style="margin-bottom:14px;">
+      <h3 id="build-modal-title" style="font-size:1.05rem; margin:0;">Choose</h3>
+      <button type="button" class="btn btn-ghost btn-sm" id="build-modal-close">✕</button>
+    </div>
+    <input type="text" id="build-modal-search" placeholder="Search…" style="margin-bottom:16px;">
+    <div id="build-modal-grid" class="build-modal-grid"></div>
+  </div>
+</div>
 
 <footer class="site-footer">
   <div class="container">BloxCore is an unofficial fan-made community project for Blox Fruits players.</div>

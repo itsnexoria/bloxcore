@@ -12,7 +12,7 @@ async function loadActivity() {
 
   const { data, error } = await sb
     .from('activity_log')
-    .select('*')
+    .select('id, user_id, username, type, detail, xp_awarded, created_at, profiles(display_name)')
     .order('created_at', { ascending: false })
     .limit(ACTIVITY_LIMIT);
 
@@ -27,7 +27,11 @@ async function loadActivity() {
     return;
   }
 
-  feed.innerHTML = data.map((a, i) => renderActivityRow(a, i === data.length - 1)).join('');
+  feed.innerHTML = data.map((a, i) => renderActivityRow(withDisplayName(a), i === data.length - 1)).join('');
+}
+
+function withDisplayName(a) {
+  return { ...a, displayName: a.profiles?.display_name || a.username };
 }
 
 function renderActivityRow(a, isLast) {
@@ -41,7 +45,7 @@ function renderActivityRow(a, isLast) {
       <div style="display:flex; align-items:center; gap:12px; min-width:0;">
         <span style="font-size:1.1rem;">${icon}</span>
         <p style="margin:0; font-size:0.9rem;">
-          <a href="/player/?u=${encodeURIComponent(a.username)}" style="color:var(--bone); font-weight:700; text-decoration:none;">${escapeHtml(a.username)}</a>
+          <a href="/player/?u=${encodeURIComponent(a.username)}" style="color:var(--bone); font-weight:700; text-decoration:none;">${escapeHtml(a.displayName)}</a>
           ${text}
         </p>
       </div>
@@ -54,8 +58,9 @@ function subscribeToActivity() {
   const dot = document.getElementById('activity-live-dot');
 
   sb.channel('public:activity_log')
-    .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'activity_log' }, (payload) => {
-      prependActivity(payload.new);
+    .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'activity_log' }, async (payload) => {
+      const { data: profile } = await sb.from('profiles').select('display_name').eq('id', payload.new.user_id).single();
+      prependActivity({ ...payload.new, displayName: profile?.display_name || payload.new.username });
       if (dot) {
         dot.style.transform = 'scale(1.6)';
         setTimeout(() => { dot.style.transform = 'scale(1)'; }, 300);

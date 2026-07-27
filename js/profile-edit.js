@@ -1,6 +1,16 @@
 // BloxCore — profile/index.html logic (edit own profile)
 
 let currentUserId = null;
+let activeBuildKey = null;
+
+const BUILD_FIELDS = [
+  { id: 'build_fruit', key: 'fruit', label: 'Fruit' },
+  { id: 'build_race', key: 'race', label: 'Race' },
+  { id: 'build_sword', key: 'sword', label: 'Sword' },
+  { id: 'build_gun', key: 'gun', label: 'Gun' },
+  { id: 'build_melee', key: 'melee', label: 'Fighting Style' },
+  { id: 'build_accessory', key: 'accessory', label: 'Accessory' },
+];
 
 document.addEventListener('DOMContentLoaded', async () => {
   const auth = await requireAuth();
@@ -8,53 +18,43 @@ document.addEventListener('DOMContentLoaded', async () => {
   currentUserId = auth.user.id;
 
   document.getElementById('view-public-link').href = `/player/?u=${encodeURIComponent(auth.profile.username)}`;
+  document.getElementById('username-hint').textContent = auth.profile.username;
 
-  populateBuildSelects();
+  populateBountySelect('pirate_bounty');
+  populateBountySelect('marine_bounty');
   populateForm(auth.profile);
+  wireBuildPickers();
 
   document.getElementById('avatar-file').addEventListener('change', handleAvatarUpload);
   document.getElementById('profile-form').addEventListener('submit', handleSave);
 });
 
-const BUILD_FIELDS = [
-  { id: 'build_fruit', key: 'fruit' },
-  { id: 'build_race', key: 'race' },
-  { id: 'build_sword', key: 'sword' },
-  { id: 'build_gun', key: 'gun' },
-  { id: 'build_melee', key: 'melee' },
-  { id: 'build_accessory', key: 'accessory' },
-];
+function populateBountySelect(id) {
+  const select = document.getElementById(id);
+  const blank = document.createElement('option');
+  blank.value = '0';
+  blank.textContent = '— Not set —';
+  select.appendChild(blank);
 
-function populateBuildSelects() {
-  BUILD_FIELDS.forEach(({ id, key }) => {
-    const select = document.getElementById(id);
-    const blank = document.createElement('option');
-    blank.value = '';
-    blank.textContent = '— None —';
-    select.appendChild(blank);
-
-    BUILD_OPTIONS[key].forEach(opt => {
-      const option = document.createElement('option');
-      option.value = opt.value;
-      option.textContent = opt.value;
-      select.appendChild(option);
-    });
+  BOUNTY_TIERS.forEach(tier => {
+    const option = document.createElement('option');
+    option.value = tier.value;
+    option.textContent = tier.label;
+    select.appendChild(option);
   });
 }
 
 function populateForm(profile) {
   renderAvatar(profile.avatar_url);
+  document.getElementById('display_name').value = profile.display_name || '';
   document.getElementById('bio').value = profile.bio || '';
   document.getElementById('region').value = profile.region || '';
   document.getElementById('pirate_bounty').value = profile.pirate_bounty || 0;
   document.getElementById('marine_bounty').value = profile.marine_bounty || 0;
 
-  document.getElementById('build_fruit').value = profile.build_fruit || '';
-  document.getElementById('build_race').value = profile.build_race || '';
-  document.getElementById('build_sword').value = profile.build_sword || '';
-  document.getElementById('build_gun').value = profile.build_gun || '';
-  document.getElementById('build_melee').value = profile.build_melee || '';
-  document.getElementById('build_accessory').value = profile.build_accessory || '';
+  BUILD_FIELDS.forEach(({ id, key, label }) => {
+    setBuildValue(key, profile[id] || '', false);
+  });
 
   const social = profile.social_links || {};
   document.getElementById('social_youtube').value = social.youtube || '';
@@ -98,6 +98,100 @@ async function handleAvatarUpload(e) {
   }
 }
 
+// ---- Build picker popup ----
+
+function wireBuildPickers() {
+  document.querySelectorAll('.build-picker-btn').forEach(btn => {
+    btn.addEventListener('click', () => openBuildModal(btn.dataset.buildKey));
+  });
+  document.getElementById('build-modal-close').addEventListener('click', closeBuildModal);
+  document.getElementById('build-picker-modal').addEventListener('click', (e) => {
+    if (e.target.id === 'build-picker-modal') closeBuildModal();
+  });
+  document.getElementById('build-modal-search').addEventListener('input', (e) => {
+    renderModalGrid(activeBuildKey, e.target.value);
+  });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') closeBuildModal();
+  });
+}
+
+function openBuildModal(key) {
+  activeBuildKey = key;
+  const field = BUILD_FIELDS.find(f => f.key === key);
+  document.getElementById('build-modal-title').textContent = `Choose ${field.label}`;
+  document.getElementById('build-modal-search').value = '';
+  renderModalGrid(key, '');
+  document.getElementById('build-picker-modal').classList.add('open');
+}
+
+function closeBuildModal() {
+  document.getElementById('build-picker-modal').classList.remove('open');
+  activeBuildKey = null;
+}
+
+function renderModalGrid(key, filter) {
+  const grid = document.getElementById('build-modal-grid');
+  const field = BUILD_FIELDS.find(f => f.key === key);
+  const currentValue = document.getElementById(field.id).value;
+  const query = filter.trim().toLowerCase();
+
+  const options = BUILD_OPTIONS[key].filter(opt => opt.value.toLowerCase().includes(query));
+
+  const noneTile = `
+    <div class="build-modal-tile ${currentValue === '' ? 'selected' : ''}" data-build-value="">
+      <span style="font-size:1.4rem;">🚫</span>
+      <span>None</span>
+    </div>
+  `;
+
+  const tiles = options.map(opt => `
+    <div class="build-modal-tile ${currentValue === opt.value ? 'selected' : ''}" data-build-value="${escapeHtml(opt.value)}">
+      <img src="${opt.icon}" alt="${escapeHtml(opt.value)}" loading="lazy">
+      <span>${escapeHtml(opt.value)}</span>
+    </div>
+  `).join('');
+
+  grid.innerHTML = noneTile + tiles;
+
+  grid.querySelectorAll('[data-build-value]').forEach(tile => {
+    tile.addEventListener('click', () => {
+      setBuildValue(key, tile.dataset.buildValue, true);
+      closeBuildModal();
+    });
+  });
+}
+
+function setBuildValue(key, value, animate) {
+  const field = BUILD_FIELDS.find(f => f.key === key);
+  const hiddenInput = document.getElementById(field.id);
+  hiddenInput.value = value;
+
+  const btn = document.querySelector(`.build-picker-btn[data-build-key="${key}"]`);
+  const valueEl = btn.querySelector('.build-picker-value');
+  const icon = value ? findBuildIcon(key, value) : null;
+
+  if (value) {
+    valueEl.classList.remove('is-empty');
+    valueEl.innerHTML = `${icon ? `<img src="${icon}" alt="">` : ''}${escapeHtml(value)}`;
+  } else {
+    valueEl.classList.add('is-empty');
+    valueEl.textContent = '— Choose —';
+  }
+
+  if (animate) {
+    btn.style.animation = 'none';
+    requestAnimationFrame(() => { btn.style.animation = 'fadeInUp 0.25s ease both'; });
+  }
+}
+
+function findBuildIcon(key, value) {
+  const match = (BUILD_OPTIONS[key] || []).find(opt => opt.value === value);
+  return match ? match.icon : null;
+}
+
+// ---- Save ----
+
 async function handleSave(e) {
   e.preventDefault();
   const errorEl = document.getElementById('profile-error');
@@ -107,6 +201,7 @@ async function handleSave(e) {
   saveBtn.textContent = 'Saving…';
 
   const payload = {
+    display_name: document.getElementById('display_name').value.trim() || null,
     bio: document.getElementById('bio').value.trim() || null,
     region: document.getElementById('region').value.trim() || null,
     pirate_bounty: parseInt(document.getElementById('pirate_bounty').value, 10) || 0,

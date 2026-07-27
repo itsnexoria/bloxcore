@@ -141,23 +141,37 @@ h1, h2, h3 {
 .nav-links {
   list-style: none;
   margin: 0;
-  padding: 100px 28px 28px;
+  padding: 92px 20px 24px;
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
-  gap: 24px;
+  align-items: stretch;
+  gap: 4px;
 
   position: fixed;
   top: 0;
   right: 0;
   height: 100vh;
   width: min(300px, 84vw);
-  background: linear-gradient(180deg, #101d30, var(--navy) 40%);
-  border-left: 1px solid rgba(41,182,246,0.3);
+  background: linear-gradient(180deg, #0f1c30, var(--navy) 55%);
+  border-left: 1px solid rgba(41,182,246,0.28);
   box-shadow: -8px 0 0 rgba(0,0,0,0.3), -30px 0 60px rgba(0,0,0,0.6);
   transform: translateX(100%);
   transition: transform 0.25s ease;
   z-index: 70;
+  overflow-y: auto;
+}
+
+.nav-links::before {
+  content: 'Menu';
+  position: absolute;
+  top: 36px;
+  left: 28px;
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--ash);
 }
 
 .nav-links.open { transform: translateX(0); }
@@ -167,38 +181,55 @@ h1, h2, h3 {
   color: var(--ash);
   font-weight: 600;
   font-size: 0.95rem;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  transition: color 0.15s ease, transform 0.15s ease;
-  display: inline-block;
+  letter-spacing: 0.01em;
+  transition: color 0.15s ease, background 0.15s ease, transform 0.15s ease;
+  display: block;
+  padding: 12px 14px;
+  border-radius: 8px;
+  border-left: 3px solid transparent;
 }
 
-.nav-links a:hover, .nav-links a.active { color: var(--brass-bright); transform: translateX(-4px); }
+.nav-links a:hover {
+  color: var(--brass-bright);
+  background: rgba(41,182,246,0.09);
+  transform: translateX(2px);
+}
+.nav-links a.active {
+  color: var(--brass-bright);
+  background: rgba(41,182,246,0.14);
+  border-left-color: var(--brass);
+}
 
 /* auth-slot items inherit nav-links' column layout when the drawer is open */
 #nav-auth-slot {
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
-  gap: 18px;
+  align-items: stretch;
+  gap: 4px;
   width: 100%;
+  margin-top: 14px;
+  padding-top: 18px;
+  border-top: 1px solid var(--navy-light);
 }
+#nav-auth-slot .btn { width: 100%; margin-top: 6px; }
 
 .nav-toggle {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 40px;
-  height: 40px;
-  background: none;
+  width: 42px;
+  height: 42px;
+  font-size: 1.1rem;
+  background: rgba(255,255,255,0.02);
   border: 1px solid var(--navy-light);
   color: var(--bone);
-  border-radius: var(--radius);
+  border-radius: 10px;
   cursor: pointer;
   z-index: 80;
   position: relative;
+  transition: border-color 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
 }
-.nav-toggle:hover { border-color: var(--brass); color: var(--brass-bright); }
+.nav-toggle:hover { border-color: var(--brass); color: var(--brass-bright); box-shadow: 0 0 14px rgba(41,182,246,0.25); }
 
 .nav-overlay {
   position: fixed;
@@ -465,6 +496,91 @@ input:focus, select:focus, textarea:focus {
   font-size: 0.82rem;
   margin: -10px 0 14px;
 }
+
+/* Build picker buttons (profile edit) — open the shared popup modal instead of a native select */
+.build-picker-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  margin-bottom: 8px;
+}
+.build-picker-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 5px;
+  width: 100%;
+  text-align: left;
+  background: var(--ink);
+  border: 1px solid var(--navy-light);
+  border-radius: var(--radius);
+  padding: 10px 13px;
+  cursor: pointer;
+  transition: border-color 0.15s ease, background 0.15s ease;
+  font-family: var(--font-body);
+}
+.build-picker-btn:hover { border-color: var(--brass); background: rgba(41,182,246,0.06); }
+.build-picker-label {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--ash);
+}
+.build-picker-value {
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: var(--bone);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.build-picker-value img { width: 24px; height: 24px; object-fit: contain; }
+.build-picker-value.is-empty { color: var(--ash); font-weight: 500; }
+
+/* Shared popup for picking a build item — filled dynamically per field */
+.build-modal-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(5,8,16,0.85);
+  backdrop-filter: blur(2px);
+  z-index: 200;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+.build-modal-overlay.open { display: flex; animation: fadeInUp 0.2s ease both; }
+.build-modal {
+  max-width: 480px;
+  width: 100%;
+  max-height: 78vh;
+  display: flex;
+  flex-direction: column;
+}
+.build-modal-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(84px, 1fr));
+  gap: 10px;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+.build-modal-tile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  background: var(--ink);
+  border: 1px solid var(--navy-light);
+  border-radius: var(--radius);
+  padding: 10px 6px;
+  cursor: pointer;
+  text-align: center;
+  transition: border-color 0.15s ease, background 0.15s ease, transform 0.15s ease;
+}
+.build-modal-tile:hover { border-color: var(--brass); transform: translateY(-2px); }
+.build-modal-tile.selected { border-color: var(--brass); background: rgba(41,182,246,0.14); }
+.build-modal-tile img { width: 40px; height: 40px; object-fit: contain; }
+.build-modal-tile span { font-size: 0.7rem; line-height: 1.15; word-break: break-word; }
 
 /* -------------------------------- Utility --------------------------------- */
 

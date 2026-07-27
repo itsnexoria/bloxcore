@@ -23,12 +23,12 @@ function renderProfileCard(profile) {
     <div style="flex:1; min-width:220px;">
       <div class="flex-between" style="align-items:baseline;">
         <div>
-          <p class="muted" style="margin:0; font-size:0.85rem;">${escapeHtml(profile.username)}</p>
+          <p class="muted" style="margin:0; font-size:0.85rem;">${escapeHtml(displayNameFor(profile))}</p>
           <p class="rank-title" style="margin:2px 0 10px;">${title}</p>
         </div>
         <div style="display:flex; gap:8px;">
           <a href="/player/?u=${encodeURIComponent(profile.username)}" class="btn btn-ghost btn-sm">View Public</a>
-          <a href="/profile/" class="btn btn-ghost btn-sm">Edit Profile</a>
+          <a href="/profile/" class="btn btn-primary btn-sm">Edit Profile</a>
         </div>
       </div>
       <div class="flex-between" style="align-items:baseline; margin-top:4px;">

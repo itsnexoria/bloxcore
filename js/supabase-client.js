@@ -75,7 +75,35 @@ function timeAgo(iso) {
 
 function formatBounty(n) {
   const num = Number(n) || 0;
-  return '฿' + num.toLocaleString('en-US');
+  if (num <= 0) return 'Unranked';
+  if (num >= 1_000_000) {
+    const millions = num / 1_000_000;
+    const rounded = Math.round(millions * 10) / 10;
+    const label = Number.isInteger(rounded) ? String(rounded) : rounded.toFixed(1);
+    return `${label}M`;
+  }
+  return num.toLocaleString('en-US');
+}
+
+// Fixed bounty tiers (2.5M steps, 2.5M-30M) — used for both Pirate and Marine Bounty selects.
+const BOUNTY_TIERS = [
+  { value: 2500000, label: '2.5M' },
+  { value: 5000000, label: '5M+' },
+  { value: 7500000, label: '7.5M+' },
+  { value: 10000000, label: '10M+' },
+  { value: 12500000, label: '12.5M+' },
+  { value: 15000000, label: '15M+' },
+  { value: 17500000, label: '17.5M+' },
+  { value: 20000000, label: '20M+' },
+  { value: 22500000, label: '22.5M+' },
+  { value: 25000000, label: '25M+' },
+  { value: 27500000, label: '27.5M+' },
+  { value: 30000000, label: '30M' },
+];
+
+// A player's chosen display name if set, otherwise their (unique, unchangeable) username.
+function displayNameFor(profile) {
+  return profile?.display_name || profile?.username || 'Unknown';
 }
 
 // Resolve the current session + profile row together. Returns { user, profile } or nulls.

@@ -23,7 +23,7 @@ async function loadPlayer() {
     return;
   }
 
-  document.title = `${profile.username} — BloxCore`;
+  document.title = `${displayNameFor(profile)} — BloxCore`;
   content.innerHTML = renderProfile(profile);
 }
 
@@ -31,6 +31,8 @@ function renderProfile(p) {
   const title = rankTitleForLevel(p.level);
   const progress = xpProgress(p.xp, p.level);
   const social = p.social_links || {};
+  const name = displayNameFor(p);
+  const showHandle = name !== p.username;
   const socialLinks = [
     { key: 'youtube', label: 'YouTube' },
     { key: 'twitch', label: 'Twitch' },
@@ -48,8 +50,8 @@ function renderProfile(p) {
   ].filter(f => f.value);
 
   const avatarHtml = p.avatar_url
-    ? `<img src="${p.avatar_url}" alt="${escapeHtml(p.username)}" style="width:84px; height:84px; border-radius:50%; object-fit:cover; border:2px solid var(--brass);">`
-    : `<div class="stamp stamp-static" style="width:84px; height:84px;"><span style="font-size:1.8rem;">${escapeHtml(p.username[0]?.toUpperCase() || '?')}</span></div>`;
+    ? `<img src="${p.avatar_url}" alt="${escapeHtml(name)}" style="width:84px; height:84px; border-radius:50%; object-fit:cover; border:2px solid var(--brass);">`
+    : `<div class="stamp stamp-static" style="width:84px; height:84px;"><span style="font-size:1.8rem;">${escapeHtml(name[0]?.toUpperCase() || '?')}</span></div>`;
 
   return `
     <div class="panel" style="display:flex; gap:22px; align-items:center; flex-wrap:wrap;">
@@ -57,7 +59,8 @@ function renderProfile(p) {
       <div style="flex:1; min-width:220px;">
         <div class="flex-between" style="align-items:baseline;">
           <div>
-            <h1 style="font-size:1.5rem; margin-bottom:2px;">${escapeHtml(p.username)}</h1>
+            <h1 style="font-size:1.5rem; margin-bottom:2px;">${escapeHtml(name)}</h1>
+            ${showHandle ? `<p class="muted" style="margin:0 0 2px; font-size:0.8rem;">@${escapeHtml(p.username)}</p>` : ''}
             <p class="rank-title" style="margin:0 0 8px;">${title} · Lv. ${p.level}</p>
           </div>
         </div>
