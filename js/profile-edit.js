@@ -9,11 +9,38 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   document.getElementById('view-public-link').href = `/player/?u=${encodeURIComponent(auth.profile.username)}`;
 
+  populateBuildSelects();
   populateForm(auth.profile);
 
   document.getElementById('avatar-file').addEventListener('change', handleAvatarUpload);
   document.getElementById('profile-form').addEventListener('submit', handleSave);
 });
+
+const BUILD_FIELDS = [
+  { id: 'build_fruit', key: 'fruit' },
+  { id: 'build_race', key: 'race' },
+  { id: 'build_sword', key: 'sword' },
+  { id: 'build_gun', key: 'gun' },
+  { id: 'build_melee', key: 'melee' },
+  { id: 'build_accessory', key: 'accessory' },
+];
+
+function populateBuildSelects() {
+  BUILD_FIELDS.forEach(({ id, key }) => {
+    const select = document.getElementById(id);
+    const blank = document.createElement('option');
+    blank.value = '';
+    blank.textContent = '— None —';
+    select.appendChild(blank);
+
+    BUILD_OPTIONS[key].forEach(opt => {
+      const option = document.createElement('option');
+      option.value = opt.value;
+      option.textContent = opt.value;
+      select.appendChild(option);
+    });
+  });
+}
 
 function populateForm(profile) {
   renderAvatar(profile.avatar_url);
@@ -21,6 +48,13 @@ function populateForm(profile) {
   document.getElementById('region').value = profile.region || '';
   document.getElementById('pirate_bounty').value = profile.pirate_bounty || 0;
   document.getElementById('marine_bounty').value = profile.marine_bounty || 0;
+
+  document.getElementById('build_fruit').value = profile.build_fruit || '';
+  document.getElementById('build_race').value = profile.build_race || '';
+  document.getElementById('build_sword').value = profile.build_sword || '';
+  document.getElementById('build_gun').value = profile.build_gun || '';
+  document.getElementById('build_melee').value = profile.build_melee || '';
+  document.getElementById('build_accessory').value = profile.build_accessory || '';
 
   const social = profile.social_links || {};
   document.getElementById('social_youtube').value = social.youtube || '';
@@ -77,6 +111,12 @@ async function handleSave(e) {
     region: document.getElementById('region').value.trim() || null,
     pirate_bounty: parseInt(document.getElementById('pirate_bounty').value, 10) || 0,
     marine_bounty: parseInt(document.getElementById('marine_bounty').value, 10) || 0,
+    build_fruit: document.getElementById('build_fruit').value || null,
+    build_race: document.getElementById('build_race').value || null,
+    build_sword: document.getElementById('build_sword').value || null,
+    build_gun: document.getElementById('build_gun').value || null,
+    build_melee: document.getElementById('build_melee').value || null,
+    build_accessory: document.getElementById('build_accessory').value || null,
     social_links: {
       youtube: document.getElementById('social_youtube').value.trim(),
       twitch: document.getElementById('social_twitch').value.trim(),

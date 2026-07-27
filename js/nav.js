@@ -65,7 +65,8 @@ async function populateAuthArea() {
   }
 
   const { data: profile } = await sb.from('profiles').select('username, is_admin').eq('id', session.user.id).single();
-  const adminLink = profile?.is_admin ? `<a href="/admin/">Review Board</a>` : '';
+  const onAdminPage = window.location.pathname.startsWith('/admin/');
+  const adminLink = (profile?.is_admin && !onAdminPage) ? `<a href="/admin/">Review Board</a>` : '';
 
   slot.innerHTML = `
     ${adminLink}

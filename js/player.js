@@ -38,9 +38,18 @@ function renderProfile(p) {
     { key: 'tiktok', label: 'TikTok' },
   ].filter(s => social[s.key]);
 
+  const buildFields = [
+    { key: 'fruit', label: 'Fruit', value: p.build_fruit },
+    { key: 'race', label: 'Race', value: p.build_race },
+    { key: 'sword', label: 'Sword', value: p.build_sword },
+    { key: 'gun', label: 'Gun', value: p.build_gun },
+    { key: 'melee', label: 'Style', value: p.build_melee },
+    { key: 'accessory', label: 'Accessory', value: p.build_accessory },
+  ].filter(f => f.value);
+
   const avatarHtml = p.avatar_url
     ? `<img src="${p.avatar_url}" alt="${escapeHtml(p.username)}" style="width:84px; height:84px; border-radius:50%; object-fit:cover; border:2px solid var(--brass);">`
-    : `<div class="stamp" style="width:84px; height:84px; transform:none;"><span style="font-size:1.8rem;">${escapeHtml(p.username[0]?.toUpperCase() || '?')}</span></div>`;
+    : `<div class="stamp stamp-static" style="width:84px; height:84px;"><span style="font-size:1.8rem;">${escapeHtml(p.username[0]?.toUpperCase() || '?')}</span></div>`;
 
   return `
     <div class="panel" style="display:flex; gap:22px; align-items:center; flex-wrap:wrap;">
@@ -77,10 +86,35 @@ function renderProfile(p) {
       </div>
     </div>
 
+    ${buildFields.length ? `
+      <div style="margin-top:20px;">
+        <p class="muted" style="margin:0 0 10px; font-size:0.8rem; text-transform:uppercase; letter-spacing:0.05em;">Build</p>
+        <div class="grid" style="grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));">
+          ${buildFields.map(f => renderBuildItem(f)).join('')}
+        </div>
+      </div>
+    ` : ''}
+
     ${socialLinks.length ? `
       <div style="margin-top:20px; display:flex; gap:10px; flex-wrap:wrap;">
         ${socialLinks.map(s => `<a href="${escapeHtml(social[s.key])}" target="_blank" rel="noopener noreferrer" class="btn btn-ghost btn-sm">${s.label}</a>`).join('')}
       </div>
     ` : ''}
   `;
+}
+
+function renderBuildItem(field) {
+  const icon = findBuildIcon(field.key, field.value);
+  return `
+    <div class="panel" style="padding:14px; text-align:center;">
+      ${icon ? `<img src="${icon}" alt="${escapeHtml(field.value)}" style="width:48px; height:48px; object-fit:contain; margin-bottom:8px;">` : ''}
+      <p class="muted" style="margin:0 0 2px; font-size:0.72rem; text-transform:uppercase; letter-spacing:0.05em;">${field.label}</p>
+      <p style="margin:0; font-size:0.85rem; font-weight:600;">${escapeHtml(field.value)}</p>
+    </div>
+  `;
+}
+
+function findBuildIcon(key, value) {
+  const match = (BUILD_OPTIONS[key] || []).find(opt => opt.value === value);
+  return match ? match.icon : null;
 }

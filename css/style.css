@@ -34,10 +34,17 @@
 
 * { box-sizing: border-box; }
 
-html { scroll-behavior: smooth; }
+html {
+  scroll-behavior: smooth;
+  overflow-x: hidden;
+  /* Firefox custom scrollbar */
+  scrollbar-width: thin;
+  scrollbar-color: var(--brass) var(--ink);
+}
 
 body {
   margin: 0;
+  overflow-x: hidden; /* rotated bounty cards can slightly exceed 100vw — never let that create page scroll */
   background:
     radial-gradient(ellipse at top, #0d1f34 0%, var(--ink) 55%),
     repeating-linear-gradient(180deg, rgba(120,220,255,0.02) 0px, rgba(120,220,255,0.02) 1px, transparent 1px, transparent 3px);
@@ -46,6 +53,16 @@ body {
   line-height: 1.5;
   min-height: 100vh;
 }
+
+/* Webkit custom scrollbar (Chrome/Edge/Safari) */
+::-webkit-scrollbar { width: 11px; height: 11px; }
+::-webkit-scrollbar-track { background: var(--ink); }
+::-webkit-scrollbar-thumb {
+  background: var(--navy-light);
+  border-radius: 6px;
+  border: 2px solid var(--ink);
+}
+::-webkit-scrollbar-thumb:hover { background: var(--brass); }
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: 0.001ms !important; transition-duration: 0.001ms !important; }
@@ -74,7 +91,13 @@ h1, h2, h3 {
   backdrop-filter: blur(6px);
   position: sticky;
   top: 0;
-  z-index: 50;
+  /* Must be above .nav-overlay (60): .nav creates its own stacking context
+     (position + z-index), which traps its descendants — including the drawer
+     and toggle button — inside that context. If .nav's own z-index were lower
+     than the overlay's, the whole drawer would render UNDER the dimming
+     overlay instead of above it, even though the drawer's own z-index is
+     higher than the overlay's within that trapped context. */
+  z-index: 100;
 }
 
 .nav-inner {
@@ -103,6 +126,18 @@ h1, h2, h3 {
   filter: drop-shadow(0 0 10px rgba(41, 182, 246, 0.45));
 }
 
+.admin-badge {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--blood);
+  border: 1px solid var(--blood);
+  border-radius: 20px;
+  padding: 3px 10px;
+}
+
 .nav-links {
   list-style: none;
   margin: 0;
@@ -117,9 +152,9 @@ h1, h2, h3 {
   right: 0;
   height: 100vh;
   width: min(300px, 84vw);
-  background: var(--navy);
-  border-left: 1px solid var(--navy-light);
-  box-shadow: -20px 0 50px rgba(0,0,0,0.5);
+  background: linear-gradient(180deg, #101d30, var(--navy) 40%);
+  border-left: 1px solid rgba(41,182,246,0.3);
+  box-shadow: -8px 0 0 rgba(0,0,0,0.3), -30px 0 60px rgba(0,0,0,0.6);
   transform: translateX(100%);
   transition: transform 0.25s ease;
   z-index: 70;
@@ -134,10 +169,11 @@ h1, h2, h3 {
   font-size: 0.95rem;
   text-transform: uppercase;
   letter-spacing: 0.04em;
-  transition: color 0.15s ease;
+  transition: color 0.15s ease, transform 0.15s ease;
+  display: inline-block;
 }
 
-.nav-links a:hover, .nav-links a.active { color: var(--brass-bright); }
+.nav-links a:hover, .nav-links a.active { color: var(--brass-bright); transform: translateX(-4px); }
 
 /* auth-slot items inherit nav-links' column layout when the drawer is open */
 #nav-auth-slot {
@@ -235,6 +271,7 @@ h1, h2, h3 {
   border: 1px solid var(--navy-light);
   border-radius: var(--radius);
   padding: 28px;
+  animation: fadeInUp 0.45s ease both;
 }
 
 /* Bounty card: frosted ice-crystal face — faceted cut, cyan glow border, glassy fill */
@@ -246,10 +283,17 @@ h1, h2, h3 {
   padding: 22px 20px 26px;
   position: relative;
   box-shadow: 0 10px 30px rgba(0,0,0,0.55), 0 0 24px rgba(41,182,246,0.08), inset 0 0 0 1px rgba(123,224,255,0.06);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  animation: fadeInUp 0.45s ease both;
   clip-path: polygon(
     0% 2%, 3% 0%, 97% 0%, 100% 3%,
     100% 97%, 98% 100%, 2% 100%, 0% 98%
   );
+}
+
+.poster:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 16px 36px rgba(0,0,0,0.6), 0 0 30px rgba(41,182,246,0.18), inset 0 0 0 1px rgba(123,224,255,0.1);
 }
 
 .poster::before {
@@ -326,6 +370,12 @@ h1, h2, h3 {
   font-family: var(--font-stamp);
   background: radial-gradient(circle, rgba(41,182,246,0.12), transparent 70%);
   box-shadow: 0 0 22px rgba(41,182,246,0.25);
+  animation: stampPulse 3s ease-in-out infinite;
+}
+
+@keyframes stampPulse {
+  0%, 100% { transform: rotate(-8deg) scale(1); }
+  50% { transform: rotate(-8deg) scale(1.04); }
 }
 
 .stamp::before, .stamp::after {
@@ -355,6 +405,7 @@ h1, h2, h3 {
 
 .stamp-approved { --stamp-color: var(--sea); }
 .stamp-rejected { --stamp-color: var(--blood); }
+.stamp-static { animation: none; transform: none; }
 
 /* ------------------------------- XP / Level ------------------------------- */
 
@@ -433,6 +484,11 @@ input:focus, select:focus, textarea:focus {
   border: 1px dashed var(--navy-light);
   border-radius: var(--radius);
 }
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(14px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
 .toast {
   position: fixed;
   bottom: 24px;
@@ -444,6 +500,16 @@ input:focus, select:focus, textarea:focus {
   z-index: 100;
   max-width: 320px;
   box-shadow: 0 10px 30px rgba(0,0,0,0.5), 0 0 20px rgba(41,182,246,0.15);
+  animation: toastIn 0.25s ease both;
+}
+.toast.leaving { animation: toastOut 0.25s ease both; }
+@keyframes toastIn {
+  from { opacity: 0; transform: translateY(10px) scale(0.97); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+@keyframes toastOut {
+  from { opacity: 1; transform: translateY(0) scale(1); }
+  to { opacity: 0; transform: translateY(10px) scale(0.97); }
 }
 .toast.error { border-color: var(--blood); box-shadow: 0 10px 30px rgba(0,0,0,0.5), 0 0 20px rgba(255,77,109,0.15); }
 .skeleton {

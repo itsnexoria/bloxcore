@@ -45,7 +45,10 @@ function showToast(message, isError = false) {
   toast.className = 'toast' + (isError ? ' error' : '');
   toast.textContent = message;
   document.body.appendChild(toast);
-  setTimeout(() => toast.remove(), 4000);
+  setTimeout(() => {
+    toast.classList.add('leaving');
+    setTimeout(() => toast.remove(), 250);
+  }, 3750);
 }
 
 function escapeHtml(str) {

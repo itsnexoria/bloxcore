@@ -20,12 +20,14 @@ bloxcore/
 ├── admin/index.html                  review queue (admins only) — "/admin/"
 ├── admin/challenges/index.html        challenge CRUD + manual rotation trigger (admins only) — "/admin/challenges/"
 ├── assets/
-│   └── logo.png                     site logo, used as the nav mark and favicon
+│   ├── logo.png                     site logo, used as the nav mark and favicon
+│   └── game/                        Blox Fruits wiki icon scrape (fruits/swords/guns/melee/races/accessories), used for build selectors
 ├── css/
 │   └── style.css                    design system
 └── js/
     ├── supabase-client.js           Supabase init, rank/XP math, shared helpers
     ├── nav.js                        hamburger + off-canvas drawer nav, auth-aware links, active-link matching
+    ├── build-options.js              generated build option lists (fruit/sword/gun/melee/race/accessory) with icon paths
     ├── auth.js                       auth page logic
     ├── dashboard.js                  dashboard page logic
     ├── challenges.js                 challenges page logic
@@ -103,6 +105,15 @@ The Supabase URL and publishable key are already hard-coded in `js/supabase-clie
 - **Fixed: admin review board couldn't load submissions.** `submissions` has two foreign keys into `profiles` (`user_id` and `reviewed_by`), so the review board's unqualified `profiles(username)` join was ambiguous to PostgREST and failed with a "300 Multiple Choices" error — the queue just silently showed nothing. Fixed by specifying the FK explicitly (`profiles!submissions_user_id_fkey(username)`). Submitting a bounty itself was already working; this only affected the admin's view of the queue.
 - **Auto-cleanup after review.** Once an admin approves or rejects a submission, its screenshot is deleted from storage and the submission row itself is deleted from the database — keeping both lean over time. The XP/level/streak effects of an approval are already permanently recorded on the player's profile, and the completion is preserved forever in the public `activity_log`, so no outcome is lost — only the now-redundant screenshot and submission record. **Trade-off:** a player's dashboard "Your Submissions" list will only ever show submissions still awaiting review — reviewed ones disappear once cleaned up. If you'd rather keep full submission history, say so and this can be changed to only delete the screenshot (keeping a lightweight row).
 - **Game asset library** (`assets/game/`) — icons scraped from the Blox Fruits wiki: Fruits, Swords, Guns, Melee styles, Races, and Accessories, plus `assets/game/Fruits/Fruit_Data.txt` with rarity/price/trade-value stats. Not wired into the site yet — just staged for future features (e.g. challenge icons, a fruit database page, race selection on profiles). These are game-owned assets from the wiki, so keep any use to fan/informational context in line with the "unofficial fan project" framing already in the footer.
+
+## v5 additions / fixes
+
+- **Fixed: the drawer washed out to near-illegible when opened.** `.nav` establishes its own CSS stacking context (`position: sticky` + `z-index`), which traps its descendants — the drawer and hamburger button — inside that context. Since the dimming overlay lives at the document root with a *higher* z-index than `.nav`'s own, the whole drawer was rendering underneath the overlay instead of above it, even though the drawer's z-index was higher *within* its trapped context. Fixed by raising `.nav`'s z-index above the overlay's.
+- **Fixed: a stray horizontal scrollbar could clip page content** (rotated bounty cards can extend slightly past 100vw). `overflow-x: hidden` on `html`/`body` now prevents that outright.
+- **Admin gets its own nav** — `/admin/` and `/admin/challenges/` now show a dedicated drawer (Review Board / Manage Challenges / View Site) instead of the public Home/Challenges/Leaderboard links, with a small "Admin" badge next to the logo so it's unmistakable which mode you're in.
+- **Custom scrollbars** site-wide (thin, dark track, cyan-on-hover thumb) for both Chromium/WebKit and Firefox.
+- **More motion throughout** — cards/panels fade up on entry, bounty cards lift on hover, rank stamps have a slow breathing pulse, nav links nudge sideways on hover, and toasts fade in/out instead of popping.
+- **Player builds** — `/profile/` now has Fruit, Race, Sword, Gun, Fighting Style, and Accessory selectors, populated from the Blox Fruits asset scrape (`assets/game/`). Shown as an icon grid on the public `/player/` page.
 
 ## Notes / known trade-offs
 
