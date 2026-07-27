@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Review Board — BloxCore Admin</title>
+<title>Player Profile — BloxCore</title>
 <link rel="stylesheet" href="/css/style.css">
 <link rel="icon" type="image/png" href="/assets/logo.png">
 </head>
@@ -23,28 +23,21 @@
 </nav>
 
 <section class="section">
-  <div class="container">
-    <div class="flex-between">
-      <div>
-        <h1 style="font-size:1.8rem; margin-bottom:2px;">Review Board</h1>
-        <p class="muted" style="margin:0;">Pending bounty submissions awaiting a stamp.</p>
-      </div>
-      <a href="/admin/challenges/" class="btn btn-ghost">Manage Challenges</a>
-    </div>
-
-    <div id="pending-list" class="grid" style="margin-top:24px;">
-      <div class="skeleton" style="height:260px;"></div>
+  <div class="container" style="max-width:640px;">
+    <div id="player-content">
+      <div class="skeleton" style="height:180px; margin-bottom:20px;"></div>
+      <div class="skeleton" style="height:100px;"></div>
     </div>
   </div>
 </section>
 
 <footer class="site-footer">
-  <div class="container">BloxCore admin panel — visible only to reviewers.</div>
+  <div class="container">BloxCore is an unofficial fan-made community project for Blox Fruits players.</div>
 </footer>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="/js/supabase-client.js"></script>
 <script src="/js/nav.js"></script>
-<script src="/js/admin.js"></script>
+<script src="/js/player.js"></script>
 </body>
 </html>

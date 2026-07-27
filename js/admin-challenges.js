@@ -50,6 +50,9 @@ async function loadChallenges() {
   document.querySelectorAll('[data-toggle-active]').forEach(btn => {
     btn.addEventListener('click', () => toggleActive(btn.dataset.toggleActive, btn.dataset.nextState === 'true'));
   });
+  document.querySelectorAll('[data-delete]').forEach(btn => {
+    btn.addEventListener('click', () => deleteChallenge(btn.dataset.delete, btn.dataset.title));
+  });
 }
 
 function renderRow(c, isLast) {
@@ -72,6 +75,7 @@ function renderRow(c, isLast) {
         <button class="btn ${c.active ? 'btn-danger' : 'btn-ghost'} btn-sm" data-toggle-active="${c.id}" data-next-state="${!c.active}">
           ${c.active ? 'Archive' : 'Restore'}
         </button>
+        <button class="btn btn-danger btn-sm" data-delete="${c.id}" data-title="${escapeHtml(c.title)}">Delete</button>
       </div>
     </div>
   `;
@@ -149,6 +153,22 @@ async function toggleActive(id, nextState) {
     return;
   }
   showToast(nextState ? 'Challenge restored.' : 'Challenge archived.');
+  await loadChallenges();
+}
+
+async function deleteChallenge(id, title) {
+  const confirmed = window.confirm(
+    `Permanently delete "${title}"? This can't be undone and will also delete any submissions tied to it. ` +
+    `If you just want to hide it from players, use Archive instead.`
+  );
+  if (!confirmed) return;
+
+  const { error } = await sb.from('challenges').delete().eq('id', id);
+  if (error) {
+    showToast(error.message, true);
+    return;
+  }
+  showToast('Challenge deleted.');
   await loadChallenges();
 }
 

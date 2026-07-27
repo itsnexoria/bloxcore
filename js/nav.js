@@ -3,8 +3,37 @@
 document.addEventListener('DOMContentLoaded', () => {
   const toggle = document.querySelector('.nav-toggle');
   const links = document.querySelector('.nav-links');
+
+  // Overlay backdrop behind the drawer — created here so no page markup has to carry it.
+  const overlay = document.createElement('div');
+  overlay.className = 'nav-overlay';
+  document.body.appendChild(overlay);
+
+  function openDrawer() {
+    links.classList.add('open');
+    overlay.classList.add('open');
+    toggle.textContent = '✕';
+    toggle.setAttribute('aria-label', 'Close menu');
+  }
+  function closeDrawer() {
+    links.classList.remove('open');
+    overlay.classList.remove('open');
+    toggle.textContent = '☰';
+    toggle.setAttribute('aria-label', 'Open menu');
+  }
+
   if (toggle && links) {
-    toggle.addEventListener('click', () => links.classList.toggle('open'));
+    toggle.addEventListener('click', () => {
+      links.classList.contains('open') ? closeDrawer() : openDrawer();
+    });
+    overlay.addEventListener('click', closeDrawer);
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') closeDrawer();
+    });
+    // Delegated so it also covers auth-slot links added later by populateAuthArea()
+    links.addEventListener('click', (e) => {
+      if (e.target.closest('a')) closeDrawer();
+    });
   }
 
   highlightActiveLink();
@@ -41,6 +70,7 @@ async function populateAuthArea() {
   slot.innerHTML = `
     ${adminLink}
     <a href="/dashboard/">${escapeHtml(profile?.username || 'Dashboard')}</a>
+    <a href="/profile/">Edit Profile</a>
     <button class="btn btn-ghost btn-sm" id="nav-sign-out">Sign Out</button>
   `;
 

@@ -28,7 +28,7 @@ async function loadLeaderboard() {
       <div style="display:flex; align-items:center; gap:16px;">
         <span style="font-family:var(--font-mono); color:var(--ash); width:28px;">#${i + 1}</span>
         <div>
-          <p style="margin:0; font-weight:700;">${escapeHtml(p.username)}</p>
+          <a href="/player/?u=${encodeURIComponent(p.username)}" style="margin:0; font-weight:700; color:var(--bone); text-decoration:none; display:block;">${escapeHtml(p.username)}</a>
           <p class="muted" style="margin:0; font-size:0.82rem;">${rankTitleForLevel(p.level)}${p.current_streak > 0 ? ` · 🔥 ${p.current_streak}` : ''}</p>
         </div>
       </div>

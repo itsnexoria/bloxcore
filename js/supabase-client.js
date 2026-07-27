@@ -58,6 +58,23 @@ function formatDate(iso) {
   return new Date(iso).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
 }
 
+function timeAgo(iso) {
+  const seconds = Math.floor((Date.now() - new Date(iso).getTime()) / 1000);
+  if (seconds < 60) return 'just now';
+  const minutes = Math.floor(seconds / 60);
+  if (minutes < 60) return `${minutes}m ago`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours}h ago`;
+  const days = Math.floor(hours / 24);
+  if (days < 7) return `${days}d ago`;
+  return formatDate(iso);
+}
+
+function formatBounty(n) {
+  const num = Number(n) || 0;
+  return '฿' + num.toLocaleString('en-US');
+}
+
 // Resolve the current session + profile row together. Returns { user, profile } or nulls.
 async function getCurrentProfile() {
   const { data: { session } } = await sb.auth.getSession();
