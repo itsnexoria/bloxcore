@@ -98,6 +98,12 @@ update public.profiles set is_admin = true where username = 'your_username';
 
 The Supabase URL and publishable key are already hard-coded in `js/supabase-client.js` — that's expected, the publishable/anon key is safe to expose client-side (RLS does the real access control).
 
+## v4 additions / fixes
+
+- **Fixed: admin review board couldn't load submissions.** `submissions` has two foreign keys into `profiles` (`user_id` and `reviewed_by`), so the review board's unqualified `profiles(username)` join was ambiguous to PostgREST and failed with a "300 Multiple Choices" error — the queue just silently showed nothing. Fixed by specifying the FK explicitly (`profiles!submissions_user_id_fkey(username)`). Submitting a bounty itself was already working; this only affected the admin's view of the queue.
+- **Auto-cleanup after review.** Once an admin approves or rejects a submission, its screenshot is deleted from storage and the submission row itself is deleted from the database — keeping both lean over time. The XP/level/streak effects of an approval are already permanently recorded on the player's profile, and the completion is preserved forever in the public `activity_log`, so no outcome is lost — only the now-redundant screenshot and submission record. **Trade-off:** a player's dashboard "Your Submissions" list will only ever show submissions still awaiting review — reviewed ones disappear once cleaned up. If you'd rather keep full submission history, say so and this can be changed to only delete the screenshot (keeping a lightweight row).
+- **Game asset library** (`assets/game/`) — icons scraped from the Blox Fruits wiki: Fruits, Swords, Guns, Melee styles, Races, and Accessories, plus `assets/game/Fruits/Fruit_Data.txt` with rarity/price/trade-value stats. Not wired into the site yet — just staged for future features (e.g. challenge icons, a fruit database page, race selection on profiles). These are game-owned assets from the wiki, so keep any use to fan/informational context in line with the "unofficial fan project" framing already in the footer.
+
 ## Notes / known trade-offs
 
 - The `screenshots` and `avatars` buckets are public so image URLs work directly in `<img>` tags — anyone with a direct link can view a file, but files can't be browsed/listed without one.

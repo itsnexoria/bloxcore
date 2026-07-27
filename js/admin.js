@@ -1,4 +1,10 @@
 // BloxCore — admin.html logic
+//
+// Reviewed submissions (approved or rejected) are deleted immediately after review —
+// along with their screenshot in storage — to keep the database and bucket lean.
+// The XP/streak/rank effects of an approval are already permanently recorded on the
+// player's profile, and a public record of the completion lives on in activity_log,
+// so nothing about the *outcome* is lost — only the screenshot + the submission row itself.
 
 document.addEventListener('DOMContentLoaded', async () => {
   const auth = await requireAdmin();
@@ -11,7 +17,10 @@ async function loadPending() {
 
   const { data, error } = await sb
     .from('submissions')
-    .select('id, screenshot_url, submitted_at, profiles(username), challenges(title, xp_reward, difficulty)')
+    // profiles!submissions_user_id_fkey disambiguates the join: submissions has two
+    // FKs into profiles (user_id and reviewed_by), so an unqualified profiles(...) embed
+    // is ambiguous to PostgREST and fails with a 300 error.
+    .select('id, screenshot_url, submitted_at, profiles!submissions_user_id_fkey(username), challenges(title, xp_reward, difficulty)')
     .eq('status', 'pending')
     .order('submitted_at', { ascending: true });
 
@@ -29,10 +38,10 @@ async function loadPending() {
   list.innerHTML = data.map(renderPendingCard).join('');
 
   document.querySelectorAll('[data-approve]').forEach(btn => {
-    btn.addEventListener('click', () => reviewSubmission(btn.dataset.approve, 'approve'));
+    btn.addEventListener('click', () => reviewSubmission(btn.dataset.approve, 'approve', btn.dataset.screenshot));
   });
   document.querySelectorAll('[data-reject]').forEach(btn => {
-    btn.addEventListener('click', () => reviewSubmission(btn.dataset.reject, 'reject'));
+    btn.addEventListener('click', () => reviewSubmission(btn.dataset.reject, 'reject', btn.dataset.screenshot));
   });
 }
 
@@ -46,14 +55,14 @@ function renderPendingCard(sub) {
       </p>
       <p class="muted" style="margin:0 0 14px; font-size:0.78rem;">${formatDate(sub.submitted_at)}</p>
       <div style="display:flex; gap:10px;">
-        <button class="btn btn-primary btn-sm" data-approve="${sub.id}">Approve</button>
-        <button class="btn btn-danger btn-sm" data-reject="${sub.id}">Reject</button>
+        <button class="btn btn-primary btn-sm" data-approve="${sub.id}" data-screenshot="${escapeHtml(sub.screenshot_url)}">Approve</button>
+        <button class="btn btn-danger btn-sm" data-reject="${sub.id}" data-screenshot="${escapeHtml(sub.screenshot_url)}">Reject</button>
       </div>
     </div>
   `;
 }
 
-async function reviewSubmission(id, action) {
+async function reviewSubmission(id, action, screenshotUrl) {
   const card = document.getElementById(`sub-${id}`);
   const buttons = card.querySelectorAll('button');
   buttons.forEach(b => b.disabled = true);
@@ -69,4 +78,25 @@ async function reviewSubmission(id, action) {
 
   showToast(action === 'approve' ? 'Approved and XP awarded.' : 'Rejected.');
   card.remove();
+
+  // Best-effort cleanup — the review already succeeded above, so a cleanup hiccup
+  // here shouldn't surface as an error to the admin, just get logged.
+  cleanupReviewedSubmission(id, screenshotUrl).catch(err => console.error('Cleanup failed:', err));
+}
+
+async function cleanupReviewedSubmission(id, screenshotUrl) {
+  const path = extractStoragePath(screenshotUrl);
+  if (path) {
+    const { error: storageError } = await sb.storage.from('screenshots').remove([path]);
+    if (storageError) console.error('Could not delete screenshot from storage:', storageError);
+  }
+
+  const { error: deleteError } = await sb.from('submissions').delete().eq('id', id);
+  if (deleteError) console.error('Could not delete submission row:', deleteError);
+}
+
+function extractStoragePath(url) {
+  const marker = '/object/public/screenshots/';
+  const idx = url.indexOf(marker);
+  return idx === -1 ? null : decodeURIComponent(url.slice(idx + marker.length));
 }
