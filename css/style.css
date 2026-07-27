@@ -1,28 +1,29 @@
 /* ==========================================================================
-   BloxCore — Bounty Board design system
-   Theme: wanted-poster / bounty board, deep sea ink + brass + blood stamps
+   BloxCore — design system
+   Theme: frozen devil fruit / deep-sea tech — black-blue background,
+   electric cyan glow, icy white, small toxic-green accent (from the logo mark)
    ========================================================================== */
 
-@import url('https://fonts.googleapis.com/css2?family=Archivo+Black&family=Rye&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Archivo+Black&family=Orbitron:wght@600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap');
 
 :root {
   /* Color */
-  --ink: #060f1a;          /* page background — deep ocean at night */
-  --navy: #0e1e30;         /* panel / card background */
-  --navy-light: #1a2f47;   /* borders, hover surfaces */
-  --parchment: #e8dcc0;    /* poster face — used sparingly, never as page bg */
-  --parchment-dim: #d8c9a3;
-  --brass: #c9a227;        /* primary accent — stamps, borders, xp */
-  --brass-bright: #e8c34a;
-  --blood: #a53a4a;        /* danger / reject / legendary */
-  --blood-dim: #7a2836;
-  --sea: #3fa89a;          /* success / approved / easy */
-  --ash: #8a94a6;          /* muted text on dark */
-  --bone: #f2efe9;         /* primary text on dark */
+  --ink: #050810;          /* page background — near-black with a blue tint */
+  --navy: #0b1220;         /* panel / card background */
+  --navy-light: #1c2b42;   /* borders, hover surfaces */
+  --parchment: #dff4ff;    /* icy pale highlight — used sparingly, never as page bg */
+  --parchment-dim: #b9def2;
+  --brass: #29b6f6;        /* primary accent — cyan glow, borders, xp, stamps */
+  --brass-bright: #7be0ff;
+  --blood: #ff4d6d;        /* danger / reject */
+  --blood-dim: #d63e5c;
+  --sea: #6bdc7f;           /* success / approved / easy — the logo's green accent */
+  --ash: #7f93ad;          /* muted text on dark */
+  --bone: #eaf4fb;         /* primary text on dark */
 
   /* Type */
   --font-display: 'Archivo Black', 'Arial Black', sans-serif;
-  --font-stamp: 'Rye', serif;
+  --font-stamp: 'Orbitron', sans-serif;
   --font-body: 'Inter', system-ui, sans-serif;
   --font-mono: 'JetBrains Mono', monospace;
 
@@ -38,8 +39,8 @@ html { scroll-behavior: smooth; }
 body {
   margin: 0;
   background:
-    radial-gradient(ellipse at top, #0d1c2c 0%, var(--ink) 55%),
-    repeating-linear-gradient(180deg, rgba(255,255,255,0.012) 0px, rgba(255,255,255,0.012) 1px, transparent 1px, transparent 3px);
+    radial-gradient(ellipse at top, #0d1f34 0%, var(--ink) 55%),
+    repeating-linear-gradient(180deg, rgba(120,220,255,0.02) 0px, rgba(120,220,255,0.02) 1px, transparent 1px, transparent 3px);
   color: var(--bone);
   font-family: var(--font-body);
   line-height: 1.5;
@@ -69,7 +70,7 @@ h1, h2, h3 {
 
 .nav {
   border-bottom: 1px solid var(--navy-light);
-  background: rgba(6, 15, 26, 0.85);
+  background: rgba(5, 8, 16, 0.85);
   backdrop-filter: blur(6px);
   position: sticky;
   top: 0;
@@ -80,26 +81,26 @@ h1, h2, h3 {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 14px 24px;
+  padding: 10px 24px;
   max-width: var(--max-width);
   margin: 0 auto;
 }
 
 .brand {
   font-family: var(--font-display);
-  font-size: 1.3rem;
+  font-size: 1.2rem;
   text-decoration: none;
   color: var(--bone);
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
   letter-spacing: 0.02em;
 }
 
-.brand .brand-mark {
-  color: var(--brass);
-  font-family: var(--font-stamp);
-  font-size: 1.5rem;
+.brand .brand-logo {
+  height: 40px;
+  width: auto;
+  filter: drop-shadow(0 0 10px rgba(41, 182, 246, 0.45));
 }
 
 .nav-links {
@@ -177,11 +178,11 @@ h1, h2, h3 {
 
 .btn-primary {
   background: var(--brass);
-  color: #1a1305;
-  box-shadow: 0 2px 0 #8a7419;
+  color: #04141d;
+  box-shadow: 0 2px 0 #0e7bad, 0 0 18px rgba(41,182,246,0.25);
 }
 .btn-primary:hover { background: var(--brass-bright); transform: translateY(-1px); }
-.btn-primary:active { transform: translateY(1px); box-shadow: 0 1px 0 #8a7419; }
+.btn-primary:active { transform: translateY(1px); box-shadow: 0 1px 0 #0e7bad; }
 
 .btn-ghost {
   background: transparent;
@@ -211,14 +212,15 @@ h1, h2, h3 {
   padding: 28px;
 }
 
-/* Wanted-poster style card: parchment face, torn edge, slight rotation */
+/* Bounty card: frosted ice-crystal face — faceted cut, cyan glow border, glassy fill */
 .poster {
-  background: var(--parchment);
-  color: #1c1409;
+  background: linear-gradient(160deg, rgba(28,43,66,0.85), rgba(11,18,32,0.9));
+  color: var(--bone);
+  border: 1px solid rgba(41,182,246,0.35);
   border-radius: 2px;
   padding: 22px 20px 26px;
   position: relative;
-  box-shadow: 0 10px 26px rgba(0,0,0,0.45), inset 0 0 0 1px rgba(0,0,0,0.08);
+  box-shadow: 0 10px 30px rgba(0,0,0,0.55), 0 0 24px rgba(41,182,246,0.08), inset 0 0 0 1px rgba(123,224,255,0.06);
   clip-path: polygon(
     0% 2%, 3% 0%, 97% 0%, 100% 3%,
     100% 97%, 98% 100%, 2% 100%, 0% 98%
@@ -229,16 +231,16 @@ h1, h2, h3 {
   content: '';
   position: absolute;
   inset: 8px;
-  border: 1px solid rgba(0,0,0,0.35);
+  border: 1px solid rgba(123,224,255,0.18);
   pointer-events: none;
 }
 
 .poster-eyebrow {
   font-family: var(--font-stamp);
-  font-size: 0.95rem;
+  font-size: 0.85rem;
   text-align: center;
-  letter-spacing: 0.08em;
-  color: var(--blood-dim);
+  letter-spacing: 0.1em;
+  color: var(--brass-bright);
   margin-bottom: 2px;
 }
 
@@ -252,15 +254,16 @@ h1, h2, h3 {
 
 .poster-body {
   font-size: 0.92rem;
-  color: #2c2110;
+  color: var(--ash);
 }
 
 .poster-reward {
   font-family: var(--font-stamp);
   text-align: center;
-  font-size: 1.6rem;
-  color: var(--blood-dim);
+  font-size: 1.5rem;
+  color: var(--brass-bright);
   margin-top: 12px;
+  text-shadow: 0 0 14px rgba(41,182,246,0.4);
 }
 
 /* Difficulty tag */
@@ -274,13 +277,13 @@ h1, h2, h3 {
   padding: 3px 9px;
   border-radius: 2px;
 }
-.tag-easy { background: rgba(63,168,154,0.18); color: var(--sea); }
-.tag-medium { background: rgba(201,162,39,0.18); color: var(--brass); }
-.tag-hard { background: rgba(165,58,74,0.18); color: #d97684; }
-.tag-legendary { background: rgba(165,58,74,0.3); color: #ffb3bf; }
+.tag-easy { background: rgba(107,220,127,0.16); color: var(--sea); }
+.tag-medium { background: rgba(41,182,246,0.16); color: var(--brass-bright); }
+.tag-hard { background: rgba(255,77,109,0.16); color: #ff8fa3; }
+.tag-legendary { background: rgba(255,77,109,0.28); color: #ffc2cf; }
 
 /* --------------------------------- Stamp ---------------------------------- */
-/* Signature element: an ink/wax stamp used for rank badges and approvals */
+/* Signature element: a glowing ice-emblem badge used for rank badges and approvals */
 
 .stamp {
   --stamp-color: var(--brass);
@@ -296,7 +299,8 @@ h1, h2, h3 {
   color: var(--stamp-color);
   position: relative;
   font-family: var(--font-stamp);
-  background: radial-gradient(circle, rgba(201,162,39,0.08), transparent 70%);
+  background: radial-gradient(circle, rgba(41,182,246,0.12), transparent 70%);
+  box-shadow: 0 0 22px rgba(41,182,246,0.25);
 }
 
 .stamp::before, .stamp::after {
@@ -340,13 +344,15 @@ h1, h2, h3 {
 .xp-bar-fill {
   height: 100%;
   background: linear-gradient(90deg, var(--brass), var(--brass-bright));
+  box-shadow: 0 0 10px rgba(41,182,246,0.5);
   transition: width 0.4s ease;
 }
 
 .rank-title {
   font-family: var(--font-stamp);
   color: var(--brass-bright);
-  font-size: 1.4rem;
+  font-size: 1.3rem;
+  text-shadow: 0 0 14px rgba(41,182,246,0.35);
 }
 
 /* --------------------------------- Forms ---------------------------------- */
@@ -412,9 +418,9 @@ input:focus, select:focus, textarea:focus {
   border-radius: var(--radius);
   z-index: 100;
   max-width: 320px;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+  box-shadow: 0 10px 30px rgba(0,0,0,0.5), 0 0 20px rgba(41,182,246,0.15);
 }
-.toast.error { border-color: var(--blood); }
+.toast.error { border-color: var(--blood); box-shadow: 0 10px 30px rgba(0,0,0,0.5), 0 0 20px rgba(255,77,109,0.15); }
 .skeleton {
   background: linear-gradient(90deg, var(--navy) 25%, var(--navy-light) 37%, var(--navy) 63%);
   background-size: 400% 100%;

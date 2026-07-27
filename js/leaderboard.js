@@ -7,7 +7,7 @@ async function loadLeaderboard() {
 
   const { data, error } = await sb
     .from('profiles')
-    .select('username, level, xp')
+    .select('username, level, xp, current_streak')
     .order('level', { ascending: false })
     .order('xp', { ascending: false })
     .limit(50);
@@ -29,7 +29,7 @@ async function loadLeaderboard() {
         <span style="font-family:var(--font-mono); color:var(--ash); width:28px;">#${i + 1}</span>
         <div>
           <p style="margin:0; font-weight:700;">${escapeHtml(p.username)}</p>
-          <p class="muted" style="margin:0; font-size:0.82rem;">${rankTitleForLevel(p.level)}</p>
+          <p class="muted" style="margin:0; font-size:0.82rem;">${rankTitleForLevel(p.level)}${p.current_streak > 0 ? ` · 🔥 ${p.current_streak}` : ''}</p>
         </div>
       </div>
       <div style="text-align:right;">

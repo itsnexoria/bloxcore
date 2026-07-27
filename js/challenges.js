@@ -18,7 +18,12 @@ async function loadChallenges() {
   const grid = document.getElementById('challenges-grid');
   const difficulty = document.getElementById('difficulty-filter').value;
 
-  let query = sb.from('challenges').select('*').eq('active', true).order('xp_reward', { ascending: true });
+  let query = sb
+    .from('challenges')
+    .select('*')
+    .eq('active', true)
+    .or('rotation.eq.none,currently_featured.eq.true')
+    .order('xp_reward', { ascending: true });
   if (difficulty) query = query.eq('difficulty', difficulty);
 
   const { data, error } = await query;
@@ -30,11 +35,30 @@ async function loadChallenges() {
   }
 
   if (!data.length) {
-    grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1;">No challenges match that filter yet.</div>`;
+    grid.innerHTML = `<div class="empty-state">No challenges match that filter yet.</div>`;
     return;
   }
 
-  grid.innerHTML = data.map(renderChallengeCard).join('');
+  const sections = [
+    { key: 'daily', label: 'Daily Bounties', hint: 'Resets every day' },
+    { key: 'weekly', label: 'Weekly Bounties', hint: 'Resets every Monday' },
+    { key: 'monthly', label: 'Monthly Bounties', hint: 'Resets on the 1st' },
+    { key: 'none', label: 'Standing Bounties', hint: 'Always available' },
+  ];
+
+  grid.innerHTML = sections.map(section => {
+    const items = data.filter(c => c.rotation === section.key);
+    if (!items.length) return '';
+    return `
+      <div class="bounty-section">
+        <div class="flex-between" style="margin-bottom:16px;">
+          <h2 style="font-size:1.15rem; margin:0;">${section.label}</h2>
+          <span class="muted" style="font-size:0.8rem; font-family:var(--font-mono);">${section.hint}</span>
+        </div>
+        <div class="grid">${items.map(renderChallengeCard).join('')}</div>
+      </div>
+    `;
+  }).join('');
 
   document.querySelectorAll('[data-claim-id]').forEach(btn => {
     btn.addEventListener('click', () => openModal(btn.dataset.claimId, btn.dataset.claimTitle));

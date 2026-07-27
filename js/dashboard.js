@@ -13,6 +13,7 @@ function renderProfileCard(profile) {
   const card = document.getElementById('profile-card');
   const title = rankTitleForLevel(profile.level);
   const progress = xpProgress(profile.xp, profile.level);
+  const streak = profile.current_streak || 0;
 
   card.innerHTML = `
     <div class="stamp">
@@ -30,8 +31,21 @@ function renderProfileCard(profile) {
         </p>
       </div>
       <div class="xp-bar"><div class="xp-bar-fill" style="width:${progress.pct}%;"></div></div>
+      <div class="flex-between" style="margin-top:14px;">
+        <p style="margin:0; font-family:var(--font-mono); font-size:0.85rem; color:${streak > 0 ? 'var(--brass-bright)' : 'var(--ash)'};">
+          🔥 ${streak}-day streak${streakBonusLabel(streak) ? ` · ${streakBonusLabel(streak)}` : ''}
+        </p>
+        <p class="muted" style="margin:0; font-size:0.78rem;">Best: ${profile.longest_streak || 0} days</p>
+      </div>
     </div>
   `;
+}
+
+function streakBonusLabel(streak) {
+  if (streak >= 30) return '+50% XP';
+  if (streak >= 7) return '+25% XP';
+  if (streak >= 3) return '+10% XP';
+  return '';
 }
 
 async function loadSubmissions(userId) {
