@@ -120,6 +120,13 @@ h1, h2, h3 {
   letter-spacing: 0.02em;
 }
 
+.brand .brand-name {
+  font-size: 1.15rem;
+  color: var(--bone);
+  letter-spacing: 0.01em;
+}
+.brand .brand-name span { color: var(--brass-bright); }
+
 .brand .brand-logo {
   height: 40px;
   width: auto;
@@ -151,6 +158,7 @@ h1, h2, h3 {
   top: 0;
   right: 0;
   height: 100vh;
+  height: 100dvh; /* 100vh doesn't shrink/grow with a mobile browser's collapsing toolbar, causing the drawer to visually detach from the viewport on scroll; 100dvh tracks the real visible area. Browsers without dvh support just keep the vh fallback above. */
   width: min(300px, 84vw);
   background: linear-gradient(180deg, #0f1c30, var(--navy) 55%);
   border-left: 1px solid rgba(41,182,246,0.28);
@@ -496,6 +504,17 @@ input:focus, select:focus, textarea:focus {
   font-size: 0.82rem;
   margin: -10px 0 14px;
 }
+
+.chat-delete-btn {
+  background: none;
+  border: none;
+  color: var(--ash);
+  cursor: pointer;
+  font-size: 0.7rem;
+  margin-left: 8px;
+  padding: 0;
+}
+.chat-delete-btn:hover { color: var(--blood); }
 
 /* Build picker buttons (profile edit) — open the shared popup modal instead of a native select */
 .build-picker-grid {

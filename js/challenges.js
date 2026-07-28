@@ -2,10 +2,16 @@
 
 let currentUser = null;
 let activeChallengeId = null;
+let completedChallengeIds = new Set();
 
 document.addEventListener('DOMContentLoaded', async () => {
   const { data: { session } } = await sb.auth.getSession();
   currentUser = session?.user ?? null;
+
+  if (currentUser) {
+    const { data: completions } = await sb.from('completions').select('challenge_id').eq('user_id', currentUser.id);
+    completedChallengeIds = new Set((completions || []).map(c => c.challenge_id));
+  }
 
   await loadChallenges();
 
@@ -67,17 +73,24 @@ async function loadChallenges() {
 
 function renderChallengeCard(c) {
   const rotate = (Math.random() * 4 - 2).toFixed(1);
+  const isDone = completedChallengeIds.has(c.id) && !c.repeatable;
+
+  const actionHtml = isDone
+    ? `<button class="btn btn-ghost btn-sm" disabled>✓ Completed</button>`
+    : `<button class="btn btn-primary btn-sm" data-claim-id="${c.id}" data-claim-title="${escapeHtml(c.title)}">Claim Bounty</button>`;
+
   return `
-    <div class="poster" style="transform: rotate(${rotate}deg);">
+    <div class="poster" style="transform: rotate(${rotate}deg); ${isDone ? 'opacity:0.6;' : ''}">
       <p class="poster-eyebrow">★ WANTED ★</p>
       <p class="poster-title">${escapeHtml(c.title)}</p>
       <p class="poster-body">${escapeHtml(c.description)}</p>
       <p class="poster-reward">+${c.xp_reward} XP</p>
       <div class="center" style="margin-top:10px; display:flex; flex-direction:column; gap:10px; align-items:center;">
-        <span class="tag tag-${c.difficulty}">${c.difficulty}</span>
-        <button class="btn btn-primary btn-sm" data-claim-id="${c.id}" data-claim-title="${escapeHtml(c.title)}">
-          Claim Bounty
-        </button>
+        <div style="display:flex; gap:6px;">
+          <span class="tag tag-${c.difficulty}">${c.difficulty}</span>
+          ${c.repeatable ? `<span class="tag" style="background:rgba(41,182,246,0.16); color:var(--brass-bright);">Repeatable</span>` : ''}
+        </div>
+        ${actionHtml}
       </div>
     </div>
   `;

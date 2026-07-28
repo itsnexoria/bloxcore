@@ -64,13 +64,13 @@ async function populateAuthArea() {
     return;
   }
 
-  const { data: profile } = await sb.from('profiles').select('username, display_name, is_admin').eq('id', session.user.id).single();
+  const { data: profile } = await sb.from('profiles').select('is_admin').eq('id', session.user.id).single();
   const onAdminPage = window.location.pathname.startsWith('/admin/');
-  const adminLink = (profile?.is_admin && !onAdminPage) ? `<a href="/admin/">Review Board</a>` : '';
+  const adminLink = (profile?.is_admin && !onAdminPage) ? `<a href="/admin/">Admin</a>` : '';
 
   slot.innerHTML = `
     ${adminLink}
-    <a href="/dashboard/">${escapeHtml(displayNameFor(profile))}</a>
+    <a href="/dashboard/">Profile</a>
     <button class="btn btn-ghost btn-sm" id="nav-sign-out">Sign Out</button>
   `;
 

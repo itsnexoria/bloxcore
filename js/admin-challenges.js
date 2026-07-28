@@ -67,7 +67,7 @@ function renderRow(c, isLast) {
         <p style="margin:0; font-weight:700;">${escapeHtml(c.title)}</p>
         <p class="muted" style="margin:2px 0 0; font-size:0.8rem;">
           <span class="tag tag-${c.difficulty}">${c.difficulty}</span>
-          +${c.xp_reward} XP · ${rotationLabel} ${featuredTag} ${c.active ? '' : '· <span style="color:var(--blood);">Archived</span>'}
+          +${c.xp_reward} XP · ${rotationLabel} ${featuredTag} ${c.repeatable ? '· <span style="color:var(--brass-bright);">Repeatable</span>' : ''} ${c.active ? '' : '· <span style="color:var(--blood);">Archived</span>'}
         </p>
       </div>
       <div style="display:flex; gap:8px; flex-shrink:0;">
@@ -95,6 +95,7 @@ function openModal(challenge = null) {
   document.getElementById('xp_reward').value = challenge?.xp_reward ?? 20;
   document.getElementById('rotation').value = challenge?.rotation || 'none';
   document.getElementById('active').checked = challenge ? challenge.active : true;
+  document.getElementById('repeatable').checked = challenge ? challenge.repeatable : false;
 
   modal.style.display = 'flex';
 }
@@ -122,6 +123,7 @@ async function handleSave(e) {
     rotation,
     in_rotation_pool: rotation !== 'none',
     active: document.getElementById('active').checked,
+    repeatable: document.getElementById('repeatable').checked,
   };
 
   // A brand-new rotating challenge starts unfeatured until the next rotation picks it;

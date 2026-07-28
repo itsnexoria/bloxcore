@@ -15,10 +15,14 @@ bloxcore/
 ├── dashboard/index.html              your profile, rank stamp, XP bar, streak, submissions — "/dashboard/"
 ├── challenges/index.html             bounty board, grouped by daily/weekly/monthly/standing — "/challenges/"
 ├── leaderboard/index.html            top pirates by level/XP — "/leaderboard/"
+├── chat/index.html                   global realtime chat — "/chat/"
+├── giveaways/index.html              active + past giveaways, entry — "/giveaways/"
 ├── profile/index.html                edit your own public profile — "/profile/"
 ├── player/index.html                 public profile view, e.g. "/player/?u=someusername"
 ├── admin/index.html                  review queue (admins only) — "/admin/"
 ├── admin/challenges/index.html        challenge CRUD + manual rotation trigger (admins only) — "/admin/challenges/"
+├── admin/giveaways/index.html         create giveaways, pick winners (admins only) — "/admin/giveaways/"
+├── admin/users/index.html             search users, promote/demote admin (admins only) — "/admin/users/"
 ├── assets/
 │   ├── logo.png                     site logo, used as the nav mark and favicon
 │   └── game/                        Blox Fruits wiki icon scrape (fruits/swords/guns/melee/races/accessories), used for build selectors
@@ -33,10 +37,14 @@ bloxcore/
     ├── challenges.js                 challenges page logic
     ├── leaderboard.js                leaderboard page logic
     ├── activity.js                   home page live activity feed (realtime)
+    ├── chat.js                       global chat logic (realtime)
+    ├── giveaways.js                  public giveaways page logic
     ├── profile-edit.js               profile edit page logic
     ├── player.js                     public profile view logic
     ├── admin.js                      review-board page logic
-    └── admin-challenges.js           challenge management page logic
+    ├── admin-challenges.js           challenge management page logic
+    ├── admin-giveaways.js            giveaway management page logic
+    └── admin-users.js                user management page logic
 ```
 
 All CSS/JS references and internal links use root-absolute paths (e.g. `/css/style.css`, `/dashboard/`) so they resolve correctly no matter how deep the current page is nested. `/player/` is the one page that isn't purely static — it reads a `?u=username` query string client-side, since a static host can't give every player their own folder.
@@ -106,6 +114,16 @@ The Supabase URL and publishable key are already hard-coded in `js/supabase-clie
 - **Auto-cleanup after review.** Once an admin approves or rejects a submission, its screenshot is deleted from storage and the submission row itself is deleted from the database — keeping both lean over time. The XP/level/streak effects of an approval are already permanently recorded on the player's profile, and the completion is preserved forever in the public `activity_log`, so no outcome is lost — only the now-redundant screenshot and submission record. **Trade-off:** a player's dashboard "Your Submissions" list will only ever show submissions still awaiting review — reviewed ones disappear once cleaned up. If you'd rather keep full submission history, say so and this can be changed to only delete the screenshot (keeping a lightweight row).
 - **Game asset library** (`assets/game/`) — icons scraped from the Blox Fruits wiki: Fruits, Swords, Guns, Melee styles, Races, and Accessories, plus `assets/game/Fruits/Fruit_Data.txt` with rarity/price/trade-value stats. Not wired into the site yet — just staged for future features (e.g. challenge icons, a fruit database page, race selection on profiles). These are game-owned assets from the wiki, so keep any use to fan/informational context in line with the "unofficial fan project" framing already in the footer.
 
+## v7 additions / fixes
+
+- **Fixed: drawer breaking on scroll.** The drawer used `height: 100vh`, which doesn't account for a mobile browser's collapsing address bar — as the toolbar shows/hides, `100vh` stays fixed to a value that no longer matches the actual visible area, so the drawer visually detaches from the viewport. Now uses `100dvh` (with a `100vh` fallback for older browsers), which tracks the real visible area.
+- **Site name next to the logo** so the bar doesn't look empty on wider screens.
+- **Renamed labels**: the drawer's dynamic "your name" link is now a plain "Profile" label, and "Review Board" is "Admin" in the nav (the page itself is still titled Review Board, since that's what it does).
+- **One-time challenges, repeatable PvP** — challenges are one-time-per-player by default now (a new `completions` table records approvals permanently, independent of the auto-deleted submission rows). Existing PvP-flavored challenges were flagged `repeatable = true` automatically; new ones get a "Repeatable" checkbox in `/admin/challenges/`. Enforced at the database level (not just hidden in the UI) via an RLS check on the submissions insert policy.
+- **Global chat** (`/chat/`) — realtime, public read, sign-in to post, 2-second client-side send cooldown, admins can delete any message inline.
+- **Giveaways** (`/giveaways/` public, `/admin/giveaways/` for admins) — admins create a giveaway with a prize, description, and end time; players enter once each; "Pick Winner" picks a random entrant, ends the giveaway, and logs a `giveaway_win` entry to the public activity feed. Entry counts are public without exposing who entered (via a small server-side function, not a raw table read).
+- **Admin user management** (`/admin/users/`) — search players, promote/demote admin access. Implemented as a narrow, admin-gated `set_user_admin()` function rather than a broad "admins can edit any profile" policy, so promoting someone doesn't also hand over edit access to their bio/bounty/build fields. An admin can't remove their own access (avoids accidentally locking everyone out).
+
 ## v6 additions / fixes
 
 - **Drawer redesign** — the off-canvas menu now has a "Menu" header label, full-width hover pills instead of plain text links, an active-page accent bar, a clear divider before the account section, and a more polished hamburger button. Editing your profile is no longer in the drawer at all — it's only reachable via the "Edit Profile" button on the dashboard, per your request.
@@ -133,9 +151,9 @@ The Supabase URL and publishable key are already hard-coded in `js/supabase-clie
 - Pirate Bounty / Marine Bounty are self-reported flavor stats (not verified against anything) — they're for profile flair, not leaderboard ranking.
 - `/player/?u=username` is a query-string route rather than a folder per player, since a static host can't pre-build a folder for every signup.
 
-## Ideas for v4
+## Ideas for v8
 
-- Discord webhook ping when a submission is approved
+- Discord webhook ping when a submission is approved, a giveaway ends, or a chat message gets flagged
 - Crews/teams with a team leaderboard
 - Shareable rank-up image generated from a player's profile
-- Rate-limit submissions per user per day to prevent spam
+- Chat rate-limiting enforced server-side too (currently a 2-second client-side cooldown only — fine for casual spam, not adversarial abuse)
