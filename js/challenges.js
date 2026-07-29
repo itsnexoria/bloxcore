@@ -113,32 +113,44 @@ function closeModal() {
   activeChallengeId = null;
 }
 
+const MAX_SCREENSHOTS = 5;
+
 async function handleSubmit(e) {
   e.preventDefault();
   const fileInput = document.getElementById('screenshot');
+  const videoInput = document.getElementById('video-url');
   const errorEl = document.getElementById('submit-error');
-  const submitBtn = e.target.querySelector('button[type="submit"]');
-  const file = fileInput.files[0];
-
-  if (!file) return;
+  const submitBtn = document.getElementById('submit-proof-btn');
+  const files = Array.from(fileInput.files).slice(0, MAX_SCREENSHOTS);
+  const videoUrl = videoInput.value.trim();
 
   errorEl.style.display = 'none';
+
+  if (!files.length && !videoUrl) {
+    errorEl.textContent = 'Add at least one screenshot or a video link.';
+    errorEl.style.display = 'block';
+    return;
+  }
+
   submitBtn.disabled = true;
-  submitBtn.textContent = 'Uploading…';
+  submitBtn.textContent = files.length ? `Uploading ${files.length} image${files.length > 1 ? 's' : ''}…` : 'Submitting…';
 
   try {
-    const ext = file.name.split('.').pop();
-    const path = `${currentUser.id}/${activeChallengeId}-${Date.now()}.${ext}`;
-
-    const { error: uploadError } = await sb.storage.from('screenshots').upload(path, file);
-    if (uploadError) throw uploadError;
-
-    const { data: urlData } = sb.storage.from('screenshots').getPublicUrl(path);
+    const screenshotUrls = [];
+    for (const file of files) {
+      const ext = file.name.split('.').pop();
+      const path = `${currentUser.id}/${activeChallengeId}-${Date.now()}-${screenshotUrls.length}.${ext}`;
+      const { error: uploadError } = await sb.storage.from('screenshots').upload(path, file);
+      if (uploadError) throw uploadError;
+      const { data: urlData } = sb.storage.from('screenshots').getPublicUrl(path);
+      screenshotUrls.push(urlData.publicUrl);
+    }
 
     const { error: insertError } = await sb.from('submissions').insert({
       user_id: currentUser.id,
       challenge_id: activeChallengeId,
-      screenshot_url: urlData.publicUrl,
+      screenshot_urls: screenshotUrls,
+      video_url: videoUrl || null,
     });
     if (insertError) throw insertError;
 

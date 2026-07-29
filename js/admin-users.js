@@ -1,4 +1,4 @@
-// BloxCore — admin/users/index.html logic
+// BloxCore — admin/users/index.html logic (admin only)
 
 let currentAdminId = null;
 
@@ -21,7 +21,7 @@ async function loadUsers(query) {
 
   let req = sb
     .from('profiles')
-    .select('id, username, display_name, level, region, is_admin, pirate_bounty, marine_bounty, created_at')
+    .select('id, username, display_name, level, region, role, pirate_bounty, marine_bounty, created_at')
     .order('created_at', { ascending: false })
     .limit(40);
 
@@ -46,50 +46,50 @@ async function loadUsers(query) {
     data.map((u, i) => renderRow(u, i === data.length - 1)).join('') +
     `</div>`;
 
-  document.querySelectorAll('[data-promote]').forEach(btn => {
-    btn.addEventListener('click', () => setAdmin(btn.dataset.promote, true, btn));
-  });
-  document.querySelectorAll('[data-demote]').forEach(btn => {
-    btn.addEventListener('click', () => setAdmin(btn.dataset.demote, false, btn));
+  document.querySelectorAll('[data-set-role]').forEach(select => {
+    select.addEventListener('change', () => setRole(select.dataset.setRole, select.value, select));
   });
 }
 
+const ROLE_TAG = {
+  admin: `<span class="tag" style="background:rgba(255,77,109,0.16); color:var(--blood-dim);">Admin</span>`,
+  mod: `<span class="tag" style="background:rgba(41,182,246,0.16); color:var(--brass-bright);">Mod</span>`,
+  user: '',
+};
+
 function renderRow(u, isLast) {
   const isSelf = u.id === currentAdminId;
-  const adminTag = u.is_admin ? `<span class="tag" style="background:rgba(255,77,109,0.16); color:var(--blood-dim);">Admin</span>` : '';
-
-  const actionBtn = u.is_admin
-    ? (isSelf
-        ? `<button class="btn btn-ghost btn-sm" disabled title="Can't remove your own access">Admin</button>`
-        : `<button class="btn btn-danger btn-sm" data-demote="${u.id}">Remove Admin</button>`)
-    : `<button class="btn btn-ghost btn-sm" data-promote="${u.id}">Make Admin</button>`;
 
   return `
     <div class="flex-between" style="padding:14px 20px; ${isLast ? '' : 'border-bottom:1px solid var(--navy-light);'}">
       <div style="min-width:0;">
         <p style="margin:0; font-weight:700;">
           <a href="/player/?u=${encodeURIComponent(u.username)}" style="color:var(--bone); text-decoration:none;">${escapeHtml(displayNameFor(u))}</a>
-          ${adminTag}
+          ${ROLE_TAG[u.role] || ''}
         </p>
         <p class="muted" style="margin:2px 0 0; font-size:0.8rem;">
           @${escapeHtml(u.username)} · Lv. ${u.level}${u.region ? ` · ${escapeHtml(u.region)}` : ''} · joined ${formatDate(u.created_at)}
         </p>
       </div>
-      ${actionBtn}
+      <select data-set-role="${u.id}" ${isSelf ? 'disabled title="Can\'t change your own role here"' : ''} style="width:auto; margin:0;">
+        <option value="user" ${u.role === 'user' ? 'selected' : ''}>User</option>
+        <option value="mod" ${u.role === 'mod' ? 'selected' : ''}>Mod</option>
+        <option value="admin" ${u.role === 'admin' ? 'selected' : ''}>Admin</option>
+      </select>
     </div>
   `;
 }
 
-async function setAdmin(userId, makeAdmin, btn) {
-  btn.disabled = true;
-  const { error } = await sb.rpc('set_user_admin', { target_user_id: userId, make_admin: makeAdmin });
+async function setRole(userId, newRole, select) {
+  select.disabled = true;
+  const { error } = await sb.rpc('set_user_role', { target_user_id: userId, new_role: newRole });
+  select.disabled = false;
 
   if (error) {
     showToast(error.message, true);
-    btn.disabled = false;
+    await loadUsers(document.getElementById('user-search').value.trim());
     return;
   }
 
-  showToast(makeAdmin ? 'User promoted to admin.' : 'Admin access removed.');
-  await loadUsers(document.getElementById('user-search').value.trim());
+  showToast(`Role updated to ${newRole}.`);
 }

@@ -38,6 +38,7 @@ function renderProfile(p) {
     { key: 'twitch', label: 'Twitch' },
     { key: 'twitter', label: 'X' },
     { key: 'tiktok', label: 'TikTok' },
+    { key: 'discord', label: 'Discord' },
   ].filter(s => social[s.key]);
 
   const buildFields = [
@@ -100,7 +101,7 @@ function renderProfile(p) {
 
     ${socialLinks.length ? `
       <div style="margin-top:20px; display:flex; gap:10px; flex-wrap:wrap;">
-        ${socialLinks.map(s => `<a href="${escapeHtml(social[s.key])}" target="_blank" rel="noopener noreferrer" class="btn btn-ghost btn-sm">${s.label}</a>`).join('')}
+        ${socialLinks.map(s => `<a href="${escapeHtml(social[s.key])}" target="_blank" rel="noopener noreferrer" class="btn btn-ghost btn-sm" style="padding:9px 12px;" title="${s.label}" aria-label="${s.label}">${SOCIAL_ICONS[s.key] || ''}</a>`).join('')}
       </div>
     ` : ''}
   `;

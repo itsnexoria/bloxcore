@@ -15,10 +15,10 @@
     <button class="nav-toggle" aria-label="Toggle menu">☰</button>
     <ul class="nav-links">
       <li><a href="/">Home</a></li>
+      <li><a href="/chat/">Live Chat</a></li>
+      <li><a href="/giveaways/">Giveaways</a></li>
       <li><a href="/challenges/">Challenges</a></li>
       <li><a href="/leaderboard/">Leaderboard</a></li>
-      <li><a href="/chat/">Chat</a></li>
-      <li><a href="/giveaways/">Giveaways</a></li>
       <li id="nav-auth-slot"></li>
     </ul>
   </div>
@@ -53,13 +53,16 @@
 <div id="submit-modal" style="display:none; position:fixed; inset:0; background:rgba(6,15,26,0.85); z-index:200; align-items:center; justify-content:center; padding:20px;">
   <div class="panel" style="max-width:420px; width:100%;">
     <h3 id="modal-challenge-title" style="font-size:1.1rem;">Submit Proof</h3>
+    <p class="muted" style="font-size:0.8rem; margin:-6px 0 14px;">For a long grind (like "defeat 50 bosses"), add a few screenshots along the way, or paste a video link below instead of/alongside them.</p>
     <form id="submit-form">
-      <label for="screenshot">Screenshot</label>
-      <input type="file" id="screenshot" accept="image/*" required>
+      <label for="screenshot">Screenshot(s)</label>
+      <input type="file" id="screenshot" accept="image/*" multiple>
+      <label for="video-url">Video Link (optional)</label>
+      <input type="url" id="video-url" placeholder="YouTube, Streamable, Medal, etc.">
       <p class="field-error" id="submit-error" style="display:none;"></p>
       <div style="display:flex; gap:10px; margin-top:6px;">
         <button type="button" class="btn btn-ghost" id="modal-cancel">Cancel</button>
-        <button type="submit" class="btn btn-primary btn-block">Submit for Review</button>
+        <button type="submit" class="btn btn-primary btn-block" id="submit-proof-btn">Submit for Review</button>
       </div>
     </form>
   </div>

@@ -12,12 +12,14 @@ document.addEventListener('DOMContentLoaded', () => {
   function openDrawer() {
     links.classList.add('open');
     overlay.classList.add('open');
+    document.body.classList.add('drawer-open');
     toggle.textContent = '✕';
     toggle.setAttribute('aria-label', 'Close menu');
   }
   function closeDrawer() {
     links.classList.remove('open');
     overlay.classList.remove('open');
+    document.body.classList.remove('drawer-open');
     toggle.textContent = '☰';
     toggle.setAttribute('aria-label', 'Open menu');
   }
@@ -59,14 +61,20 @@ async function populateAuthArea() {
 
   const { data: { session } } = await sb.auth.getSession();
 
+  // Admin-section pages list every staff sub-page in their static markup; hide the ones
+  // the current viewer's role doesn't cover (e.g. a mod shouldn't see Manage Challenges).
+  const role = session ? await currentUserRole(session.user.id) : 'user';
+  applyRoleGatedNavItems(role);
+  const badge = document.getElementById('role-badge');
+  if (badge) badge.textContent = role === 'admin' ? 'Admin' : role === 'mod' ? 'Mod' : 'Staff';
+
   if (!session) {
     slot.innerHTML = `<a href="/auth/" class="btn btn-primary btn-sm">Sign In</a>`;
     return;
   }
 
-  const { data: profile } = await sb.from('profiles').select('is_admin').eq('id', session.user.id).single();
   const onAdminPage = window.location.pathname.startsWith('/admin/');
-  const adminLink = (profile?.is_admin && !onAdminPage) ? `<a href="/admin/">Admin</a>` : '';
+  const adminLink = (role !== 'user' && !onAdminPage) ? `<a href="/admin/">Admin</a>` : '';
 
   slot.innerHTML = `
     ${adminLink}
@@ -77,5 +85,23 @@ async function populateAuthArea() {
   document.getElementById('nav-sign-out')?.addEventListener('click', async () => {
     await sb.auth.signOut();
     window.location.href = '/';
+  });
+}
+
+let _cachedRole = null;
+async function currentUserRole(userId) {
+  if (_cachedRole) return _cachedRole;
+  const { data } = await sb.from('profiles').select('role').eq('id', userId).single();
+  _cachedRole = data?.role || 'user';
+  return _cachedRole;
+}
+
+// Admin nav items can carry data-requires-role="mod" (visible to mod+admin) or "admin"
+// (admin only). Anything without the attribute is always shown.
+function applyRoleGatedNavItems(role) {
+  document.querySelectorAll('.nav-links li[data-requires-role]').forEach(li => {
+    const required = li.dataset.requiresRole;
+    const allowed = required === 'admin' ? role === 'admin' : (role === 'mod' || role === 'admin');
+    li.style.display = allowed ? '' : 'none';
   });
 }

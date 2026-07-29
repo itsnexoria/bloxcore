@@ -106,6 +106,16 @@ function displayNameFor(profile) {
   return profile?.display_name || profile?.username || 'Unknown';
 }
 
+// Simple, generic glyphs for each platform (not pixel-exact brand logos) — used instead
+// of plain text labels on social links.
+const SOCIAL_ICONS = {
+  youtube: '<svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><rect x="1" y="5" width="22" height="14" rx="4"/><path d="M10 8.5v7l6-3.5z" fill="var(--ink)"/></svg>',
+  twitch: '<svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M4 2 2 6v14h6v2h3l2-2h4l4-4V2H4zm14 12-3 3h-4l-2 2v-2H6V4h12v10z"/><rect x="9" y="7" width="2" height="5" fill="var(--ink)"/><rect x="14" y="7" width="2" height="5" fill="var(--ink)"/></svg>',
+  twitter: '<svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M4 4l7 8.5L4.5 20H7l5-5.5L16 20h4l-7.5-9L19.5 4H17l-4.5 5L8 4z"/></svg>',
+  tiktok: '<svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M14 2h3c.2 2 1.6 3.6 4 3.9V9c-1.5 0-2.9-.4-4-1.2V15a6 6 0 1 1-6-6c.3 0 .7 0 1 .1v3.2a2.8 2.8 0 1 0 2 2.7z"/></svg>',
+  discord: '<svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M8 5.5C6 6 4.5 6.8 4.5 6.8S3 9.5 3 15c0 0 1.4 2.2 5 2.3l.8-1.2c-1.4-.4-2.2-1-2.2-1s.2.1.5.3c0 0 1.6 1 5.4 1s5.4-1 5.4-1l.5-.3s-.8.6-2.2 1l.8 1.2c3.6-.1 5-2.3 5-2.3 0-5.5-1.5-8.2-1.5-8.2S17.5 5.8 16 5.5l-.5 1c-.8-.2-1.7-.3-2.5-.3s-1.7.1-2.5.3l-.5-1zM9.3 11c.7 0 1.3.7 1.3 1.5S10 14 9.3 14s-1.3-.7-1.3-1.5S8.6 11 9.3 11zm5.4 0c.7 0 1.3.7 1.3 1.5s-.6 1.5-1.3 1.5-1.3-.7-1.3-1.5.6-1.5 1.3-1.5z"/></svg>',
+};
+
 // Resolve the current session + profile row together. Returns { user, profile } or nulls.
 async function getCurrentProfile() {
   const { data: { session } } = await sb.auth.getSession();
@@ -132,10 +142,20 @@ async function requireAuth() {
   return { user, profile };
 }
 
+async function requireMod() {
+  const result = await requireAuth();
+  if (!result) return null;
+  if (!result.profile || (result.profile.role !== 'mod' && result.profile.role !== 'admin')) {
+    window.location.href = '/dashboard/';
+    return null;
+  }
+  return result;
+}
+
 async function requireAdmin() {
   const result = await requireAuth();
   if (!result) return null;
-  if (!result.profile || !result.profile.is_admin) {
+  if (!result.profile || result.profile.role !== 'admin') {
     window.location.href = '/dashboard/';
     return null;
   }

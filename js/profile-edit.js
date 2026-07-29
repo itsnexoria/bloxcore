@@ -61,6 +61,7 @@ function populateForm(profile) {
   document.getElementById('social_twitch').value = social.twitch || '';
   document.getElementById('social_twitter').value = social.twitter || '';
   document.getElementById('social_tiktok').value = social.tiktok || '';
+  document.getElementById('social_discord').value = social.discord || '';
 }
 
 function renderAvatar(url) {
@@ -217,6 +218,7 @@ async function handleSave(e) {
       twitch: document.getElementById('social_twitch').value.trim(),
       twitter: document.getElementById('social_twitter').value.trim(),
       tiktok: document.getElementById('social_tiktok').value.trim(),
+      discord: document.getElementById('social_discord').value.trim(),
     },
   };
 

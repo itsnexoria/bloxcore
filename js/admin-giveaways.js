@@ -1,7 +1,7 @@
 // BloxCore — admin/giveaways/index.html logic
 
 document.addEventListener('DOMContentLoaded', async () => {
-  const auth = await requireAdmin();
+  const auth = await requireMod();
   if (!auth) return;
 
   await loadGiveaways();

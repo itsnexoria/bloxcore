@@ -2,14 +2,14 @@
 
 const CHAT_HISTORY_LIMIT = 50;
 let currentUser = null;
-let isAdmin = false;
+let isStaff = false;
 let lastSendAt = 0;
-const SEND_COOLDOWN_MS = 2000;
+const SEND_COOLDOWN_MS = 10000;
 
 document.addEventListener('DOMContentLoaded', async () => {
   const { user, profile } = await getCurrentProfile();
   currentUser = user;
-  isAdmin = !!profile?.is_admin;
+  isStaff = profile?.role === 'mod' || profile?.role === 'admin';
 
   document.getElementById('chat-compose').style.display = currentUser ? 'block' : 'none';
   document.getElementById('chat-signed-out').style.display = currentUser ? 'none' : 'block';
@@ -25,7 +25,7 @@ async function loadHistory() {
 
   const { data, error } = await sb
     .from('chat_messages')
-    .select('id, user_id, message, created_at, profiles(username, display_name, avatar_url, is_admin)')
+    .select('id, user_id, message, created_at, profiles(username, display_name, avatar_url, role)')
     .order('created_at', { ascending: false })
     .limit(CHAT_HISTORY_LIMIT);
 
@@ -55,9 +55,9 @@ function renderMessage(m) {
       ${avatar}
       <div style="max-width:75%;">
         <p style="margin:0 0 3px; font-size:0.78rem; color:var(--ash);">
-          <a href="/player/?u=${encodeURIComponent(profile.username || '')}" style="color:${profile.is_admin ? 'var(--blood-dim)' : 'var(--ash)'}; text-decoration:none; font-weight:600;">${escapeHtml(name)}</a>
+          <a href="/player/?u=${encodeURIComponent(profile.username || '')}" style="color:${(profile.role === 'mod' || profile.role === 'admin') ? 'var(--blood-dim)' : 'var(--ash)'}; text-decoration:none; font-weight:600;">${escapeHtml(name)}</a>
           <span style="font-family:var(--font-mono); margin-left:6px;">${timeAgo(m.created_at)}</span>
-          ${isAdmin ? `<button class="chat-delete-btn" data-delete-id="${m.id}" title="Delete message">✕</button>` : ''}
+          ${isStaff ? `<button class="chat-delete-btn" data-delete-id="${m.id}" title="Delete message">✕</button>` : ''}
         </p>
         <div class="panel" style="display:inline-block; padding:9px 13px; margin:0; animation:none;">
           <p style="margin:0; font-size:0.92rem; white-space:pre-wrap; word-break:break-word; text-align:left;">${escapeHtml(m.message)}</p>
@@ -87,7 +87,7 @@ function subscribeToChat() {
     .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'chat_messages' }, async (payload) => {
       const { data: profile } = await sb
         .from('profiles')
-        .select('username, display_name, avatar_url, is_admin')
+        .select('username, display_name, avatar_url, role')
         .eq('id', payload.new.user_id)
         .single();
       appendMessage({ ...payload.new, profiles: profile });
@@ -120,7 +120,7 @@ async function handleSend(e) {
 
   const now = Date.now();
   if (now - lastSendAt < SEND_COOLDOWN_MS) {
-    showToast('Slow down a little — one message every couple seconds.', true);
+    showToast('Slow down a little — you can send another message every 10 seconds.', true);
     return;
   }
 

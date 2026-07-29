@@ -1,8 +1,8 @@
-# BloxCore — v1
+# BloxCore
 
-A bounty-board style community site for Blox Fruits: browse challenges, submit screenshot proof, get reviewed, rank up from **Rookie** to **Pirate King**.
+A bounty-board style community site for Blox Fruits: browse challenges, submit proof, get reviewed, rank up from **Rookie** to **Pirate King** — plus a live activity feed, global chat, and giveaways.
 
-Static frontend (vanilla HTML/CSS/JS) + Supabase (auth, database, storage). No build step — deploys as-is.
+Static frontend (vanilla HTML/CSS/JS) + Supabase (auth, database, storage, realtime). No build step — deploys as-is.
 
 ## File structure
 
@@ -19,18 +19,18 @@ bloxcore/
 ├── giveaways/index.html              active + past giveaways, entry — "/giveaways/"
 ├── profile/index.html                edit your own public profile — "/profile/"
 ├── player/index.html                 public profile view, e.g. "/player/?u=someusername"
-├── admin/index.html                  review queue (admins only) — "/admin/"
-├── admin/challenges/index.html        challenge CRUD + manual rotation trigger (admins only) — "/admin/challenges/"
-├── admin/giveaways/index.html         create giveaways, pick winners (admins only) — "/admin/giveaways/"
-├── admin/users/index.html             search users, promote/demote admin (admins only) — "/admin/users/"
+├── admin/index.html                  review queue (mod + admin) — "/admin/"
+├── admin/challenges/index.html        challenge CRUD + manual rotation trigger (admin only) — "/admin/challenges/"
+├── admin/giveaways/index.html         create giveaways, pick winners (mod + admin) — "/admin/giveaways/"
+├── admin/users/index.html             search users, set roles (admin only) — "/admin/users/"
 ├── assets/
 │   ├── logo.png                     site logo, used as the nav mark and favicon
 │   └── game/                        Blox Fruits wiki icon scrape (fruits/swords/guns/melee/races/accessories), used for build selectors
 ├── css/
 │   └── style.css                    design system
 └── js/
-    ├── supabase-client.js           Supabase init, rank/XP math, shared helpers
-    ├── nav.js                        hamburger + off-canvas drawer nav, auth-aware links, active-link matching
+    ├── supabase-client.js           Supabase init, rank/XP/bounty formatting, shared helpers
+    ├── nav.js                        hamburger + off-canvas drawer nav, role-aware links, scroll lock
     ├── build-options.js              generated build option lists (fruit/sword/gun/melee/race/accessory) with icon paths
     ├── auth.js                       auth page logic
     ├── dashboard.js                  dashboard page logic
@@ -44,38 +44,33 @@ bloxcore/
     ├── admin.js                      review-board page logic
     ├── admin-challenges.js           challenge management page logic
     ├── admin-giveaways.js            giveaway management page logic
-    └── admin-users.js                user management page logic
+    └── admin-users.js                user role management page logic
 ```
 
 All CSS/JS references and internal links use root-absolute paths (e.g. `/css/style.css`, `/dashboard/`) so they resolve correctly no matter how deep the current page is nested. `/player/` is the one page that isn't purely static — it reads a `?u=username` query string client-side, since a static host can't give every player their own folder.
 
-Navigation is a hamburger + off-canvas drawer on every screen size (not just mobile) — tap the ☰ icon top-right to open it.
+Navigation is a hamburger + off-canvas drawer on every screen size (not just mobile) — tap the ☰ icon top-right to open it. Opening the drawer locks background scroll.
 
 ## Theme
 
-Deep black-blue background, electric cyan glow, icy white text, and a small toxic-green accent — pulled straight from the logo. Bounty cards are cut like faceted ice shards with a cyan glow border instead of the earlier parchment look.
+Deep black-blue background, electric cyan glow, icy white text, and a small toxic-green accent — pulled straight from the logo. Bounty cards are cut like faceted ice shards with a cyan glow border.
 
-## v2 additions
+## Roles
 
-- **Bounty rotation** — challenges can be tagged `daily`, `weekly`, `monthly`, or `none` (always-on/"standing"). A Postgres `pg_cron` job automatically rotates a random subset of each pool in (3 daily / 3 weekly / 2 monthly, on a midnight/Monday/1st-of-month schedule) via `rotate_bounties()`. Admins can also trigger a rotation early from `/admin/challenges/`.
-- **Streaks** — `approve_submission()` now tracks each player's `current_streak`/`longest_streak` based on consecutive days with at least one approved submission, and applies a small XP bonus: +10% at a 3-day streak, +25% at 7 days, +50% at 30 days. Shown on the dashboard and leaderboard.
-- **Admin challenge management** (`/admin/challenges/`) — create, edit, and archive challenges (title, description, difficulty, XP, rotation pool), plus manual "Rotate Now" buttons.
+`profiles.role` is one of:
+- **`user`** (default) — normal player.
+- **`mod`** — can review submissions (approve/reject), create/delete giveaways (including picking winners), and delete chat messages. Can access `/admin/` and `/admin/giveaways/`.
+- **`admin`** — everything mod can do, plus manage challenges/rotation (`/admin/challenges/`) and manage other users' roles (`/admin/users/`).
 
-## v3 additions
-
-- **Full challenge CRUD** — `/admin/challenges/` now has a real permanent **Delete** alongside Archive/Restore (with a confirm warning, since deleting cascades to any submissions tied to that challenge).
-- **Live activity feed** on the home page — recent challenge approvals and rank-ups, backed by a public `activity_log` table populated automatically inside `approve_submission()`. Updates in real time via Supabase Realtime (no refresh needed) with a fallback initial load for anyone who arrives after the fact.
-- **Customizable public profiles** — `/profile/` lets a signed-in player set an avatar (uploaded to a public `avatars` bucket), bio, region, Pirate Bounty, Marine Bounty, and social links (YouTube/Twitch/X/TikTok). `/player/?u=username` is the public view anyone can see — linked from the leaderboard, activity feed, and dashboard.
-- **Universal hamburger + drawer nav** — the ☰ menu is now the nav pattern on every screen size, not just mobile, sliding in from the right with a dimmed backdrop.
-- **Profile column protection** — a Postgres trigger (`protect_profile_privileged_columns`) blocks non-admin users from changing their own `xp`, `level`, `is_admin`, streak fields, or Discord identity via a direct profile update, even though the update-own-row RLS policy is otherwise open. Only the safe self-service fields (bio, avatar, socials, bounty numbers, region, username) go through.
+Role changes go through `set_user_role()`, a narrow admin-only function — not a broad "admin can edit any profile" policy — so promoting someone to mod/admin doesn't also hand over edit access to their bio/bounty/build fields. An admin can't remove their own admin access (avoids accidentally locking everyone out).
 
 ## Backend (already set up in your Supabase project "BloxCore")
 
-Tables: `profiles`, `challenges`, `submissions`, `ranks`. Row Level Security is on for all of them. Two RPC functions, `approve_submission` and `reject_submission`, handle XP + level math and can only be called by users with `is_admin = true`.
+Row Level Security is on for every table. `approve_submission`/`reject_submission` (mod+admin), `pick_giveaway_winner` (mod+admin), `rotate_bounties` (admin only), and `set_user_role` (admin only) are all `SECURITY DEFINER` functions that check the caller's role internally before doing anything.
 
 A trigger on `auth.users` auto-creates a `profiles` row on signup (falls back to a `pirate_xxxxx` username if none is set yet, then gets patched to the real username after email signup).
 
-Storage bucket `screenshots` is public-read (so images render on the review board and dashboard) with insert restricted to signed-in users.
+Storage buckets `screenshots` and `avatars` are public-read (so images render without extra auth) with insert restricted to signed-in users.
 
 ### 1. Enable Discord login
 
@@ -91,8 +86,10 @@ Also add your site's URL (and `http://localhost:PORT` while testing) under **Aut
 Sign up on the site once, then run this in the Supabase SQL editor:
 
 ```sql
-update public.profiles set is_admin = true where username = 'your_username';
+update public.profiles set role = 'admin' where username = 'your_username';
 ```
+
+(Use `role = 'mod'` instead if you want mod-level access for someone. Once you have one admin account, further role changes can be done from `/admin/users/` instead of SQL.)
 
 ## Deployment
 
@@ -108,52 +105,68 @@ update public.profiles set is_admin = true where username = 'your_username';
 
 The Supabase URL and publishable key are already hard-coded in `js/supabase-client.js` — that's expected, the publishable/anon key is safe to expose client-side (RLS does the real access control).
 
-## v4 additions / fixes
-
-- **Fixed: admin review board couldn't load submissions.** `submissions` has two foreign keys into `profiles` (`user_id` and `reviewed_by`), so the review board's unqualified `profiles(username)` join was ambiguous to PostgREST and failed with a "300 Multiple Choices" error — the queue just silently showed nothing. Fixed by specifying the FK explicitly (`profiles!submissions_user_id_fkey(username)`). Submitting a bounty itself was already working; this only affected the admin's view of the queue.
-- **Auto-cleanup after review.** Once an admin approves or rejects a submission, its screenshot is deleted from storage and the submission row itself is deleted from the database — keeping both lean over time. The XP/level/streak effects of an approval are already permanently recorded on the player's profile, and the completion is preserved forever in the public `activity_log`, so no outcome is lost — only the now-redundant screenshot and submission record. **Trade-off:** a player's dashboard "Your Submissions" list will only ever show submissions still awaiting review — reviewed ones disappear once cleaned up. If you'd rather keep full submission history, say so and this can be changed to only delete the screenshot (keeping a lightweight row).
-- **Game asset library** (`assets/game/`) — icons scraped from the Blox Fruits wiki: Fruits, Swords, Guns, Melee styles, Races, and Accessories, plus `assets/game/Fruits/Fruit_Data.txt` with rarity/price/trade-value stats. Not wired into the site yet — just staged for future features (e.g. challenge icons, a fruit database page, race selection on profiles). These are game-owned assets from the wiki, so keep any use to fan/informational context in line with the "unofficial fan project" framing already in the footer.
-
-## v7 additions / fixes
-
-- **Fixed: drawer breaking on scroll.** The drawer used `height: 100vh`, which doesn't account for a mobile browser's collapsing address bar — as the toolbar shows/hides, `100vh` stays fixed to a value that no longer matches the actual visible area, so the drawer visually detaches from the viewport. Now uses `100dvh` (with a `100vh` fallback for older browsers), which tracks the real visible area.
-- **Site name next to the logo** so the bar doesn't look empty on wider screens.
-- **Renamed labels**: the drawer's dynamic "your name" link is now a plain "Profile" label, and "Review Board" is "Admin" in the nav (the page itself is still titled Review Board, since that's what it does).
-- **One-time challenges, repeatable PvP** — challenges are one-time-per-player by default now (a new `completions` table records approvals permanently, independent of the auto-deleted submission rows). Existing PvP-flavored challenges were flagged `repeatable = true` automatically; new ones get a "Repeatable" checkbox in `/admin/challenges/`. Enforced at the database level (not just hidden in the UI) via an RLS check on the submissions insert policy.
-- **Global chat** (`/chat/`) — realtime, public read, sign-in to post, 2-second client-side send cooldown, admins can delete any message inline.
-- **Giveaways** (`/giveaways/` public, `/admin/giveaways/` for admins) — admins create a giveaway with a prize, description, and end time; players enter once each; "Pick Winner" picks a random entrant, ends the giveaway, and logs a `giveaway_win` entry to the public activity feed. Entry counts are public without exposing who entered (via a small server-side function, not a raw table read).
-- **Admin user management** (`/admin/users/`) — search players, promote/demote admin access. Implemented as a narrow, admin-gated `set_user_admin()` function rather than a broad "admins can edit any profile" policy, so promoting someone doesn't also hand over edit access to their bio/bounty/build fields. An admin can't remove their own access (avoids accidentally locking everyone out).
-
-## v6 additions / fixes
-
-- **Drawer redesign** — the off-canvas menu now has a "Menu" header label, full-width hover pills instead of plain text links, an active-page accent bar, a clear divider before the account section, and a more polished hamburger button. Editing your profile is no longer in the drawer at all — it's only reachable via the "Edit Profile" button on the dashboard, per your request.
-- **Display names** — `/profile/` now has a Display Name field, separate from your (unchangeable, unique) username. It shows everywhere a name is shown — dashboard, leaderboard, activity feed, public profile — while your `@username` stays the stable handle behind the `/player/?u=` link. Leave it blank and your username is used as before.
-- **Bounty tiers** — Pirate Bounty and Marine Bounty are now dropdowns with fixed 2.5M-step tiers from 2.5M up to a 30M cap (2.5M, 5M+, 7.5M+ … 30M), instead of a free-text number. Display is compact everywhere ("10M", not "10,000,000").
-- **Build picker popup** — Fruit/Race/Sword/Gun/Fighting Style/Accessory are now chosen from a searchable icon-grid popup instead of a giant native `<select>` (the accessory list alone is 79 options).
-- **Fruit list cleaned up** — cross-referenced the wiki scrape's icon filenames against the actual stats file (`Fruit_Data.txt`), which lists real fruits separately from their "Skins:"/"Mutations:" entries. Removed 25 skin/mutation/unverified variants (Bomb, Lightning, Diamond, and Eagle fruit color reskins, the Kitsune "Empyrean" skin, etc.), leaving exactly the 41 canonical base fruits.
-- **Fixed:** the drawer washing out to near-illegible when opened, and a stray horizontal scrollbar clipping page content — see the v5 notes below for the root cause of each.
-
-## v5 additions / fixes
-
-- **Fixed: the drawer washed out to near-illegible when opened.** `.nav` establishes its own CSS stacking context (`position: sticky` + `z-index`), which traps its descendants — the drawer and hamburger button — inside that context. Since the dimming overlay lives at the document root with a *higher* z-index than `.nav`'s own, the whole drawer was rendering underneath the overlay instead of above it, even though the drawer's z-index was higher *within* its trapped context. Fixed by raising `.nav`'s z-index above the overlay's.
-- **Fixed: a stray horizontal scrollbar could clip page content** (rotated bounty cards can extend slightly past 100vw). `overflow-x: hidden` on `html`/`body` now prevents that outright.
-- **Admin gets its own nav** — `/admin/` and `/admin/challenges/` now show a dedicated drawer (Review Board / Manage Challenges / View Site) instead of the public Home/Challenges/Leaderboard links, with a small "Admin" badge next to the logo so it's unmistakable which mode you're in.
-- **Custom scrollbars** site-wide (thin, dark track, cyan-on-hover thumb) for both Chromium/WebKit and Firefox.
-- **More motion throughout** — cards/panels fade up on entry, bounty cards lift on hover, rank stamps have a slow breathing pulse, nav links nudge sideways on hover, and toasts fade in/out instead of popping.
-- **Player builds** — `/profile/` now has Fruit, Race, Sword, Gun, Fighting Style, and Accessory selectors, populated from the Blox Fruits asset scrape (`assets/game/`). Shown as an icon grid on the public `/player/` page.
-
 ## Notes / known trade-offs
 
 - The `screenshots` and `avatars` buckets are public so image URLs work directly in `<img>` tags — anyone with a direct link can view a file, but files can't be browsed/listed without one.
 - Leveling formula: `level = floor(xp / 100) + 1`. Tune the divisor in the `approve_submission` SQL function (and mirror it in `js/supabase-client.js`'s `xpForLevel`) if you want a slower/faster curve.
-- No pagination yet on leaderboard (capped at top 50), admin queue/challenge list, or activity feed (capped at 15) — fine at small scale, worth adding if the board gets busy.
+- No pagination yet on leaderboard (capped at top 50), admin queue/challenge/user list, or activity feed (capped at 15) — fine at small scale, worth adding if the board gets busy.
 - Streak day boundaries use the database server's UTC date, not each player's local timezone.
-- Pirate Bounty / Marine Bounty are self-reported flavor stats (not verified against anything) — they're for profile flair, not leaderboard ranking.
+- Pirate Bounty / Marine Bounty are self-reported flavor stats (fixed 2.5M-step tiers, 2.5M–30M) — not verified against anything, for profile flair rather than leaderboard ranking.
 - `/player/?u=username` is a query-string route rather than a folder per player, since a static host can't pre-build a folder for every signup.
+- Chat's 10-second send cooldown is client-side only — fine for casual spam, not someone hitting the API directly. Worth server-side rate-limiting if that becomes a problem.
+- A challenge's one-time-per-player limit is enforced at the database level (an RLS check against a permanent `completions` table), not just hidden in the UI — but a challenge you mark `repeatable` (used for PvP-style challenges) can be claimed any number of times.
 
-## Ideas for v8
+## Ideas for later
 
 - Discord webhook ping when a submission is approved, a giveaway ends, or a chat message gets flagged
 - Crews/teams with a team leaderboard
 - Shareable rank-up image generated from a player's profile
-- Chat rate-limiting enforced server-side too (currently a 2-second client-side cooldown only — fine for casual spam, not adversarial abuse)
+- Server-side chat rate-limiting in addition to the client-side cooldown
+
+## Changelog
+
+**Roles, chat/giveaway polish, multi-proof submissions**
+- Two-tier staff roles (`mod`/`admin`) replacing the old single `is_admin` flag — see **Roles** above.
+- Drawer: locks background scroll while open; reordered to Home / Live Chat / Giveaways / Challenges / Leaderboard.
+- Chat: wider layout (920px), 10-second send cooldown (was 2s).
+- Multi-proof submissions — up to 5 screenshots and/or a video link per submission, so grindy challenges ("defeat 50 bosses") aren't stuck proving themselves with one screenshot. The review board shows the full gallery plus a "Watch video" link, and cleans up every screenshot from storage after review.
+- Discord server invite added to profile social links.
+- Social links show platform icons (simple generic glyphs, not exact brand logos) instead of text labels.
+
+**Chat, giveaways, admin users, repeatable challenges, nav fixes**
+- Global chat (`/chat/`) — realtime, public read, sign-in to post, staff can delete any message inline.
+- Giveaways (`/giveaways/` public, `/admin/giveaways/` for staff) — prize/description/end-time, one entry per player, "Pick Winner" logs a `giveaway_win` to the public activity feed. Entry counts are public without exposing who entered.
+- Admin user management (`/admin/users/`) — search players, set roles.
+- Challenges are one-time-per-player by default (a `completions` table survives the auto-deleted submission rows); PvP-flavored challenges got flagged repeatable automatically, new ones get a checkbox.
+- Site name added next to the logo. Fixed the drawer breaking on scroll (`100vh` doesn't track a mobile browser's collapsing toolbar; switched to `100dvh` with a `100vh` fallback). Renamed nav labels ("Profile" instead of your own name, "Admin" instead of "Review Board").
+
+**Drawer redesign, display names, bounty tiers, build popup**
+- Drawer redesign — "Menu" header label, full-width hover pills, active-page accent bar, divider before the account section, nicer hamburger button. Editing your profile is only reachable via the dashboard button, not the drawer.
+- Display Name field, separate from your fixed/unique username — shows everywhere a name appears.
+- Pirate/Marine Bounty are fixed 2.5M-step tier dropdowns (2.5M–30M), displayed compactly ("10M" not "10,000,000").
+- Build picker is a searchable icon-grid popup instead of a giant native `<select>`.
+- Fruit list cross-referenced against the wiki's own stats file (which separates real fruits from "Skins:"/"Mutations:") — removed 25 skin/mutation/unverified entries, leaving the 41 canonical base fruits.
+
+**Nav/scrollbar fixes, admin's own nav, animations, player builds**
+- Fixed the drawer washing out to near-illegible when opened (`.nav`'s stacking context was trapping the drawer under the dimming overlay — raised `.nav`'s z-index above it).
+- Fixed a stray horizontal scrollbar clipping page content (`overflow-x: hidden` on `html`/`body`).
+- Admin pages get their own dedicated nav (Review Board / Manage Challenges / View Site) instead of the public links, with an "Admin" badge next to the logo.
+- Custom scrollbars site-wide; more motion throughout (card fade-ins, hover lifts, a breathing pulse on rank stamps, fading toasts).
+- Player builds (Fruit/Race/Sword/Gun/Fighting Style/Accessory) on `/profile/`, shown as an icon grid on `/player/`.
+
+**Bug fix + auto-cleanup + asset library**
+- Fixed the admin review board failing to load submissions (an unqualified `profiles(username)` join was ambiguous — `submissions` has two FKs into `profiles` — fixed by specifying the FK explicitly).
+- Reviewed submissions (approved or rejected) now auto-delete their screenshot + row afterward to keep storage/DB lean. XP/streak/rank effects and the public activity-feed record are unaffected — only the now-redundant screenshot and submission row go.
+- Added `assets/game/` — Blox Fruits wiki icon scrape (fruits/swords/guns/melee/races/accessories) plus fruit stats, staged for future features.
+
+**Customizable profiles, universal drawer nav, challenge CRUD, activity feed**
+- `/admin/challenges/` got a real permanent Delete alongside Archive/Restore.
+- Live activity feed on the home page (realtime).
+- Customizable public profiles (`/profile/` to edit, `/player/?u=username` to view) — avatar, bio, region, bounties, social links.
+- Universal hamburger + drawer nav on every screen size.
+- A Postgres trigger blocks non-admin users from changing privileged profile columns (xp, level, role, streaks, Discord identity) via a direct update, even though the self-edit RLS policy is otherwise open.
+
+**Bounty rotation, streaks, admin challenge management**
+- Challenges can be tagged `daily`/`weekly`/`monthly`/`none`; a `pg_cron` job auto-rotates a random subset of each pool on schedule.
+- Streaks — consecutive-day completion tracking with a small XP bonus (+10% at 3 days, +25% at 7, +50% at 30).
+- `/admin/challenges/` — create/edit/archive challenges, manual "Rotate Now" buttons.

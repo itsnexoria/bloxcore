@@ -1,13 +1,13 @@
-// BloxCore — admin.html logic
+// BloxCore — admin.html logic (Review Board — mod + admin)
 //
 // Reviewed submissions (approved or rejected) are deleted immediately after review —
-// along with their screenshot in storage — to keep the database and bucket lean.
+// along with their screenshots in storage — to keep the database and bucket lean.
 // The XP/streak/rank effects of an approval are already permanently recorded on the
 // player's profile, and a public record of the completion lives on in activity_log,
-// so nothing about the *outcome* is lost — only the screenshot + the submission row itself.
+// so nothing about the *outcome* is lost — only the screenshots + the submission row itself.
 
 document.addEventListener('DOMContentLoaded', async () => {
-  const auth = await requireAdmin();
+  const auth = await requireMod();
   if (!auth) return;
   await loadPending();
 });
@@ -20,7 +20,7 @@ async function loadPending() {
     // profiles!submissions_user_id_fkey disambiguates the join: submissions has two
     // FKs into profiles (user_id and reviewed_by), so an unqualified profiles(...) embed
     // is ambiguous to PostgREST and fails with a 300 error.
-    .select('id, screenshot_url, submitted_at, profiles!submissions_user_id_fkey(username), challenges(title, xp_reward, difficulty)')
+    .select('id, screenshot_url, screenshot_urls, video_url, submitted_at, profiles!submissions_user_id_fkey(username), challenges(title, xp_reward, difficulty)')
     .eq('status', 'pending')
     .order('submitted_at', { ascending: true });
 
@@ -38,31 +38,50 @@ async function loadPending() {
   list.innerHTML = data.map(renderPendingCard).join('');
 
   document.querySelectorAll('[data-approve]').forEach(btn => {
-    btn.addEventListener('click', () => reviewSubmission(btn.dataset.approve, 'approve', btn.dataset.screenshot));
+    btn.addEventListener('click', () => reviewSubmission(btn.dataset.approve, 'approve'));
   });
   document.querySelectorAll('[data-reject]').forEach(btn => {
-    btn.addEventListener('click', () => reviewSubmission(btn.dataset.reject, 'reject', btn.dataset.screenshot));
+    btn.addEventListener('click', () => reviewSubmission(btn.dataset.reject, 'reject'));
   });
 }
 
+// All screenshot URLs for a submission, tolerating older rows that only have the
+// single legacy screenshot_url column.
+function allScreenshotUrls(sub) {
+  const urls = Array.isArray(sub.screenshot_urls) ? sub.screenshot_urls.slice() : [];
+  if (sub.screenshot_url && !urls.includes(sub.screenshot_url)) urls.unshift(sub.screenshot_url);
+  return urls;
+}
+
 function renderPendingCard(sub) {
+  const urls = allScreenshotUrls(sub);
+  const gallery = urls.length
+    ? `<div style="display:grid; grid-template-columns:repeat(${Math.min(urls.length, 3)}, 1fr); gap:6px; margin-bottom:14px;">
+        ${urls.map(u => `<img src="${u}" alt="Submission proof" style="width:100%; border-radius:var(--radius); max-height:160px; object-fit:cover;">`).join('')}
+      </div>`
+    : '';
+  const videoLink = sub.video_url
+    ? `<a href="${escapeHtml(sub.video_url)}" target="_blank" rel="noopener noreferrer" class="btn btn-ghost btn-sm" style="margin-bottom:14px; display:inline-block;">▶ Watch video proof</a>`
+    : '';
+
   return `
     <div class="panel" id="sub-${sub.id}">
-      <img src="${sub.screenshot_url}" alt="Submission proof" style="width:100%; border-radius:var(--radius); margin-bottom:14px; max-height:220px; object-fit:cover;">
+      ${gallery}
+      ${videoLink}
       <p style="margin:0 0 4px; font-weight:700;">${escapeHtml(sub.challenges?.title || 'Challenge')}</p>
       <p class="muted" style="margin:0 0 4px; font-size:0.85rem;">
         by ${escapeHtml(sub.profiles?.username || 'unknown')} · <span class="tag tag-${sub.challenges?.difficulty}">${sub.challenges?.difficulty}</span> · +${sub.challenges?.xp_reward} XP
       </p>
       <p class="muted" style="margin:0 0 14px; font-size:0.78rem;">${formatDate(sub.submitted_at)}</p>
       <div style="display:flex; gap:10px;">
-        <button class="btn btn-primary btn-sm" data-approve="${sub.id}" data-screenshot="${escapeHtml(sub.screenshot_url)}">Approve</button>
-        <button class="btn btn-danger btn-sm" data-reject="${sub.id}" data-screenshot="${escapeHtml(sub.screenshot_url)}">Reject</button>
+        <button class="btn btn-primary btn-sm" data-approve="${sub.id}">Approve</button>
+        <button class="btn btn-danger btn-sm" data-reject="${sub.id}">Reject</button>
       </div>
     </div>
   `;
 }
 
-async function reviewSubmission(id, action, screenshotUrl) {
+async function reviewSubmission(id, action) {
   const card = document.getElementById(`sub-${id}`);
   const buttons = card.querySelectorAll('button');
   buttons.forEach(b => b.disabled = true);
@@ -77,18 +96,20 @@ async function reviewSubmission(id, action, screenshotUrl) {
   }
 
   showToast(action === 'approve' ? 'Approved and XP awarded.' : 'Rejected.');
-  card.remove();
 
-  // Best-effort cleanup — the review already succeeded above, so a cleanup hiccup
-  // here shouldn't surface as an error to the admin, just get logged.
-  cleanupReviewedSubmission(id, screenshotUrl).catch(err => console.error('Cleanup failed:', err));
+  // Grab the screenshot URLs from the DOM before removing the card, then clean up
+  // best-effort — the review already succeeded above, so a cleanup hiccup here
+  // shouldn't surface as an error to the reviewer, just get logged.
+  const urls = Array.from(card.querySelectorAll('img')).map(img => img.src);
+  card.remove();
+  cleanupReviewedSubmission(id, urls).catch(err => console.error('Cleanup failed:', err));
 }
 
-async function cleanupReviewedSubmission(id, screenshotUrl) {
-  const path = extractStoragePath(screenshotUrl);
-  if (path) {
-    const { error: storageError } = await sb.storage.from('screenshots').remove([path]);
-    if (storageError) console.error('Could not delete screenshot from storage:', storageError);
+async function cleanupReviewedSubmission(id, urls) {
+  const paths = urls.map(extractStoragePath).filter(Boolean);
+  if (paths.length) {
+    const { error: storageError } = await sb.storage.from('screenshots').remove(paths);
+    if (storageError) console.error('Could not delete screenshots from storage:', storageError);
   }
 
   const { error: deleteError } = await sb.from('submissions').delete().eq('id', id);
