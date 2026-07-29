@@ -106,6 +106,26 @@ function displayNameFor(profile) {
   return profile?.display_name || profile?.username || 'Unknown';
 }
 
+// Renders a small colored title badge if the profile has an active title equipped
+// (expects the query to have joined titles(name, color) via active_title_id).
+function titleBadge(profile) {
+  if (!profile?.titles?.name) return '';
+  return ` <span style="font-size:0.72rem; padding:1px 8px; border-radius:10px; border:1px solid ${profile.titles.color}; color:${profile.titles.color};">${escapeHtml(profile.titles.name)}</span>`;
+}
+
+// Theme: localStorage is the source of truth for instant, flash-free application (every
+// page has an inline script in <head> that applies it before paint). For signed-in users,
+// profiles.theme lets the preference follow them to a new device — synced here on load.
+function applyTheme(theme) {
+  document.documentElement.setAttribute('data-theme', theme);
+  localStorage.setItem('bc_theme', theme);
+}
+async function syncThemeFromProfile(profile) {
+  if (profile?.theme && profile.theme !== localStorage.getItem('bc_theme')) {
+    applyTheme(profile.theme);
+  }
+}
+
 // Simple, generic glyphs for each platform (not pixel-exact brand logos) — used instead
 // of plain text labels on social links.
 const SOCIAL_ICONS = {
@@ -122,7 +142,7 @@ async function getCurrentProfile() {
   if (!session) return { user: null, profile: null };
   const { data: profile, error } = await sb
     .from('profiles')
-    .select('*')
+    .select('*, titles(name, color)')
     .eq('id', session.user.id)
     .single();
   if (error) {

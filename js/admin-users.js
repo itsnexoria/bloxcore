@@ -1,35 +1,47 @@
 // BloxCore — admin/users/index.html logic (admin only)
 
 let currentAdminId = null;
+const PAGE_SIZE = 20;
+let currentPage = 0;
+let currentQuery = '';
 
 document.addEventListener('DOMContentLoaded', async () => {
   const auth = await requireAdmin();
   if (!auth) return;
   currentAdminId = auth.user.id;
 
-  await loadUsers('');
+  await loadUsers('', 0);
 
   let debounceTimer;
   document.getElementById('user-search').addEventListener('input', (e) => {
     clearTimeout(debounceTimer);
-    debounceTimer = setTimeout(() => loadUsers(e.target.value.trim()), 250);
+    debounceTimer = setTimeout(() => loadUsers(e.target.value.trim(), 0), 250);
+  });
+
+  document.getElementById('users-table').addEventListener('click', (e) => {
+    if (e.target.id === 'u-prev') loadUsers(currentQuery, currentPage - 1);
+    if (e.target.id === 'u-next') loadUsers(currentQuery, currentPage + 1);
   });
 });
 
-async function loadUsers(query) {
+async function loadUsers(query, page) {
   const table = document.getElementById('users-table');
+  currentQuery = query;
+  currentPage = page;
+  const from = page * PAGE_SIZE;
+  const to = from + PAGE_SIZE - 1;
 
   let req = sb
     .from('profiles')
-    .select('id, username, display_name, level, region, role, pirate_bounty, marine_bounty, created_at')
+    .select('id, username, display_name, level, region, role, pirate_bounty, marine_bounty, created_at', { count: 'exact' })
     .order('created_at', { ascending: false })
-    .limit(40);
+    .range(from, to);
 
   if (query) {
     req = req.or(`username.ilike.%${query}%,display_name.ilike.%${query}%`);
   }
 
-  const { data, error } = await req;
+  const { data, error, count } = await req;
 
   if (error) {
     table.innerHTML = `<p class="muted">Couldn't load users right now.</p>`;
@@ -44,11 +56,22 @@ async function loadUsers(query) {
 
   table.innerHTML = `<div class="panel" style="padding:0;">` +
     data.map((u, i) => renderRow(u, i === data.length - 1)).join('') +
-    `</div>`;
+    `</div>` + renderPager(count);
 
   document.querySelectorAll('[data-set-role]').forEach(select => {
     select.addEventListener('change', () => setRole(select.dataset.setRole, select.value, select));
   });
+}
+
+function renderPager(total) {
+  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+  return `
+    <div class="flex-between" style="padding:14px 20px;">
+      <button class="btn btn-ghost btn-sm" id="u-prev" ${currentPage === 0 ? 'disabled' : ''}>← Prev</button>
+      <span class="muted" style="font-size:0.82rem;">Page ${currentPage + 1} of ${totalPages}</span>
+      <button class="btn btn-ghost btn-sm" id="u-next" ${currentPage + 1 >= totalPages ? 'disabled' : ''}>Next →</button>
+    </div>
+  `;
 }
 
 const ROLE_TAG = {
@@ -87,7 +110,7 @@ async function setRole(userId, newRole, select) {
 
   if (error) {
     showToast(error.message, true);
-    await loadUsers(document.getElementById('user-search').value.trim());
+    await loadUsers(currentQuery, currentPage);
     return;
   }
 

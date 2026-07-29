@@ -17,12 +17,17 @@ bloxcore/
 ├── leaderboard/index.html            top pirates by level/XP — "/leaderboard/"
 ├── chat/index.html                   global realtime chat — "/chat/"
 ├── giveaways/index.html              active + past giveaways, entry — "/giveaways/"
+├── crews/index.html                  browse crews, team leaderboard, create — "/crews/"
+├── crew/index.html                   single crew view, e.g. "/crew/?name=SomeCrew"
+├── fruit-stock/index.html            fruit stock board (staff-updated) — "/fruit-stock/"
+├── settings/index.html               theme + reduce-motion preferences — "/settings/"
 ├── profile/index.html                edit your own public profile — "/profile/"
 ├── player/index.html                 public profile view, e.g. "/player/?u=someusername"
 ├── admin/index.html                  review queue (mod + admin) — "/admin/"
 ├── admin/challenges/index.html        challenge CRUD + manual rotation trigger (admin only) — "/admin/challenges/"
 ├── admin/giveaways/index.html         create giveaways, pick winners (mod + admin) — "/admin/giveaways/"
 ├── admin/users/index.html             search users, set roles (admin only) — "/admin/users/"
+├── admin/titles/index.html            create/delete titles, grant/revoke to users (admin only) — "/admin/titles/"
 ├── assets/
 │   ├── logo.png                     site logo, used as the nav mark and favicon
 │   └── game/                        Blox Fruits wiki icon scrape (fruits/swords/guns/melee/races/accessories), used for build selectors
@@ -39,12 +44,17 @@ bloxcore/
     ├── activity.js                   home page live activity feed (realtime)
     ├── chat.js                       global chat logic (realtime)
     ├── giveaways.js                  public giveaways page logic
+    ├── crews.js                      crews browse + team leaderboard + create
+    ├── crew.js                       single crew page — join/leave/edit/kick
+    ├── fruit-stock.js                fruit stock board + staff toggle
+    ├── settings.js                   theme + reduce-motion settings
     ├── profile-edit.js               profile edit page logic
     ├── player.js                     public profile view logic
     ├── admin.js                      review-board page logic
     ├── admin-challenges.js           challenge management page logic
     ├── admin-giveaways.js            giveaway management page logic
-    └── admin-users.js                user role management page logic
+    ├── admin-users.js                user role management page logic
+    └── admin-titles.js               title CRUD + grant/revoke page logic
 ```
 
 All CSS/JS references and internal links use root-absolute paths (e.g. `/css/style.css`, `/dashboard/`) so they resolve correctly no matter how deep the current page is nested. `/player/` is the one page that isn't purely static — it reads a `?u=username` query string client-side, since a static host can't give every player their own folder.
@@ -60,7 +70,7 @@ Deep black-blue background, electric cyan glow, icy white text, and a small toxi
 `profiles.role` is one of:
 - **`user`** (default) — normal player.
 - **`mod`** — can review submissions (approve/reject), create/delete giveaways (including picking winners), and delete chat messages. Can access `/admin/` and `/admin/giveaways/`.
-- **`admin`** — everything mod can do, plus manage challenges/rotation (`/admin/challenges/`) and manage other users' roles (`/admin/users/`).
+- **`admin`** — everything mod can do, plus manage challenges/rotation (`/admin/challenges/`), manage other users' roles (`/admin/users/`), and create/grant titles (`/admin/titles/`).
 
 Role changes go through `set_user_role()`, a narrow admin-only function — not a broad "admin can edit any profile" policy — so promoting someone to mod/admin doesn't also hand over edit access to their bio/bounty/build fields. An admin can't remove their own admin access (avoids accidentally locking everyone out).
 
@@ -119,11 +129,28 @@ The Supabase URL and publishable key are already hard-coded in `js/supabase-clie
 ## Ideas for later
 
 - Discord webhook ping when a submission is approved, a giveaway ends, or a chat message gets flagged
-- Crews/teams with a team leaderboard
+- Automate fruit stock via the RapidAPI feed (see note above — needs your API key + endpoint details)
 - Shareable rank-up image generated from a player's profile
 - Server-side chat rate-limiting in addition to the client-side cooldown
+- Crew banners/icons, crew chat channels
+
+## Fruit Stock — automating it later
+
+`/fruit-stock/` works today as a staff-updated board (any mod/admin can tap a fruit to toggle it in/out of stock, right on the public page). Automating it against the third-party "Blox Fruit Stock/Fruit" API on RapidAPI is possible but needs a few things from you first, since that call has to happen **server-side** (a Supabase Edge Function, on a schedule) — never from browser JS, or your RapidAPI key would be exposed to every visitor:
+
+1. Subscribe to the API on RapidAPI and grab your `X-RapidAPI-Key`.
+2. From the API's "Endpoints" tab (after subscribing), grab the exact host, path, and one example JSON response — I couldn't get this from the public listing page since it only renders through their JS app.
+
+Once I have those two things, I can write a scheduled Edge Function that calls it, parses the response, and writes into the same `fruit_stock` table — the frontend wouldn't need to change at all.
 
 ## Changelog
+
+**Pagination, crews, fruit stock, settings/themes, titles**
+- Pagination (20/page) on the leaderboard and all three admin list pages (challenges, giveaways, users).
+- Crews (`/crews/` to browse + team leaderboard, `/crew/?name=X` for a single crew) — any player can create one (name, tag, description, leader's Roblox username, a Discord invite) and others can join through the site; one crew per player at a time. Team leaderboard ranks by total member XP. Leaders can edit/kick/delete; admins can also delete any crew.
+- Fruit Stock board (`/fruit-stock/`) — see the note above.
+- Settings (`/settings/`) — 3 color themes (Ice/Blood/Toxic) and a Reduce Motion toggle. Theme applies instantly (localStorage) and follows signed-in players to other devices (`profiles.theme`); both apply flash-free via a tiny inline script in every page's `<head>`.
+- Titles — admins create titles (name + color) and grant/revoke them to specific players (`/admin/titles/`); players equip one of their owned titles from the dashboard. Shows next to the name on the dashboard, leaderboard, chat, public profile, and crew member lists. A player can only equip a title they've actually been granted (enforced in the same trigger that protects other privileged profile columns).
 
 **Roles, chat/giveaway polish, multi-proof submissions**
 - Two-tier staff roles (`mod`/`admin`) replacing the old single `is_admin` flag — see **Roles** above.

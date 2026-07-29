@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <script>(function(){try{var t=localStorage.getItem('bc_theme');if(t)document.documentElement.setAttribute('data-theme',t);if(localStorage.getItem('bc_reduce_motion')==='1')document.documentElement.classList.add('reduce-motion');}catch(e){}})();</script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Review Board — BloxCore Admin</title>
+<title>Manage Titles — BloxCore Admin</title>
 <link rel="stylesheet" href="/css/style.css">
 <link rel="icon" type="image/png" href="/assets/logo.png">
 </head>
@@ -28,17 +28,34 @@
 
 <section class="section">
   <div class="container">
-    <div class="flex-between">
-      <div>
-        <h1 style="font-size:1.8rem; margin-bottom:2px;">Review Board</h1>
-        <p class="muted" style="margin:0;">Pending bounty submissions awaiting a stamp.</p>
-      </div>
-      <a href="/admin/challenges/" class="btn btn-ghost">Manage Challenges</a>
+    <div>
+      <h1 style="font-size:1.8rem; margin-bottom:2px;">Manage Titles</h1>
+      <p class="muted" style="margin:0;"><a href="/admin/" style="color:var(--brass-bright);">← Back to Admin</a></p>
     </div>
 
-    <div id="pending-list" class="grid" style="margin-top:24px;">
-      <div class="skeleton" style="height:260px;"></div>
+    <div class="panel" style="margin-top:24px;">
+      <h3 style="font-size:1rem; margin-bottom:14px;">Create a Title</h3>
+      <form id="title-form" style="display:flex; gap:12px; align-items:flex-end; flex-wrap:wrap;">
+        <div style="flex:1; min-width:160px;">
+          <label for="title-name">Name</label>
+          <input type="text" id="title-name" required maxlength="30" placeholder="e.g. Wiki Contributor">
+        </div>
+        <div>
+          <label for="title-color">Color</label>
+          <input type="color" id="title-color" value="#7be0ff" style="width:70px; padding:4px; height:44px;">
+        </div>
+        <button type="submit" class="btn btn-primary">Create</button>
+      </form>
     </div>
+
+    <h2 style="font-size:1.1rem; margin-top:32px;">All Titles</h2>
+    <div id="titles-list" style="margin-top:16px;">
+      <div class="skeleton" style="height:50px; margin-bottom:10px;"></div>
+    </div>
+
+    <h2 style="font-size:1.1rem; margin-top:40px;">Grant / Revoke a Title</h2>
+    <input type="text" id="grant-user-search" placeholder="Search username or display name…" style="margin-top:12px; max-width:360px;">
+    <div id="grant-results" style="margin-top:16px;"></div>
   </div>
 </section>
 
@@ -49,6 +66,6 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="/js/supabase-client.js"></script>
 <script src="/js/nav.js"></script>
-<script src="/js/admin.js"></script>
+<script src="/js/admin-titles.js"></script>
 </body>
 </html>

@@ -25,7 +25,7 @@ async function loadHistory() {
 
   const { data, error } = await sb
     .from('chat_messages')
-    .select('id, user_id, message, created_at, profiles(username, display_name, avatar_url, role)')
+    .select('id, user_id, message, created_at, profiles(username, display_name, avatar_url, role, titles(name, color))')
     .order('created_at', { ascending: false })
     .limit(CHAT_HISTORY_LIMIT);
 
@@ -55,7 +55,7 @@ function renderMessage(m) {
       ${avatar}
       <div style="max-width:75%;">
         <p style="margin:0 0 3px; font-size:0.78rem; color:var(--ash);">
-          <a href="/player/?u=${encodeURIComponent(profile.username || '')}" style="color:${(profile.role === 'mod' || profile.role === 'admin') ? 'var(--blood-dim)' : 'var(--ash)'}; text-decoration:none; font-weight:600;">${escapeHtml(name)}</a>
+          <a href="/player/?u=${encodeURIComponent(profile.username || '')}" style="color:${(profile.role === 'mod' || profile.role === 'admin') ? 'var(--blood-dim)' : 'var(--ash)'}; text-decoration:none; font-weight:600;">${escapeHtml(name)}</a>${titleBadge(profile)}
           <span style="font-family:var(--font-mono); margin-left:6px;">${timeAgo(m.created_at)}</span>
           ${isStaff ? `<button class="chat-delete-btn" data-delete-id="${m.id}" title="Delete message">✕</button>` : ''}
         </p>
@@ -87,7 +87,7 @@ function subscribeToChat() {
     .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'chat_messages' }, async (payload) => {
       const { data: profile } = await sb
         .from('profiles')
-        .select('username, display_name, avatar_url, role')
+        .select('username, display_name, avatar_url, role, titles(name, color)')
         .eq('id', payload.new.user_id)
         .single();
       appendMessage({ ...payload.new, profiles: profile });

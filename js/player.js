@@ -14,7 +14,7 @@ async function loadPlayer() {
 
   const { data: profile, error } = await sb
     .from('profiles')
-    .select('*')
+    .select('*, titles(name, color)')
     .eq('username', username)
     .single();
 
@@ -60,7 +60,7 @@ function renderProfile(p) {
       <div style="flex:1; min-width:220px;">
         <div class="flex-between" style="align-items:baseline;">
           <div>
-            <h1 style="font-size:1.5rem; margin-bottom:2px;">${escapeHtml(name)}</h1>
+            <h1 style="font-size:1.5rem; margin-bottom:2px;">${escapeHtml(name)}${titleBadge(p)}</h1>
             ${showHandle ? `<p class="muted" style="margin:0 0 2px; font-size:0.8rem;">@${escapeHtml(p.username)}</p>` : ''}
             <p class="rank-title" style="margin:0 0 8px;">${title} · Lv. ${p.level}</p>
           </div>

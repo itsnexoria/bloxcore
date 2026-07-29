@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <script>(function(){try{var t=localStorage.getItem('bc_theme');if(t)document.documentElement.setAttribute('data-theme',t);if(localStorage.getItem('bc_reduce_motion')==='1')document.documentElement.classList.add('reduce-motion');}catch(e){}})();</script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Global Chat — BloxCore</title>
+<title>Crew — BloxCore</title>
 <link rel="stylesheet" href="/css/style.css">
 <link rel="icon" type="image/png" href="/assets/logo.png">
 </head>
@@ -27,28 +27,12 @@
   </div>
 </nav>
 
-<section class="section" style="padding-bottom:24px;">
-  <div class="container" style="max-width:920px;">
-    <h1 style="font-size:1.6rem; margin-bottom:2px;">Global Chat</h1>
-    <p class="muted" style="margin-top:0;">One crew, one channel. Be decent to each other.</p>
-
-    <div class="panel" style="padding:0; display:flex; flex-direction:column; height:60vh; min-height:420px;">
-      <div id="chat-messages" style="flex:1; overflow-y:auto; padding:16px 18px;">
-        <div class="skeleton" style="height:40px; margin-bottom:12px;"></div>
-        <div class="skeleton" style="height:40px; margin-bottom:12px;"></div>
-        <div class="skeleton" style="height:40px;"></div>
-      </div>
-
-      <div id="chat-compose" style="border-top:1px solid var(--navy-light); padding:14px 18px;">
-        <form id="chat-form" style="display:flex; gap:10px; align-items:flex-end;">
-          <input type="text" id="chat-input" placeholder="Say something…" maxlength="500" style="margin:0; flex:1;" autocomplete="off">
-          <button type="submit" class="btn btn-primary" id="chat-send-btn">Send</button>
-        </form>
-      </div>
-
-      <div id="chat-signed-out" style="display:none; border-top:1px solid var(--navy-light); padding:18px; text-align:center;">
-        <a href="/auth/" class="btn btn-primary btn-sm">Sign in to chat</a>
-      </div>
+<section class="section">
+  <div class="container" style="max-width:720px;">
+    <p class="muted" style="margin:0 0 12px;"><a href="/crews/" style="color:var(--brass-bright);">← All Crews</a></p>
+    <div id="crew-content">
+      <div class="skeleton" style="height:160px; margin-bottom:20px;"></div>
+      <div class="skeleton" style="height:200px;"></div>
     </div>
   </div>
 </section>
@@ -60,6 +44,6 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="/js/supabase-client.js"></script>
 <script src="/js/nav.js"></script>
-<script src="/js/chat.js"></script>
+<script src="/js/crew.js"></script>
 </body>
 </html>

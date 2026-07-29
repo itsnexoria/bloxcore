@@ -73,12 +73,16 @@ async function populateAuthArea() {
     return;
   }
 
+  const { data: profile } = await sb.from('profiles').select('theme').eq('id', session.user.id).single();
+  if (profile) syncThemeFromProfile(profile);
+
   const onAdminPage = window.location.pathname.startsWith('/admin/');
   const adminLink = (role !== 'user' && !onAdminPage) ? `<a href="/admin/">Admin</a>` : '';
 
   slot.innerHTML = `
     ${adminLink}
     <a href="/dashboard/">Profile</a>
+    <a href="/settings/">Settings</a>
     <button class="btn btn-ghost btn-sm" id="nav-sign-out">Sign Out</button>
   `;
 

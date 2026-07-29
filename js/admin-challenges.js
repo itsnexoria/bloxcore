@@ -1,13 +1,15 @@
 // BloxCore — admin/challenges/index.html logic
 
 const ROTATION_COUNTS = { daily: 3, weekly: 3, monthly: 2 };
+const PAGE_SIZE = 20;
 let allChallenges = [];
+let currentPage = 0;
 
 document.addEventListener('DOMContentLoaded', async () => {
   const auth = await requireAdmin();
   if (!auth) return;
 
-  await loadChallenges();
+  await loadChallenges(0);
 
   document.getElementById('new-challenge-btn').addEventListener('click', () => openModal());
   document.getElementById('modal-cancel').addEventListener('click', closeModal);
@@ -16,16 +18,25 @@ document.addEventListener('DOMContentLoaded', async () => {
   document.querySelectorAll('[data-rotate]').forEach(btn => {
     btn.addEventListener('click', () => triggerRotation(btn.dataset.rotate, btn));
   });
+
+  document.getElementById('challenges-table').addEventListener('click', (e) => {
+    if (e.target.id === 'ch-prev') loadChallenges(currentPage - 1);
+    if (e.target.id === 'ch-next') loadChallenges(currentPage + 1);
+  });
 });
 
-async function loadChallenges() {
+async function loadChallenges(page) {
   const table = document.getElementById('challenges-table');
+  currentPage = page;
+  const from = page * PAGE_SIZE;
+  const to = from + PAGE_SIZE - 1;
 
-  const { data, error } = await sb
+  const { data, error, count } = await sb
     .from('challenges')
-    .select('*')
+    .select('*', { count: 'exact' })
     .order('rotation', { ascending: true })
-    .order('created_at', { ascending: false });
+    .order('created_at', { ascending: false })
+    .range(from, to);
 
   if (error) {
     table.innerHTML = `<p class="muted">Couldn't load challenges right now.</p>`;
@@ -42,7 +53,7 @@ async function loadChallenges() {
 
   table.innerHTML = `<div class="panel" style="padding:0;">` +
     data.map((c, i) => renderRow(c, i === data.length - 1)).join('') +
-    `</div>`;
+    `</div>` + renderPager(count);
 
   document.querySelectorAll('[data-edit]').forEach(btn => {
     btn.addEventListener('click', () => openModal(allChallenges.find(c => c.id === btn.dataset.edit)));
@@ -53,6 +64,17 @@ async function loadChallenges() {
   document.querySelectorAll('[data-delete]').forEach(btn => {
     btn.addEventListener('click', () => deleteChallenge(btn.dataset.delete, btn.dataset.title));
   });
+}
+
+function renderPager(total) {
+  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+  return `
+    <div class="flex-between" style="padding:14px 0;">
+      <button class="btn btn-ghost btn-sm" id="ch-prev" ${currentPage === 0 ? 'disabled' : ''}>← Prev</button>
+      <span class="muted" style="font-size:0.82rem;">Page ${currentPage + 1} of ${totalPages}</span>
+      <button class="btn btn-ghost btn-sm" id="ch-next" ${currentPage + 1 >= totalPages ? 'disabled' : ''}>Next →</button>
+    </div>
+  `;
 }
 
 function renderRow(c, isLast) {
@@ -145,7 +167,7 @@ async function handleSave(e) {
 
   closeModal();
   showToast('Challenge saved.');
-  await loadChallenges();
+  await loadChallenges(currentPage);
 }
 
 async function toggleActive(id, nextState) {
@@ -155,7 +177,7 @@ async function toggleActive(id, nextState) {
     return;
   }
   showToast(nextState ? 'Challenge restored.' : 'Challenge archived.');
-  await loadChallenges();
+  await loadChallenges(currentPage);
 }
 
 async function deleteChallenge(id, title) {
@@ -171,7 +193,7 @@ async function deleteChallenge(id, title) {
     return;
   }
   showToast('Challenge deleted.');
-  await loadChallenges();
+  await loadChallenges(currentPage);
 }
 
 async function triggerRotation(period, btn) {
@@ -189,5 +211,5 @@ async function triggerRotation(period, btn) {
     return;
   }
   showToast(`${period[0].toUpperCase()}${period.slice(1)} bounties rotated.`);
-  await loadChallenges();
+  await loadChallenges(currentPage);
 }

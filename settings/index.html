@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <script>(function(){try{var t=localStorage.getItem('bc_theme');if(t)document.documentElement.setAttribute('data-theme',t);if(localStorage.getItem('bc_reduce_motion')==='1')document.documentElement.classList.add('reduce-motion');}catch(e){}})();</script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Global Chat — BloxCore</title>
+<title>Settings — BloxCore</title>
 <link rel="stylesheet" href="/css/style.css">
 <link rel="icon" type="image/png" href="/assets/logo.png">
 </head>
@@ -27,28 +27,38 @@
   </div>
 </nav>
 
-<section class="section" style="padding-bottom:24px;">
-  <div class="container" style="max-width:920px;">
-    <h1 style="font-size:1.6rem; margin-bottom:2px;">Global Chat</h1>
-    <p class="muted" style="margin-top:0;">One crew, one channel. Be decent to each other.</p>
+<section class="section">
+  <div class="container" style="max-width:560px;">
+    <h1 style="font-size:1.6rem;">Settings</h1>
 
-    <div class="panel" style="padding:0; display:flex; flex-direction:column; height:60vh; min-height:420px;">
-      <div id="chat-messages" style="flex:1; overflow-y:auto; padding:16px 18px;">
-        <div class="skeleton" style="height:40px; margin-bottom:12px;"></div>
-        <div class="skeleton" style="height:40px; margin-bottom:12px;"></div>
-        <div class="skeleton" style="height:40px;"></div>
+    <div class="panel" style="margin-top:20px;">
+      <h3 style="font-size:1rem; margin-bottom:4px;">Theme</h3>
+      <p class="muted" style="margin:0 0 16px; font-size:0.85rem;">Applies instantly, and follows you to other devices once signed in.</p>
+      <div class="grid" style="grid-template-columns:repeat(3, 1fr); gap:14px;">
+        <div class="theme-swatch" data-theme-choice="ice">
+          <div class="swatch-dot" style="background:#29b6f6;"></div>
+          <span>Ice</span>
+        </div>
+        <div class="theme-swatch" data-theme-choice="blood">
+          <div class="swatch-dot" style="background:#ff4d6d;"></div>
+          <span>Blood</span>
+        </div>
+        <div class="theme-swatch" data-theme-choice="toxic">
+          <div class="swatch-dot" style="background:#6bdc7f;"></div>
+          <span>Toxic</span>
+        </div>
       </div>
+    </div>
 
-      <div id="chat-compose" style="border-top:1px solid var(--navy-light); padding:14px 18px;">
-        <form id="chat-form" style="display:flex; gap:10px; align-items:flex-end;">
-          <input type="text" id="chat-input" placeholder="Say something…" maxlength="500" style="margin:0; flex:1;" autocomplete="off">
-          <button type="submit" class="btn btn-primary" id="chat-send-btn">Send</button>
-        </form>
+    <div class="panel" style="margin-top:20px; display:flex; align-items:center; justify-content:space-between; gap:16px;">
+      <div>
+        <h3 style="font-size:1rem; margin-bottom:4px;">Reduce Motion</h3>
+        <p class="muted" style="margin:0; font-size:0.85rem;">Turns off card fade-ins, hover lifts, and the stamp pulse.</p>
       </div>
-
-      <div id="chat-signed-out" style="display:none; border-top:1px solid var(--navy-light); padding:18px; text-align:center;">
-        <a href="/auth/" class="btn btn-primary btn-sm">Sign in to chat</a>
-      </div>
+      <label class="toggle-switch">
+        <input type="checkbox" id="reduce-motion-toggle">
+        <span class="toggle-slider"></span>
+      </label>
     </div>
   </div>
 </section>
@@ -60,6 +70,6 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="/js/supabase-client.js"></script>
 <script src="/js/nav.js"></script>
-<script src="/js/chat.js"></script>
+<script src="/js/settings.js"></script>
 </body>
 </html>

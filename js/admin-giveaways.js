@@ -1,21 +1,32 @@
 // BloxCore — admin/giveaways/index.html logic
 
+const PAGE_SIZE = 20;
+let currentPage = 0;
+
 document.addEventListener('DOMContentLoaded', async () => {
   const auth = await requireMod();
   if (!auth) return;
 
-  await loadGiveaways();
+  await loadGiveaways(0);
 
   document.getElementById('new-giveaway-btn').addEventListener('click', openModal);
   document.getElementById('giveaway-modal-cancel').addEventListener('click', closeModal);
   document.getElementById('giveaway-form').addEventListener('submit', handleCreate);
+
+  document.getElementById('giveaways-table').addEventListener('click', (e) => {
+    if (e.target.id === 'gv-prev') loadGiveaways(currentPage - 1);
+    if (e.target.id === 'gv-next') loadGiveaways(currentPage + 1);
+  });
 });
 
-async function loadGiveaways() {
+async function loadGiveaways(page) {
   const table = document.getElementById('giveaways-table');
+  currentPage = page;
+  const from = page * PAGE_SIZE;
+  const to = from + PAGE_SIZE - 1;
 
-  const [{ data: giveaways, error }, { data: counts }] = await Promise.all([
-    sb.from('giveaways').select('*, profiles!giveaways_winner_user_id_fkey(username, display_name)').order('created_at', { ascending: false }),
+  const [{ data: giveaways, error, count }, { data: counts }] = await Promise.all([
+    sb.from('giveaways').select('*, profiles!giveaways_winner_user_id_fkey(username, display_name)', { count: 'exact' }).order('created_at', { ascending: false }).range(from, to),
     sb.rpc('get_giveaway_entry_counts'),
   ]);
 
@@ -34,7 +45,7 @@ async function loadGiveaways() {
 
   table.innerHTML = `<div class="panel" style="padding:0;">` +
     giveaways.map((g, i) => renderRow(g, countMap.get(g.id) || 0, i === giveaways.length - 1)).join('') +
-    `</div>`;
+    `</div>` + renderPager(count);
 
   document.querySelectorAll('[data-pick-winner]').forEach(btn => {
     btn.addEventListener('click', () => pickWinner(btn.dataset.pickWinner, btn));
@@ -42,6 +53,17 @@ async function loadGiveaways() {
   document.querySelectorAll('[data-delete-giveaway]').forEach(btn => {
     btn.addEventListener('click', () => deleteGiveaway(btn.dataset.deleteGiveaway, btn.dataset.title));
   });
+}
+
+function renderPager(total) {
+  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+  return `
+    <div class="flex-between" style="padding:14px 0;">
+      <button class="btn btn-ghost btn-sm" id="gv-prev" ${currentPage === 0 ? 'disabled' : ''}>← Prev</button>
+      <span class="muted" style="font-size:0.82rem;">Page ${currentPage + 1} of ${totalPages}</span>
+      <button class="btn btn-ghost btn-sm" id="gv-next" ${currentPage + 1 >= totalPages ? 'disabled' : ''}>Next →</button>
+    </div>
+  `;
 }
 
 function renderRow(g, entryCount, isLast) {
@@ -107,7 +129,7 @@ async function handleCreate(e) {
 
   closeModal();
   showToast('Giveaway created.');
-  await loadGiveaways();
+  await loadGiveaways(currentPage);
 }
 
 async function pickWinner(id, btn) {
@@ -127,7 +149,7 @@ async function pickWinner(id, btn) {
   }
 
   showToast('Winner picked!');
-  await loadGiveaways();
+  await loadGiveaways(currentPage);
 }
 
 async function deleteGiveaway(id, title) {
@@ -140,5 +162,5 @@ async function deleteGiveaway(id, title) {
     return;
   }
   showToast('Giveaway deleted.');
-  await loadGiveaways();
+  await loadGiveaways(currentPage);
 }
