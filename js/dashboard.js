@@ -15,8 +15,12 @@ function renderProfileCard(profile) {
   const title = rankTitleForLevel(profile.level);
   const progress = xpProgress(profile.xp, profile.level);
   const streak = profile.current_streak || 0;
+  const avatarHtml = profile.avatar_url
+    ? `<img src="${profile.avatar_url}" alt="" style="width:76px; height:76px; border-radius:50%; object-fit:cover; border:2px solid var(--brass); flex-shrink:0;">`
+    : `<div class="stamp stamp-static" style="width:76px; height:76px; flex-shrink:0;"><span style="font-size:1.6rem;">${escapeHtml((displayNameFor(profile)[0] || '?').toUpperCase())}</span></div>`;
 
   card.innerHTML = `
+    ${avatarHtml}
     <div class="stamp">
       <span class="stamp-level">${profile.level}</span>
       <span class="stamp-label">Level</span>

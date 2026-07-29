@@ -64,6 +64,7 @@ function renderActiveCard(g, entryCount) {
 
   return `
     <div class="panel">
+      ${g.image_url ? `<img src="${g.image_url}" alt="" style="width:56px; height:56px; object-fit:contain; margin-bottom:12px;">` : ''}
       <h3 style="font-size:1.1rem; margin-bottom:4px;">${escapeHtml(g.title)}</h3>
       <p class="rank-title" style="font-size:1.1rem; margin:0 0 10px;">${escapeHtml(g.prize)}</p>
       <p class="muted" style="font-size:0.88rem; margin:0 0 14px;">${escapeHtml(g.description)}</p>

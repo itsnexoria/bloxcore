@@ -45,13 +45,12 @@ async function loadHistory() {
 function renderMessage(m) {
   const profile = m.profiles || {};
   const name = displayNameFor(profile);
-  const isMine = currentUser && m.user_id === currentUser.id;
   const avatar = profile.avatar_url
     ? `<img src="${profile.avatar_url}" alt="" style="width:32px; height:32px; border-radius:50%; object-fit:cover; flex-shrink:0;">`
     : `<div style="width:32px; height:32px; border-radius:50%; background:var(--navy-light); display:flex; align-items:center; justify-content:center; font-size:0.8rem; flex-shrink:0; color:var(--ash);">${escapeHtml((name[0] || '?').toUpperCase())}</div>`;
 
   return `
-    <div class="chat-row" data-message-id="${m.id}" style="display:flex; gap:10px; margin-bottom:14px; ${isMine ? 'flex-direction:row-reverse; text-align:right;' : ''}">
+    <div class="chat-row" data-message-id="${m.id}" style="display:flex; gap:10px; margin-bottom:14px;">
       ${avatar}
       <div style="max-width:75%;">
         <p style="margin:0 0 3px; font-size:0.78rem; color:var(--ash);">

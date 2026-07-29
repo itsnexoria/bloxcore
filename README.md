@@ -136,14 +136,16 @@ The Supabase URL and publishable key are already hard-coded in `js/supabase-clie
 
 ## Fruit Stock — automating it later
 
-`/fruit-stock/` works today as a staff-updated board (any mod/admin can tap a fruit to toggle it in/out of stock, right on the public page). Automating it against the third-party "Blox Fruit Stock/Fruit" API on RapidAPI is possible but needs a few things from you first, since that call has to happen **server-side** (a Supabase Edge Function, on a schedule) — never from browser JS, or your RapidAPI key would be exposed to every visitor:
-
-1. Subscribe to the API on RapidAPI and grab your `X-RapidAPI-Key`.
-2. From the API's "Endpoints" tab (after subscribing), grab the exact host, path, and one example JSON response — I couldn't get this from the public listing page since it only renders through their JS app.
-
-Once I have those two things, I can write a scheduled Edge Function that calls it, parses the response, and writes into the same `fruit_stock` table — the frontend wouldn't need to change at all.
+`/fruit-stock/` works today as a staff-updated board. I tried wiring the RapidAPI "Blox Fruit Stock/Fruit" feed using the key/host you shared — a diagnostic Edge Function (`fetch-fruit-stock`, already deployed) called it and got back **RapidAPI's own 500 error**: `Cannot read properties of undefined (reading 'split')`. That's their backend failing, not ours — it means the plain root request is missing something their API expects (almost certainly a required query parameter not shown in the basic "Code Snippets" tab). To finish this, check the RapidAPI console for that endpoint's **"Parameters"** tab (usually next to Code Snippets) or the **"Example Responses"** tab — either should show a working request with whatever's required. Send me what you find and I'll finish the wiring; the Edge Function, `pg_net` extension, and the underlying `fruit_stock` table are all already in place.
 
 ## Changelog
+
+**SEO, dynamic hero card, avatar/chat/giveaway fixes**
+- SEO pass across all 18 pages: per-page meta descriptions, canonical tags, Open Graph + Twitter Card tags (public pages only), `robots.txt`, `sitemap.xml`, and `noindex` on private/account/admin pages. JSON-LD (WebSite + Organization) on the homepage. Canonical URLs use `https://bloxcore.xyz` as a placeholder — swap for your real domain once you know it (search-and-replace across the HTML files, `robots.txt`, and `sitemap.xml`). `/player/` and `/crew/` are query-string routes so they're left out of the sitemap (no fixed list to enumerate) but aren't blocked from crawling.
+- Home page hero card now rotates through real active challenges every 12 seconds (was a static hardcoded example) instead of one fixed demo.
+- Giveaways can have a prize icon now, picked from the same game-asset library used for player builds (Fruit/Sword/Gun/Fighting Style/Race/Accessory) — shown on both the admin list and the public giveaway cards.
+- Dashboard now shows your avatar image next to the level stamp (it was only showing the stamp before).
+- Chat: every message is left-aligned now (was flipping to the right for your own messages), and the page uses the full site width instead of a narrower column.
 
 **Pagination, crews, fruit stock, settings/themes, titles**
 - Pagination (20/page) on the leaderboard and all three admin list pages (challenges, giveaways, users).

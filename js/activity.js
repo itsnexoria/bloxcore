@@ -5,7 +5,45 @@ const ACTIVITY_LIMIT = 15;
 document.addEventListener('DOMContentLoaded', async () => {
   await loadActivity();
   subscribeToActivity();
+  initHeroPosterRotation();
 });
+
+async function initHeroPosterRotation() {
+  const poster = document.getElementById('hero-poster');
+  if (!poster) return;
+
+  const { data, error } = await sb
+    .from('challenges')
+    .select('title, description, xp_reward, difficulty')
+    .eq('active', true)
+    .or('rotation.eq.none,currently_featured.eq.true')
+    .limit(20);
+
+  if (error || !data || !data.length) return;
+
+  // Shuffle so it doesn't cycle in the same DB order every page load
+  const pool = data.sort(() => Math.random() - 0.5);
+  let index = 0;
+  showHeroChallenge(pool[index]);
+
+  setInterval(() => {
+    index = (index + 1) % pool.length;
+    poster.style.opacity = '0';
+    setTimeout(() => {
+      showHeroChallenge(pool[index]);
+      poster.style.opacity = '1';
+    }, 400);
+  }, 12000);
+}
+
+function showHeroChallenge(c) {
+  document.getElementById('hero-poster-title').textContent = c.title;
+  document.getElementById('hero-poster-body').textContent = c.description;
+  document.getElementById('hero-poster-reward').textContent = `+${c.xp_reward} XP`;
+  const tag = document.getElementById('hero-poster-tag');
+  tag.className = `tag tag-${c.difficulty}`;
+  tag.textContent = c.difficulty;
+}
 
 async function loadActivity() {
   const feed = document.getElementById('activity-feed');

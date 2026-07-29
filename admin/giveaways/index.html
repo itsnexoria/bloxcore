@@ -5,6 +5,8 @@
 <script>(function(){try{var t=localStorage.getItem('bc_theme');if(t)document.documentElement.setAttribute('data-theme',t);if(localStorage.getItem('bc_reduce_motion')==='1')document.documentElement.classList.add('reduce-motion');}catch(e){}})();</script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Manage Giveaways — BloxCore Admin</title>
+<meta name="robots" content="noindex, nofollow">
+<meta name="description" content="BloxCore giveaway management.">
 <link rel="stylesheet" href="/css/style.css">
 <link rel="icon" type="image/png" href="/assets/logo.png">
 </head>
@@ -60,6 +62,21 @@
       <label for="gv-ends">Ends At</label>
       <input type="datetime-local" id="gv-ends" required>
 
+      <label for="gv-icon-category">Prize Icon (optional)</label>
+      <div style="display:flex; gap:10px; align-items:center;">
+        <select id="gv-icon-category" style="flex:1;">
+          <option value="">— None —</option>
+          <option value="fruit">Fruit</option>
+          <option value="sword">Sword</option>
+          <option value="gun">Gun</option>
+          <option value="melee">Fighting Style</option>
+          <option value="race">Race</option>
+          <option value="accessory">Accessory</option>
+        </select>
+        <select id="gv-icon-item" style="flex:1;" disabled></select>
+        <img id="gv-icon-preview" style="display:none; width:36px; height:36px; object-fit:contain;" alt="">
+      </div>
+
       <p class="field-error" id="giveaway-error" style="display:none;"></p>
       <div style="display:flex; gap:10px;">
         <button type="button" class="btn btn-ghost" id="giveaway-modal-cancel">Cancel</button>
@@ -76,6 +93,7 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="/js/supabase-client.js"></script>
 <script src="/js/nav.js"></script>
+<script src="/js/build-options.js"></script>
 <script src="/js/admin-giveaways.js"></script>
 </body>
 </html>

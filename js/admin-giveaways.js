@@ -71,14 +71,18 @@ function renderRow(g, entryCount, isLast) {
     ? `<span class="tag tag-easy">Active</span>`
     : `<span class="tag" style="background:rgba(138,148,166,0.15); color:var(--ash);">Ended</span>`;
   const winnerLabel = g.winner_user_id ? `🏆 ${escapeHtml(displayNameFor(g.profiles))}` : '';
+  const image = g.image_url ? `<img src="${g.image_url}" alt="" style="width:36px; height:36px; object-fit:contain; flex-shrink:0;">` : '';
 
   return `
     <div class="flex-between" style="padding:16px 20px; ${isLast ? '' : 'border-bottom:1px solid var(--navy-light);'}">
-      <div style="min-width:0;">
-        <p style="margin:0; font-weight:700;">${escapeHtml(g.title)} <span class="muted" style="font-weight:400;">— ${escapeHtml(g.prize)}</span></p>
-        <p class="muted" style="margin:2px 0 0; font-size:0.8rem;">
-          ${statusTag} ${entryCount} entered · ends ${formatDate(g.ends_at)} ${winnerLabel ? `· ${winnerLabel}` : ''}
-        </p>
+      <div style="display:flex; align-items:center; gap:12px; min-width:0;">
+        ${image}
+        <div>
+          <p style="margin:0; font-weight:700;">${escapeHtml(g.title)} <span class="muted" style="font-weight:400;">— ${escapeHtml(g.prize)}</span></p>
+          <p class="muted" style="margin:2px 0 0; font-size:0.8rem;">
+            ${statusTag} ${entryCount} entered · ends ${formatDate(g.ends_at)} ${winnerLabel ? `· ${winnerLabel}` : ''}
+          </p>
+        </div>
       </div>
       <div style="display:flex; gap:8px; flex-shrink:0;">
         ${g.status === 'active' ? `<button class="btn btn-primary btn-sm" data-pick-winner="${g.id}">Pick Winner</button>` : ''}
@@ -91,12 +95,42 @@ function renderRow(g, entryCount, isLast) {
 function openModal() {
   document.getElementById('giveaway-error').style.display = 'none';
   document.getElementById('giveaway-form').reset();
+  document.getElementById('gv-icon-item').innerHTML = '';
+  document.getElementById('gv-icon-item').disabled = true;
+  document.getElementById('gv-icon-preview').style.display = 'none';
   document.getElementById('giveaway-modal').style.display = 'flex';
 }
 
 function closeModal() {
   document.getElementById('giveaway-modal').style.display = 'none';
 }
+
+document.getElementById('gv-icon-category')?.addEventListener('change', (e) => {
+  const category = e.target.value;
+  const itemSelect = document.getElementById('gv-icon-item');
+  const preview = document.getElementById('gv-icon-preview');
+  preview.style.display = 'none';
+
+  if (!category) {
+    itemSelect.innerHTML = '';
+    itemSelect.disabled = true;
+    return;
+  }
+
+  itemSelect.disabled = false;
+  itemSelect.innerHTML = '<option value="">— Choose —</option>' +
+    BUILD_OPTIONS[category].map(opt => `<option value="${escapeHtml(opt.icon)}">${escapeHtml(opt.value)}</option>`).join('');
+});
+
+document.getElementById('gv-icon-item')?.addEventListener('change', (e) => {
+  const preview = document.getElementById('gv-icon-preview');
+  if (e.target.value) {
+    preview.src = e.target.value;
+    preview.style.display = 'block';
+  } else {
+    preview.style.display = 'none';
+  }
+});
 
 async function handleCreate(e) {
   e.preventDefault();
@@ -113,6 +147,7 @@ async function handleCreate(e) {
     prize: document.getElementById('gv-prize').value.trim(),
     description: document.getElementById('gv-description').value.trim(),
     ends_at: new Date(document.getElementById('gv-ends').value).toISOString(),
+    image_url: document.getElementById('gv-icon-item').value || null,
     created_by: session.user.id,
   };
 

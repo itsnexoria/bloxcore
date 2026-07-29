@@ -5,9 +5,39 @@
 <script>(function(){try{var t=localStorage.getItem('bc_theme');if(t)document.documentElement.setAttribute('data-theme',t);if(localStorage.getItem('bc_reduce_motion')==='1')document.documentElement.classList.add('reduce-motion');}catch(e){}})();</script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>BloxCore — Bounty Board for Blox Fruits</title>
-<meta name="description" content="Take on Blox Fruits challenges, submit proof, and climb the ranks from Rookie to Pirate King.">
+<meta name="robots" content="index, follow">
+<meta name="description" content="Take on Blox Fruits challenges, submit proof, and climb the ranks from Rookie to Pirate King. Join the BloxCore community — chat, crews, giveaways, and a live fruit stock board.">
+<link rel="canonical" href="https://bloxcore.xyz/">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="BloxCore">
+<meta property="og:title" content="BloxCore — Bounty Board for Blox Fruits">
+<meta property="og:description" content="Take on Blox Fruits challenges, submit proof, and climb the ranks from Rookie to Pirate King. Join the BloxCore community — chat, crews, giveaways, and a live fruit stock board.">
+<meta property="og:image" content="https://bloxcore.xyz/assets/logo.png">
+<meta property="og:url" content="https://bloxcore.xyz/">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="BloxCore — Bounty Board for Blox Fruits">
+<meta name="twitter:description" content="Take on Blox Fruits challenges, submit proof, and climb the ranks from Rookie to Pirate King. Join the BloxCore community — chat, crews, giveaways, and a live fruit stock board.">
+<meta name="twitter:image" content="https://bloxcore.xyz/assets/logo.png">
 <link rel="stylesheet" href="/css/style.css">
 <link rel="icon" type="image/png" href="/assets/logo.png">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  "name": "BloxCore",
+  "url": "https://bloxcore.xyz/",
+  "description": "An unofficial Blox Fruits community hub — challenges, ranks, live chat, giveaways, crews, and fruit stock tracking."
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  "name": "BloxCore",
+  "url": "https://bloxcore.xyz/",
+  "logo": "https://bloxcore.xyz/assets/logo.png"
+}
+</script>
 </head>
 <body>
 
@@ -42,12 +72,12 @@
         <a href="/challenges/" class="btn btn-ghost">Browse Challenges</a>
       </div>
     </div>
-    <div class="poster" style="max-width:320px; justify-self:center; transform: rotate(-3deg);">
+    <div class="poster" id="hero-poster" style="max-width:320px; justify-self:center; transform: rotate(-3deg); transition: opacity 0.4s ease;">
       <p class="poster-eyebrow">★ WANTED ★</p>
-      <p class="poster-title">First Blood</p>
-      <p class="poster-body">Defeat your first Marine grunt and screenshot the kill feed.</p>
-      <p class="poster-reward">+15 XP</p>
-      <div class="center" style="margin-top:10px;"><span class="tag tag-easy">Easy</span></div>
+      <p class="poster-title" id="hero-poster-title">First Blood</p>
+      <p class="poster-body" id="hero-poster-body">Defeat your first Marine grunt and screenshot the kill feed.</p>
+      <p class="poster-reward" id="hero-poster-reward">+15 XP</p>
+      <div class="center" style="margin-top:10px;"><span class="tag" id="hero-poster-tag">Easy</span></div>
     </div>
   </div>
 </header>
