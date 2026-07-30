@@ -159,7 +159,25 @@ async function requireAuth() {
     window.location.href = '/auth/';
     return null;
   }
+  if (profile?.banned) {
+    const reason = profile.banned_reason ? ` Reason given: "${profile.banned_reason}"` : '';
+    await sb.auth.signOut();
+    alert(`Your account has been banned.${reason}`);
+    window.location.href = '/';
+    return null;
+  }
+  touchLastActive(user.id);
   return { user, profile };
+}
+
+// Throttled so it's not a write on every single page view — once per 5 minutes is plenty
+// for an "active users" admin view.
+function touchLastActive(userId) {
+  const key = 'bc_last_active_touch';
+  const last = Number(localStorage.getItem(key) || 0);
+  if (Date.now() - last < 5 * 60 * 1000) return;
+  localStorage.setItem(key, String(Date.now()));
+  sb.from('profiles').update({ last_active_at: new Date().toISOString() }).eq('id', userId).then(() => {});
 }
 
 async function requireMod() {

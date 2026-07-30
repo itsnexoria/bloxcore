@@ -23,7 +23,6 @@
       <li><a href="/challenges/">Challenges</a></li>
       <li><a href="/leaderboard/">Leaderboard</a></li>
       <li><a href="/crews/">Crews</a></li>
-      <li><a href="/fruit-stock/">Fruit Stock</a></li>
       <li id="nav-auth-slot"></li>
     </ul>
   </div>
@@ -53,6 +52,11 @@
         <label for="display_name">Display Name</label>
         <input type="text" id="display_name" minlength="2" maxlength="24" placeholder="How other pirates see your name">
         <p class="muted" style="font-size:0.76rem; margin:-12px 0 16px;">Your login handle (@<span id="username-hint"></span>) stays the same — this is just what shows on your profile, the leaderboard, and the activity feed.</p>
+
+        <label for="active_title">Title</label>
+        <select id="active_title">
+          <option value="">— None —</option>
+        </select>
 
         <label for="bio">Bio</label>
         <textarea id="bio" rows="3" maxlength="300" placeholder="Tell other pirates about yourself…"></textarea>

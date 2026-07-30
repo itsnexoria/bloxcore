@@ -75,6 +75,7 @@ async function populateAuthArea() {
 
   const { data: profile } = await sb.from('profiles').select('theme').eq('id', session.user.id).single();
   if (profile) syncThemeFromProfile(profile);
+  touchLastActive(session.user.id);
 
   const onAdminPage = window.location.pathname.startsWith('/admin/');
   const adminLink = (role !== 'user' && !onAdminPage) ? `<a href="/admin/">Admin</a>` : '';

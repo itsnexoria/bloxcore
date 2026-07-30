@@ -55,6 +55,26 @@
       <div class="skeleton" style="height:50px; margin-bottom:10px;"></div>
     </div>
 
+    <h2 style="font-size:1.1rem; margin-top:40px;">Seasonal Awards</h2>
+    <p class="muted" style="margin:6px 0 16px; font-size:0.85rem;">Auto-runs monthly (closest practical approximation to "every 30 days" on a cron schedule): the previous holders are cleared and the current top 10 get the title instead. Leave a slot as "— None —" to skip it.</p>
+    <div class="panel">
+      <div style="display:flex; gap:16px; flex-wrap:wrap; align-items:flex-end;">
+        <div style="flex:1; min-width:200px;">
+          <label for="seasonal-leaderboard">Top 10 Leaderboard Title</label>
+          <select id="seasonal-leaderboard"><option value="">— None —</option></select>
+        </div>
+        <div style="flex:1; min-width:200px;">
+          <label for="seasonal-crew">Top 10 Crew Title</label>
+          <select id="seasonal-crew"><option value="">— None —</option></select>
+        </div>
+        <button class="btn btn-primary" id="save-seasonal-btn">Save</button>
+      </div>
+      <div class="flex-between" style="margin-top:16px; padding-top:16px; border-top:1px solid var(--navy-light);">
+        <p class="muted" style="margin:0; font-size:0.82rem;" id="seasonal-last-run">Never run yet.</p>
+        <button class="btn btn-ghost btn-sm" id="run-seasonal-btn">Run Now</button>
+      </div>
+    </div>
+
     <h2 style="font-size:1.1rem; margin-top:40px;">Grant / Revoke a Title</h2>
     <input type="text" id="grant-user-search" placeholder="Search username or display name…" style="margin-top:12px; max-width:360px;">
     <div id="grant-results" style="margin-top:16px;"></div>

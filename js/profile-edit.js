@@ -22,12 +22,34 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   populateBountySelect('pirate_bounty');
   populateBountySelect('marine_bounty');
+  await populateTitleSelect(auth.user.id, auth.profile.active_title_id);
   populateForm(auth.profile);
   wireBuildPickers();
 
   document.getElementById('avatar-file').addEventListener('change', handleAvatarUpload);
   document.getElementById('profile-form').addEventListener('submit', handleSave);
 });
+
+async function populateTitleSelect(userId, activeTitleId) {
+  const select = document.getElementById('active_title');
+  const { data: owned } = await sb.from('user_titles').select('titles(id, name)').eq('user_id', userId);
+
+  (owned || []).forEach(o => {
+    const option = document.createElement('option');
+    option.value = o.titles.id;
+    option.textContent = o.titles.name;
+    if (o.titles.id === activeTitleId) option.selected = true;
+    select.appendChild(option);
+  });
+
+  if (!owned || !owned.length) {
+    const hint = document.createElement('p');
+    hint.className = 'muted';
+    hint.style.cssText = 'font-size:0.78rem; margin:-12px 0 16px;';
+    hint.textContent = "You haven't unlocked any titles yet.";
+    select.insertAdjacentElement('afterend', hint);
+  }
+}
 
 function populateBountySelect(id) {
   const select = document.getElementById(id);
@@ -203,6 +225,7 @@ async function handleSave(e) {
 
   const payload = {
     display_name: document.getElementById('display_name').value.trim() || null,
+    active_title_id: document.getElementById('active_title').value || null,
     bio: document.getElementById('bio').value.trim() || null,
     region: document.getElementById('region').value.trim() || null,
     pirate_bounty: parseInt(document.getElementById('pirate_bounty').value, 10) || 0,

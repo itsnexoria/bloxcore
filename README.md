@@ -19,7 +19,6 @@ bloxcore/
 ├── giveaways/index.html              active + past giveaways, entry — "/giveaways/"
 ├── crews/index.html                  browse crews, team leaderboard, create — "/crews/"
 ├── crew/index.html                   single crew view, e.g. "/crew/?name=SomeCrew"
-├── fruit-stock/index.html            fruit stock board (staff-updated) — "/fruit-stock/"
 ├── settings/index.html               theme + reduce-motion preferences — "/settings/"
 ├── profile/index.html                edit your own public profile — "/profile/"
 ├── player/index.html                 public profile view, e.g. "/player/?u=someusername"
@@ -46,7 +45,6 @@ bloxcore/
     ├── giveaways.js                  public giveaways page logic
     ├── crews.js                      crews browse + team leaderboard + create
     ├── crew.js                       single crew page — join/leave/edit/kick
-    ├── fruit-stock.js                fruit stock board + staff toggle
     ├── settings.js                   theme + reduce-motion settings
     ├── profile-edit.js               profile edit page logic
     ├── player.js                     public profile view logic
@@ -69,8 +67,8 @@ Deep black-blue background, electric cyan glow, icy white text, and a small toxi
 
 `profiles.role` is one of:
 - **`user`** (default) — normal player.
-- **`mod`** — can review submissions (approve/reject), create/delete giveaways (including picking winners), and delete chat messages. Can access `/admin/` and `/admin/giveaways/`.
-- **`admin`** — everything mod can do, plus manage challenges/rotation (`/admin/challenges/`), manage other users' roles (`/admin/users/`), and create/grant titles (`/admin/titles/`).
+- **`mod`** — can review submissions (approve/reject), create/delete giveaways (including picking winners), delete chat messages, and ban/unban regular users (not admins, not themselves). Can access `/admin/` and `/admin/giveaways/`.
+- **`admin`** — everything mod can do, plus manage challenges/rotation (`/admin/challenges/`), manage other users' roles and adjust their XP directly (`/admin/users/`), and create/grant titles and configure seasonal auto-awards (`/admin/titles/`).
 
 Role changes go through `set_user_role()`, a narrow admin-only function — not a broad "admin can edit any profile" policy — so promoting someone to mod/admin doesn't also hand over edit access to their bio/bounty/build fields. An admin can't remove their own admin access (avoids accidentally locking everyone out).
 
@@ -129,16 +127,20 @@ The Supabase URL and publishable key are already hard-coded in `js/supabase-clie
 ## Ideas for later
 
 - Discord webhook ping when a submission is approved, a giveaway ends, or a chat message gets flagged
-- Automate fruit stock via the RapidAPI feed (see note above — needs your API key + endpoint details)
 - Shareable rank-up image generated from a player's profile
 - Server-side chat rate-limiting in addition to the client-side cooldown
 - Crew banners/icons, crew chat channels
 
-## Fruit Stock — automating it later
-
-`/fruit-stock/` works today as a staff-updated board. I tried wiring the RapidAPI "Blox Fruit Stock/Fruit" feed using the key/host you shared — a diagnostic Edge Function (`fetch-fruit-stock`, already deployed) called it and got back **RapidAPI's own 500 error**: `Cannot read properties of undefined (reading 'split')`. That's their backend failing, not ours — it means the plain root request is missing something their API expects (almost certainly a required query parameter not shown in the basic "Code Snippets" tab). To finish this, check the RapidAPI console for that endpoint's **"Parameters"** tab (usually next to Code Snippets) or the **"Example Responses"** tab — either should show a working request with whatever's required. Send me what you find and I'll finish the wiring; the Edge Function, `pg_net` extension, and the underlying `fruit_stock` table are all already in place.
-
 ## Changelog
+
+**Fruit stock removed, submission-history fix, titles overhaul, ban/XP admin tools**
+- Removed the fruit stock feature entirely (page, nav links, table) — the RapidAPI feed turned out to error on their own backend even with the correct key/host, and there was no working data source left to justify keeping the UI around. The `fetch-fruit-stock` Edge Function is still deployed but unused/harmless; delete it from the Supabase dashboard's Edge Functions page if you want it gone too (no delete-function tool available here).
+- **Fixed:** approving/rejecting a submission was deleting it from the player's own history too. Now only the screenshots get cleaned up from storage — the submission row (and its status/admin note) stays, so "Your Submissions" on the dashboard shows your real history again.
+- Title equip control moved from the dashboard to `/profile/`, as a dropdown of titles you've been granted.
+- Challenges can now specify a **Reward Title** — granted automatically the moment a submission for that challenge is approved.
+- **Seasonal auto-titling**: in `/admin/titles/`, pick a title for "Top 10 Leaderboard" and a title for "Top 10 Crew". A scheduled job clears the previous holders and re-awards based on current standings, monthly (cron doesn't support an arbitrary "every 30 days" interval, so monthly-on-the-1st is the closest practical match) — plus a manual "Run Now" button.
+- `/admin/users/` gained: a **Recently Active** list (last 10 seen, tracked via a throttled last-active timestamp updated at most every 5 minutes per browser), **Ban/Unban** (can't ban yourself or another admin; a banned player is signed out with the reason shown, and blocked at the database level from posting chat, submitting challenges, or entering giveaways even if they somehow stayed signed in), and a direct **XP adjustment** field (admin only, recalculates level automatically).
+- Found and fixed a real gap along the way: several earlier `revoke execute ... from anon` statements weren't actually taking effect, because Postgres grants EXECUTE to the `PUBLIC` pseudo-role by default and that overrides role-specific revokes. Fixed properly (`revoke ... from public`) for the two functions where it mattered — the trigger-only ones that should never be invoked directly. Every staff-gated action function was already safe regardless, since each checks the caller's actual role internally before doing anything.
 
 **SEO, dynamic hero card, avatar/chat/giveaway fixes**
 - SEO pass across all 18 pages: per-page meta descriptions, canonical tags, Open Graph + Twitter Card tags (public pages only), `robots.txt`, `sitemap.xml`, and `noindex` on private/account/admin pages. JSON-LD (WebSite + Organization) on the homepage. Canonical URLs use `https://bloxcore.xyz` as a placeholder — swap for your real domain once you know it (search-and-replace across the HTML files, `robots.txt`, and `sitemap.xml`). `/player/` and `/crew/` are query-string routes so they're left out of the sitemap (no fixed list to enumerate) but aren't blocked from crawling.
@@ -150,7 +152,7 @@ The Supabase URL and publishable key are already hard-coded in `js/supabase-clie
 **Pagination, crews, fruit stock, settings/themes, titles**
 - Pagination (20/page) on the leaderboard and all three admin list pages (challenges, giveaways, users).
 - Crews (`/crews/` to browse + team leaderboard, `/crew/?name=X` for a single crew) — any player can create one (name, tag, description, leader's Roblox username, a Discord invite) and others can join through the site; one crew per player at a time. Team leaderboard ranks by total member XP. Leaders can edit/kick/delete; admins can also delete any crew.
-- Fruit Stock board (`/fruit-stock/`) — see the note above.
+- Fruit Stock board (`/fruit-stock/`) — later removed, see the changelog entry above for why.
 - Settings (`/settings/`) — 3 color themes (Ice/Blood/Toxic) and a Reduce Motion toggle. Theme applies instantly (localStorage) and follows signed-in players to other devices (`profiles.theme`); both apply flash-free via a tiny inline script in every page's `<head>`.
 - Titles — admins create titles (name + color) and grant/revoke them to specific players (`/admin/titles/`); players equip one of their owned titles from the dashboard. Shows next to the name on the dashboard, leaderboard, chat, public profile, and crew member lists. A player can only equip a title they've actually been granted (enforced in the same trigger that protects other privileged profile columns).
 

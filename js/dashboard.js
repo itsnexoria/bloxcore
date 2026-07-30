@@ -6,7 +6,6 @@ document.addEventListener('DOMContentLoaded', async () => {
   const { user, profile } = auth;
 
   renderProfileCard(profile);
-  await loadTitlePicker(user.id, profile.active_title_id);
   await loadSubmissions(user.id);
 });
 
@@ -51,49 +50,6 @@ function renderProfileCard(profile) {
       </div>
     </div>
   `;
-}
-
-async function loadTitlePicker(userId, activeTitleId) {
-  const { data: owned } = await sb.from('user_titles').select('titles(id, name, color)').eq('user_id', userId);
-  if (!owned || !owned.length) return;
-
-  const wrapper = document.createElement('div');
-  wrapper.className = 'panel';
-  wrapper.style.marginTop = '20px';
-  wrapper.innerHTML = `
-    <h3 style="font-size:1rem; margin-bottom:12px;">Equipped Title</h3>
-    <div style="display:flex; gap:8px; flex-wrap:wrap;" id="title-picker-chips"></div>
-  `;
-  document.getElementById('profile-card').insertAdjacentElement('afterend', wrapper);
-
-  const chips = document.getElementById('title-picker-chips');
-  const noneChip = makeChip('None', '#8a94a6', !activeTitleId, () => equipTitle(userId, null));
-  chips.appendChild(noneChip);
-  owned.forEach(o => {
-    const t = o.titles;
-    chips.appendChild(makeChip(t.name, t.color, t.id === activeTitleId, () => equipTitle(userId, t.id)));
-  });
-}
-
-function makeChip(label, color, selected, onClick) {
-  const btn = document.createElement('button');
-  btn.className = 'btn btn-sm';
-  btn.style.border = `1px solid ${color}`;
-  btn.style.color = selected ? '#04141d' : color;
-  btn.style.background = selected ? color : 'transparent';
-  btn.textContent = label;
-  btn.addEventListener('click', onClick);
-  return btn;
-}
-
-async function equipTitle(userId, titleId) {
-  const { error } = await sb.from('profiles').update({ active_title_id: titleId }).eq('id', userId);
-  if (error) {
-    showToast(error.message, true);
-    return;
-  }
-  showToast(titleId ? 'Title equipped.' : 'Title cleared.');
-  window.location.reload();
 }
 
 function streakBonusLabel(streak) {

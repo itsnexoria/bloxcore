@@ -99,7 +99,9 @@ async function reviewSubmission(id, action) {
 
   // Grab the screenshot URLs from the DOM before removing the card, then clean up
   // best-effort — the review already succeeded above, so a cleanup hiccup here
-  // shouldn't surface as an error to the reviewer, just get logged.
+  // shouldn't surface as an error to the reviewer, just get logged. The submission
+  // row itself is kept (not deleted) so the player still sees it in their history —
+  // only the now-redundant screenshots get cleared out.
   const urls = Array.from(card.querySelectorAll('img')).map(img => img.src);
   card.remove();
   cleanupReviewedSubmission(id, urls).catch(err => console.error('Cleanup failed:', err));
@@ -112,8 +114,8 @@ async function cleanupReviewedSubmission(id, urls) {
     if (storageError) console.error('Could not delete screenshots from storage:', storageError);
   }
 
-  const { error: deleteError } = await sb.from('submissions').delete().eq('id', id);
-  if (deleteError) console.error('Could not delete submission row:', deleteError);
+  const { error: updateError } = await sb.from('submissions').update({ screenshot_url: null, screenshot_urls: [] }).eq('id', id);
+  if (updateError) console.error('Could not clear screenshot references:', updateError);
 }
 
 function extractStoragePath(url) {

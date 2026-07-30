@@ -10,6 +10,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   if (!auth) return;
 
   await loadChallenges(0);
+  await populateRewardTitleSelect();
 
   document.getElementById('new-challenge-btn').addEventListener('click', () => openModal());
   document.getElementById('modal-cancel').addEventListener('click', closeModal);
@@ -33,7 +34,7 @@ async function loadChallenges(page) {
 
   const { data, error, count } = await sb
     .from('challenges')
-    .select('*', { count: 'exact' })
+    .select('*, titles(name)', { count: 'exact' })
     .order('rotation', { ascending: true })
     .order('created_at', { ascending: false })
     .range(from, to);
@@ -66,6 +67,17 @@ async function loadChallenges(page) {
   });
 }
 
+async function populateRewardTitleSelect() {
+  const select = document.getElementById('reward_title_id');
+  const { data: titles } = await sb.from('titles').select('id, name').order('name');
+  (titles || []).forEach(t => {
+    const option = document.createElement('option');
+    option.value = t.id;
+    option.textContent = t.name;
+    select.appendChild(option);
+  });
+}
+
 function renderPager(total) {
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
   return `
@@ -89,7 +101,7 @@ function renderRow(c, isLast) {
         <p style="margin:0; font-weight:700;">${escapeHtml(c.title)}</p>
         <p class="muted" style="margin:2px 0 0; font-size:0.8rem;">
           <span class="tag tag-${c.difficulty}">${c.difficulty}</span>
-          +${c.xp_reward} XP · ${rotationLabel} ${featuredTag} ${c.repeatable ? '· <span style="color:var(--brass-bright);">Repeatable</span>' : ''} ${c.active ? '' : '· <span style="color:var(--blood);">Archived</span>'}
+          +${c.xp_reward} XP · ${rotationLabel} ${featuredTag} ${c.repeatable ? '· <span style="color:var(--brass-bright);">Repeatable</span>' : ''} ${c.titles ? `· 🏷 ${escapeHtml(c.titles.name)}` : ''} ${c.active ? '' : '· <span style="color:var(--blood);">Archived</span>'}
         </p>
       </div>
       <div style="display:flex; gap:8px; flex-shrink:0;">
@@ -118,6 +130,7 @@ function openModal(challenge = null) {
   document.getElementById('rotation').value = challenge?.rotation || 'none';
   document.getElementById('active').checked = challenge ? challenge.active : true;
   document.getElementById('repeatable').checked = challenge ? challenge.repeatable : false;
+  document.getElementById('reward_title_id').value = challenge?.reward_title_id || '';
 
   modal.style.display = 'flex';
 }
@@ -146,6 +159,7 @@ async function handleSave(e) {
     in_rotation_pool: rotation !== 'none',
     active: document.getElementById('active').checked,
     repeatable: document.getElementById('repeatable').checked,
+    reward_title_id: document.getElementById('reward_title_id').value || null,
   };
 
   // A brand-new rotating challenge starts unfeatured until the next rotation picks it;

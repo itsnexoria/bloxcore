@@ -7,8 +7,11 @@ document.addEventListener('DOMContentLoaded', async () => {
   if (!auth) return;
 
   await loadTitles();
+  await loadSeasonalConfig();
 
   document.getElementById('title-form').addEventListener('submit', handleCreateTitle);
+  document.getElementById('save-seasonal-btn').addEventListener('click', saveSeasonalConfig);
+  document.getElementById('run-seasonal-btn').addEventListener('click', runSeasonalNow);
 
   let debounceTimer;
   document.getElementById('grant-user-search').addEventListener('input', (e) => {
@@ -29,6 +32,19 @@ async function loadTitles() {
 
   allTitles = data;
 
+  const seasonalLb = document.getElementById('seasonal-leaderboard');
+  const seasonalCrew = document.getElementById('seasonal-crew');
+  [seasonalLb, seasonalCrew].forEach(select => {
+    if (!select) return;
+    select.querySelectorAll('option:not(:first-child)').forEach(o => o.remove());
+    data.forEach(t => {
+      const option = document.createElement('option');
+      option.value = t.id;
+      option.textContent = t.name;
+      select.appendChild(option);
+    });
+  });
+
   if (!data.length) {
     list.innerHTML = `<div class="empty-state">No titles yet — create the first one above.</div>`;
     return;
@@ -46,6 +62,54 @@ async function loadTitles() {
   document.querySelectorAll('[data-delete-title]').forEach(btn => {
     btn.addEventListener('click', () => deleteTitle(btn.dataset.deleteTitle, btn.dataset.name));
   });
+}
+
+async function loadSeasonalConfig() {
+  const { data, error } = await sb.from('seasonal_titles').select('*');
+  if (error) {
+    console.error(error);
+    return;
+  }
+
+  const lbRow = data.find(r => r.slot === 'leaderboard_top10');
+  const crewRow = data.find(r => r.slot === 'crew_top10');
+  if (lbRow?.title_id) document.getElementById('seasonal-leaderboard').value = lbRow.title_id;
+  if (crewRow?.title_id) document.getElementById('seasonal-crew').value = crewRow.title_id;
+
+  const lastRun = [lbRow?.last_run_at, crewRow?.last_run_at].filter(Boolean).sort().pop();
+  document.getElementById('seasonal-last-run').textContent = lastRun ? `Last ran ${timeAgo(lastRun)}` : 'Never run yet.';
+}
+
+async function saveSeasonalConfig() {
+  const lbTitle = document.getElementById('seasonal-leaderboard').value || null;
+  const crewTitle = document.getElementById('seasonal-crew').value || null;
+
+  const { error } = await sb.from('seasonal_titles').upsert([
+    { slot: 'leaderboard_top10', title_id: lbTitle },
+    { slot: 'crew_top10', title_id: crewTitle },
+  ], { onConflict: 'slot' });
+
+  if (error) {
+    showToast(error.message, true);
+    return;
+  }
+  showToast('Seasonal award config saved.');
+}
+
+async function runSeasonalNow() {
+  if (!window.confirm('Run seasonal title awards now? This clears the previous holders of each configured title and re-awards based on current standings.')) return;
+
+  const btn = document.getElementById('run-seasonal-btn');
+  btn.disabled = true;
+  const { error } = await sb.rpc('run_seasonal_title_awards');
+  btn.disabled = false;
+
+  if (error) {
+    showToast(error.message, true);
+    return;
+  }
+  showToast('Seasonal titles awarded.');
+  await loadSeasonalConfig();
 }
 
 async function handleCreateTitle(e) {
