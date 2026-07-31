@@ -48,13 +48,23 @@ body {
   margin: 0;
   overflow-x: hidden; /* rotated bounty cards can slightly exceed 100vw — never let that create page scroll */
   background:
+    radial-gradient(circle at 18% 12%, rgba(41,182,246,0.10), transparent 38%),
+    radial-gradient(circle at 82% 68%, rgba(107,220,127,0.07), transparent 42%),
     radial-gradient(ellipse at top, #0d1f34 0%, var(--ink) 55%),
     repeating-linear-gradient(180deg, rgba(120,220,255,0.02) 0px, rgba(120,220,255,0.02) 1px, transparent 1px, transparent 3px);
+  background-attachment: fixed, fixed, fixed, scroll;
+  animation: bgDrift 22s ease-in-out infinite alternate;
   color: var(--bone);
   font-family: var(--font-body);
   line-height: 1.5;
   min-height: 100vh;
 }
+
+@keyframes bgDrift {
+  0%   { background-position: 0% 0%, 100% 100%, center top, 0 0; }
+  100% { background-position: 6% 4%, 94% 92%, center top, 0 40px; }
+}
+@media (prefers-reduced-motion: reduce) { body { animation: none; } }
 
 /* Webkit custom scrollbar (Chrome/Edge/Safari) */
 ::-webkit-scrollbar { width: 11px; height: 11px; }
@@ -79,6 +89,32 @@ h1, h2, h3 {
   text-transform: uppercase;
 }
 
+h2 { position: relative; }
+section.section h2:not(.center)::after,
+section.section h2.center::after {
+  content: '';
+  display: block;
+  width: 46px;
+  height: 3px;
+  margin-top: 10px;
+  background: linear-gradient(90deg, var(--brass), var(--sea));
+  border-radius: 2px;
+}
+section.section h2.center::after { margin-left: auto; margin-right: auto; }
+
+/* Scroll reveal — progressively enhanced by js-reveal.js; invisible only once JS confirms it will run */
+.js-reveal section.section .panel,
+.js-reveal section.section .poster:not(#hero-poster) {
+  opacity: 0;
+  transform: translateY(26px);
+  transition: opacity 0.6s ease, transform 0.6s ease;
+}
+.js-reveal section.section .panel.in-view,
+.js-reveal section.section .poster.in-view {
+  opacity: 1;
+  transform: translateY(0);
+}
+
 .container {
   max-width: var(--max-width);
   margin: 0 auto;
@@ -91,6 +127,7 @@ h1, h2, h3 {
   border-bottom: 1px solid var(--navy-light);
   background: rgba(5, 8, 16, 0.85);
   backdrop-filter: blur(6px);
+  transition: box-shadow 0.25s ease, background 0.25s ease;
   position: sticky;
   top: 0;
   /* Must be above .nav-overlay (60): .nav creates its own stacking context
@@ -133,6 +170,16 @@ h1, h2, h3 {
   height: 40px;
   width: auto;
   filter: drop-shadow(0 0 10px rgba(41, 182, 246, 0.45));
+  transition: filter 0.2s ease, transform 0.2s ease;
+}
+.brand:hover .brand-logo {
+  filter: drop-shadow(0 0 16px rgba(123, 224, 255, 0.75));
+  transform: scale(1.06);
+}
+
+.nav.scrolled {
+  background: rgba(5, 8, 16, 0.96);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.35);
 }
 
 .admin-badge {
@@ -270,8 +317,22 @@ h1, h2, h3 {
   letter-spacing: 0.03em;
   cursor: pointer;
   text-decoration: none;
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
   transition: transform 0.12s ease, box-shadow 0.12s ease, background 0.12s ease;
 }
+
+.btn::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(115deg, transparent 20%, rgba(255,255,255,0.35) 40%, transparent 60%);
+  transform: translateX(-120%);
+  transition: transform 0.5s ease;
+}
+.btn:hover::before { transform: translateX(120%); }
 
 .btn:focus-visible {
   outline: 2px solid var(--brass-bright);
@@ -283,7 +344,7 @@ h1, h2, h3 {
   color: #04141d;
   box-shadow: 0 2px 0 #0e7bad, 0 0 18px rgba(41,182,246,0.25);
 }
-.btn-primary:hover { background: var(--brass-bright); transform: translateY(-1px); }
+.btn-primary:hover { background: var(--brass-bright); transform: translateY(-2px); box-shadow: 0 4px 0 #0e7bad, 0 0 28px rgba(41,182,246,0.45); }
 .btn-primary:active { transform: translateY(1px); box-shadow: 0 1px 0 #0e7bad; }
 
 .btn-ghost {
@@ -291,7 +352,7 @@ h1, h2, h3 {
   border-color: var(--navy-light);
   color: var(--bone);
 }
-.btn-ghost:hover { border-color: var(--brass); color: var(--brass-bright); }
+.btn-ghost:hover { border-color: var(--brass); color: var(--brass-bright); transform: translateY(-2px); box-shadow: 0 6px 16px rgba(0,0,0,0.35), 0 0 16px rgba(41,182,246,0.15); }
 
 .btn-danger {
   background: transparent;
@@ -308,11 +369,26 @@ h1, h2, h3 {
 /* ---------------------------------- Cards --------------------------------- */
 
 .panel {
-  background: var(--navy);
+  background: linear-gradient(165deg, rgba(28,43,66,0.55), var(--navy) 60%);
   border: 1px solid var(--navy-light);
   border-radius: var(--radius);
   padding: 28px;
+  position: relative;
+  overflow: hidden;
   animation: fadeInUp 0.45s ease both;
+  transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+}
+.panel::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(123,224,255,0.5), transparent);
+}
+.panel:hover {
+  transform: translateY(-3px);
+  border-color: rgba(41,182,246,0.4);
+  box-shadow: 0 14px 32px rgba(0,0,0,0.45), 0 0 20px rgba(41,182,246,0.1);
 }
 
 /* Bounty card: frosted ice-crystal face — faceted cut, cyan glow border, glassy fill */
@@ -343,6 +419,21 @@ h1, h2, h3 {
   inset: 8px;
   border: 1px solid rgba(123,224,255,0.18);
   pointer-events: none;
+}
+
+.poster::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(circle, rgba(123,224,255,0.65) 1px, transparent 1.5px) 10px 10px,
+    radial-gradient(circle, rgba(123,224,255,0.65) 1px, transparent 1.5px) calc(100% - 10px) 10px,
+    radial-gradient(circle, rgba(123,224,255,0.65) 1px, transparent 1.5px) 10px calc(100% - 10px),
+    radial-gradient(circle, rgba(123,224,255,0.65) 1px, transparent 1.5px) calc(100% - 10px) calc(100% - 10px);
+  background-size: 3px 3px;
+  background-repeat: no-repeat;
+  opacity: 0.7;
 }
 
 .poster-eyebrow {
@@ -460,9 +551,22 @@ h1, h2, h3 {
 }
 .xp-bar-fill {
   height: 100%;
+  position: relative;
+  overflow: hidden;
   background: linear-gradient(90deg, var(--brass), var(--brass-bright));
   box-shadow: 0 0 10px rgba(41,182,246,0.5);
   transition: width 0.4s ease;
+}
+.xp-bar-fill::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(115deg, transparent 30%, rgba(255,255,255,0.55) 50%, transparent 70%);
+  animation: xpShine 2.4s ease-in-out infinite;
+}
+@keyframes xpShine {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
 }
 
 .rank-title {
@@ -613,6 +717,23 @@ input:focus, select:focus, textarea:focus {
   grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
 }
 .section { padding: 64px 0; }
+.hero-grid {
+  display: grid;
+  grid-template-columns: 1.1fr 0.9fr;
+  gap: 48px;
+  align-items: center;
+}
+@media (max-width: 760px) {
+  .hero-grid { grid-template-columns: 1fr; text-align: center; }
+  .hero-grid > div:first-child > div { justify-content: center; }
+}
+.two-col-grid { display: grid; grid-template-columns: 1fr 1fr; }
+.theme-grid { grid-template-columns: repeat(3, 1fr); }
+@media (max-width: 480px) {
+  .two-col-grid, .theme-grid { grid-template-columns: 1fr; }
+}
+#hero-poster { transition: opacity 0.4s ease, transform 0.3s ease, box-shadow 0.3s ease; }
+#hero-poster:hover { transform: rotate(0deg) translateY(-4px) !important; box-shadow: 0 20px 40px rgba(0,0,0,0.6), 0 0 34px rgba(41,182,246,0.25), inset 0 0 0 1px rgba(123,224,255,0.1); }
 .flex-between { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
 .empty-state {
   text-align: center;

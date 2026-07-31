@@ -40,7 +40,34 @@ document.addEventListener('DOMContentLoaded', () => {
 
   highlightActiveLink();
   populateAuthArea();
+  initScrollFx();
 });
+
+// Nav gains a shadow once the page scrolls, and cards/posters gently rise into view —
+// gated behind a JS-only class so nothing is ever invisible if this script fails to run.
+function initScrollFx() {
+  const nav = document.querySelector('.nav');
+  if (nav) {
+    const onScroll = () => nav.classList.toggle('scrolled', window.scrollY > 8);
+    onScroll();
+    window.addEventListener('scroll', onScroll, { passive: true });
+  }
+
+  if (!('IntersectionObserver' in window)) return;
+  document.documentElement.classList.add('js-reveal');
+
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('in-view');
+        io.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
+
+  document.querySelectorAll('section.section .panel, section.section .poster:not(#hero-poster)')
+    .forEach(el => io.observe(el));
+}
 
 function highlightActiveLink() {
   // Normalize both sides to no trailing slash (except root, which stays "/")

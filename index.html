@@ -58,10 +58,10 @@
 </nav>
 
 <header class="section">
-  <div class="container" style="display:grid; grid-template-columns: 1.1fr 0.9fr; gap: 48px; align-items:center;">
+  <div class="container hero-grid">
     <div>
       <p class="muted" style="font-family: var(--font-mono); text-transform:uppercase; letter-spacing:0.08em; font-size:0.85rem;">A Blox Fruits community board</p>
-      <h1 style="font-size: 2.8rem; line-height:1.1;">Every bounty starts with one job done.</h1>
+      <h1 style="font-size: clamp(2.1rem, 4.5vw + 1rem, 3.2rem); line-height:1.1;">Every <span style="background:linear-gradient(90deg, var(--brass-bright), var(--sea)); -webkit-background-clip:text; background-clip:text; color:transparent;">bounty</span> starts with one job done.</h1>
       <p class="muted" style="font-size:1.05rem; max-width:520px;">
         Take on challenges pulled straight from the Grand Line grind — defeat bosses, awaken fruits, master styles.
         Submit your proof, get reviewed, and watch your name climb from Rookie to Pirate King.
@@ -71,12 +71,15 @@
         <a href="/challenges/" class="btn btn-ghost">Browse Challenges</a>
       </div>
     </div>
-    <div class="poster" id="hero-poster" style="max-width:320px; justify-self:center; transform: rotate(-3deg); transition: opacity 0.4s ease;">
-      <p class="poster-eyebrow">★ WANTED ★</p>
-      <p class="poster-title" id="hero-poster-title">First Blood</p>
-      <p class="poster-body" id="hero-poster-body">Defeat your first Marine grunt and screenshot the kill feed.</p>
-      <p class="poster-reward" id="hero-poster-reward">+15 XP</p>
-      <div class="center" style="margin-top:10px;"><span class="tag" id="hero-poster-tag">Easy</span></div>
+    <div style="position:relative; justify-self:center;">
+      <div aria-hidden="true" style="position:absolute; inset:-30px; background:radial-gradient(circle, rgba(41,182,246,0.22), transparent 70%); filter:blur(6px); animation: stampPulse 4s ease-in-out infinite;"></div>
+      <div class="poster" id="hero-poster" style="max-width:320px; transform: rotate(-3deg); transition: opacity 0.4s ease, transform 0.3s ease; position:relative;">
+        <p class="poster-eyebrow">★ WANTED ★</p>
+        <p class="poster-title" id="hero-poster-title">First Blood</p>
+        <p class="poster-body" id="hero-poster-body">Defeat your first Marine grunt and screenshot the kill feed.</p>
+        <p class="poster-reward" id="hero-poster-reward">+15 XP</p>
+        <div class="center" style="margin-top:10px;"><span class="tag" id="hero-poster-tag">Easy</span></div>
+      </div>
     </div>
   </div>
 </header>
