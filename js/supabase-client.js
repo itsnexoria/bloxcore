@@ -106,6 +106,18 @@ function displayNameFor(profile) {
   return profile?.display_name || profile?.username || 'Unknown';
 }
 
+// Shared circular avatar renderer. Discord CDN avatar URLs can go stale when a user changes
+// their pfp (the old hash 404s), which otherwise shows the browser's broken-image icon —
+// onerror swaps it for an initials placeholder instead, site-wide, from one place.
+function avatarHtml(profile, size, extraStyle = '') {
+  const name = displayNameFor(profile);
+  const initial = escapeHtml((name[0] || '?').toUpperCase());
+  const fallback = `<div style="width:${size}px;height:${size}px;border-radius:50%;background:var(--navy-light);display:flex;align-items:center;justify-content:center;font-size:${Math.round(size * 0.4)}px;flex-shrink:0;color:var(--ash);${extraStyle}">${initial}</div>`;
+  if (!profile?.avatar_url) return fallback;
+  const escapedFallback = fallback.replace(/"/g, '&quot;');
+  return `<img src="${profile.avatar_url}" alt="" style="width:${size}px;height:${size}px;border-radius:50%;object-fit:cover;flex-shrink:0;${extraStyle}" onerror="this.outerHTML='${escapedFallback}';">`;
+}
+
 // Renders a small colored title badge if the profile has an active title equipped
 // (expects the query to have joined titles(name, color) via active_title_id).
 function titleBadge(profile) {

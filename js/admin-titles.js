@@ -50,7 +50,7 @@ async function loadTitles() {
     return;
   }
 
-  list.innerHTML = `<div class="panel" style="padding:0;">` +
+  list.innerHTML = `<div class="panel panel-plain" style="padding:0;">` +
     data.map((t, i) => `
       <div class="flex-between" style="padding:12px 20px; ${i === data.length - 1 ? '' : 'border-bottom:1px solid var(--navy-light);'}">
         <span style="border:1px solid ${t.color}; color:${t.color}; padding:2px 10px; border-radius:10px; font-size:0.82rem;">${escapeHtml(t.name)}</span>
@@ -169,7 +169,7 @@ async function searchUsers(query) {
   }
 
   const rows = await Promise.all(users.map(renderUserGrantRow));
-  results.innerHTML = `<div class="panel" style="padding:0;">${rows.join('')}</div>`;
+  results.innerHTML = `<div class="panel panel-plain" style="padding:0;">${rows.join('')}</div>`;
   wireGrantButtons();
 }
 

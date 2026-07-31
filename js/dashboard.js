@@ -14,21 +14,16 @@ function renderProfileCard(profile) {
   const title = rankTitleForLevel(profile.level);
   const progress = xpProgress(profile.xp, profile.level);
   const streak = profile.current_streak || 0;
-  const avatarHtml = profile.avatar_url
-    ? `<img src="${profile.avatar_url}" alt="" style="width:76px; height:76px; border-radius:50%; object-fit:cover; border:2px solid var(--brass); flex-shrink:0;">`
-    : `<div class="stamp stamp-static" style="width:76px; height:76px; flex-shrink:0;"><span style="font-size:1.6rem;">${escapeHtml((displayNameFor(profile)[0] || '?').toUpperCase())}</span></div>`;
+  const avatarHtmlStr = avatarHtml(profile, 76, 'border:2px solid var(--brass);');
 
   card.innerHTML = `
-    ${avatarHtml}
-    <div class="stamp">
-      <span class="stamp-level">${profile.level}</span>
-      <span class="stamp-label">Level</span>
-    </div>
+    ${avatarHtmlStr}
     <div style="flex:1; min-width:220px;">
       <div class="flex-between" style="align-items:baseline;">
         <div>
           <p class="muted" style="margin:0; font-size:0.85rem;">${escapeHtml(displayNameFor(profile))}${titleBadge(profile)}</p>
-          <p class="rank-title" style="margin:2px 0 10px;">${title}</p>
+          <p class="rank-title" style="margin:2px 0 4px;">${title}</p>
+          <p class="muted" style="margin:0; font-family:var(--font-mono); font-size:0.8rem;">Level ${profile.level}</p>
         </div>
         <div style="display:flex; gap:8px;">
           <a href="/player/?u=${encodeURIComponent(profile.username)}" class="btn btn-ghost btn-sm">View Public</a>

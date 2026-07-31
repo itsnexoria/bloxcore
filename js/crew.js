@@ -64,9 +64,14 @@ async function render() {
   document.getElementById('crew-content').innerHTML = `
     <div class="panel">
       <div class="flex-between" style="align-items:flex-start;">
-        <div>
-          <h1 style="font-size:1.6rem; margin-bottom:4px;">${crew.tag ? `[${escapeHtml(crew.tag)}] ` : ''}${escapeHtml(crew.name)}</h1>
-          <p class="muted" style="margin:0;">${members.length} member${members.length === 1 ? '' : 's'} · founded ${formatDate(crew.created_at)}</p>
+        <div style="display:flex; align-items:center; gap:14px;">
+          ${crew.logo_url
+            ? `<img src="${crew.logo_url}" alt="" style="width:56px; height:56px; border-radius:10px; object-fit:cover; flex-shrink:0;" onerror="this.style.display='none';">`
+            : `<div style="width:56px; height:56px; border-radius:10px; background:var(--navy-light); display:flex; align-items:center; justify-content:center; color:var(--ash); font-size:1.3rem; flex-shrink:0;">${escapeHtml((crew.name[0] || '?').toUpperCase())}</div>`}
+          <div>
+            <h1 style="font-size:1.6rem; margin-bottom:4px;">${crew.tag ? `[${escapeHtml(crew.tag)}] ` : ''}${escapeHtml(crew.name)}</h1>
+            <p class="muted" style="margin:0;">${members.length}/30 members · founded ${formatDate(crew.created_at)}</p>
+          </div>
         </div>
         ${actionHtml}
       </div>
@@ -77,6 +82,16 @@ async function render() {
       </div>
     </div>
 
+    ${isLeader ? `
+    <div class="panel" style="margin-top:20px;">
+      <h3 style="font-size:1rem; margin-bottom:10px;">Add a Member</h3>
+      <form id="add-member-form" style="display:flex; gap:10px; align-items:flex-start;">
+        <input type="text" id="add-member-username" placeholder="Their BloxCore username" style="margin:0; flex:1;" ${members.length >= 30 ? 'disabled' : ''}>
+        <button type="submit" class="btn btn-primary btn-sm" ${members.length >= 30 ? 'disabled' : ''}>Add</button>
+      </form>
+      <p class="field-error" id="add-member-error" style="display:none;"></p>
+    </div>` : ''}
+
     <div class="panel" style="margin-top:20px; padding:0;">
       ${members.map((m, i) => renderMemberRow(m, i === members.length - 1, isLeader)).join('')}
     </div>
@@ -85,6 +100,7 @@ async function render() {
   document.getElementById('join-crew-btn')?.addEventListener('click', handleJoin);
   document.getElementById('leave-crew-btn')?.addEventListener('click', () => handleLeave(currentUser.id));
   document.getElementById('delete-crew-btn')?.addEventListener('click', handleDelete);
+  document.getElementById('add-member-form')?.addEventListener('submit', handleAddMember);
   document.querySelectorAll('[data-kick]').forEach(btn => {
     btn.addEventListener('click', () => handleLeave(btn.dataset.kick));
   });
@@ -106,6 +122,32 @@ function renderMemberRow(m, isLast, isLeader) {
       </div>
     </div>
   `;
+}
+
+async function handleAddMember(e) {
+  e.preventDefault();
+  const input = document.getElementById('add-member-username');
+  const errorEl = document.getElementById('add-member-error');
+  const username = input.value.trim();
+  errorEl.style.display = 'none';
+  if (!username) return;
+
+  const submitBtn = e.target.querySelector('button[type="submit"]');
+  submitBtn.disabled = true;
+
+  const { error } = await sb.rpc('add_crew_member', { p_crew_id: crew.id, p_username: username });
+
+  submitBtn.disabled = false;
+
+  if (error) {
+    errorEl.textContent = error.message;
+    errorEl.style.display = 'block';
+    return;
+  }
+
+  input.value = '';
+  showToast(`Added ${username} to the crew.`);
+  await render();
 }
 
 async function handleJoin() {

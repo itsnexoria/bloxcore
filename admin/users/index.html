@@ -37,7 +37,20 @@
 
     <input type="text" id="user-search" placeholder="Search by username or display name…" style="margin-top:20px; max-width:360px;">
 
-    <h2 style="font-size:1.1rem; margin-top:36px;">Recently Active</h2>
+    <h2 style="font-size:1.1rem; margin-top:36px;">User Activity</h2>
+    <div id="crm-stats" class="grid" style="margin-top:12px;">
+      <div class="skeleton" style="height:70px;"></div>
+      <div class="skeleton" style="height:70px;"></div>
+      <div class="skeleton" style="height:70px;"></div>
+      <div class="skeleton" style="height:70px;"></div>
+    </div>
+
+    <div style="display:flex; gap:10px; margin-top:18px;">
+      <button class="btn btn-primary btn-sm" data-crm-filter="all">All</button>
+      <button class="btn btn-ghost btn-sm" data-crm-filter="online">Online</button>
+      <button class="btn btn-ghost btn-sm" data-crm-filter="idle">Idle</button>
+      <button class="btn btn-ghost btn-sm" data-crm-filter="offline">Offline</button>
+    </div>
     <div id="active-users" style="margin-top:12px;">
       <div class="skeleton" style="height:50px;"></div>
     </div>

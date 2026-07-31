@@ -43,7 +43,7 @@ async function loadGiveaways(page) {
 
   const countMap = new Map((counts || []).map(c => [c.giveaway_id, c.entry_count]));
 
-  table.innerHTML = `<div class="panel" style="padding:0;">` +
+  table.innerHTML = `<div class="panel panel-plain" style="padding:0;">` +
     giveaways.map((g, i) => renderRow(g, countMap.get(g.id) || 0, i === giveaways.length - 1)).join('') +
     `</div>` + renderPager(count);
 
@@ -95,8 +95,9 @@ function renderRow(g, entryCount, isLast) {
 function openModal() {
   document.getElementById('giveaway-error').style.display = 'none';
   document.getElementById('giveaway-form').reset();
-  document.getElementById('gv-icon-item').innerHTML = '';
-  document.getElementById('gv-icon-item').disabled = true;
+  const itemSelect = document.getElementById('gv-icon-item');
+  itemSelect.innerHTML = '<option value="">— None —</option>' +
+    BUILD_OPTIONS.fruit.map(opt => `<option value="${escapeHtml(opt.icon)}">${escapeHtml(opt.value)}</option>`).join('');
   document.getElementById('gv-icon-preview').style.display = 'none';
   document.getElementById('giveaway-modal').style.display = 'flex';
 }
@@ -104,23 +105,6 @@ function openModal() {
 function closeModal() {
   document.getElementById('giveaway-modal').style.display = 'none';
 }
-
-document.getElementById('gv-icon-category')?.addEventListener('change', (e) => {
-  const category = e.target.value;
-  const itemSelect = document.getElementById('gv-icon-item');
-  const preview = document.getElementById('gv-icon-preview');
-  preview.style.display = 'none';
-
-  if (!category) {
-    itemSelect.innerHTML = '';
-    itemSelect.disabled = true;
-    return;
-  }
-
-  itemSelect.disabled = false;
-  itemSelect.innerHTML = '<option value="">— Choose —</option>' +
-    BUILD_OPTIONS[category].map(opt => `<option value="${escapeHtml(opt.icon)}">${escapeHtml(opt.value)}</option>`).join('');
-});
 
 document.getElementById('gv-icon-item')?.addEventListener('change', (e) => {
   const preview = document.getElementById('gv-icon-preview');

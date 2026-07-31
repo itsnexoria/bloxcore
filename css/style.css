@@ -391,6 +391,11 @@ section.section h2.center::after { margin-left: auto; margin-right: auto; }
   box-shadow: 0 14px 32px rgba(0,0,0,0.45), 0 0 20px rgba(41,182,246,0.1);
 }
 
+/* Compact inline usage (e.g. chat bubbles) — keep the surface, drop the card treatment */
+.panel-plain { animation: none; }
+.panel-plain::before { display: none; }
+.panel-plain:hover { transform: none; border-color: var(--navy-light); box-shadow: none; }
+
 /* Bounty card: frosted ice-crystal face — faceted cut, cyan glow border, glassy fill */
 .poster {
   background: linear-gradient(160deg, rgba(28,43,66,0.85), rgba(11,18,32,0.9));
@@ -456,6 +461,7 @@ section.section h2.center::after { margin-left: auto; margin-right: auto; }
 .poster-body {
   font-size: 0.92rem;
   color: var(--ash);
+  text-align: center;
 }
 
 .poster-reward {

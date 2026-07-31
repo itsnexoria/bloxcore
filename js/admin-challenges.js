@@ -52,7 +52,7 @@ async function loadChallenges(page) {
     return;
   }
 
-  table.innerHTML = `<div class="panel" style="padding:0;">` +
+  table.innerHTML = `<div class="panel panel-plain" style="padding:0;">` +
     data.map((c, i) => renderRow(c, i === data.length - 1)).join('') +
     `</div>` + renderPager(count);
 

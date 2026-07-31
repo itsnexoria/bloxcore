@@ -45,9 +45,7 @@ async function loadHistory() {
 function renderMessage(m) {
   const profile = m.profiles || {};
   const name = displayNameFor(profile);
-  const avatar = profile.avatar_url
-    ? `<img src="${profile.avatar_url}" alt="" style="width:32px; height:32px; border-radius:50%; object-fit:cover; flex-shrink:0;">`
-    : `<div style="width:32px; height:32px; border-radius:50%; background:var(--navy-light); display:flex; align-items:center; justify-content:center; font-size:0.8rem; flex-shrink:0; color:var(--ash);">${escapeHtml((name[0] || '?').toUpperCase())}</div>`;
+  const avatar = avatarHtml(profile, 32);
 
   return `
     <div class="chat-row" data-message-id="${m.id}" style="display:flex; gap:10px; margin-bottom:14px;">
@@ -58,7 +56,7 @@ function renderMessage(m) {
           <span style="font-family:var(--font-mono); margin-left:6px;">${timeAgo(m.created_at)}</span>
           ${isStaff ? `<button class="chat-delete-btn" data-delete-id="${m.id}" title="Delete message">✕</button>` : ''}
         </p>
-        <div class="panel" style="display:inline-block; padding:9px 13px; margin:0; animation:none;">
+        <div class="panel panel-plain" style="display:inline-block; padding:9px 13px; margin:0;">
           <p style="margin:0; font-size:0.92rem; white-space:pre-wrap; word-break:break-word; text-align:left;">${escapeHtml(m.message)}</p>
         </div>
       </div>

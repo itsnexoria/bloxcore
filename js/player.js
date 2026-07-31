@@ -50,13 +50,11 @@ function renderProfile(p) {
     { key: 'accessory', label: 'Accessory', value: p.build_accessory },
   ].filter(f => f.value);
 
-  const avatarHtml = p.avatar_url
-    ? `<img src="${p.avatar_url}" alt="${escapeHtml(name)}" style="width:84px; height:84px; border-radius:50%; object-fit:cover; border:2px solid var(--brass);">`
-    : `<div class="stamp stamp-static" style="width:84px; height:84px;"><span style="font-size:1.8rem;">${escapeHtml(name[0]?.toUpperCase() || '?')}</span></div>`;
+  const avatarBlock = avatarHtml(p, 84, 'border:2px solid var(--brass);');
 
   return `
     <div class="panel" style="display:flex; gap:22px; align-items:center; flex-wrap:wrap;">
-      ${avatarHtml}
+      ${avatarBlock}
       <div style="flex:1; min-width:220px;">
         <div class="flex-between" style="align-items:baseline;">
           <div>

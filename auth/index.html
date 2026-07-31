@@ -30,38 +30,15 @@
 
 <section class="section">
   <div class="container" style="max-width:420px;">
-    <div class="panel">
+    <div class="panel center">
+      <p class="muted" style="margin:0 0 4px; font-size:0.85rem;">Welcome to</p>
+      <h1 style="font-size:1.4rem; margin-bottom:22px;">BloxCore</h1>
 
-      <div class="flex-between" style="margin-bottom:20px; border-bottom:1px solid var(--navy-light); padding-bottom:12px;">
-        <button id="tab-signin" class="btn btn-ghost btn-sm" style="border-color:var(--brass); color:var(--brass-bright);">Sign In</button>
-        <button id="tab-signup" class="btn btn-ghost btn-sm">Create Account</button>
-      </div>
-
-      <button id="discord-btn" class="btn btn-primary btn-block" style="margin-bottom:18px; background:#5865F2; box-shadow:0 2px 0 #3d47b3; color:#fff;">
+      <button id="discord-btn" class="btn btn-primary btn-block" style="background:#5865F2; box-shadow:0 2px 0 #3d47b3; color:#fff;">
         Continue with Discord
       </button>
-      <p class="center muted" style="font-size:0.8rem; margin:-6px 0 18px;">— or use email —</p>
-
-      <form id="signin-form">
-        <label for="signin-email">Email</label>
-        <input type="email" id="signin-email" required autocomplete="email">
-        <label for="signin-password">Password</label>
-        <input type="password" id="signin-password" required autocomplete="current-password">
-        <p class="field-error" id="signin-error" style="display:none;"></p>
-        <button type="submit" class="btn btn-primary btn-block">Sign In</button>
-      </form>
-
-      <form id="signup-form" style="display:none;">
-        <label for="signup-username">Username</label>
-        <input type="text" id="signup-username" required minlength="3" maxlength="24" pattern="[a-zA-Z0-9_]+" title="Letters, numbers, and underscores only">
-        <label for="signup-email">Email</label>
-        <input type="email" id="signup-email" required autocomplete="email">
-        <label for="signup-password">Password</label>
-        <input type="password" id="signup-password" required minlength="6" autocomplete="new-password">
-        <p class="field-error" id="signup-error" style="display:none;"></p>
-        <button type="submit" class="btn btn-primary btn-block">Create Account</button>
-      </form>
-
+      <p class="muted" style="font-size:0.78rem; margin:16px 0 0;">Sign-in is Discord-only — no separate BloxCore password to manage.</p>
+      <p class="field-error" id="signin-error" style="display:none; text-align:left;"></p>
     </div>
   </div>
 </section>

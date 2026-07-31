@@ -25,33 +25,93 @@ document.addEventListener('DOMContentLoaded', async () => {
   });
 });
 
+const ONLINE_WINDOW_MS = 5 * 60 * 1000;   // active in the last 5 min = online
+const IDLE_WINDOW_MS = 30 * 60 * 1000;    // active in the last 30 min = idle, else offline
+let crmUsers = [];
+let crmFilter = 'all';
+
+function activityStatus(lastActiveAt) {
+  if (!lastActiveAt) return 'offline';
+  const ms = Date.now() - new Date(lastActiveAt).getTime();
+  if (ms <= ONLINE_WINDOW_MS) return 'online';
+  if (ms <= IDLE_WINDOW_MS) return 'idle';
+  return 'offline';
+}
+
+const STATUS_COLOR = { online: 'var(--sea)', idle: 'var(--brass-bright)', offline: 'var(--ash)' };
+const STATUS_LABEL = { online: 'Online', idle: 'Idle', offline: 'Offline' };
+
 async function loadActiveUsers() {
-  const el = document.getElementById('active-users');
+  const statsEl = document.getElementById('crm-stats');
+  const listEl = document.getElementById('active-users');
+
   const { data, error } = await sb
     .from('profiles')
-    .select('id, username, display_name, last_active_at')
-    .not('last_active_at', 'is', null)
-    .order('last_active_at', { ascending: false })
-    .limit(10);
+    .select('id, username, display_name, avatar_url, last_active_at')
+    .order('last_active_at', { ascending: false, nullsFirst: false })
+    .limit(200);
 
   if (error) {
-    el.innerHTML = `<p class="muted">Couldn't load active users right now.</p>`;
+    statsEl.innerHTML = '';
+    listEl.innerHTML = `<p class="muted">Couldn't load user activity right now.</p>`;
     console.error(error);
     return;
   }
 
-  if (!data.length) {
-    el.innerHTML = `<div class="empty-state">No activity recorded yet.</div>`;
+  crmUsers = data.map(u => ({ ...u, status: activityStatus(u.last_active_at) }));
+
+  const counts = { online: 0, idle: 0, offline: 0 };
+  crmUsers.forEach(u => counts[u.status]++);
+
+  statsEl.innerHTML = `
+    <div class="panel" style="padding:16px 20px;">
+      <p class="muted" style="margin:0; font-size:0.78rem; text-transform:uppercase; letter-spacing:0.04em;">Total Users</p>
+      <p style="margin:4px 0 0; font-size:1.5rem; font-family:var(--font-mono);">${crmUsers.length}</p>
+    </div>
+    <div class="panel" style="padding:16px 20px;">
+      <p class="muted" style="margin:0; font-size:0.78rem; text-transform:uppercase; letter-spacing:0.04em;">● Online</p>
+      <p style="margin:4px 0 0; font-size:1.5rem; font-family:var(--font-mono); color:var(--sea);">${counts.online}</p>
+    </div>
+    <div class="panel" style="padding:16px 20px;">
+      <p class="muted" style="margin:0; font-size:0.78rem; text-transform:uppercase; letter-spacing:0.04em;">● Idle</p>
+      <p style="margin:4px 0 0; font-size:1.5rem; font-family:var(--font-mono); color:var(--brass-bright);">${counts.idle}</p>
+    </div>
+    <div class="panel" style="padding:16px 20px;">
+      <p class="muted" style="margin:0; font-size:0.78rem; text-transform:uppercase; letter-spacing:0.04em;">● Offline</p>
+      <p style="margin:4px 0 0; font-size:1.5rem; font-family:var(--font-mono);">${counts.offline}</p>
+    </div>
+  `;
+
+  renderCrmList();
+}
+
+function renderCrmList() {
+  const listEl = document.getElementById('active-users');
+  const rows = crmFilter === 'all' ? crmUsers : crmUsers.filter(u => u.status === crmFilter);
+
+  if (!rows.length) {
+    listEl.innerHTML = `<div class="empty-state">No users match this filter.</div>`;
     return;
   }
 
-  el.innerHTML = `<div class="panel" style="padding:0;">` + data.map((u, i) => `
-    <div class="flex-between" style="padding:10px 20px; ${i === data.length - 1 ? '' : 'border-bottom:1px solid var(--navy-light);'}">
-      <a href="/player/?u=${encodeURIComponent(u.username)}" style="color:var(--bone); text-decoration:none; font-weight:600;">${escapeHtml(displayNameFor(u))}</a>
-      <span class="muted" style="font-size:0.8rem; font-family:var(--font-mono);">${timeAgo(u.last_active_at)}</span>
+  listEl.innerHTML = `<div class="panel panel-plain" style="padding:0;">` + rows.slice(0, 40).map((u, i) => `
+    <div class="flex-between" style="padding:10px 20px; ${i === Math.min(rows.length, 40) - 1 ? '' : 'border-bottom:1px solid var(--navy-light);'}">
+      <div style="display:flex; align-items:center; gap:10px;">
+        ${avatarHtml(u, 30)}
+        <a href="/player/?u=${encodeURIComponent(u.username)}" style="color:var(--bone); text-decoration:none; font-weight:600;">${escapeHtml(displayNameFor(u))}</a>
+      </div>
+      <span style="font-size:0.8rem; font-family:var(--font-mono); color:${STATUS_COLOR[u.status]};">● ${STATUS_LABEL[u.status]}${u.last_active_at ? ` · ${timeAgo(u.last_active_at)}` : ''}</span>
     </div>
   `).join('') + `</div>`;
 }
+
+document.querySelectorAll('[data-crm-filter]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    crmFilter = btn.dataset.crmFilter;
+    document.querySelectorAll('[data-crm-filter]').forEach(b => b.className = `btn btn-sm ${b === btn ? 'btn-primary' : 'btn-ghost'}`);
+    renderCrmList();
+  });
+});
 
 async function loadUsers(query, page) {
   const table = document.getElementById('users-table');
@@ -83,7 +143,7 @@ async function loadUsers(query, page) {
     return;
   }
 
-  table.innerHTML = `<div class="panel" style="padding:0;">` +
+  table.innerHTML = `<div class="panel panel-plain" style="padding:0;">` +
     data.map((u, i) => renderRow(u, i === data.length - 1)).join('') +
     `</div>` + renderPager(count);
 

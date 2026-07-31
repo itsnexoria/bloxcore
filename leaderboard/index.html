@@ -42,9 +42,14 @@
 <section class="section">
   <div class="container">
     <h1 style="font-size:1.8rem;">Most Wanted</h1>
-    <p class="muted" style="margin-top:-8px;">Ranked by level, then total XP earned.</p>
+    <p class="muted" style="margin-top:-8px;" id="lb-subtitle">Ranked by level, then total XP earned.</p>
 
-    <div id="leaderboard-list" class="panel" style="margin-top:24px; padding:0;">
+    <div style="display:flex; gap:10px; margin:18px 0;">
+      <button class="btn btn-primary btn-sm" id="lb-tab-players">Players</button>
+      <button class="btn btn-ghost btn-sm" id="lb-tab-crews">Crews</button>
+    </div>
+
+    <div id="leaderboard-list" class="panel panel-plain" style="padding:0;">
       <div class="skeleton" style="height:60px; margin:16px;"></div>
     </div>
   </div>
