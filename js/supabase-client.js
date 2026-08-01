@@ -161,7 +161,34 @@ async function getCurrentProfile() {
     console.error('Failed to load profile', error);
     return { user: session.user, profile: null };
   }
+  await syncDiscordAvatar(session.user, profile);
   return { user: session.user, profile };
+}
+
+// Discord's OAuth metadata always reflects the user's *current* pfp, but our profiles.avatar_url
+// is only a snapshot from whenever it was last written. Two gotchas made the old version of this
+// never actually catch an updated pfp: (1) supabase.auth session.user.user_metadata is a snapshot
+// from the user's *first* sign-in and Supabase does not refresh it on later logins — the live data
+// instead lands in user.identities[].identity_data, and (2) getSession() can hand back a locally
+// cached user object, so we call getUser() here to force a round-trip to the Auth server for the
+// current identity. Throttled like touchLastActive so it's not a write on every single page view.
+async function syncDiscordAvatar(user, profile) {
+  const key = 'bc_avatar_sync_' + user.id;
+  const last = Number(localStorage.getItem(key) || 0);
+  if (Date.now() - last < 5 * 60 * 1000) return;
+  localStorage.setItem(key, String(Date.now()));
+
+  const { data: { user: freshUser } } = await sb.auth.getUser();
+  const discordIdentity = freshUser?.identities?.find(i => i.provider === 'discord');
+  const idData = discordIdentity?.identity_data || freshUser?.user_metadata || {};
+  let discordAvatar = idData.avatar_url || idData.picture;
+  if (!discordAvatar && idData.avatar && (idData.provider_id || idData.sub)) {
+    discordAvatar = `https://cdn.discordapp.com/avatars/${idData.provider_id || idData.sub}/${idData.avatar}.png`;
+  }
+  if (!discordAvatar || discordAvatar === profile?.avatar_url) return;
+
+  const { error } = await sb.from('profiles').update({ avatar_url: discordAvatar }).eq('id', user.id);
+  if (!error) profile.avatar_url = discordAvatar;
 }
 
 // Redirect helpers used by pages that require (or forbid) auth

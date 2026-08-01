@@ -47,6 +47,38 @@
   </div>
 </section>
 
+<!-- Edit crew modal (leader only) -->
+<div id="edit-crew-modal" style="display:none; position:fixed; inset:0; background:rgba(6,15,26,0.85); z-index:200; align-items:center; justify-content:center; padding:20px; overflow-y:auto;">
+  <div class="panel" style="max-width:460px; width:100%; margin:20px 0;">
+    <h3 style="font-size:1.1rem;">Edit Crew</h3>
+    <form id="edit-crew-form">
+      <label for="edit-crew-name">Name</label>
+      <input type="text" id="edit-crew-name" required maxlength="30">
+
+      <label for="edit-crew-tag">Tag (optional)</label>
+      <input type="text" id="edit-crew-tag" maxlength="6" placeholder="e.g. BXC">
+
+      <label for="edit-crew-logo">Logo Image URL (optional)</label>
+      <input type="url" id="edit-crew-logo" placeholder="https://…">
+
+      <label for="edit-crew-description">Description</label>
+      <textarea id="edit-crew-description" rows="3" required maxlength="400"></textarea>
+
+      <label for="edit-crew-roblox">Roblox Username (optional)</label>
+      <input type="text" id="edit-crew-roblox">
+
+      <label for="edit-crew-discord">Discord Invite (optional)</label>
+      <input type="url" id="edit-crew-discord" placeholder="https://discord.gg/…">
+
+      <p class="field-error" id="edit-crew-error" style="display:none;"></p>
+      <div style="display:flex; gap:10px;">
+        <button type="button" class="btn btn-ghost" id="edit-crew-cancel">Cancel</button>
+        <button type="submit" class="btn btn-primary btn-block">Save Changes</button>
+      </div>
+    </form>
+  </div>
+</div>
+
 <footer class="site-footer">
   <div class="container">BloxCore is an unofficial fan-made community project for Blox Fruits players.</div>
 </footer>

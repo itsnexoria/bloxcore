@@ -29,6 +29,9 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   await render();
+
+  document.getElementById('edit-crew-form').addEventListener('submit', handleEditCrew);
+  document.getElementById('edit-crew-cancel').addEventListener('click', closeEditModal);
 });
 
 async function render() {
@@ -52,7 +55,7 @@ async function render() {
   if (!currentUser) {
     actionHtml = `<a href="/auth/" class="btn btn-primary">Sign in to Join</a>`;
   } else if (isLeader) {
-    actionHtml = `<button class="btn btn-danger" id="delete-crew-btn">Delete Crew</button>`;
+    actionHtml = `<div style="display:flex; gap:10px;"><button class="btn btn-ghost" id="edit-crew-btn">Edit Crew</button><button class="btn btn-danger" id="delete-crew-btn">Delete Crew</button></div>`;
   } else if (isMember) {
     actionHtml = `<button class="btn btn-ghost" id="leave-crew-btn">Leave Crew</button>`;
   } else if (inAnotherCrew) {
@@ -100,6 +103,7 @@ async function render() {
   document.getElementById('join-crew-btn')?.addEventListener('click', handleJoin);
   document.getElementById('leave-crew-btn')?.addEventListener('click', () => handleLeave(currentUser.id));
   document.getElementById('delete-crew-btn')?.addEventListener('click', handleDelete);
+  document.getElementById('edit-crew-btn')?.addEventListener('click', openEditModal);
   document.getElementById('add-member-form')?.addEventListener('submit', handleAddMember);
   document.querySelectorAll('[data-kick]').forEach(btn => {
     btn.addEventListener('click', () => handleLeave(btn.dataset.kick));
@@ -147,6 +151,59 @@ async function handleAddMember(e) {
 
   input.value = '';
   showToast(`Added ${username} to the crew.`);
+  await render();
+}
+
+function openEditModal() {
+  document.getElementById('edit-crew-name').value = crew.name;
+  document.getElementById('edit-crew-tag').value = crew.tag || '';
+  document.getElementById('edit-crew-description').value = crew.description || '';
+  document.getElementById('edit-crew-logo').value = crew.logo_url || '';
+  document.getElementById('edit-crew-roblox').value = crew.roblox_username || '';
+  document.getElementById('edit-crew-discord').value = crew.discord_invite || '';
+  document.getElementById('edit-crew-error').style.display = 'none';
+  document.getElementById('edit-crew-modal').style.display = 'flex';
+}
+
+function closeEditModal() {
+  document.getElementById('edit-crew-modal').style.display = 'none';
+}
+
+async function handleEditCrew(e) {
+  e.preventDefault();
+  const errorEl = document.getElementById('edit-crew-error');
+  const btn = e.target.querySelector('button[type="submit"]');
+  errorEl.style.display = 'none';
+  btn.disabled = true;
+
+  const updates = {
+    name: document.getElementById('edit-crew-name').value.trim(),
+    tag: document.getElementById('edit-crew-tag').value.trim() || null,
+    description: document.getElementById('edit-crew-description').value.trim(),
+    logo_url: document.getElementById('edit-crew-logo').value.trim() || null,
+    roblox_username: document.getElementById('edit-crew-roblox').value.trim() || null,
+    discord_invite: document.getElementById('edit-crew-discord').value.trim() || null,
+  };
+
+  const { error } = await sb.from('crews').update(updates).eq('id', crew.id);
+  btn.disabled = false;
+
+  if (error) {
+    errorEl.textContent = error.message;
+    errorEl.style.display = 'block';
+    return;
+  }
+
+  const nameChanged = updates.name !== crew.name;
+  crew = { ...crew, ...updates };
+  closeEditModal();
+  showToast('Crew updated.');
+
+  if (nameChanged) {
+    // The URL is keyed by name — keep it in sync so refreshes/shares still resolve.
+    window.history.replaceState(null, '', `/crew/?name=${encodeURIComponent(crew.name)}`);
+    document.title = `${crew.name} — BloxCore`;
+  }
   await render();
 }
 

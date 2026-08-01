@@ -807,6 +807,59 @@ html[data-theme="toxic"] {
   --brass-bright: #9dffb0;
 }
 
+html[data-theme="gold"] {
+  --brass: #ffd166;
+  --brass-bright: #ffe299;
+}
+
+html[data-theme="royal"] {
+  --brass: #b389ff;
+  --brass-bright: #d4b8ff;
+}
+
+html[data-theme="sunset"] {
+  --brass: #ff8a5c;
+  --brass-bright: #ffb088;
+}
+
+html[data-theme="mono"] {
+  --brass: #c7d2de;
+  --brass-bright: #eef2f6;
+}
+
+html[data-theme="emerald"] {
+  --ink: #050f0c;
+  --navy: #0a1a16;
+  --navy-light: #1a3830;
+  --brass: #2de89a;
+  --brass-bright: #7dffc9;
+  --sea: #6bdc7f;
+}
+
+html[data-theme="midnight"] {
+  --ink: #04060f;
+  --navy: #0a0f22;
+  --navy-light: #1c2340;
+  --brass: #6c7cff;
+  --brass-bright: #a6b2ff;
+}
+
+html[data-theme="rose"] {
+  --ink: #0f0509;
+  --navy: #1c0b14;
+  --navy-light: #3a1a29;
+  --brass: #ff6ba3;
+  --brass-bright: #ffa3c9;
+}
+
+html[data-theme="amber"] {
+  --ink: #0c0904;
+  --navy: #1b140a;
+  --navy-light: #382a17;
+  --brass: #ffab2e;
+  --brass-bright: #ffcb7d;
+}
+
 .reduce-motion, .reduce-motion * {
   animation: none !important;
   transition: none !important;
