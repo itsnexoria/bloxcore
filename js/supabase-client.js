@@ -27,8 +27,10 @@ function rankTitleForLevel(level) {
 }
 
 function xpForLevel(level) {
-  // matches the DB rule: level = floor(xp / 100) + 1
-  return (level - 1) * 100;
+  // Matches the DB rule (xp_to_level): level 1→2 costs 100 xp, and each subsequent level
+  // costs 20 more than the last (120, 140, 160…). This is the closed-form total xp needed
+  // to REACH `level` (i.e. the sum of those growing per-level costs).
+  return 100 * (level - 1) + 10 * (level - 1) * (level - 2);
 }
 
 function xpProgress(xp, level) {

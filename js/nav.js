@@ -65,8 +65,24 @@ function initScrollFx() {
     });
   }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
 
-  document.querySelectorAll('section.section .panel, section.section .poster:not(#hero-poster)')
-    .forEach(el => io.observe(el));
+  const revealSelector = 'section.section .panel:not(.panel-plain), section.section .poster:not(#hero-poster)';
+  document.querySelectorAll(revealSelector).forEach(el => io.observe(el));
+
+  // Most of these cards are rendered async after a Supabase fetch, well after this script's
+  // initial querySelectorAll runs — without this, anything added later would inherit the CSS's
+  // opacity:0 starting state but never get observed, and stay invisible forever.
+  if ('MutationObserver' in window) {
+    const mo = new MutationObserver((mutations) => {
+      mutations.forEach(mutation => {
+        mutation.addedNodes.forEach(node => {
+          if (node.nodeType !== 1) return;
+          if (node.matches?.(revealSelector)) io.observe(node);
+          node.querySelectorAll?.(revealSelector).forEach(el => io.observe(el));
+        });
+      });
+    });
+    mo.observe(document.body, { childList: true, subtree: true });
+  }
 }
 
 function highlightActiveLink() {

@@ -102,8 +102,11 @@ section.section h2.center::after {
 }
 section.section h2.center::after { margin-left: auto; margin-right: auto; }
 
-/* Scroll reveal — progressively enhanced by js-reveal.js; invisible only once JS confirms it will run */
-.js-reveal section.section .panel,
+/* Scroll reveal — progressively enhanced by nav.js; invisible only once JS confirms it will run.
+   Excludes .panel-plain: those are data lists/tables/chat bubbles, not marketing-style cards,
+   and are very often rendered dynamically after an async fetch — see the MutationObserver in
+   nav.js that keeps this working for panels that don't exist yet at initial page load. */
+.js-reveal section.section .panel:not(.panel-plain),
 .js-reveal section.section .poster:not(#hero-poster) {
   opacity: 0;
   transform: translateY(26px);
