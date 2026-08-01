@@ -2,18 +2,21 @@
 
 let currentUser = null;
 let activeChallengeId = null;
-let completedChallengeIds = new Set();
+let completionMap = new Map();
+const MAX_SCREENSHOTS = 5;
+let selectedFiles = [];
 
 document.addEventListener('DOMContentLoaded', async () => {
   const { data: { session } } = await sb.auth.getSession();
   currentUser = session?.user ?? null;
 
   if (currentUser) {
-    const { data: completions } = await sb.from('completions').select('challenge_id').eq('user_id', currentUser.id);
-    completedChallengeIds = new Set((completions || []).map(c => c.challenge_id));
+    const { data: completions } = await sb.from('completions').select('challenge_id, completed_at').eq('user_id', currentUser.id);
+    completionMap = new Map((completions || []).map(c => [c.challenge_id, c.completed_at]));
   }
 
   await loadChallenges();
+  initDropzone();
 
   document.getElementById('difficulty-filter').addEventListener('change', loadChallenges);
   document.getElementById('modal-cancel').addEventListener('click', closeModal);
@@ -71,16 +74,37 @@ async function loadChallenges() {
   });
 }
 
+function formatRemaining(ms) {
+  const totalMinutes = Math.ceil(ms / 60000);
+  const hours = Math.floor(totalMinutes / 60);
+  const minutes = totalMinutes % 60;
+  if (hours > 0) return `${hours}h ${minutes}m`;
+  return `${minutes}m`;
+}
+
 function renderChallengeCard(c) {
   const rotate = (Math.random() * 4 - 2).toFixed(1);
-  const isDone = completedChallengeIds.has(c.id) && !c.repeatable;
+  const completedAt = completionMap.get(c.id);
+  const isDone = !!completedAt && !c.repeatable;
+
+  let onCooldown = false;
+  let cooldownLabel = '';
+  if (completedAt && c.repeatable && c.cooldown_hours > 0) {
+    const readyAt = new Date(completedAt).getTime() + c.cooldown_hours * 3600 * 1000;
+    if (Date.now() < readyAt) {
+      onCooldown = true;
+      cooldownLabel = formatRemaining(readyAt - Date.now());
+    }
+  }
 
   const actionHtml = isDone
     ? `<button class="btn btn-ghost btn-sm" disabled>✓ Completed</button>`
+    : onCooldown
+    ? `<button class="btn btn-ghost btn-sm" disabled>On Cooldown · ${cooldownLabel}</button>`
     : `<button class="btn btn-primary btn-sm" data-claim-id="${c.id}" data-claim-title="${escapeHtml(c.title)}">Claim Bounty</button>`;
 
   return `
-    <div class="poster" style="transform: rotate(${rotate}deg); ${isDone ? 'opacity:0.6;' : ''}">
+    <div class="poster" style="transform: rotate(${rotate}deg); ${isDone || onCooldown ? 'opacity:0.6;' : ''}">
       <p class="poster-eyebrow">★ WANTED ★</p>
       <p class="poster-title">${escapeHtml(c.title)}</p>
       <p class="poster-body">${escapeHtml(c.description)}</p>
@@ -88,7 +112,7 @@ function renderChallengeCard(c) {
       <div class="center" style="margin-top:10px; display:flex; flex-direction:column; gap:10px; align-items:center;">
         <div style="display:flex; gap:6px;">
           <span class="tag tag-${c.difficulty}">${c.difficulty}</span>
-          ${c.repeatable ? `<span class="tag" style="background:rgba(41,182,246,0.16); color:var(--brass-bright);">Repeatable</span>` : ''}
+          ${c.repeatable ? `<span class="tag" style="background:rgba(41,182,246,0.16); color:var(--brass-bright);">Repeatable${c.cooldown_hours > 0 ? ` · ${c.cooldown_hours}h cooldown` : ''}</span>` : ''}
         </div>
         ${actionHtml}
       </div>
@@ -105,6 +129,8 @@ function openModal(challengeId, title) {
   document.getElementById('modal-challenge-title').textContent = `Submit Proof — ${title}`;
   document.getElementById('submit-error').style.display = 'none';
   document.getElementById('submit-form').reset();
+  selectedFiles = [];
+  renderPreviews();
   document.getElementById('submit-modal').style.display = 'flex';
 }
 
@@ -113,15 +139,72 @@ function closeModal() {
   activeChallengeId = null;
 }
 
-const MAX_SCREENSHOTS = 5;
+// ---- Screenshot dropzone ----
+
+function initDropzone() {
+  const dropzone = document.getElementById('screenshot-dropzone');
+  const input = document.getElementById('screenshot');
+
+  input.addEventListener('change', () => {
+    addFiles(Array.from(input.files));
+    input.value = ''; // let the same file be re-picked after being removed
+  });
+
+  ['dragenter', 'dragover'].forEach(evt => {
+    dropzone.addEventListener(evt, (e) => {
+      e.preventDefault();
+      dropzone.classList.add('drag-over');
+    });
+  });
+  ['dragleave', 'drop'].forEach(evt => {
+    dropzone.addEventListener(evt, () => dropzone.classList.remove('drag-over'));
+  });
+}
+
+function addFiles(files) {
+  const room = Math.max(0, MAX_SCREENSHOTS - selectedFiles.length);
+  const images = files.filter(f => f.type.startsWith('image/'));
+  if (images.length > room) {
+    showToast(`Only ${MAX_SCREENSHOTS} screenshots max — added the first ${room || 0}.`, room === 0);
+  }
+  selectedFiles = selectedFiles.concat(images.slice(0, room));
+  renderPreviews();
+}
+
+function removeFile(index) {
+  selectedFiles.splice(index, 1);
+  renderPreviews();
+}
+
+function renderPreviews() {
+  const previews = document.getElementById('dropzone-previews');
+  const promptText = document.getElementById('dropzone-prompt').children[1];
+
+  previews.innerHTML = selectedFiles.map((f, i) => `
+    <div class="dropzone-thumb">
+      <img src="${URL.createObjectURL(f)}" alt="">
+      <button type="button" class="thumb-remove" data-remove-index="${i}" title="Remove">✕</button>
+    </div>
+  `).join('');
+
+  promptText.innerHTML = selectedFiles.length
+    ? `<strong>${selectedFiles.length}/${MAX_SCREENSHOTS} added</strong> — click to add more`
+    : `<strong>Click to upload</strong> or drag screenshots here`;
+
+  previews.querySelectorAll('[data-remove-index]').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      removeFile(Number(btn.dataset.removeIndex));
+    });
+  });
+}
 
 async function handleSubmit(e) {
   e.preventDefault();
-  const fileInput = document.getElementById('screenshot');
   const videoInput = document.getElementById('video-url');
   const errorEl = document.getElementById('submit-error');
   const submitBtn = document.getElementById('submit-proof-btn');
-  const files = Array.from(fileInput.files).slice(0, MAX_SCREENSHOTS);
+  const files = selectedFiles.slice(0, MAX_SCREENSHOTS);
   const videoUrl = videoInput.value.trim();
 
   errorEl.style.display = 'none';

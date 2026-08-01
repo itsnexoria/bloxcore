@@ -7,11 +7,31 @@ document.addEventListener('DOMContentLoaded', async () => {
   currentUser = session?.user ?? null;
 
   await loadCrews();
+  await guardCreateButton();
 
   document.getElementById('create-crew-btn').addEventListener('click', openModal);
   document.getElementById('crew-modal-cancel').addEventListener('click', closeModal);
   document.getElementById('crew-form').addEventListener('submit', handleCreate);
 });
+
+// Every player can only ever be in one crew at a time (the DB enforces this with a unique
+// constraint), so hide the confusing "you're already in a crew" error at submit time —
+// just tell them up front and point them at the crew they're already in.
+async function guardCreateButton() {
+  const btn = document.getElementById('create-crew-btn');
+  if (!currentUser) {
+    btn.disabled = true;
+    btn.title = 'Sign in to create a crew';
+    return;
+  }
+
+  const { data } = await sb.from('crew_members').select('crews(name)').eq('user_id', currentUser.id).maybeSingle();
+  if (data?.crews) {
+    btn.textContent = 'Already in a Crew';
+    btn.disabled = true;
+    btn.title = `You're already in ${data.crews.name} — leave it first to create a new one.`;
+  }
+}
 
 async function loadCrews() {
   const grid = document.getElementById('crews-grid');

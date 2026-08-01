@@ -102,6 +102,12 @@
         Repeatable (players can complete it more than once — use for PvP-style challenges)
       </label>
 
+      <div id="cooldown-field" style="display:none;">
+        <label for="cooldown_hours">Cooldown Between Attempts (hours)</label>
+        <input type="number" id="cooldown_hours" min="0" max="720" value="0">
+        <p class="muted" style="margin:-10px 0 16px; font-size:0.8rem;">0 = no cooldown, players can retry immediately.</p>
+      </div>
+
       <label for="reward_title_id">Reward Title (optional)</label>
       <select id="reward_title_id">
         <option value="">— None —</option>

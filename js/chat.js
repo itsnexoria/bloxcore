@@ -46,6 +46,7 @@ function renderMessage(m) {
   const profile = m.profiles || {};
   const name = displayNameFor(profile);
   const avatar = avatarHtml(profile, 32);
+  const canDelete = isStaff || m.user_id === currentUser?.id;
 
   return `
     <div class="chat-row" data-message-id="${m.id}" style="display:flex; gap:10px; margin-bottom:14px;">
@@ -54,7 +55,7 @@ function renderMessage(m) {
         <p style="margin:0 0 3px; font-size:0.78rem; color:var(--ash);">
           <a href="/player/?u=${encodeURIComponent(profile.username || '')}" style="color:${(profile.role === 'mod' || profile.role === 'admin') ? 'var(--blood-dim)' : 'var(--ash)'}; text-decoration:none; font-weight:600;">${escapeHtml(name)}</a>${titleBadge(profile)}
           <span style="font-family:var(--font-mono); margin-left:6px;">${timeAgo(m.created_at)}</span>
-          ${isStaff ? `<button class="chat-delete-btn" data-delete-id="${m.id}" title="Delete message">✕</button>` : ''}
+          ${canDelete ? `<button class="chat-delete-btn" data-delete-id="${m.id}" title="Delete message">✕</button>` : ''}
         </p>
         <div class="panel panel-plain" style="display:inline-block; padding:9px 13px; margin:0;">
           <p style="margin:0; font-size:0.92rem; white-space:pre-wrap; word-break:break-word; text-align:left;">${escapeHtml(m.message)}</p>

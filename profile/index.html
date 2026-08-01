@@ -54,9 +54,11 @@
         <p class="muted" style="font-size:0.76rem; margin:-12px 0 16px;">Your login handle (@<span id="username-hint"></span>) stays the same — this is just what shows on your profile, the leaderboard, and the activity feed.</p>
 
         <label for="active_title">Title</label>
-        <select id="active_title">
-          <option value="">— None —</option>
-        </select>
+        <input type="hidden" id="active_title" value="">
+        <button type="button" class="build-picker-btn" id="title-picker-btn" style="width:100%; flex-direction:row; align-items:center; justify-content:space-between;">
+          <span class="build-picker-value is-empty" id="title-picker-value">— None —</span>
+          <span class="muted" id="title-picker-count" style="font-size:0.78rem;"></span>
+        </button>
 
         <label for="bio">Bio</label>
         <textarea id="bio" rows="3" maxlength="300" placeholder="Tell other pirates about yourself…"></textarea>
@@ -142,6 +144,18 @@
     </div>
     <input type="text" id="build-modal-search" placeholder="Search…" style="margin-bottom:16px;">
     <div id="build-modal-grid" class="build-modal-grid"></div>
+  </div>
+</div>
+
+<!-- Title picker modal — shows every title's rarity/color, locked vs unlocked, and overall progress -->
+<div id="title-picker-modal" class="build-modal-overlay">
+  <div class="panel build-modal" style="max-width:520px;">
+    <div class="flex-between" style="margin-bottom:6px;">
+      <h3 style="font-size:1.05rem; margin:0;">Choose a Title</h3>
+      <button type="button" class="btn btn-ghost btn-sm" id="title-modal-close">✕</button>
+    </div>
+    <p class="muted" style="margin:0 0 14px; font-size:0.82rem;" id="title-modal-progress"></p>
+    <div id="title-modal-grid" class="build-modal-grid" style="grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));"></div>
   </div>
 </div>
 

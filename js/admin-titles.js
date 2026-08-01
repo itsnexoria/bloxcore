@@ -53,7 +53,10 @@ async function loadTitles() {
   list.innerHTML = `<div class="panel panel-plain" style="padding:0;">` +
     data.map((t, i) => `
       <div class="flex-between" style="padding:12px 20px; ${i === data.length - 1 ? '' : 'border-bottom:1px solid var(--navy-light);'}">
-        <span style="border:1px solid ${t.color}; color:${t.color}; padding:2px 10px; border-radius:10px; font-size:0.82rem;">${escapeHtml(t.name)}</span>
+        <div style="display:flex; align-items:center; gap:10px;">
+          <span style="border:1px solid ${t.color}; color:${t.color}; padding:2px 10px; border-radius:10px; font-size:0.82rem;">${escapeHtml(t.name)}</span>
+          <span class="muted" style="font-size:0.75rem; text-transform:capitalize;">${t.rarity}</span>
+        </div>
         <button class="btn btn-danger btn-sm" data-delete-title="${t.id}" data-name="${escapeHtml(t.name)}">Delete</button>
       </div>
     `).join('') +
@@ -116,10 +119,11 @@ async function handleCreateTitle(e) {
   e.preventDefault();
   const name = document.getElementById('title-name').value.trim();
   const color = document.getElementById('title-color').value;
+  const rarity = document.getElementById('title-rarity').value;
   const btn = e.target.querySelector('button[type="submit"]');
   btn.disabled = true;
 
-  const { error } = await sb.from('titles').insert({ name, color });
+  const { error } = await sb.from('titles').insert({ name, color, rarity });
   btn.disabled = false;
 
   if (error) {

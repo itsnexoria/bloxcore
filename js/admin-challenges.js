@@ -24,6 +24,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (e.target.id === 'ch-prev') loadChallenges(currentPage - 1);
     if (e.target.id === 'ch-next') loadChallenges(currentPage + 1);
   });
+
+  document.getElementById('repeatable').addEventListener('change', (e) => {
+    document.getElementById('cooldown-field').style.display = e.target.checked ? 'block' : 'none';
+  });
 });
 
 async function loadChallenges(page) {
@@ -101,7 +105,7 @@ function renderRow(c, isLast) {
         <p style="margin:0; font-weight:700;">${escapeHtml(c.title)}</p>
         <p class="muted" style="margin:2px 0 0; font-size:0.8rem;">
           <span class="tag tag-${c.difficulty}">${c.difficulty}</span>
-          +${c.xp_reward} XP · ${rotationLabel} ${featuredTag} ${c.repeatable ? '· <span style="color:var(--brass-bright);">Repeatable</span>' : ''} ${c.titles ? `· 🏷 ${escapeHtml(c.titles.name)}` : ''} ${c.active ? '' : '· <span style="color:var(--blood);">Archived</span>'}
+          +${c.xp_reward} XP · ${rotationLabel} ${featuredTag} ${c.repeatable ? `· <span style="color:var(--brass-bright);">Repeatable${c.cooldown_hours > 0 ? ` (${c.cooldown_hours}h cooldown)` : ''}</span>` : ''} ${c.titles ? `· 🏷 ${escapeHtml(c.titles.name)}` : ''} ${c.active ? '' : '· <span style="color:var(--blood);">Archived</span>'}
         </p>
       </div>
       <div style="display:flex; gap:8px; flex-shrink:0;">
@@ -130,6 +134,8 @@ function openModal(challenge = null) {
   document.getElementById('rotation').value = challenge?.rotation || 'none';
   document.getElementById('active').checked = challenge ? challenge.active : true;
   document.getElementById('repeatable').checked = challenge ? challenge.repeatable : false;
+  document.getElementById('cooldown_hours').value = challenge?.cooldown_hours ?? 0;
+  document.getElementById('cooldown-field').style.display = (challenge ? challenge.repeatable : false) ? 'block' : 'none';
   document.getElementById('reward_title_id').value = challenge?.reward_title_id || '';
 
   modal.style.display = 'flex';
@@ -159,6 +165,7 @@ async function handleSave(e) {
     in_rotation_pool: rotation !== 'none',
     active: document.getElementById('active').checked,
     repeatable: document.getElementById('repeatable').checked,
+    cooldown_hours: parseInt(document.getElementById('cooldown_hours').value, 10) || 0,
     reward_title_id: document.getElementById('reward_title_id').value || null,
   };
 

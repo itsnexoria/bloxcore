@@ -71,7 +71,15 @@
     <p class="muted" style="font-size:0.8rem; margin:-6px 0 14px;">For a long grind (like "defeat 50 bosses"), add a few screenshots along the way, or paste a video link below instead of/alongside them.</p>
     <form id="submit-form">
       <label for="screenshot">Screenshot(s)</label>
-      <input type="file" id="screenshot" accept="image/*" multiple>
+      <div id="screenshot-dropzone" class="dropzone">
+        <input type="file" id="screenshot" accept="image/*" multiple>
+        <div class="dropzone-prompt" id="dropzone-prompt">
+          <span class="dropzone-icon">📎</span>
+          <span><strong>Click to upload</strong> or drag screenshots here</span>
+          <span class="muted" style="font-size:0.76rem;">PNG or JPG · up to 5 images</span>
+        </div>
+        <div class="dropzone-previews" id="dropzone-previews"></div>
+      </div>
       <label for="video-url">Video Link (optional)</label>
       <input type="url" id="video-url" placeholder="YouTube, Streamable, Medal, etc.">
       <p class="field-error" id="submit-error" style="display:none;"></p>

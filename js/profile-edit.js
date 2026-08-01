@@ -30,25 +30,82 @@ document.addEventListener('DOMContentLoaded', async () => {
   document.getElementById('profile-form').addEventListener('submit', handleSave);
 });
 
-async function populateTitleSelect(userId, activeTitleId) {
-  const select = document.getElementById('active_title');
-  const { data: owned } = await sb.from('user_titles').select('titles(id, name)').eq('user_id', userId);
+let allTitlesForPicker = [];
+let ownedTitleIds = new Set();
+let activeTitleId = '';
 
-  (owned || []).forEach(o => {
-    const option = document.createElement('option');
-    option.value = o.titles.id;
-    option.textContent = o.titles.name;
-    if (o.titles.id === activeTitleId) option.selected = true;
-    select.appendChild(option);
+async function populateTitleSelect(userId, activeId) {
+  activeTitleId = activeId || '';
+
+  const [{ data: all }, { data: owned }] = await Promise.all([
+    sb.from('titles').select('id, name, color, rarity').order('name'),
+    sb.from('user_titles').select('title_id').eq('user_id', userId),
+  ]);
+
+  allTitlesForPicker = all || [];
+  ownedTitleIds = new Set((owned || []).map(o => o.title_id));
+
+  document.getElementById('active_title').value = activeTitleId;
+  document.getElementById('title-picker-count').textContent = `${ownedTitleIds.size}/${allTitlesForPicker.length} unlocked`;
+  renderTitlePickerValue();
+
+  document.getElementById('title-picker-btn').addEventListener('click', openTitleModal);
+  document.getElementById('title-modal-close').addEventListener('click', closeTitleModal);
+  document.getElementById('title-picker-modal').addEventListener('click', (e) => {
+    if (e.target.id === 'title-picker-modal') closeTitleModal();
+  });
+}
+
+function renderTitlePickerValue() {
+  const valueEl = document.getElementById('title-picker-value');
+  const active = allTitlesForPicker.find(t => t.id === activeTitleId);
+  if (active) {
+    valueEl.classList.remove('is-empty');
+    valueEl.innerHTML = `<span style="color:${active.color};">${escapeHtml(active.name)}</span>`;
+  } else {
+    valueEl.classList.add('is-empty');
+    valueEl.textContent = '— None —';
+  }
+}
+
+function openTitleModal() {
+  document.getElementById('title-modal-progress').textContent =
+    `${ownedTitleIds.size} of ${allTitlesForPicker.length} titles unlocked`;
+
+  const noneTile = `
+    <div class="build-modal-tile title-tile ${activeTitleId === '' ? 'selected' : ''}" data-title-id="">
+      <span style="font-size:1.4rem;">🚫</span>
+      <span class="title-tile-name">None</span>
+    </div>
+  `;
+
+  const tiles = allTitlesForPicker.map(t => {
+    const owned = ownedTitleIds.has(t.id);
+    return `
+      <div class="build-modal-tile title-tile ${!owned ? 'locked' : ''} ${activeTitleId === t.id ? 'selected' : ''}" ${owned ? `data-title-id="${t.id}"` : ''}>
+        ${owned ? '' : '<span class="lock-icon">🔒</span>'}
+        <span class="title-tile-name" style="color:${owned ? t.color : 'var(--ash)'};">${escapeHtml(t.name)}</span>
+        <span class="title-rarity-pill title-rarity-${t.rarity}">${t.rarity}</span>
+      </div>
+    `;
+  }).join('');
+
+  document.getElementById('title-modal-grid').innerHTML = noneTile + tiles;
+
+  document.querySelectorAll('#title-modal-grid [data-title-id]').forEach(tile => {
+    tile.addEventListener('click', () => {
+      activeTitleId = tile.dataset.titleId;
+      document.getElementById('active_title').value = activeTitleId;
+      renderTitlePickerValue();
+      closeTitleModal();
+    });
   });
 
-  if (!owned || !owned.length) {
-    const hint = document.createElement('p');
-    hint.className = 'muted';
-    hint.style.cssText = 'font-size:0.78rem; margin:-12px 0 16px;';
-    hint.textContent = "You haven't unlocked any titles yet.";
-    select.insertAdjacentElement('afterend', hint);
-  }
+  document.getElementById('title-picker-modal').classList.add('open');
+}
+
+function closeTitleModal() {
+  document.getElementById('title-picker-modal').classList.remove('open');
 }
 
 function populateBountySelect(id) {
@@ -135,7 +192,10 @@ function wireBuildPickers() {
     renderModalGrid(activeBuildKey, e.target.value);
   });
   document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') closeBuildModal();
+    if (e.key === 'Escape') {
+      closeBuildModal();
+      closeTitleModal();
+    }
   });
 }
 
