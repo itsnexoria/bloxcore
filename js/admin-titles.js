@@ -18,6 +18,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     clearTimeout(debounceTimer);
     debounceTimer = setTimeout(() => searchUsers(e.target.value.trim()), 250);
   });
+  document.getElementById('grant-title-select').addEventListener('change', () => {
+    searchUsers(document.getElementById('grant-user-search').value.trim());
+  });
+  document.getElementById('grant-select-all').addEventListener('click', selectAllShown);
+  document.getElementById('grant-apply-btn').addEventListener('click', () => applyBulk('grant'));
+  document.getElementById('revoke-apply-btn').addEventListener('click', () => applyBulk('revoke'));
 });
 
 async function loadTitles() {
@@ -34,7 +40,8 @@ async function loadTitles() {
 
   const seasonalLb = document.getElementById('seasonal-leaderboard');
   const seasonalCrew = document.getElementById('seasonal-crew');
-  [seasonalLb, seasonalCrew].forEach(select => {
+  const grantSelect = document.getElementById('grant-title-select');
+  [seasonalLb, seasonalCrew, grantSelect].forEach(select => {
     if (!select) return;
     select.querySelectorAll('option:not(:first-child)').forEach(o => o.remove());
     data.forEach(t => {
@@ -148,18 +155,23 @@ async function deleteTitle(id, name) {
   await loadTitles();
 }
 
+let grantResultUsers = [];   // [{ id, username, display_name, owned }]
+
 async function searchUsers(query) {
   const results = document.getElementById('grant-results');
-  if (!query) {
-    results.innerHTML = '';
+  const actionBar = document.getElementById('grant-action-bar');
+  const titleId = document.getElementById('grant-title-select').value;
+
+  if (!titleId) {
+    results.innerHTML = `<p class="muted" style="font-size:0.85rem;">Choose a title above to get started.</p>`;
+    actionBar.style.display = 'none';
+    grantResultUsers = [];
     return;
   }
 
-  const { data: users, error } = await sb
-    .from('profiles')
-    .select('id, username, display_name')
-    .or(`username.ilike.%${query}%,display_name.ilike.%${query}%`)
-    .limit(10);
+  let req = sb.from('profiles').select('id, username, display_name').order('username').limit(40);
+  if (query) req = req.or(`username.ilike.%${query}%,display_name.ilike.%${query}%`);
+  const { data: users, error } = await req;
 
   if (error) {
     results.innerHTML = `<p class="muted">Couldn't search users right now.</p>`;
@@ -169,49 +181,77 @@ async function searchUsers(query) {
 
   if (!users.length) {
     results.innerHTML = `<p class="muted">No users match that search.</p>`;
+    actionBar.style.display = 'none';
+    grantResultUsers = [];
     return;
   }
 
-  const rows = await Promise.all(users.map(renderUserGrantRow));
-  results.innerHTML = `<div class="panel panel-plain" style="padding:0;">${rows.join('')}</div>`;
-  wireGrantButtons();
-}
+  const { data: owned } = await sb.from('user_titles').select('user_id').eq('title_id', titleId).in('user_id', users.map(u => u.id));
+  const ownedIds = new Set((owned || []).map(o => o.user_id));
 
-async function renderUserGrantRow(u) {
-  const { data: owned } = await sb.from('user_titles').select('title_id').eq('user_id', u.id);
-  const ownedIds = new Set((owned || []).map(o => o.title_id));
+  grantResultUsers = users.map(u => ({ ...u, owned: ownedIds.has(u.id) }));
 
-  const titleChips = allTitles.map(t => {
-    const has = ownedIds.has(t.id);
-    return `<button class="btn btn-sm" data-toggle-title="${t.id}" data-user="${u.id}" data-owned="${has}"
-              style="border:1px solid ${t.color}; color:${has ? '#04141d' : t.color}; background:${has ? t.color : 'transparent'};">
-              ${escapeHtml(t.name)}${has ? ' ✕' : ' +'}
-            </button>`;
-  }).join(' ');
-
-  return `
-    <div style="padding:14px 20px; border-bottom:1px solid var(--navy-light);">
-      <p style="margin:0 0 8px; font-weight:700;">${escapeHtml(displayNameFor(u))} <span class="muted" style="font-weight:400; font-size:0.8rem;">@${escapeHtml(u.username)}</span></p>
-      <div style="display:flex; gap:8px; flex-wrap:wrap;">${titleChips || '<span class="muted">No titles exist yet.</span>'}</div>
+  results.innerHTML = `<div class="panel panel-plain" style="padding:0;">` + grantResultUsers.map((u, i) => `
+    <div class="flex-between" style="padding:10px 20px; ${i === grantResultUsers.length - 1 ? '' : 'border-bottom:1px solid var(--navy-light);'}">
+      <label style="display:flex; align-items:center; gap:10px; text-transform:none; font-weight:600; margin:0;">
+        <input type="checkbox" data-grant-user="${u.id}" style="width:auto; margin:0;">
+        ${escapeHtml(displayNameFor(u))} <span class="muted" style="font-weight:400; font-size:0.8rem;">@${escapeHtml(u.username)}</span>
+      </label>
+      ${u.owned ? `<span class="tag tag-easy">Owns it</span>` : ''}
     </div>
-  `;
-}
+  `).join('') + `</div>`;
 
-function wireGrantButtons() {
-  document.querySelectorAll('[data-toggle-title]').forEach(btn => {
-    btn.addEventListener('click', () => toggleUserTitle(btn.dataset.user, btn.dataset.toggleTitle, btn.dataset.owned === 'true'));
+  actionBar.style.display = 'flex';
+  document.querySelectorAll('[data-grant-user]').forEach(cb => {
+    cb.addEventListener('change', updateGrantSelectCount);
   });
+  updateGrantSelectCount();
 }
 
-async function toggleUserTitle(userId, titleId, currentlyOwned) {
-  if (currentlyOwned) {
-    const { error } = await sb.from('user_titles').delete().eq('user_id', userId).eq('title_id', titleId);
-    if (error) { showToast(error.message, true); return; }
-    showToast('Title revoked.');
-  } else {
-    const { error } = await sb.from('user_titles').insert({ user_id: userId, title_id: titleId });
-    if (error) { showToast(error.message, true); return; }
-    showToast('Title granted.');
+function selectAllShown() {
+  document.querySelectorAll('[data-grant-user]').forEach(cb => { cb.checked = true; });
+  updateGrantSelectCount();
+}
+
+function updateGrantSelectCount() {
+  const count = document.querySelectorAll('[data-grant-user]:checked').length;
+  document.getElementById('grant-select-count').textContent = `${count} selected`;
+}
+
+async function applyBulk(mode) {
+  const titleId = document.getElementById('grant-title-select').value;
+  const selected = Array.from(document.querySelectorAll('[data-grant-user]:checked')).map(cb => cb.dataset.grantUser);
+  if (!selected.length) {
+    showToast('Check at least one player first.', true);
+    return;
   }
+
+  const targets = mode === 'grant'
+    ? grantResultUsers.filter(u => selected.includes(u.id) && !u.owned)
+    : grantResultUsers.filter(u => selected.includes(u.id) && u.owned);
+
+  if (!targets.length) {
+    showToast(mode === 'grant' ? 'Everyone selected already owns this title.' : "None selected currently own this title.", true);
+    return;
+  }
+
+  document.getElementById('grant-apply-btn').disabled = true;
+  document.getElementById('revoke-apply-btn').disabled = true;
+
+  let failed = 0;
+  for (const u of targets) {
+    const { error } = mode === 'grant'
+      ? await sb.from('user_titles').insert({ user_id: u.id, title_id: titleId })
+      : await sb.from('user_titles').delete().eq('user_id', u.id).eq('title_id', titleId);
+    if (error) failed++;
+  }
+
+  document.getElementById('grant-apply-btn').disabled = false;
+  document.getElementById('revoke-apply-btn').disabled = false;
+
+  showToast(failed
+    ? `Done, but ${failed} of ${targets.length} failed.`
+    : `${mode === 'grant' ? 'Granted to' : 'Revoked from'} ${targets.length} player${targets.length > 1 ? 's' : ''}.`, failed > 0);
+
   await searchUsers(document.getElementById('grant-user-search').value.trim());
 }

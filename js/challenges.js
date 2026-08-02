@@ -112,7 +112,7 @@ function renderChallengeCard(c) {
       <div class="center" style="margin-top:10px; display:flex; flex-direction:column; gap:10px; align-items:center;">
         <div style="display:flex; gap:6px;">
           <span class="tag tag-${c.difficulty}">${c.difficulty}</span>
-          ${c.repeatable ? `<span class="tag" style="background:rgba(41,182,246,0.16); color:var(--brass-bright);">Repeatable${c.cooldown_hours > 0 ? ` · ${c.cooldown_hours}h cooldown` : ''}</span>` : ''}
+          ${c.repeatable ? `<span class="tag" style="background:rgb(var(--brass-rgb) / 0.16); color:var(--brass-bright);">Repeatable${c.cooldown_hours > 0 ? ` · ${c.cooldown_hours}h cooldown` : ''}</span>` : ''}
         </div>
         ${actionHtml}
       </div>

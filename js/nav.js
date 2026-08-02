@@ -1,6 +1,8 @@
 // BloxCore — shared nav behavior, included on every page after supabase-client.js
 
 document.addEventListener('DOMContentLoaded', () => {
+  if (window.lucide) lucide.createIcons();
+
   const toggle = document.querySelector('.nav-toggle');
   const links = document.querySelector('.nav-links');
 
@@ -72,6 +74,7 @@ function initScrollFx() {
   // initial querySelectorAll runs — without this, anything added later would inherit the CSS's
   // opacity:0 starting state but never get observed, and stay invisible forever.
   if ('MutationObserver' in window) {
+    let iconTimer;
     const mo = new MutationObserver((mutations) => {
       mutations.forEach(mutation => {
         mutation.addedNodes.forEach(node => {
@@ -80,6 +83,10 @@ function initScrollFx() {
           node.querySelectorAll?.(revealSelector).forEach(el => io.observe(el));
         });
       });
+      if (window.lucide) {
+        clearTimeout(iconTimer);
+        iconTimer = setTimeout(() => lucide.createIcons(), 60);
+      }
     });
     mo.observe(document.body, { childList: true, subtree: true });
   }

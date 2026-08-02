@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<script>(function(){try{var t=localStorage.getItem('bc_theme');if(t)document.documentElement.setAttribute('data-theme',t);if(localStorage.getItem('bc_reduce_motion')==='1')document.documentElement.classList.add('reduce-motion');}catch(e){}})();</script>
+<script>(function(){try{var t=localStorage.getItem('bc_theme');if(t){document.documentElement.setAttribute('data-theme',t);if(t==='custom'){var v=JSON.parse(localStorage.getItem('bc_custom_theme')||'null');if(v){var r=document.documentElement.style;function hx(h){h=h.replace('#','');return parseInt(h.substr(0,2),16)+' '+parseInt(h.substr(2,2),16)+' '+parseInt(h.substr(4,2),16);}if(v.ink)r.setProperty('--ink',v.ink);if(v.navy)r.setProperty('--navy',v.navy);if(v.navyLight)r.setProperty('--navy-light',v.navyLight);if(v.bone)r.setProperty('--bone',v.bone);if(v.ash)r.setProperty('--ash',v.ash);if(v.brass){r.setProperty('--brass',v.brass);r.setProperty('--brass-bright',v.brassBright||v.brass);r.setProperty('--brass-rgb',hx(v.brass));}if(v.shadow)r.setProperty('--shadow-rgb',hx(v.shadow));}}}if(localStorage.getItem('bc_reduce_motion')==='1')document.documentElement.classList.add('reduce-motion');}catch(e){}})();</script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Sign In — BloxCore</title>
 <meta name="robots" content="noindex, nofollow">
@@ -28,21 +28,30 @@
   </div>
 </nav>
 
-<section class="section">
-  <div class="container" style="max-width:420px;">
-    <div class="panel center">
-      <p class="muted" style="margin:0 0 4px; font-size:0.85rem;">Welcome to</p>
-      <h1 style="font-size:1.4rem; margin-bottom:22px;">BloxCore</h1>
+<section class="section auth-section">
+  <div class="container" style="max-width:440px; position:relative;">
+    <div aria-hidden="true" style="position:absolute; inset:-40px; background:radial-gradient(circle, rgb(var(--brass-rgb) / 0.18), transparent 70%); filter:blur(10px); animation: stampPulse 4s ease-in-out infinite; z-index:0;"></div>
 
-      <button id="discord-btn" class="btn btn-primary btn-block" style="background:#5865F2; box-shadow:0 2px 0 #3d47b3; color:#fff;">
+    <div class="poster auth-card" style="position:relative; z-index:1;">
+      <img src="/assets/logo.png" alt="BloxCore" style="width:64px; height:64px; margin:0 auto 14px; display:block; filter:drop-shadow(0 0 16px rgb(var(--brass-rgb) / 0.5));">
+      <p class="poster-eyebrow">★ Welcome Aboard ★</p>
+      <h1 style="font-size:2rem; margin:2px 0 6px; background:linear-gradient(90deg, var(--brass-bright), var(--sea)); -webkit-background-clip:text; background-clip:text; color:transparent;">BloxCore</h1>
+      <p class="muted" style="margin:0 0 26px; font-size:0.92rem;">Every legend starts with a name on the board.</p>
+
+      <button id="discord-btn" class="btn btn-primary btn-block" style="background:#5865F2; box-shadow:0 2px 0 #3d47b3; color:#fff; font-size:1rem; padding:14px 22px;">
         Continue with Discord
       </button>
       <p class="muted" style="font-size:0.78rem; margin:16px 0 0;">Sign-in is Discord-only — no separate BloxCore password to manage.</p>
       <p class="field-error" id="signin-error" style="display:none; text-align:left;"></p>
+
+      <div style="margin-top:24px; padding-top:20px; border-top:1px solid var(--navy-light);">
+        <p class="muted" style="font-size:0.8rem; margin:0;" id="auth-pirate-count">Pirates are already making their name.</p>
+      </div>
     </div>
   </div>
 </section>
 
+<script src="https://unpkg.com/lucide@latest"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="/js/supabase-client.js"></script>
 <script src="/js/nav.js"></script>

@@ -6,10 +6,17 @@
 // player's profile, and a public record of the completion lives on in activity_log,
 // so nothing about the *outcome* is lost — only the screenshots + the submission row itself.
 
+let pendingSubs = [];
+let selectedIds = new Set();
+let lightboxUrls = [];
+let lightboxIndex = 0;
+
 document.addEventListener('DOMContentLoaded', async () => {
   const auth = await requireMod();
   if (!auth) return;
   await loadPending();
+  wireBulkBar();
+  wireLightbox();
 });
 
 async function loadPending() {
@@ -30,18 +37,37 @@ async function loadPending() {
     return;
   }
 
+  pendingSubs = data;
+  selectedIds = new Set();
+  updateBulkBar();
+
   if (!data.length) {
     list.innerHTML = `<div class="empty-state" style="grid-column:1/-1;">Nothing pending — the board is clear.</div>`;
+    document.getElementById('bulk-bar').style.display = 'none';
     return;
   }
 
+  document.getElementById('bulk-bar').style.display = 'flex';
   list.innerHTML = data.map(renderPendingCard).join('');
+  wireCardEvents();
+}
 
+function wireCardEvents() {
   document.querySelectorAll('[data-approve]').forEach(btn => {
     btn.addEventListener('click', () => reviewSubmission(btn.dataset.approve, 'approve'));
   });
   document.querySelectorAll('[data-reject]').forEach(btn => {
     btn.addEventListener('click', () => reviewSubmission(btn.dataset.reject, 'reject'));
+  });
+  document.querySelectorAll('[data-select]').forEach(cb => {
+    cb.addEventListener('change', () => {
+      if (cb.checked) selectedIds.add(cb.dataset.select);
+      else selectedIds.delete(cb.dataset.select);
+      updateBulkBar();
+    });
+  });
+  document.querySelectorAll('[data-lightbox-open]').forEach(img => {
+    img.addEventListener('click', () => openLightbox(JSON.parse(img.dataset.lightboxOpen), Number(img.dataset.lightboxIndex)));
   });
 }
 
@@ -55,9 +81,10 @@ function allScreenshotUrls(sub) {
 
 function renderPendingCard(sub) {
   const urls = allScreenshotUrls(sub);
+  const urlsJson = escapeHtml(JSON.stringify(urls));
   const gallery = urls.length
-    ? `<div style="display:grid; grid-template-columns:repeat(${Math.min(urls.length, 3)}, 1fr); gap:6px; margin-bottom:14px;">
-        ${urls.map(u => `<img src="${u}" alt="Submission proof" style="width:100%; border-radius:var(--radius); max-height:160px; object-fit:cover;">`).join('')}
+    ? `<div style="display:grid; grid-template-columns:repeat(${Math.min(urls.length, 2)}, 1fr); gap:8px; margin-bottom:14px;">
+        ${urls.map((u, i) => `<img src="${u}" alt="Submission proof" data-lightbox-open='${urlsJson}' data-lightbox-index="${i}" style="width:100%; border-radius:var(--radius); max-height:260px; object-fit:cover; cursor:zoom-in;">`).join('')}
       </div>`
     : '';
   const videoLink = sub.video_url
@@ -66,6 +93,10 @@ function renderPendingCard(sub) {
 
   return `
     <div class="panel" id="sub-${sub.id}">
+      <label style="display:flex; align-items:center; gap:8px; text-transform:none; font-weight:600; margin-bottom:12px;">
+        <input type="checkbox" data-select="${sub.id}" style="width:auto; margin:0;">
+        <span class="muted" style="font-size:0.8rem;">Select for bulk action</span>
+      </label>
       ${gallery}
       ${videoLink}
       <p style="margin:0 0 4px; font-weight:700;">${escapeHtml(sub.challenges?.title || 'Challenge')}</p>
@@ -81,30 +112,81 @@ function renderPendingCard(sub) {
   `;
 }
 
-async function reviewSubmission(id, action) {
+// ---- Bulk bar ----
+
+function wireBulkBar() {
+  document.getElementById('select-all').addEventListener('change', (e) => {
+    document.querySelectorAll('[data-select]').forEach(cb => {
+      cb.checked = e.target.checked;
+      if (e.target.checked) selectedIds.add(cb.dataset.select);
+      else selectedIds.delete(cb.dataset.select);
+    });
+    updateBulkBar();
+  });
+  document.getElementById('bulk-approve-btn').addEventListener('click', () => bulkReview('approve'));
+  document.getElementById('bulk-reject-btn').addEventListener('click', () => bulkReview('reject'));
+}
+
+function updateBulkBar() {
+  const count = selectedIds.size;
+  document.getElementById('select-count').textContent = count ? `${count} selected` : 'Select all';
+  document.getElementById('bulk-approve-btn').disabled = count === 0;
+  document.getElementById('bulk-reject-btn').disabled = count === 0;
+  const selectAll = document.getElementById('select-all');
+  selectAll.checked = count > 0 && count === pendingSubs.length;
+  selectAll.indeterminate = count > 0 && count < pendingSubs.length;
+}
+
+async function bulkReview(action) {
+  const ids = Array.from(selectedIds);
+  if (!ids.length) return;
+
+  const verb = action === 'approve' ? 'approve' : 'reject';
+  if (!window.confirm(`${action === 'approve' ? 'Approve' : 'Reject'} ${ids.length} submission${ids.length > 1 ? 's' : ''}?`)) return;
+
+  const bar = document.getElementById('bulk-bar');
+  bar.querySelectorAll('button').forEach(b => b.disabled = true);
+
+  let failed = 0;
+  for (const id of ids) {
+    const ok = await reviewSubmission(id, action, true);
+    if (!ok) failed++;
+  }
+
+  showToast(failed
+    ? `Done, but ${failed} submission${failed > 1 ? 's' : ''} couldn't be ${verb}d.`
+    : `${ids.length} submission${ids.length > 1 ? 's' : ''} ${verb}d.`, failed > 0);
+}
+
+// silent=true suppresses the per-item toast/cleanup call sequence noise during a bulk run;
+// returns true/false so bulkReview can count failures.
+async function reviewSubmission(id, action, silent = false) {
   const card = document.getElementById(`sub-${id}`);
-  const buttons = card.querySelectorAll('button');
-  buttons.forEach(b => b.disabled = true);
+  const buttons = card?.querySelectorAll('button, input');
+  buttons?.forEach(b => b.disabled = true);
 
   const rpcName = action === 'approve' ? 'approve_submission' : 'reject_submission';
   const { error } = await sb.rpc(rpcName, { submission_id: id, note: null });
 
   if (error) {
-    showToast(error.message, true);
-    buttons.forEach(b => b.disabled = false);
-    return;
+    if (!silent) showToast(error.message, true);
+    buttons?.forEach(b => b.disabled = false);
+    return false;
   }
 
-  showToast(action === 'approve' ? 'Approved and XP awarded.' : 'Rejected.');
+  if (!silent) showToast(action === 'approve' ? 'Approved and XP awarded.' : 'Rejected.');
 
-  // Grab the screenshot URLs from the DOM before removing the card, then clean up
-  // best-effort — the review already succeeded above, so a cleanup hiccup here
-  // shouldn't surface as an error to the reviewer, just get logged. The submission
-  // row itself is kept (not deleted) so the player still sees it in their history —
-  // only the now-redundant screenshots get cleared out.
-  const urls = Array.from(card.querySelectorAll('img')).map(img => img.src);
-  card.remove();
+  const urls = card ? Array.from(card.querySelectorAll('img')).map(img => img.src) : [];
+  card?.remove();
+  pendingSubs = pendingSubs.filter(s => s.id !== id);
+  selectedIds.delete(id);
+  updateBulkBar();
+  if (!pendingSubs.length) {
+    document.getElementById('pending-list').innerHTML = `<div class="empty-state" style="grid-column:1/-1;">Nothing pending — the board is clear.</div>`;
+    document.getElementById('bulk-bar').style.display = 'none';
+  }
   cleanupReviewedSubmission(id, urls).catch(err => console.error('Cleanup failed:', err));
+  return true;
 }
 
 async function cleanupReviewedSubmission(id, urls) {
@@ -122,4 +204,46 @@ function extractStoragePath(url) {
   const marker = '/object/public/screenshots/';
   const idx = url.indexOf(marker);
   return idx === -1 ? null : decodeURIComponent(url.slice(idx + marker.length));
+}
+
+// ---- Lightbox ----
+
+function wireLightbox() {
+  document.getElementById('lightbox-close').addEventListener('click', closeLightbox);
+  document.getElementById('lightbox-prev').addEventListener('click', () => stepLightbox(-1));
+  document.getElementById('lightbox-next').addEventListener('click', () => stepLightbox(1));
+  document.getElementById('lightbox').addEventListener('click', (e) => {
+    if (e.target.id === 'lightbox') closeLightbox();
+  });
+  document.addEventListener('keydown', (e) => {
+    if (!document.getElementById('lightbox').classList.contains('open')) return;
+    if (e.key === 'Escape') closeLightbox();
+    if (e.key === 'ArrowLeft') stepLightbox(-1);
+    if (e.key === 'ArrowRight') stepLightbox(1);
+  });
+}
+
+function openLightbox(urls, index) {
+  lightboxUrls = urls;
+  lightboxIndex = index;
+  renderLightbox();
+  document.getElementById('lightbox').classList.add('open');
+}
+
+function closeLightbox() {
+  document.getElementById('lightbox').classList.remove('open');
+}
+
+function stepLightbox(delta) {
+  lightboxIndex = (lightboxIndex + delta + lightboxUrls.length) % lightboxUrls.length;
+  renderLightbox();
+}
+
+function renderLightbox() {
+  document.getElementById('lightbox-img').src = lightboxUrls[lightboxIndex];
+  document.getElementById('lightbox-count').textContent = lightboxUrls.length > 1
+    ? `${lightboxIndex + 1} / ${lightboxUrls.length}` : '';
+  const multi = lightboxUrls.length > 1;
+  document.getElementById('lightbox-prev').style.display = multi ? 'flex' : 'none';
+  document.getElementById('lightbox-next').style.display = multi ? 'flex' : 'none';
 }

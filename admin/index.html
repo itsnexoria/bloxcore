@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<script>(function(){try{var t=localStorage.getItem('bc_theme');if(t)document.documentElement.setAttribute('data-theme',t);if(localStorage.getItem('bc_reduce_motion')==='1')document.documentElement.classList.add('reduce-motion');}catch(e){}})();</script>
+<script>(function(){try{var t=localStorage.getItem('bc_theme');if(t){document.documentElement.setAttribute('data-theme',t);if(t==='custom'){var v=JSON.parse(localStorage.getItem('bc_custom_theme')||'null');if(v){var r=document.documentElement.style;function hx(h){h=h.replace('#','');return parseInt(h.substr(0,2),16)+' '+parseInt(h.substr(2,2),16)+' '+parseInt(h.substr(4,2),16);}if(v.ink)r.setProperty('--ink',v.ink);if(v.navy)r.setProperty('--navy',v.navy);if(v.navyLight)r.setProperty('--navy-light',v.navyLight);if(v.bone)r.setProperty('--bone',v.bone);if(v.ash)r.setProperty('--ash',v.ash);if(v.brass){r.setProperty('--brass',v.brass);r.setProperty('--brass-bright',v.brassBright||v.brass);r.setProperty('--brass-rgb',hx(v.brass));}if(v.shadow)r.setProperty('--shadow-rgb',hx(v.shadow));}}}if(localStorage.getItem('bc_reduce_motion')==='1')document.documentElement.classList.add('reduce-motion');}catch(e){}})();</script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Review Board — BloxCore Admin</title>
 <meta name="robots" content="noindex, nofollow">
@@ -38,16 +38,37 @@
       <a href="/admin/challenges/" class="btn btn-ghost">Manage Challenges</a>
     </div>
 
-    <div id="pending-list" class="grid" style="margin-top:24px;">
+    <div id="bulk-bar" class="panel panel-plain" style="margin-top:20px; padding:12px 20px; display:none; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap;">
+      <label style="display:flex; align-items:center; gap:8px; text-transform:none; font-weight:600; margin:0;">
+        <input type="checkbox" id="select-all" style="width:auto; margin:0;">
+        <span id="select-count">0 selected</span>
+      </label>
+      <div style="display:flex; gap:10px;">
+        <button class="btn btn-primary btn-sm" id="bulk-approve-btn">Approve Selected</button>
+        <button class="btn btn-danger btn-sm" id="bulk-reject-btn">Reject Selected</button>
+      </div>
+    </div>
+
+    <div id="pending-list" class="grid" style="margin-top:16px;">
       <div class="skeleton" style="height:260px;"></div>
     </div>
   </div>
 </section>
 
+<!-- Screenshot lightbox -->
+<div id="lightbox" class="lightbox-overlay">
+  <button type="button" class="btn btn-ghost btn-sm" id="lightbox-close" style="position:absolute; top:18px; right:18px;"><i data-lucide="x" style="width:16px;height:16px;"></i> Close</button>
+  <button type="button" class="lightbox-nav lightbox-prev" id="lightbox-prev">‹</button>
+  <img id="lightbox-img" src="" alt="Submission proof — full size">
+  <button type="button" class="lightbox-nav lightbox-next" id="lightbox-next">›</button>
+  <p class="muted" id="lightbox-count" style="position:absolute; bottom:18px; left:50%; transform:translateX(-50%);"></p>
+</div>
+
 <footer class="site-footer">
   <div class="container">BloxCore admin panel — visible only to reviewers.</div>
 </footer>
 
+<script src="https://unpkg.com/lucide@latest"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="/js/supabase-client.js"></script>
 <script src="/js/nav.js"></script>

@@ -8,6 +8,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     return;
   }
 
+  sb.from('profiles').select('id', { count: 'exact', head: true }).then(({ count }) => {
+    if (count) document.getElementById('auth-pirate-count').textContent = `Join ${count.toLocaleString()} pirate${count === 1 ? '' : 's'} already aboard.`;
+  });
+
   document.getElementById('discord-btn').addEventListener('click', async () => {
     const errorEl = document.getElementById('signin-error');
     errorEl.style.display = 'none';

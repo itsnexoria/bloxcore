@@ -4,6 +4,7 @@ let currentAdminId = null;
 const PAGE_SIZE = 20;
 let currentPage = 0;
 let currentQuery = '';
+let selectedUserIds = new Set();
 
 document.addEventListener('DOMContentLoaded', async () => {
   const auth = await requireAdmin();
@@ -12,6 +13,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   await loadActiveUsers();
   await loadUsers('', 0);
+  wireUserBulkBar();
 
   let debounceTimer;
   document.getElementById('user-search').addEventListener('input', (e) => {
@@ -24,6 +26,71 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (e.target.id === 'u-next') loadUsers(currentQuery, currentPage + 1);
   });
 });
+
+function wireUserBulkBar() {
+  document.getElementById('user-select-all').addEventListener('change', (e) => {
+    document.querySelectorAll('[data-user-select]').forEach(cb => {
+      cb.checked = e.target.checked;
+      if (e.target.checked) selectedUserIds.add(cb.dataset.userSelect);
+      else selectedUserIds.delete(cb.dataset.userSelect);
+    });
+    updateUserBulkBar();
+  });
+  document.getElementById('bulk-xp-btn').addEventListener('click', bulkAdjustXp);
+  document.getElementById('bulk-ban-btn').addEventListener('click', () => bulkSetBanned(true));
+  document.getElementById('bulk-unban-btn').addEventListener('click', () => bulkSetBanned(false));
+}
+
+function updateUserBulkBar() {
+  const count = selectedUserIds.size;
+  document.getElementById('user-select-count').textContent = count ? `${count} selected` : 'Select users below';
+  ['bulk-xp-btn', 'bulk-ban-btn', 'bulk-unban-btn'].forEach(id => {
+    document.getElementById(id).disabled = count === 0;
+  });
+  const selectAll = document.getElementById('user-select-all');
+  const rowCount = document.querySelectorAll('[data-user-select]').length;
+  selectAll.checked = count > 0 && rowCount > 0 && document.querySelectorAll('[data-user-select]:checked').length === rowCount;
+}
+
+async function bulkAdjustXp() {
+  const amount = parseInt(document.getElementById('bulk-xp-input').value, 10);
+  if (!amount) {
+    showToast('Enter a non-zero XP amount first.', true);
+    return;
+  }
+  const ids = Array.from(selectedUserIds);
+  let failed = 0;
+  for (const id of ids) {
+    const { error } = await sb.rpc('adjust_user_xp', { target_user_id: id, amount });
+    if (error) failed++;
+  }
+  showToast(failed ? `Done, but ${failed} of ${ids.length} failed.` : `Adjusted XP by ${amount > 0 ? '+' : ''}${amount} for ${ids.length} user${ids.length > 1 ? 's' : ''}.`, failed > 0);
+  document.getElementById('bulk-xp-input').value = '';
+  selectedUserIds = new Set();
+  await loadUsers(currentQuery, currentPage);
+}
+
+async function bulkSetBanned(isBanned) {
+  const ids = Array.from(selectedUserIds);
+  if (!ids.length) return;
+
+  let reason = null;
+  if (isBanned) {
+    reason = window.prompt(`Reason for banning ${ids.length} user${ids.length > 1 ? 's' : ''} (shown to them):`, '');
+    if (reason === null) return;
+  } else if (!window.confirm(`Unban ${ids.length} user${ids.length > 1 ? 's' : ''}?`)) {
+    return;
+  }
+
+  let failed = 0;
+  for (const id of ids) {
+    const { error } = await sb.rpc('set_user_banned', { target_user_id: id, is_banned: isBanned, reason: reason || null });
+    if (error) failed++;
+  }
+  showToast(failed ? `Done, but ${failed} of ${ids.length} failed.` : `${isBanned ? 'Banned' : 'Unbanned'} ${ids.length} user${ids.length > 1 ? 's' : ''}.`, failed > 0);
+  selectedUserIds = new Set();
+  await loadUsers(currentQuery, currentPage);
+}
 
 const ONLINE_WINDOW_MS = 5 * 60 * 1000;   // active in the last 5 min = online
 const IDLE_WINDOW_MS = 30 * 60 * 1000;    // active in the last 30 min = idle, else offline
@@ -134,14 +201,18 @@ async function loadUsers(query, page) {
 
   if (error) {
     table.innerHTML = `<p class="muted">Couldn't load users right now.</p>`;
+    document.getElementById('user-bulk-bar').style.display = 'none';
     console.error(error);
     return;
   }
 
   if (!data.length) {
     table.innerHTML = `<div class="empty-state">No users match that search.</div>`;
+    document.getElementById('user-bulk-bar').style.display = 'none';
     return;
   }
+
+  document.getElementById('user-bulk-bar').style.display = 'flex';
 
   table.innerHTML = `<div class="panel panel-plain" style="padding:0;">` +
     data.map((u, i) => renderRow(u, i === data.length - 1)).join('') +
@@ -159,6 +230,15 @@ async function loadUsers(query, page) {
   document.querySelectorAll('[data-xp-form]').forEach(form => {
     form.addEventListener('submit', handleXpAdjust);
   });
+  document.querySelectorAll('[data-user-select]').forEach(cb => {
+    cb.checked = selectedUserIds.has(cb.dataset.userSelect);
+    cb.addEventListener('change', () => {
+      if (cb.checked) selectedUserIds.add(cb.dataset.userSelect);
+      else selectedUserIds.delete(cb.dataset.userSelect);
+      updateUserBulkBar();
+    });
+  });
+  updateUserBulkBar();
 }
 
 function renderPager(total) {
@@ -174,7 +254,7 @@ function renderPager(total) {
 
 const ROLE_TAG = {
   admin: `<span class="tag" style="background:rgba(255,77,109,0.16); color:var(--blood-dim);">Admin</span>`,
-  mod: `<span class="tag" style="background:rgba(41,182,246,0.16); color:var(--brass-bright);">Mod</span>`,
+  mod: `<span class="tag" style="background:rgb(var(--brass-rgb) / 0.16); color:var(--brass-bright);">Mod</span>`,
   user: '',
 };
 
@@ -192,14 +272,17 @@ function renderRow(u, isLast) {
   return `
     <div style="padding:14px 20px; ${isLast ? '' : 'border-bottom:1px solid var(--navy-light);'}">
       <div class="flex-between" style="flex-wrap:wrap; gap:10px;">
-        <div style="min-width:0;">
-          <p style="margin:0; font-weight:700;">
-            <a href="/player/?u=${encodeURIComponent(u.username)}" style="color:var(--bone); text-decoration:none;">${escapeHtml(displayNameFor(u))}</a>
-            ${ROLE_TAG[u.role] || ''} ${bannedTag}
-          </p>
-          <p class="muted" style="margin:2px 0 0; font-size:0.8rem;">
-            @${escapeHtml(u.username)} · Lv. ${u.level} (${u.xp} XP)${u.region ? ` · ${escapeHtml(u.region)}` : ''} · joined ${formatDate(u.created_at)}
-          </p>
+        <div style="display:flex; align-items:flex-start; gap:10px; min-width:0;">
+          ${isSelf || isAdminUser ? '<span style="width:16px; display:inline-block;"></span>' : `<input type="checkbox" data-user-select="${u.id}" style="width:auto; margin-top:5px;">`}
+          <div style="min-width:0;">
+            <p style="margin:0; font-weight:700;">
+              <a href="/player/?u=${encodeURIComponent(u.username)}" style="color:var(--bone); text-decoration:none;">${escapeHtml(displayNameFor(u))}</a>
+              ${ROLE_TAG[u.role] || ''} ${bannedTag}
+            </p>
+            <p class="muted" style="margin:2px 0 0; font-size:0.8rem;">
+              @${escapeHtml(u.username)} · Lv. ${u.level} (${u.xp} XP)${u.region ? ` · ${escapeHtml(u.region)}` : ''} · joined ${formatDate(u.created_at)}
+            </p>
+          </div>
         </div>
         <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
           <select data-set-role="${u.id}" ${isSelf ? 'disabled title="Can\'t change your own role here"' : ''} style="width:auto; margin:0;">

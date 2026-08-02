@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<script>(function(){try{var t=localStorage.getItem('bc_theme');if(t)document.documentElement.setAttribute('data-theme',t);if(localStorage.getItem('bc_reduce_motion')==='1')document.documentElement.classList.add('reduce-motion');}catch(e){}})();</script>
+<script>(function(){try{var t=localStorage.getItem('bc_theme');if(t){document.documentElement.setAttribute('data-theme',t);if(t==='custom'){var v=JSON.parse(localStorage.getItem('bc_custom_theme')||'null');if(v){var r=document.documentElement.style;function hx(h){h=h.replace('#','');return parseInt(h.substr(0,2),16)+' '+parseInt(h.substr(2,2),16)+' '+parseInt(h.substr(4,2),16);}if(v.ink)r.setProperty('--ink',v.ink);if(v.navy)r.setProperty('--navy',v.navy);if(v.navyLight)r.setProperty('--navy-light',v.navyLight);if(v.bone)r.setProperty('--bone',v.bone);if(v.ash)r.setProperty('--ash',v.ash);if(v.brass){r.setProperty('--brass',v.brass);r.setProperty('--brass-bright',v.brassBright||v.brass);r.setProperty('--brass-rgb',hx(v.brass));}if(v.shadow)r.setProperty('--shadow-rgb',hx(v.shadow));}}}if(localStorage.getItem('bc_reduce_motion')==='1')document.documentElement.classList.add('reduce-motion');}catch(e){}})();</script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>BloxCore — Bounty Board for Blox Fruits</title>
 <meta name="robots" content="index, follow">
@@ -72,7 +72,7 @@
       </div>
     </div>
     <div style="position:relative; justify-self:center;">
-      <div aria-hidden="true" style="position:absolute; inset:-30px; background:radial-gradient(circle, rgba(41,182,246,0.22), transparent 70%); filter:blur(6px); animation: stampPulse 4s ease-in-out infinite;"></div>
+      <div aria-hidden="true" style="position:absolute; inset:-30px; background:radial-gradient(circle, rgb(var(--brass-rgb) / 0.22), transparent 70%); filter:blur(6px); animation: stampPulse 4s ease-in-out infinite;"></div>
       <div class="poster" id="hero-poster" style="max-width:320px; transform: rotate(-3deg); transition: opacity 0.4s ease, transform 0.3s ease; position:relative;">
         <p class="poster-eyebrow">★ WANTED ★</p>
         <p class="poster-title" id="hero-poster-title">First Blood</p>
@@ -83,6 +83,17 @@
     </div>
   </div>
 </header>
+
+<section class="section" style="padding-top:0;">
+  <div class="container">
+    <div id="home-stats" class="grid" style="grid-template-columns:repeat(auto-fit, minmax(140px,1fr));">
+      <div class="skeleton" style="height:90px;"></div>
+      <div class="skeleton" style="height:90px;"></div>
+      <div class="skeleton" style="height:90px;"></div>
+      <div class="skeleton" style="height:90px;"></div>
+    </div>
+  </div>
+</section>
 
 <section class="section" style="padding-top:0;">
   <div class="container">
@@ -104,6 +115,34 @@
         <h3 style="font-size:1.05rem; color:var(--brass-bright);">04 · Rank Up</h3>
         <p class="muted">Approved bounties add XP. Level up and your title climbs — Rookie to Pirate King.</p>
       </div>
+    </div>
+  </div>
+</section>
+
+<section class="section" style="padding-top:0;">
+  <div class="container">
+    <div class="flex-between" style="margin-bottom:20px;">
+      <h2 style="font-size:1.4rem; margin:0;">Live Bounties</h2>
+      <a href="/challenges/" class="btn btn-ghost btn-sm">See All</a>
+    </div>
+    <div id="featured-challenges" class="grid">
+      <div class="skeleton" style="height:220px;"></div>
+      <div class="skeleton" style="height:220px;"></div>
+      <div class="skeleton" style="height:220px;"></div>
+    </div>
+  </div>
+</section>
+
+<section class="section" style="padding-top:0;">
+  <div class="container" style="max-width:720px;">
+    <div class="flex-between" style="margin-bottom:20px;">
+      <h2 style="font-size:1.4rem; margin:0;">Top Pirates</h2>
+      <a href="/leaderboard/" class="btn btn-ghost btn-sm">Full Leaderboard</a>
+    </div>
+    <div id="top-pirates" class="panel panel-plain" style="padding:0;">
+      <div class="skeleton" style="height:50px; margin:14px;"></div>
+      <div class="skeleton" style="height:50px; margin:14px;"></div>
+      <div class="skeleton" style="height:50px; margin:14px;"></div>
     </div>
   </div>
 </section>
@@ -136,9 +175,11 @@
   <div class="container">BloxCore is an unofficial fan-made community project for Blox Fruits players. Not affiliated with the game's developers.</div>
 </footer>
 
+<script src="https://unpkg.com/lucide@latest"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="/js/supabase-client.js"></script>
 <script src="/js/nav.js"></script>
 <script src="/js/activity.js"></script>
+<script src="/js/home.js"></script>
 </body>
 </html>

@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<script>(function(){try{var t=localStorage.getItem('bc_theme');if(t)document.documentElement.setAttribute('data-theme',t);if(localStorage.getItem('bc_reduce_motion')==='1')document.documentElement.classList.add('reduce-motion');}catch(e){}})();</script>
+<script>(function(){try{var t=localStorage.getItem('bc_theme');if(t){document.documentElement.setAttribute('data-theme',t);if(t==='custom'){var v=JSON.parse(localStorage.getItem('bc_custom_theme')||'null');if(v){var r=document.documentElement.style;function hx(h){h=h.replace('#','');return parseInt(h.substr(0,2),16)+' '+parseInt(h.substr(2,2),16)+' '+parseInt(h.substr(4,2),16);}if(v.ink)r.setProperty('--ink',v.ink);if(v.navy)r.setProperty('--navy',v.navy);if(v.navyLight)r.setProperty('--navy-light',v.navyLight);if(v.bone)r.setProperty('--bone',v.bone);if(v.ash)r.setProperty('--ash',v.ash);if(v.brass){r.setProperty('--brass',v.brass);r.setProperty('--brass-bright',v.brassBright||v.brass);r.setProperty('--brass-rgb',hx(v.brass));}if(v.shadow)r.setProperty('--shadow-rgb',hx(v.shadow));}}}if(localStorage.getItem('bc_reduce_motion')==='1')document.documentElement.classList.add('reduce-motion');}catch(e){}})();</script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Edit Profile — BloxCore</title>
 <meta name="robots" content="noindex, nofollow">
@@ -140,7 +140,7 @@
   <div class="panel build-modal">
     <div class="flex-between" style="margin-bottom:14px;">
       <h3 id="build-modal-title" style="font-size:1.05rem; margin:0;">Choose</h3>
-      <button type="button" class="btn btn-ghost btn-sm" id="build-modal-close">✕</button>
+      <button type="button" class="btn btn-ghost btn-sm" id="build-modal-close"><i data-lucide="x" style="width:16px;height:16px;"></i></button>
     </div>
     <input type="text" id="build-modal-search" placeholder="Search…" style="margin-bottom:16px;">
     <div id="build-modal-grid" class="build-modal-grid"></div>
@@ -152,7 +152,7 @@
   <div class="panel build-modal" style="max-width:520px;">
     <div class="flex-between" style="margin-bottom:6px;">
       <h3 style="font-size:1.05rem; margin:0;">Choose a Title</h3>
-      <button type="button" class="btn btn-ghost btn-sm" id="title-modal-close">✕</button>
+      <button type="button" class="btn btn-ghost btn-sm" id="title-modal-close"><i data-lucide="x" style="width:16px;height:16px;"></i></button>
     </div>
     <p class="muted" style="margin:0 0 14px; font-size:0.82rem;" id="title-modal-progress"></p>
     <div id="title-modal-grid" class="build-modal-grid" style="grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));"></div>
@@ -163,6 +163,7 @@
   <div class="container">BloxCore is an unofficial fan-made community project for Blox Fruits players.</div>
 </footer>
 
+<script src="https://unpkg.com/lucide@latest"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="/js/supabase-client.js"></script>
 <script src="/js/nav.js"></script>

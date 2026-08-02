@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<script>(function(){try{var t=localStorage.getItem('bc_theme');if(t)document.documentElement.setAttribute('data-theme',t);if(localStorage.getItem('bc_reduce_motion')==='1')document.documentElement.classList.add('reduce-motion');}catch(e){}})();</script>
+<script>(function(){try{var t=localStorage.getItem('bc_theme');if(t){document.documentElement.setAttribute('data-theme',t);if(t==='custom'){var v=JSON.parse(localStorage.getItem('bc_custom_theme')||'null');if(v){var r=document.documentElement.style;function hx(h){h=h.replace('#','');return parseInt(h.substr(0,2),16)+' '+parseInt(h.substr(2,2),16)+' '+parseInt(h.substr(4,2),16);}if(v.ink)r.setProperty('--ink',v.ink);if(v.navy)r.setProperty('--navy',v.navy);if(v.navyLight)r.setProperty('--navy-light',v.navyLight);if(v.bone)r.setProperty('--bone',v.bone);if(v.ash)r.setProperty('--ash',v.ash);if(v.brass){r.setProperty('--brass',v.brass);r.setProperty('--brass-bright',v.brassBright||v.brass);r.setProperty('--brass-rgb',hx(v.brass));}if(v.shadow)r.setProperty('--shadow-rgb',hx(v.shadow));}}}if(localStorage.getItem('bc_reduce_motion')==='1')document.documentElement.classList.add('reduce-motion');}catch(e){}})();</script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Settings — BloxCore</title>
 <meta name="robots" content="noindex, nofollow">
@@ -32,41 +32,35 @@
   <div class="container" style="max-width:560px;">
     <h1 style="font-size:1.6rem;">Settings</h1>
 
-    <div class="panel" style="margin-top:20px;">
+    <h2 style="font-size:1rem; margin-top:28px; color:var(--ash); text-transform:uppercase; letter-spacing:0.05em;">Appearance</h2>
+
+    <div class="panel" style="margin-top:12px;">
       <h3 style="font-size:1rem; margin-bottom:4px;">Theme</h3>
       <p class="muted" style="margin:0 0 16px; font-size:0.85rem;">Applies instantly, and follows you to other devices once signed in.</p>
       <div class="grid theme-grid" style="gap:14px;">
-        <div class="theme-swatch" data-theme-choice="ice">
+        <div class="theme-swatch" data-theme-choice="inferno">
+          <div class="swatch-dot" style="background:#ff8a2b;"></div>
+          <span>Inferno</span>
+        </div>
+        <div class="theme-swatch" data-theme-choice="glacier">
           <div class="swatch-dot" style="background:#29b6f6;"></div>
-          <span>Ice</span>
+          <span>Glacier</span>
+        </div>
+        <div class="theme-swatch" data-theme-choice="toxic">
+          <div class="swatch-dot" style="background:#45e08a;"></div>
+          <span>Toxic</span>
         </div>
         <div class="theme-swatch" data-theme-choice="blood">
           <div class="swatch-dot" style="background:#ff4d6d;"></div>
           <span>Blood</span>
         </div>
-        <div class="theme-swatch" data-theme-choice="toxic">
-          <div class="swatch-dot" style="background:#6bdc7f;"></div>
-          <span>Toxic</span>
-        </div>
-        <div class="theme-swatch" data-theme-choice="gold">
-          <div class="swatch-dot" style="background:#ffd166;"></div>
-          <span>Gold</span>
-        </div>
         <div class="theme-swatch" data-theme-choice="royal">
           <div class="swatch-dot" style="background:#b389ff;"></div>
           <span>Royal</span>
         </div>
-        <div class="theme-swatch" data-theme-choice="sunset">
-          <div class="swatch-dot" style="background:#ff8a5c;"></div>
-          <span>Sunset</span>
-        </div>
-        <div class="theme-swatch" data-theme-choice="mono">
-          <div class="swatch-dot" style="background:#c7d2de;"></div>
-          <span>Monochrome</span>
-        </div>
-        <div class="theme-swatch" data-theme-choice="emerald">
-          <div class="swatch-dot" style="background:#2de89a;"></div>
-          <span>Emerald</span>
+        <div class="theme-swatch" data-theme-choice="gold">
+          <div class="swatch-dot" style="background:#ffd166;"></div>
+          <span>Gold</span>
         </div>
         <div class="theme-swatch" data-theme-choice="midnight">
           <div class="swatch-dot" style="background:#6c7cff;"></div>
@@ -76,14 +70,57 @@
           <div class="swatch-dot" style="background:#ff6ba3;"></div>
           <span>Rose</span>
         </div>
-        <div class="theme-swatch" data-theme-choice="amber">
-          <div class="swatch-dot" style="background:#ffab2e;"></div>
-          <span>Amber</span>
+        <div class="theme-swatch" data-theme-choice="mono">
+          <div class="swatch-dot" style="background:#c7d2de;"></div>
+          <span>Mono</span>
+        </div>
+        <div class="theme-swatch" id="custom-theme-swatch" data-theme-choice="custom">
+          <div class="swatch-dot" style="background:conic-gradient(from 0deg, #ff8a2b, #29b6f6, #45e08a, #b389ff, #ff8a2b);"></div>
+          <span>Custom</span>
         </div>
       </div>
     </div>
 
-    <div class="panel" style="margin-top:20px; display:flex; align-items:center; justify-content:space-between; gap:16px;">
+    <div class="panel" id="custom-theme-builder" style="margin-top:16px; display:none;">
+      <h3 style="font-size:1rem; margin-bottom:4px;">Build Your Own</h3>
+      <p class="muted" style="margin:0 0 18px; font-size:0.85rem;">Every color on the site — background, panels, accent, text, and shadow tint — comes from these six values.</p>
+      <div class="grid" style="grid-template-columns:repeat(auto-fill, minmax(150px,1fr)); gap:16px;">
+        <div>
+          <label for="ct-ink">Background</label>
+          <input type="color" id="ct-ink" value="#1a0f06">
+        </div>
+        <div>
+          <label for="ct-navy">Panels</label>
+          <input type="color" id="ct-navy" value="#241608">
+        </div>
+        <div>
+          <label for="ct-navyLight">Borders</label>
+          <input type="color" id="ct-navyLight" value="#4a2f12">
+        </div>
+        <div>
+          <label for="ct-brass">Accent</label>
+          <input type="color" id="ct-brass" value="#ff8a2b">
+        </div>
+        <div>
+          <label for="ct-bone">Text</label>
+          <input type="color" id="ct-bone" value="#fbead9">
+        </div>
+        <div>
+          <label for="ct-ash">Muted Text</label>
+          <input type="color" id="ct-ash" value="#b39374">
+        </div>
+        <div>
+          <label for="ct-shadow">Shadow Tint</label>
+          <input type="color" id="ct-shadow" value="#000000">
+        </div>
+      </div>
+      <div class="flex-between" style="margin-top:20px;">
+        <p class="muted" style="margin:0; font-size:0.8rem;">Preview updates live as you pick.</p>
+        <button class="btn btn-primary btn-sm" id="custom-theme-save">Save Custom Theme</button>
+      </div>
+    </div>
+
+    <div class="panel" style="margin-top:16px; display:flex; align-items:center; justify-content:space-between; gap:16px;">
       <div>
         <h3 style="font-size:1rem; margin-bottom:4px;">Reduce Motion</h3>
         <p class="muted" style="margin:0; font-size:0.85rem;">Turns off card fade-ins, hover lifts, and the stamp pulse.</p>
@@ -93,6 +130,31 @@
         <span class="toggle-slider"></span>
       </label>
     </div>
+
+    <h2 style="font-size:1rem; margin-top:32px; color:var(--ash); text-transform:uppercase; letter-spacing:0.05em;">Privacy</h2>
+
+    <div class="panel" style="margin-top:12px; display:flex; align-items:center; justify-content:space-between; gap:16px;">
+      <div>
+        <h3 style="font-size:1rem; margin-bottom:4px;">Hide From Leaderboard</h3>
+        <p class="muted" style="margin:0; font-size:0.85rem;">Keeps your profile off Most Wanted. Your crew's totals are unaffected.</p>
+      </div>
+      <label class="toggle-switch">
+        <input type="checkbox" id="hide-leaderboard-toggle">
+        <span class="toggle-slider"></span>
+      </label>
+    </div>
+
+    <h2 style="font-size:1rem; margin-top:32px; color:var(--ash); text-transform:uppercase; letter-spacing:0.05em;">Account</h2>
+
+    <div class="panel" style="margin-top:12px;" id="account-panel">
+      <div class="skeleton" style="height:70px;"></div>
+    </div>
+
+    <div class="panel" style="margin-top:16px; border-color:rgba(255,77,109,0.35);">
+      <h3 style="font-size:1rem; margin-bottom:4px; color:var(--blood-dim);">Sign Out</h3>
+      <p class="muted" style="margin:0 0 14px; font-size:0.85rem;">You'll need to sign back in with Discord to continue.</p>
+      <button class="btn btn-danger btn-sm" id="settings-signout-btn">Sign Out</button>
+    </div>
   </div>
 </section>
 
@@ -100,6 +162,7 @@
   <div class="container">BloxCore is an unofficial fan-made community project for Blox Fruits players.</div>
 </footer>
 
+<script src="https://unpkg.com/lucide@latest"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="/js/supabase-client.js"></script>
 <script src="/js/nav.js"></script>

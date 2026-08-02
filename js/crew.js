@@ -80,7 +80,7 @@ async function render() {
       </div>
       <p style="margin:16px 0 0;">${escapeHtml(crew.description)}</p>
       <div style="display:flex; gap:10px; margin-top:16px; flex-wrap:wrap;">
-        ${crew.roblox_username ? `<span class="tag" style="background:rgba(41,182,246,0.14); color:var(--brass-bright);">Roblox: ${escapeHtml(crew.roblox_username)}</span>` : ''}
+        ${crew.roblox_username ? `<span class="tag" style="background:rgb(var(--brass-rgb) / 0.14); color:var(--brass-bright);">Roblox: ${escapeHtml(crew.roblox_username)}</span>` : ''}
         ${crew.discord_invite ? `<a href="${escapeHtml(crew.discord_invite)}" target="_blank" rel="noopener noreferrer" class="btn btn-ghost btn-sm">Join Discord</a>` : ''}
       </div>
     </div>
@@ -88,8 +88,11 @@ async function render() {
     ${isLeader ? `
     <div class="panel" style="margin-top:20px;">
       <h3 style="font-size:1rem; margin-bottom:10px;">Add a Member</h3>
-      <form id="add-member-form" style="display:flex; gap:10px; align-items:flex-start;">
-        <input type="text" id="add-member-username" placeholder="Their BloxCore username" style="margin:0; flex:1;" ${members.length >= 30 ? 'disabled' : ''}>
+      <form id="add-member-form" style="display:flex; gap:10px; align-items:flex-start; position:relative;">
+        <div style="flex:1; position:relative;">
+          <input type="text" id="add-member-username" placeholder="Search a BloxCore username…" autocomplete="off" style="margin:0; width:100%;" ${members.length >= 30 ? 'disabled' : ''}>
+          <div id="add-member-suggestions" class="autocomplete-list"></div>
+        </div>
         <button type="submit" class="btn btn-primary btn-sm" ${members.length >= 30 ? 'disabled' : ''}>Add</button>
       </form>
       <p class="field-error" id="add-member-error" style="display:none;"></p>
@@ -105,6 +108,7 @@ async function render() {
   document.getElementById('delete-crew-btn')?.addEventListener('click', handleDelete);
   document.getElementById('edit-crew-btn')?.addEventListener('click', openEditModal);
   document.getElementById('add-member-form')?.addEventListener('submit', handleAddMember);
+  wireAddMemberAutocomplete();
   document.querySelectorAll('[data-kick]').forEach(btn => {
     btn.addEventListener('click', () => handleLeave(btn.dataset.kick));
   });
@@ -128,6 +132,47 @@ function renderMemberRow(m, isLast, isLeader) {
   `;
 }
 
+function wireAddMemberAutocomplete() {
+  const input = document.getElementById('add-member-username');
+  const box = document.getElementById('add-member-suggestions');
+  if (!input) return;
+
+  let debounceTimer;
+  input.addEventListener('input', () => {
+    clearTimeout(debounceTimer);
+    const query = input.value.trim();
+    if (!query) { box.classList.remove('open'); box.innerHTML = ''; return; }
+    debounceTimer = setTimeout(async () => {
+      const existingIds = new Set(members.map(m => m.user_id));
+      const { data } = await sb.from('profiles').select('id, username, display_name, avatar_url')
+        .or(`username.ilike.%${query}%,display_name.ilike.%${query}%`).limit(8);
+
+      const candidates = (data || []).filter(u => !existingIds.has(u.id));
+      box.innerHTML = candidates.length
+        ? candidates.map(u => `
+            <div class="autocomplete-item" data-pick-username="${escapeHtml(u.username)}">
+              ${avatarHtml(u, 26)}
+              ${escapeHtml(displayNameFor(u))} <span class="muted" style="font-size:0.78rem;">@${escapeHtml(u.username)}</span>
+            </div>
+          `).join('')
+        : `<div class="autocomplete-empty">No matching players.</div>`;
+      box.classList.add('open');
+
+      box.querySelectorAll('[data-pick-username]').forEach(item => {
+        item.addEventListener('click', () => {
+          input.value = item.dataset.pickUsername;
+          box.classList.remove('open');
+          box.innerHTML = '';
+        });
+      });
+    }, 250);
+  });
+
+  document.addEventListener('click', (e) => {
+    if (!box.contains(e.target) && e.target !== input) box.classList.remove('open');
+  });
+}
+
 async function handleAddMember(e) {
   e.preventDefault();
   const input = document.getElementById('add-member-username');
@@ -136,6 +181,7 @@ async function handleAddMember(e) {
   errorEl.style.display = 'none';
   if (!username) return;
 
+  document.getElementById('add-member-suggestions')?.classList.remove('open');
   const submitBtn = e.target.querySelector('button[type="submit"]');
   submitBtn.disabled = true;
 
