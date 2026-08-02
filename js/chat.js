@@ -55,7 +55,7 @@ function renderMessage(m) {
         <p style="margin:0 0 3px; font-size:0.78rem; color:var(--ash);">
           <a href="/player/?u=${encodeURIComponent(profile.username || '')}" style="color:${(profile.role === 'mod' || profile.role === 'admin') ? 'var(--blood-dim)' : 'var(--ash)'}; text-decoration:none; font-weight:600;">${escapeHtml(name)}</a>${titleBadge(profile)}
           <span style="font-family:var(--font-mono); margin-left:6px;">${timeAgo(m.created_at)}</span>
-          ${canDelete ? `<button class="chat-delete-btn" data-delete-id="${m.id}" title="Delete message">✕</button>` : ''}
+          ${canDelete ? `<button class="chat-delete-btn" data-delete-id="${m.id}" title="Delete message"><i data-lucide="x" class="icon-sm"></i></button>` : ''}
         </p>
         <div class="panel panel-plain" style="display:inline-block; padding:9px 13px; margin:0;">
           <p style="margin:0; font-size:0.92rem; white-space:pre-wrap; word-break:break-word; text-align:left;">${escapeHtml(m.message)}</p>
@@ -69,6 +69,7 @@ function wireDeleteButtons() {
   document.querySelectorAll('[data-delete-id]').forEach(btn => {
     btn.addEventListener('click', () => deleteMessage(btn.dataset.deleteId));
   });
+  refreshIcons();
 }
 
 async function deleteMessage(id) {

@@ -45,6 +45,7 @@ async function loadGiveaways() {
   document.querySelectorAll('[data-enter-id]').forEach(btn => {
     btn.addEventListener('click', () => enterGiveaway(btn.dataset.enterId, btn));
   });
+  refreshIcons();
 }
 
 function renderActiveCard(g, entryCount) {
@@ -57,7 +58,7 @@ function renderActiveCard(g, entryCount) {
   } else if (ended) {
     actionHtml = `<button class="btn btn-ghost btn-block" disabled>Ending soon…</button>`;
   } else if (alreadyEntered) {
-    actionHtml = `<button class="btn btn-ghost btn-block" disabled>✓ Entered</button>`;
+    actionHtml = `<button class="btn btn-ghost btn-block" disabled><i data-lucide="check" class="icon-sm"></i> Entered</button>`;
   } else {
     actionHtml = `<button class="btn btn-primary btn-block" data-enter-id="${g.id}">Enter Giveaway</button>`;
   }
@@ -85,7 +86,7 @@ function renderEndedRow(g) {
         <p class="muted" style="margin:2px 0 0; font-size:0.82rem;">${escapeHtml(g.prize)}</p>
       </div>
       <p style="margin:0; font-family:var(--font-mono); color:var(--brass-bright);">
-        ${g.winner_user_id ? `🏆 ${escapeHtml(winnerName)}` : winnerName}
+        ${g.winner_user_id ? `<i data-lucide="trophy" class="icon-sm" style="color:var(--brass-bright);"></i> ${escapeHtml(winnerName)}` : winnerName}
       </p>
     </div>
   `;

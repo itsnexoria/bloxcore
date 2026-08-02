@@ -69,6 +69,7 @@ async function loadChallenges(page) {
   document.querySelectorAll('[data-delete]').forEach(btn => {
     btn.addEventListener('click', () => deleteChallenge(btn.dataset.delete, btn.dataset.title));
   });
+  refreshIcons();
 }
 
 async function populateRewardTitleSelect() {
@@ -86,9 +87,9 @@ function renderPager(total) {
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
   return `
     <div class="flex-between" style="padding:14px 0;">
-      <button class="btn btn-ghost btn-sm" id="ch-prev" ${currentPage === 0 ? 'disabled' : ''}>← Prev</button>
+      <button class="btn btn-ghost btn-sm" id="ch-prev" ${currentPage === 0 ? 'disabled' : ''}><i data-lucide="chevron-left" class="icon-sm"></i> Prev</button>
       <span class="muted" style="font-size:0.82rem;">Page ${currentPage + 1} of ${totalPages}</span>
-      <button class="btn btn-ghost btn-sm" id="ch-next" ${currentPage + 1 >= totalPages ? 'disabled' : ''}>Next →</button>
+      <button class="btn btn-ghost btn-sm" id="ch-next" ${currentPage + 1 >= totalPages ? 'disabled' : ''}>Next <i data-lucide="chevron-right" class="icon-sm"></i></button>
     </div>
   `;
 }
@@ -105,7 +106,7 @@ function renderRow(c, isLast) {
         <p style="margin:0; font-weight:700;">${escapeHtml(c.title)}</p>
         <p class="muted" style="margin:2px 0 0; font-size:0.8rem;">
           <span class="tag tag-${c.difficulty}">${c.difficulty}</span>
-          +${c.xp_reward} XP · ${rotationLabel} ${featuredTag} ${c.repeatable ? `· <span style="color:var(--brass-bright);">Repeatable${c.cooldown_hours > 0 ? ` (${c.cooldown_hours}h cooldown)` : ''}</span>` : ''} ${c.titles ? `· 🏷 ${escapeHtml(c.titles.name)}` : ''} ${c.active ? '' : '· <span style="color:var(--blood);">Archived</span>'}
+          +${c.xp_reward} XP · ${rotationLabel} ${featuredTag} ${c.repeatable ? `· <span style="color:var(--brass-bright);">Repeatable${c.cooldown_hours > 0 ? ` (${c.cooldown_hours}h cooldown)` : ''}</span>` : ''} ${c.titles ? `· <i data-lucide="tag" class="icon-sm"></i> ${escapeHtml(c.titles.name)}` : ''} ${c.active ? '' : '· <span style="color:var(--blood);">Archived</span>'}
         </p>
       </div>
       <div style="display:flex; gap:8px; flex-shrink:0;">

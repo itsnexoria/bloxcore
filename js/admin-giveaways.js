@@ -53,15 +53,16 @@ async function loadGiveaways(page) {
   document.querySelectorAll('[data-delete-giveaway]').forEach(btn => {
     btn.addEventListener('click', () => deleteGiveaway(btn.dataset.deleteGiveaway, btn.dataset.title));
   });
+  refreshIcons();
 }
 
 function renderPager(total) {
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
   return `
     <div class="flex-between" style="padding:14px 0;">
-      <button class="btn btn-ghost btn-sm" id="gv-prev" ${currentPage === 0 ? 'disabled' : ''}>← Prev</button>
+      <button class="btn btn-ghost btn-sm" id="gv-prev" ${currentPage === 0 ? 'disabled' : ''}><i data-lucide="chevron-left" class="icon-sm"></i> Prev</button>
       <span class="muted" style="font-size:0.82rem;">Page ${currentPage + 1} of ${totalPages}</span>
-      <button class="btn btn-ghost btn-sm" id="gv-next" ${currentPage + 1 >= totalPages ? 'disabled' : ''}>Next →</button>
+      <button class="btn btn-ghost btn-sm" id="gv-next" ${currentPage + 1 >= totalPages ? 'disabled' : ''}>Next <i data-lucide="chevron-right" class="icon-sm"></i></button>
     </div>
   `;
 }
@@ -70,7 +71,7 @@ function renderRow(g, entryCount, isLast) {
   const statusTag = g.status === 'active'
     ? `<span class="tag tag-easy">Active</span>`
     : `<span class="tag" style="background:rgba(138,148,166,0.15); color:var(--ash);">Ended</span>`;
-  const winnerLabel = g.winner_user_id ? `🏆 ${escapeHtml(displayNameFor(g.profiles))}` : '';
+  const winnerLabel = g.winner_user_id ? `<i data-lucide="trophy" class="icon-sm" style="color:var(--brass-bright);"></i> ${escapeHtml(displayNameFor(g.profiles))}` : '';
   const image = g.image_url ? `<img src="${g.image_url}" alt="" style="width:36px; height:36px; object-fit:contain; flex-shrink:0;">` : '';
 
   return `

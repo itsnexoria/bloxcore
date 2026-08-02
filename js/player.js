@@ -27,6 +27,7 @@ async function loadPlayer() {
 
   document.title = `${displayNameFor(profile)} — BloxCore`;
   content.innerHTML = renderProfile(profile, membership?.crews);
+  refreshIcons();
 }
 
 function renderProfile(p, crew) {
@@ -72,7 +73,7 @@ function renderProfile(p, crew) {
         <div class="xp-bar"><div class="xp-bar-fill" style="width:${progress.pct}%;"></div></div>
         <p class="muted" style="margin:8px 0 0; font-size:0.82rem;">
           ${p.region ? `${escapeHtml(p.region)} · ` : ''}Member since ${formatDate(p.created_at)}
-          ${p.current_streak > 0 ? ` · 🔥 ${p.current_streak}-day streak` : ''}
+          ${p.current_streak > 0 ? ` · <i data-lucide="flame" class="icon-sm" style="color:var(--brass-bright);"></i> ${p.current_streak}-day streak` : ''}
         </p>
       </div>
     </div>

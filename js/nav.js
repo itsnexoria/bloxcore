@@ -15,15 +15,17 @@ document.addEventListener('DOMContentLoaded', () => {
     links.classList.add('open');
     overlay.classList.add('open');
     document.body.classList.add('drawer-open');
-    toggle.textContent = '✕';
+    toggle.innerHTML = '<i data-lucide="x" class="icon-md"></i>';
     toggle.setAttribute('aria-label', 'Close menu');
+    refreshIcons();
   }
   function closeDrawer() {
     links.classList.remove('open');
     overlay.classList.remove('open');
     document.body.classList.remove('drawer-open');
-    toggle.textContent = '☰';
+    toggle.innerHTML = '<i data-lucide="menu" class="icon-md"></i>';
     toggle.setAttribute('aria-label', 'Open menu');
+    refreshIcons();
   }
 
   if (toggle && links) {

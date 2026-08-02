@@ -66,6 +66,7 @@ async function loadActivity() {
   }
 
   feed.innerHTML = data.map((a, i) => renderActivityRow(withDisplayName(a), i === data.length - 1)).join('');
+  refreshIcons();
 }
 
 function withDisplayName(a) {
@@ -73,7 +74,9 @@ function withDisplayName(a) {
 }
 
 function renderActivityRow(a, isLast) {
-  const icon = a.type === 'rank_up' ? '⭐' : '✅';
+  const icon = a.type === 'rank_up'
+    ? '<i data-lucide="star" class="icon-md" style="color:var(--brass-bright);"></i>'
+    : '<i data-lucide="check-circle" class="icon-md" style="color:var(--sea);"></i>';
   const text = a.type === 'rank_up'
     ? `ranked up to <span style="color:var(--brass-bright);">${escapeHtml(a.detail)}</span>`
     : `completed <span style="color:var(--brass-bright);">${escapeHtml(a.detail)}</span>${a.xp_awarded ? ` · +${a.xp_awarded} XP` : ''}`;
@@ -119,6 +122,7 @@ function prependActivity(a) {
   });
 
   feed.insertAdjacentHTML('afterbegin', renderActivityRow(a, false));
+  refreshIcons();
 
   // Trim to the display limit
   const all = feed.querySelectorAll('[data-activity-id]');

@@ -41,7 +41,7 @@ function renderProfileCard(profile, crew) {
       <div class="xp-bar"><div class="xp-bar-fill" style="width:${progress.pct}%;"></div></div>
       <div class="flex-between" style="margin-top:14px;">
         <p style="margin:0; font-family:var(--font-mono); font-size:0.85rem; color:${streak > 0 ? 'var(--brass-bright)' : 'var(--ash)'};">
-          🔥 ${streak}-day streak${streakBonusLabel(streak) ? ` · ${streakBonusLabel(streak)}` : ''}
+          <i data-lucide="flame" class="icon-sm" style="color:var(--brass-bright);"></i> ${streak}-day streak${streakBonusLabel(streak) ? ` · ${streakBonusLabel(streak)}` : ''}
         </p>
         <p class="muted" style="margin:0; font-size:0.78rem;">Best: ${profile.longest_streak || 0} days</p>
       </div>
@@ -53,6 +53,7 @@ function renderProfileCard(profile, crew) {
       </div>
     </div>
   `;
+  refreshIcons();
 }
 
 function streakBonusLabel(streak) {
@@ -87,6 +88,7 @@ async function loadSubmissions(userId) {
   }
 
   list.innerHTML = data.map(renderSubmissionCard).join('');
+  refreshIcons();
 }
 
 function renderSubmissionCard(sub) {

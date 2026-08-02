@@ -136,15 +136,15 @@ async function loadActiveUsers() {
       <p style="margin:4px 0 0; font-size:1.5rem; font-family:var(--font-mono);">${crmUsers.length}</p>
     </div>
     <div class="panel" style="padding:16px 20px;">
-      <p class="muted" style="margin:0; font-size:0.78rem; text-transform:uppercase; letter-spacing:0.04em;">● Online</p>
+      <p class="muted" style="margin:0; font-size:0.78rem; text-transform:uppercase; letter-spacing:0.04em;"><i data-lucide="circle" style="width:8px;height:8px;fill:currentColor;"></i> Online</p>
       <p style="margin:4px 0 0; font-size:1.5rem; font-family:var(--font-mono); color:var(--sea);">${counts.online}</p>
     </div>
     <div class="panel" style="padding:16px 20px;">
-      <p class="muted" style="margin:0; font-size:0.78rem; text-transform:uppercase; letter-spacing:0.04em;">● Idle</p>
+      <p class="muted" style="margin:0; font-size:0.78rem; text-transform:uppercase; letter-spacing:0.04em;"><i data-lucide="circle" style="width:8px;height:8px;fill:currentColor;"></i> Idle</p>
       <p style="margin:4px 0 0; font-size:1.5rem; font-family:var(--font-mono); color:var(--brass-bright);">${counts.idle}</p>
     </div>
     <div class="panel" style="padding:16px 20px;">
-      <p class="muted" style="margin:0; font-size:0.78rem; text-transform:uppercase; letter-spacing:0.04em;">● Offline</p>
+      <p class="muted" style="margin:0; font-size:0.78rem; text-transform:uppercase; letter-spacing:0.04em;"><i data-lucide="circle" style="width:8px;height:8px;fill:currentColor;"></i> Offline</p>
       <p style="margin:4px 0 0; font-size:1.5rem; font-family:var(--font-mono);">${counts.offline}</p>
     </div>
   `;
@@ -167,9 +167,10 @@ function renderCrmList() {
         ${avatarHtml(u, 30)}
         <a href="/player/?u=${encodeURIComponent(u.username)}" style="color:var(--bone); text-decoration:none; font-weight:600;">${escapeHtml(displayNameFor(u))}</a>
       </div>
-      <span style="font-size:0.8rem; font-family:var(--font-mono); color:${STATUS_COLOR[u.status]};">● ${STATUS_LABEL[u.status]}${u.last_active_at ? ` · ${timeAgo(u.last_active_at)}` : ''}</span>
+      <span style="font-size:0.8rem; font-family:var(--font-mono); color:${STATUS_COLOR[u.status]};"><i data-lucide="circle" style="width:8px;height:8px;fill:currentColor;"></i> ${STATUS_LABEL[u.status]}${u.last_active_at ? ` · ${timeAgo(u.last_active_at)}` : ''}</span>
     </div>
   `).join('') + `</div>`;
+  refreshIcons();
 }
 
 document.querySelectorAll('[data-crm-filter]').forEach(btn => {
@@ -239,15 +240,16 @@ async function loadUsers(query, page) {
     });
   });
   updateUserBulkBar();
+  refreshIcons();
 }
 
 function renderPager(total) {
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
   return `
     <div class="flex-between" style="padding:14px 20px;">
-      <button class="btn btn-ghost btn-sm" id="u-prev" ${currentPage === 0 ? 'disabled' : ''}>← Prev</button>
+      <button class="btn btn-ghost btn-sm" id="u-prev" ${currentPage === 0 ? 'disabled' : ''}><i data-lucide="chevron-left" class="icon-sm"></i> Prev</button>
       <span class="muted" style="font-size:0.82rem;">Page ${currentPage + 1} of ${totalPages}</span>
-      <button class="btn btn-ghost btn-sm" id="u-next" ${currentPage + 1 >= totalPages ? 'disabled' : ''}>Next →</button>
+      <button class="btn btn-ghost btn-sm" id="u-next" ${currentPage + 1 >= totalPages ? 'disabled' : ''}>Next <i data-lucide="chevron-right" class="icon-sm"></i></button>
     </div>
   `;
 }

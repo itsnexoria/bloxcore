@@ -110,6 +110,7 @@ async function render() {
       ${members.map((m, i) => renderMemberRow(m, i === members.length - 1, isLeader)).join('')}
     </div>
   `;
+  refreshIcons();
 
   document.getElementById('join-crew-btn')?.addEventListener('click', handleJoin);
   document.getElementById('leave-crew-btn')?.addEventListener('click', () => handleLeave(currentUser.id));
@@ -130,7 +131,7 @@ function renderMemberRow(m, isLast, isLeader) {
       <div>
         <a href="/player/?u=${encodeURIComponent(p.username)}" style="color:var(--bone); font-weight:700; text-decoration:none;">${escapeHtml(displayNameFor(p))}</a>
         ${titleBadge(p)}
-        ${m.role === 'leader' ? `<span class="muted" style="font-size:0.78rem; margin-left:6px;">★ Leader</span>` : ''}
+        ${m.role === 'leader' ? `<span class="muted" style="font-size:0.78rem; margin-left:6px;"><i data-lucide="star" class="icon-sm"></i> Leader</span>` : ''}
       </div>
       <div style="display:flex; align-items:center; gap:12px;">
         <span class="muted" style="font-size:0.82rem; font-family:var(--font-mono);">Lv. ${p.level}</span>

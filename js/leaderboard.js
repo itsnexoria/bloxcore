@@ -56,7 +56,7 @@ async function loadLeaderboard(page) {
         ${avatarHtml(p, 36)}
         <div>
           <a href="/player/?u=${encodeURIComponent(p.username)}" style="margin:0; font-weight:700; color:var(--bone); text-decoration:none; display:block;">${escapeHtml(displayNameFor(p))}${titleBadge(p)}</a>
-          <p class="muted" style="margin:0; font-size:0.82rem;">${rankTitleForLevel(p.level)}${p.current_streak > 0 ? ` · 🔥 ${p.current_streak}` : ''}</p>
+          <p class="muted" style="margin:0; font-size:0.82rem;">${rankTitleForLevel(p.level)}${p.current_streak > 0 ? ` · <i data-lucide="flame" class="icon-sm" style="color:var(--brass-bright);"></i> ${p.current_streak}` : ''}</p>
         </div>
       </div>
       <div style="text-align:right;">
@@ -65,15 +65,16 @@ async function loadLeaderboard(page) {
       </div>
     </div>
   `).join('') + renderPager(count);
+  refreshIcons();
 }
 
 function renderPager(total) {
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
   return `
     <div class="flex-between" style="padding:14px 20px;">
-      <button class="btn btn-ghost btn-sm" id="lb-prev" ${currentPage === 0 ? 'disabled' : ''}>← Prev</button>
+      <button class="btn btn-ghost btn-sm" id="lb-prev" ${currentPage === 0 ? 'disabled' : ''}><i data-lucide="chevron-left" class="icon-sm"></i> Prev</button>
       <span class="muted" style="font-size:0.82rem;">Page ${currentPage + 1} of ${totalPages}</span>
-      <button class="btn btn-ghost btn-sm" id="lb-next" ${currentPage + 1 >= totalPages ? 'disabled' : ''}>Next →</button>
+      <button class="btn btn-ghost btn-sm" id="lb-next" ${currentPage + 1 >= totalPages ? 'disabled' : ''}>Next <i data-lucide="chevron-right" class="icon-sm"></i></button>
     </div>
   `;
 }

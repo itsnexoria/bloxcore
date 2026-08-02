@@ -103,6 +103,14 @@ const BOUNTY_TIERS = [
   { value: 30000000, label: '30M' },
 ];
 
+// Lucide icons only render for elements present in the DOM when lucide.createIcons() runs
+// (nav.js calls it once on page load) — anything injected afterward via innerHTML (chat
+// messages, challenge cards, admin rows, etc.) needs this called again. Every place in this
+// codebase that writes HTML containing a <i data-lucide="..."> tag calls this right after.
+function refreshIcons() {
+  if (window.lucide) lucide.createIcons();
+}
+
 // A player's chosen display name if set, otherwise their (unique, unchangeable) username.
 function displayNameFor(profile) {
   return profile?.display_name || profile?.username || 'Unknown';

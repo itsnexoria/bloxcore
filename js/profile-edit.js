@@ -78,7 +78,7 @@ function openTitleModal() {
 
   const noneTile = `
     <div class="build-modal-tile title-tile ${activeTitleId === '' ? 'selected' : ''}" data-title-id="">
-      <span style="font-size:1.4rem;">🚫</span>
+      <i data-lucide="ban" class="icon-lg"></i>
       <span class="title-tile-name">None</span>
     </div>
   `;
@@ -87,7 +87,7 @@ function openTitleModal() {
     const owned = ownedTitleIds.has(t.id);
     return `
       <div class="build-modal-tile title-tile ${!owned ? 'locked' : ''} ${activeTitleId === t.id ? 'selected' : ''}" ${owned ? `data-title-id="${t.id}"` : ''}>
-        ${owned ? '' : '<span class="lock-icon">🔒</span>'}
+        ${owned ? '' : '<i data-lucide="lock" class="icon-sm lock-icon"></i>'}
         <span class="title-tile-name" style="color:${owned ? t.color : 'var(--ash)'};">${escapeHtml(t.name)}</span>
         <span class="title-rarity-pill title-rarity-${t.rarity}">${t.rarity}</span>
       </div>
@@ -95,6 +95,7 @@ function openTitleModal() {
   }).join('');
 
   document.getElementById('title-modal-grid').innerHTML = noneTile + tiles;
+  refreshIcons();
 
   document.querySelectorAll('#title-modal-grid [data-title-id]').forEach(tile => {
     tile.addEventListener('click', () => {
@@ -227,7 +228,7 @@ function renderModalGrid(key, filter) {
 
   const noneTile = `
     <div class="build-modal-tile ${currentValue === '' ? 'selected' : ''}" data-build-value="">
-      <span style="font-size:1.4rem;">🚫</span>
+      <i data-lucide="ban" class="icon-lg"></i>
       <span>None</span>
     </div>
   `;
@@ -240,6 +241,7 @@ function renderModalGrid(key, filter) {
   `).join('');
 
   grid.innerHTML = noneTile + tiles;
+  refreshIcons();
 
   grid.querySelectorAll('[data-build-value]').forEach(tile => {
     tile.addEventListener('click', () => {

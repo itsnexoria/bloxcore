@@ -32,6 +32,15 @@
   --max-width: 1180px;
 }
 
+/* Lucide icon sizing — apply one of these classes directly on the <i data-lucide="..."> tag;
+   lucide.createIcons() carries the class (but not the data-lucide attribute) over to the
+   rendered <svg>, so a [data-lucide] selector would never match post-render. */
+.icon-sm, .icon-sm.lucide { width: 14px; height: 14px; }
+.icon-md, .icon-md.lucide { width: 18px; height: 18px; }
+.icon-lg, .icon-lg.lucide { width: 24px; height: 24px; }
+.icon-inline { vertical-align: -3px; margin-right: 4px; }
+.lucide { vertical-align: -0.15em; }
+
 * { box-sizing: border-box; }
 
 html {

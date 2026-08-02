@@ -46,13 +46,14 @@ async function loadFeaturedChallenges() {
 
   el.innerHTML = data.map((c, i) => `
     <div class="poster" style="transform: rotate(${(i - 1) * 1.5}deg);">
-      <p class="poster-eyebrow">★ WANTED ★</p>
+      <p class="poster-eyebrow"><i data-lucide="star" class="icon-sm"></i> WANTED <i data-lucide="star" class="icon-sm"></i></p>
       <p class="poster-title">${escapeHtml(c.title)}</p>
       <p class="poster-body">${escapeHtml(c.description)}</p>
       <p class="poster-reward">+${c.xp_reward} XP</p>
       <div class="center" style="margin-top:10px;"><span class="tag tag-${c.difficulty}">${c.difficulty}</span></div>
     </div>
   `).join('');
+  refreshIcons();
 }
 
 async function loadTopPirates() {

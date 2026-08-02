@@ -72,6 +72,7 @@ async function loadChallenges() {
   document.querySelectorAll('[data-claim-id]').forEach(btn => {
     btn.addEventListener('click', () => openModal(btn.dataset.claimId, btn.dataset.claimTitle));
   });
+  refreshIcons();
 }
 
 function formatRemaining(ms) {
@@ -98,14 +99,14 @@ function renderChallengeCard(c) {
   }
 
   const actionHtml = isDone
-    ? `<button class="btn btn-ghost btn-sm" disabled>✓ Completed</button>`
+    ? `<button class="btn btn-ghost btn-sm" disabled><i data-lucide="check" class="icon-sm"></i> Completed</button>`
     : onCooldown
     ? `<button class="btn btn-ghost btn-sm" disabled>On Cooldown · ${cooldownLabel}</button>`
     : `<button class="btn btn-primary btn-sm" data-claim-id="${c.id}" data-claim-title="${escapeHtml(c.title)}">Claim Bounty</button>`;
 
   return `
     <div class="poster" style="transform: rotate(${rotate}deg); ${isDone || onCooldown ? 'opacity:0.6;' : ''}">
-      <p class="poster-eyebrow">★ WANTED ★</p>
+      <p class="poster-eyebrow"><i data-lucide="star" class="icon-sm"></i> WANTED <i data-lucide="star" class="icon-sm"></i></p>
       <p class="poster-title">${escapeHtml(c.title)}</p>
       <p class="poster-body">${escapeHtml(c.description)}</p>
       <p class="poster-reward">+${c.xp_reward} XP</p>
@@ -181,7 +182,7 @@ function renderPreviews() {
   previews.innerHTML = selectedFiles.map((f, i) => `
     <div class="dropzone-thumb">
       <img src="${URL.createObjectURL(f)}" alt="">
-      <button type="button" class="thumb-remove" data-remove-index="${i}" title="Remove">✕</button>
+      <button type="button" class="thumb-remove" data-remove-index="${i}" title="Remove"><i data-lucide="x" style="width:10px;height:10px;"></i></button>
     </div>
   `).join('');
 
@@ -195,6 +196,7 @@ function renderPreviews() {
       removeFile(Number(btn.dataset.removeIndex));
     });
   });
+  refreshIcons();
 }
 
 async function handleSubmit(e) {
