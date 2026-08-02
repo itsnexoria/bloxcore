@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<script>(function(){try{var t=localStorage.getItem('bc_theme');if(t){document.documentElement.setAttribute('data-theme',t);if(t==='custom'){var v=JSON.parse(localStorage.getItem('bc_custom_theme')||'null');if(v){var r=document.documentElement.style;function hx(h){h=h.replace('#','');return parseInt(h.substr(0,2),16)+' '+parseInt(h.substr(2,2),16)+' '+parseInt(h.substr(4,2),16);}if(v.ink)r.setProperty('--ink',v.ink);if(v.navy)r.setProperty('--navy',v.navy);if(v.navyLight)r.setProperty('--navy-light',v.navyLight);if(v.bone)r.setProperty('--bone',v.bone);if(v.ash)r.setProperty('--ash',v.ash);if(v.brass){r.setProperty('--brass',v.brass);r.setProperty('--brass-bright',v.brassBright||v.brass);r.setProperty('--brass-rgb',hx(v.brass));}if(v.shadow)r.setProperty('--shadow-rgb',hx(v.shadow));}}}if(localStorage.getItem('bc_reduce_motion')==='1')document.documentElement.classList.add('reduce-motion');}catch(e){}})();</script>
+<script>(function(){try{var t=localStorage.getItem('bc_theme');if(t)document.documentElement.setAttribute('data-theme',t);if(localStorage.getItem('bc_reduce_motion')==='1')document.documentElement.classList.add('reduce-motion');}catch(e){}})();</script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Manage Titles — BloxCore Admin</title>
 <meta name="robots" content="noindex, nofollow">
@@ -36,8 +36,10 @@
     </div>
 
     <div class="panel" style="margin-top:24px;">
-      <h3 style="font-size:1rem; margin-bottom:14px;">Create a Title</h3>
+      <h3 style="font-size:1rem; margin-bottom:4px;" id="title-form-heading">Create a Title</h3>
+      <p class="muted" style="margin:0 0 14px; font-size:0.8rem;">Click any title below to edit it instead.</p>
       <form id="title-form" style="display:flex; gap:12px; align-items:flex-end; flex-wrap:wrap;">
+        <input type="hidden" id="title-edit-id" value="">
         <div style="flex:1; min-width:160px;">
           <label for="title-name">Name</label>
           <input type="text" id="title-name" required maxlength="30" placeholder="e.g. Wiki Contributor">
@@ -50,14 +52,19 @@
           <label for="title-rarity">Rarity</label>
           <select id="title-rarity">
             <option value="common">Common</option>
+            <option value="uncommon">Uncommon</option>
             <option value="rare">Rare</option>
             <option value="epic">Epic</option>
             <option value="legendary">Legendary</option>
+            <option value="mythical">Mythical</option>
+            <option value="divine">Divine</option>
           </select>
         </div>
-        <button type="submit" class="btn btn-primary">Create</button>
+        <button type="submit" class="btn btn-primary" id="title-form-submit">Create</button>
+        <button type="button" class="btn btn-ghost" id="title-form-cancel" style="display:none;">Cancel</button>
       </form>
     </div>
+
 
     <h2 style="font-size:1.1rem; margin-top:32px;">All Titles</h2>
     <div id="titles-list" style="margin-top:16px;">

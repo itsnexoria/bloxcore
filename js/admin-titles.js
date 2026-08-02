@@ -10,6 +10,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   await loadSeasonalConfig();
 
   document.getElementById('title-form').addEventListener('submit', handleCreateTitle);
+  document.getElementById('title-form-cancel').addEventListener('click', resetTitleForm);
   document.getElementById('save-seasonal-btn').addEventListener('click', saveSeasonalConfig);
   document.getElementById('run-seasonal-btn').addEventListener('click', runSeasonalNow);
 
@@ -62,9 +63,12 @@ async function loadTitles() {
       <div class="flex-between" style="padding:12px 20px; ${i === data.length - 1 ? '' : 'border-bottom:1px solid var(--navy-light);'}">
         <div style="display:flex; align-items:center; gap:10px;">
           <span style="border:1px solid ${t.color}; color:${t.color}; padding:2px 10px; border-radius:10px; font-size:0.82rem;">${escapeHtml(t.name)}</span>
-          <span class="muted" style="font-size:0.75rem; text-transform:capitalize;">${t.rarity}</span>
+          <span class="title-rarity-pill title-rarity-${t.rarity}">${t.rarity}</span>
         </div>
-        <button class="btn btn-danger btn-sm" data-delete-title="${t.id}" data-name="${escapeHtml(t.name)}">Delete</button>
+        <div style="display:flex; gap:8px;">
+          <button class="btn btn-ghost btn-sm" data-edit-title="${t.id}">Edit</button>
+          <button class="btn btn-danger btn-sm" data-delete-title="${t.id}" data-name="${escapeHtml(t.name)}">Delete</button>
+        </div>
       </div>
     `).join('') +
     `</div>`;
@@ -72,6 +76,32 @@ async function loadTitles() {
   document.querySelectorAll('[data-delete-title]').forEach(btn => {
     btn.addEventListener('click', () => deleteTitle(btn.dataset.deleteTitle, btn.dataset.name));
   });
+  document.querySelectorAll('[data-edit-title]').forEach(btn => {
+    btn.addEventListener('click', () => loadTitleIntoForm(btn.dataset.editTitle));
+  });
+}
+
+function loadTitleIntoForm(titleId) {
+  const t = allTitles.find(x => x.id === titleId);
+  if (!t) return;
+
+  document.getElementById('title-edit-id').value = t.id;
+  document.getElementById('title-name').value = t.name;
+  document.getElementById('title-color').value = t.color;
+  document.getElementById('title-rarity').value = t.rarity;
+  document.getElementById('title-form-heading').textContent = `Editing "${t.name}"`;
+  document.getElementById('title-form-submit').textContent = 'Save Changes';
+  document.getElementById('title-form-cancel').style.display = 'inline-block';
+  document.getElementById('title-form').scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
+function resetTitleForm() {
+  document.getElementById('title-edit-id').value = '';
+  document.getElementById('title-form').reset();
+  document.getElementById('title-color').value = '#7be0ff';
+  document.getElementById('title-form-heading').textContent = 'Create a Title';
+  document.getElementById('title-form-submit').textContent = 'Create';
+  document.getElementById('title-form-cancel').style.display = 'none';
 }
 
 async function loadSeasonalConfig() {
@@ -124,22 +154,24 @@ async function runSeasonalNow() {
 
 async function handleCreateTitle(e) {
   e.preventDefault();
+  const editId = document.getElementById('title-edit-id').value;
   const name = document.getElementById('title-name').value.trim();
   const color = document.getElementById('title-color').value;
   const rarity = document.getElementById('title-rarity').value;
   const btn = e.target.querySelector('button[type="submit"]');
   btn.disabled = true;
 
-  const { error } = await sb.from('titles').insert({ name, color, rarity });
+  const { error } = editId
+    ? await sb.from('titles').update({ name, color, rarity }).eq('id', editId)
+    : await sb.from('titles').insert({ name, color, rarity });
   btn.disabled = false;
 
   if (error) {
     showToast(error.message, true);
     return;
   }
-  e.target.reset();
-  document.getElementById('title-color').value = '#7be0ff';
-  showToast('Title created.');
+  resetTitleForm();
+  showToast(editId ? 'Title updated.' : 'Title created.');
   await loadTitles();
 }
 

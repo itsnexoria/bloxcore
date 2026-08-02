@@ -23,11 +23,13 @@ async function loadPlayer() {
     return;
   }
 
+  const { data: membership } = await sb.from('crew_members').select('crews(name, tag, logo_url)').eq('user_id', profile.id).maybeSingle();
+
   document.title = `${displayNameFor(profile)} — BloxCore`;
-  content.innerHTML = renderProfile(profile);
+  content.innerHTML = renderProfile(profile, membership?.crews);
 }
 
-function renderProfile(p) {
+function renderProfile(p, crew) {
   const title = rankTitleForLevel(p.level);
   const progress = xpProgress(p.xp, p.level);
   const social = p.social_links || {};
@@ -61,6 +63,10 @@ function renderProfile(p) {
             <h1 style="font-size:1.5rem; margin-bottom:2px;">${escapeHtml(name)}${titleBadge(p)}</h1>
             ${showHandle ? `<p class="muted" style="margin:0 0 2px; font-size:0.8rem;">@${escapeHtml(p.username)}</p>` : ''}
             <p class="rank-title" style="margin:0 0 8px;">${title} · Lv. ${p.level}</p>
+            ${crew ? `<a href="/crew/?name=${encodeURIComponent(crew.name)}" class="info-chip" style="text-decoration:none; margin-bottom:8px;">
+              ${crew.logo_url ? `<img src="${crew.logo_url}" alt="" style="width:16px; height:16px; border-radius:4px; object-fit:cover;" onerror="this.style.display='none';">` : ''}
+              <span class="info-chip-label">Crew</span><span class="info-chip-value">${crew.tag ? `[${escapeHtml(crew.tag)}] ` : ''}${escapeHtml(crew.name)}</span>
+            </a>` : ''}
           </div>
         </div>
         <div class="xp-bar"><div class="xp-bar-fill" style="width:${progress.pct}%;"></div></div>

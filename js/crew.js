@@ -37,7 +37,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 async function render() {
   const { data: members, error } = await sb
     .from('crew_members')
-    .select('user_id, role, joined_at, profiles(username, display_name, level, titles(name, color))')
+    .select('user_id, role, joined_at, profiles(username, display_name, level, pirate_bounty, titles(name, color))')
     .eq('crew_id', crew.id)
     .order('role', { ascending: true });
 
@@ -46,6 +46,8 @@ async function render() {
     console.error(error);
     return;
   }
+
+  const totalBounty = members.reduce((sum, m) => sum + (m.profiles?.pirate_bounty || 0), 0);
 
   const isLeader = currentUser && crew.leader_id === currentUser.id;
   const isMember = myMembership && myMembership.crew_id === crew.id;
@@ -79,8 +81,14 @@ async function render() {
         ${actionHtml}
       </div>
       <p style="margin:16px 0 0;">${escapeHtml(crew.description)}</p>
-      <div style="display:flex; gap:10px; margin-top:16px; flex-wrap:wrap;">
-        ${crew.roblox_username ? `<span class="tag" style="background:rgb(var(--brass-rgb) / 0.14); color:var(--brass-bright);">Roblox: ${escapeHtml(crew.roblox_username)}</span>` : ''}
+      <div style="display:flex; gap:20px; margin-top:16px; flex-wrap:wrap; align-items:baseline;">
+        <div>
+          <p class="muted" style="margin:0; font-size:0.72rem; text-transform:uppercase; letter-spacing:0.05em;">Crew Bounty</p>
+          <p style="margin:2px 0 0; font-family:var(--font-stamp); font-size:1.2rem; color:var(--brass-bright);">${formatBounty(totalBounty)}</p>
+        </div>
+      </div>
+      <div style="display:flex; gap:10px; margin-top:16px; flex-wrap:wrap; align-items:center;">
+        ${crew.roblox_username ? `<span class="info-chip"><span class="info-chip-label">Roblox</span><span class="info-chip-value">${escapeHtml(crew.roblox_username)}</span></span>` : ''}
         ${crew.discord_invite ? `<a href="${escapeHtml(crew.discord_invite)}" target="_blank" rel="noopener noreferrer" class="btn btn-ghost btn-sm">Join Discord</a>` : ''}
       </div>
     </div>

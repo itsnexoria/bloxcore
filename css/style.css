@@ -487,10 +487,47 @@ section.section h2.center::after { margin-left: auto; margin-right: auto; }
   padding: 3px 9px;
   border-radius: 2px;
 }
-.tag-easy { background: rgba(107,220,127,0.16); color: var(--sea); }
-.tag-medium { background: rgb(var(--brass-rgb) / 0.16); color: var(--brass-bright); }
-.tag-hard { background: rgba(255,77,109,0.16); color: #ff8fa3; }
-.tag-legendary { background: rgba(255,77,109,0.28); color: #ffc2cf; }
+.tag-easy { background: rgba(107,220,127,0.16); color: #6bdc7f; }
+.tag-medium { background: rgba(255,209,102,0.16); color: #ffd166; }
+.tag-hard { background: rgba(255,77,109,0.16); color: #ff4d6d; }
+.tag-legendary { background: rgba(199,125,255,0.18); color: #c77dff; }
+
+/* Plain colored difficulty label — no pill background, used where a tag would be too heavy */
+.difficulty-label {
+  font-size: 0.78rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-family: var(--font-mono);
+}
+.difficulty-easy { color: #6bdc7f; }
+.difficulty-medium { color: #ffd166; }
+.difficulty-hard { color: #ff4d6d; }
+.difficulty-legendary { color: #c77dff; }
+
+/* Small label + value chip — e.g. "Roblox: username" without shouting in all-caps */
+.info-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--navy-light);
+  background: rgba(255,255,255,0.02);
+}
+.info-chip-label {
+  color: var(--ash);
+  text-transform: uppercase;
+  font-size: 0.66rem;
+  letter-spacing: 0.06em;
+  font-weight: 700;
+}
+.info-chip-value {
+  color: var(--bone);
+  font-weight: 700;
+  font-family: var(--font-mono);
+  font-size: 0.82rem;
+}
 
 /* --------------------------------- Stamp ---------------------------------- */
 /* Signature element: a glowing ice-emblem badge used for rank badges and approvals */
@@ -892,9 +929,15 @@ input:focus, select:focus, textarea:focus {
   font-weight: 700;
 }
 .title-rarity-common { background: rgba(138,148,166,0.16); color: var(--ash); }
+.title-rarity-uncommon { background: rgba(107,220,127,0.16); color: #6bdc7f; }
 .title-rarity-rare { background: rgb(var(--brass-rgb) / 0.16); color: var(--brass-bright); }
 .title-rarity-epic { background: rgba(167,139,250,0.18); color: #c4b5fd; }
 .title-rarity-legendary { background: rgba(255,209,102,0.18); color: #ffd166; }
+.title-rarity-mythical { background: rgba(255,77,109,0.18); color: #ff8fa3; }
+.title-rarity-divine {
+  background: linear-gradient(90deg, rgba(255,209,102,0.22), rgba(255,138,163,0.22));
+  color: #fff2cc;
+}
 .title-tile .lock-icon { font-size: 1.1rem; }
 
 /* -------------------------------- Utility --------------------------------- */
@@ -1034,6 +1077,28 @@ html[data-theme="mono"] {
   --brass: #c7d2de; --brass-bright: #eef2f6; --brass-rgb: 199 210 222;
   --bone: #f4f5f7; --ash: #8f95a0;
 }
+
+html[data-theme="light"] {
+  --ink: #f4f0e8; --navy: #ffffff; --navy-light: #ddd4c2;
+  --brass: #0b74a8; --brass-bright: #0891c2; --brass-rgb: 11 116 168;
+  --shadow-rgb: 60 50 30;
+  --blood: #d6304a; --blood-dim: #b8253c;
+  --sea: #2f9e52;
+  --bone: #241d12; --ash: #6b6357;
+}
+
+/* Light theme needs its own background + nav treatment — the shared rules elsewhere
+   bake in dark-specific colors (a deep-blue glow, a near-black nav bar) that don't
+   just fall out of swapping the CSS variables above. */
+html[data-theme="light"] body {
+  background:
+    radial-gradient(circle at 18% 12%, rgb(var(--brass-rgb) / 0.06), transparent 38%),
+    radial-gradient(circle at 82% 68%, rgba(47,158,82,0.05), transparent 42%),
+    var(--ink);
+  background-attachment: fixed, fixed, fixed;
+}
+html[data-theme="light"] .nav { background: rgba(255,255,255,0.85); }
+html[data-theme="light"] .nav.scrolled { background: rgba(255,255,255,0.96); box-shadow: 0 8px 24px rgba(60,50,30,0.12); }
 
 .reduce-motion, .reduce-motion * {
   animation: none !important;

@@ -109,11 +109,9 @@ function renderChallengeCard(c) {
       <p class="poster-title">${escapeHtml(c.title)}</p>
       <p class="poster-body">${escapeHtml(c.description)}</p>
       <p class="poster-reward">+${c.xp_reward} XP</p>
-      <div class="center" style="margin-top:10px; display:flex; flex-direction:column; gap:10px; align-items:center;">
-        <div style="display:flex; gap:6px;">
-          <span class="tag tag-${c.difficulty}">${c.difficulty}</span>
-          ${c.repeatable ? `<span class="tag" style="background:rgb(var(--brass-rgb) / 0.16); color:var(--brass-bright);">Repeatable${c.cooldown_hours > 0 ? ` · ${c.cooldown_hours}h cooldown` : ''}</span>` : ''}
-        </div>
+      <div class="center" style="margin-top:10px; display:flex; flex-direction:column; gap:8px; align-items:center;">
+        <span class="difficulty-label difficulty-${c.difficulty}">${c.difficulty}</span>
+        ${c.repeatable ? `<span class="muted" style="font-size:0.72rem;">Repeatable${c.cooldown_hours > 0 ? ` · ${c.cooldown_hours}h cooldown` : ''}</span>` : ''}
         ${actionHtml}
       </div>
     </div>

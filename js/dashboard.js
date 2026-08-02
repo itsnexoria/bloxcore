@@ -5,11 +5,13 @@ document.addEventListener('DOMContentLoaded', async () => {
   if (!auth) return;
   const { user, profile } = auth;
 
-  renderProfileCard(profile);
+  const { data: membership } = await sb.from('crew_members').select('crews(name, tag)').eq('user_id', user.id).maybeSingle();
+
+  renderProfileCard(profile, membership?.crews);
   await loadSubmissions(user.id);
 });
 
-function renderProfileCard(profile) {
+function renderProfileCard(profile, crew) {
   const card = document.getElementById('profile-card');
   const title = rankTitleForLevel(profile.level);
   const progress = xpProgress(profile.xp, profile.level);
@@ -42,6 +44,12 @@ function renderProfileCard(profile) {
           🔥 ${streak}-day streak${streakBonusLabel(streak) ? ` · ${streakBonusLabel(streak)}` : ''}
         </p>
         <p class="muted" style="margin:0; font-size:0.78rem;">Best: ${profile.longest_streak || 0} days</p>
+      </div>
+      <div class="flex-between" style="margin-top:10px; padding-top:10px; border-top:1px solid var(--navy-light);">
+        <p class="muted" style="margin:0; font-size:0.85rem;">
+          ${crew ? `Crew: <a href="/crew/?name=${encodeURIComponent(crew.name)}" style="color:var(--brass-bright);">${crew.tag ? `[${escapeHtml(crew.tag)}] ` : ''}${escapeHtml(crew.name)}</a>` : "You're not in a crew yet."}
+        </p>
+        ${crew ? '' : `<a href="/crews/" class="btn btn-ghost btn-sm">Find a Crew</a>`}
       </div>
     </div>
   `;

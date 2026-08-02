@@ -31,6 +31,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 });
 
 let allTitlesForPicker = [];
+const RARITY_ORDER = { divine: 6, mythical: 5, legendary: 4, epic: 3, rare: 2, uncommon: 1, common: 0 };
 let ownedTitleIds = new Set();
 let activeTitleId = '';
 
@@ -42,7 +43,10 @@ async function populateTitleSelect(userId, activeId) {
     sb.from('user_titles').select('title_id').eq('user_id', userId),
   ]);
 
-  allTitlesForPicker = all || [];
+  allTitlesForPicker = (all || []).slice().sort((a, b) => {
+    const rarityDiff = (RARITY_ORDER[b.rarity] ?? 0) - (RARITY_ORDER[a.rarity] ?? 0);
+    return rarityDiff !== 0 ? rarityDiff : a.name.localeCompare(b.name);
+  });
   ownedTitleIds = new Set((owned || []).map(o => o.title_id));
 
   document.getElementById('active_title').value = activeTitleId;

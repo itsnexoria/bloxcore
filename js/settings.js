@@ -3,24 +3,10 @@
 document.addEventListener('DOMContentLoaded', async () => {
   const currentTheme = localStorage.getItem('bc_theme') || 'inferno';
   highlightSwatch(currentTheme);
-  if (currentTheme === 'custom') {
-    openCustomBuilder(loadStoredCustomVars());
-  }
 
   document.querySelectorAll('[data-theme-choice]').forEach(swatch => {
-    swatch.addEventListener('click', () => {
-      if (swatch.dataset.themeChoice === 'custom') {
-        openCustomBuilder(loadStoredCustomVars());
-      } else {
-        selectTheme(swatch.dataset.themeChoice);
-      }
-    });
+    swatch.addEventListener('click', () => selectTheme(swatch.dataset.themeChoice));
   });
-
-  CUSTOM_FIELDS.forEach(field => {
-    document.getElementById(`ct-${field}`).addEventListener('input', previewCustomTheme);
-  });
-  document.getElementById('custom-theme-save').addEventListener('click', saveCustomTheme);
 
   const motionToggle = document.getElementById('reduce-motion-toggle');
   motionToggle.checked = localStorage.getItem('bc_reduce_motion') === '1';
@@ -98,74 +84,12 @@ function highlightSwatch(theme) {
 }
 
 async function selectTheme(theme) {
-  document.getElementById('custom-theme-builder').style.display = 'none';
   applyTheme(theme);
   highlightSwatch(theme);
 
   const { data: { session } } = await sb.auth.getSession();
   if (session) {
-    await sb.from('profiles').update({ theme, custom_theme: null }).eq('id', session.user.id);
+    await sb.from('profiles').update({ theme }).eq('id', session.user.id);
   }
   showToast('Theme updated.');
-}
-
-// ---- Custom theme builder ----
-
-const CUSTOM_FIELDS = ['ink', 'navy', 'navyLight', 'brass', 'bone', 'ash', 'shadow'];
-const CUSTOM_DEFAULTS = { ink: '#1a0f06', navy: '#241608', navyLight: '#4a2f12', brass: '#ff8a2b', bone: '#fbead9', ash: '#b39374', shadow: '#000000' };
-
-function loadStoredCustomVars() {
-  try {
-    const stored = JSON.parse(localStorage.getItem('bc_custom_theme') || 'null');
-    return stored ? { ...CUSTOM_DEFAULTS, ...stored } : CUSTOM_DEFAULTS;
-  } catch {
-    return CUSTOM_DEFAULTS;
-  }
-}
-
-function openCustomBuilder(vars) {
-  document.getElementById('custom-theme-builder').style.display = 'block';
-  highlightSwatch('custom');
-  CUSTOM_FIELDS.forEach(field => {
-    document.getElementById(`ct-${field}`).value = vars[field] || CUSTOM_DEFAULTS[field];
-  });
-  previewCustomTheme();
-}
-
-function readCustomFields() {
-  const vars = {};
-  CUSTOM_FIELDS.forEach(field => { vars[field] = document.getElementById(`ct-${field}`).value; });
-  vars.brassBright = lightenHex(vars.brass, 0.35);
-  return vars;
-}
-
-// Lightens a hex color toward white by `amount` (0–1) — used to auto-derive the "bright"
-// hover/glow shade from the single accent color the user picks.
-function lightenHex(hex, amount) {
-  const clean = hex.replace('#', '');
-  const r = parseInt(clean.substring(0, 2), 16);
-  const g = parseInt(clean.substring(2, 4), 16);
-  const b = parseInt(clean.substring(4, 6), 16);
-  const mix = (c) => Math.round(c + (255 - c) * amount).toString(16).padStart(2, '0');
-  return `#${mix(r)}${mix(g)}${mix(b)}`;
-}
-
-function previewCustomTheme() {
-  applyTheme('custom', readCustomFields());
-}
-
-async function saveCustomTheme() {
-  const vars = readCustomFields();
-  applyTheme('custom', vars);
-  highlightSwatch('custom');
-
-  const { data: { session } } = await sb.auth.getSession();
-  if (session) {
-    const { error } = await sb.from('profiles').update({ theme: 'custom', custom_theme: vars }).eq('id', session.user.id);
-    if (error) {
-      showToast(error.message, true);
-      return;
-    }
-  }
-  showToast('Custom theme saved.');
 }

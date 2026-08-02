@@ -130,59 +130,16 @@ function titleBadge(profile) {
 // Theme: localStorage is the source of truth for instant, flash-free application (every
 // page has an inline script in <head> that applies it before paint). For signed-in users,
 // profiles.theme lets the preference follow them to a new device — synced here on load.
-// Theme: localStorage is the source of truth for instant, flash-free application (every
-// page has an inline script in <head> that applies it before paint). For signed-in users,
-// profiles.theme (+ profiles.custom_theme when theme = 'custom') lets the preference follow
-// them to a new device — synced here on load.
-function hexToRgbTriplet(hex) {
-  const clean = hex.replace('#', '');
-  const r = parseInt(clean.substring(0, 2), 16);
-  const g = parseInt(clean.substring(2, 4), 16);
-  const b = parseInt(clean.substring(4, 6), 16);
-  return `${r} ${g} ${b}`;
-}
 
-// A theme is either a preset name (CSS handles it via html[data-theme="name"]) or 'custom',
-// in which case `vars` carries the actual hex values and we set every CSS variable inline —
-// inline styles beat any stylesheet rule, so this always wins regardless of data-theme.
-const CUSTOM_THEME_KEYS = ['ink', 'navy', 'navyLight', 'brass', 'brassBright', 'bone', 'ash', 'shadow'];
-
-function applyTheme(theme, vars = null) {
+function applyTheme(theme) {
   document.documentElement.setAttribute('data-theme', theme);
   localStorage.setItem('bc_theme', theme);
-
-  if (theme === 'custom' && vars) {
-    applyCustomVars(vars);
-    localStorage.setItem('bc_custom_theme', JSON.stringify(vars));
-  } else {
-    // Leaving custom mode — clear any inline overrides so the preset's own CSS applies.
-    CUSTOM_THEME_KEYS.forEach(k => document.documentElement.style.removeProperty(cssVarName(k)));
-  }
-}
-
-function cssVarName(key) {
-  return key === 'navyLight' ? '--navy-light' : key === 'brassBright' ? '--brass-bright' : `--${key}`;
-}
-
-function applyCustomVars(vars) {
-  const root = document.documentElement.style;
-  if (vars.ink) root.setProperty('--ink', vars.ink);
-  if (vars.navy) root.setProperty('--navy', vars.navy);
-  if (vars.navyLight) root.setProperty('--navy-light', vars.navyLight);
-  if (vars.bone) root.setProperty('--bone', vars.bone);
-  if (vars.ash) root.setProperty('--ash', vars.ash);
-  if (vars.brass) {
-    root.setProperty('--brass', vars.brass);
-    root.setProperty('--brass-bright', vars.brassBright || vars.brass);
-    root.setProperty('--brass-rgb', hexToRgbTriplet(vars.brass));
-  }
-  if (vars.shadow) root.setProperty('--shadow-rgb', hexToRgbTriplet(vars.shadow));
 }
 
 async function syncThemeFromProfile(profile) {
   if (!profile?.theme) return;
   if (profile.theme === localStorage.getItem('bc_theme')) return;
-  applyTheme(profile.theme, profile.theme === 'custom' ? profile.custom_theme : null);
+  applyTheme(profile.theme);
 }
 
 // Simple, generic glyphs for each platform (not pixel-exact brand logos) — used instead
