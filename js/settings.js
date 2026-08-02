@@ -1,7 +1,7 @@
 // BloxCore — settings/index.html logic
 
 document.addEventListener('DOMContentLoaded', async () => {
-  const currentTheme = localStorage.getItem('bc_theme') || 'inferno';
+  const currentTheme = localStorage.getItem('bc_theme') || 'dark';
   highlightSwatch(currentTheme);
 
   document.querySelectorAll('[data-theme-choice]').forEach(swatch => {

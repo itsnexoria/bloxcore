@@ -1,8 +1,6 @@
 // BloxCore — shared nav behavior, included on every page after supabase-client.js
 
 document.addEventListener('DOMContentLoaded', () => {
-  if (window.lucide) lucide.createIcons();
-
   const toggle = document.querySelector('.nav-toggle');
   const links = document.querySelector('.nav-links');
 
@@ -28,6 +26,8 @@ document.addEventListener('DOMContentLoaded', () => {
     refreshIcons();
   }
 
+  // Wired up first, before anything that touches icons — a menu that opens/closes is more
+  // important than the icon inside it, and must not be skipped if icon rendering ever throws.
   if (toggle && links) {
     toggle.addEventListener('click', () => {
       links.classList.contains('open') ? closeDrawer() : openDrawer();
@@ -42,6 +42,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  refreshIcons();
   highlightActiveLink();
   populateAuthArea();
   initScrollFx();
@@ -87,7 +88,7 @@ function initScrollFx() {
       });
       if (window.lucide) {
         clearTimeout(iconTimer);
-        iconTimer = setTimeout(() => lucide.createIcons(), 60);
+        iconTimer = setTimeout(refreshIcons, 60);
       }
     });
     mo.observe(document.body, { childList: true, subtree: true });
@@ -121,7 +122,8 @@ async function populateAuthArea() {
   if (badge) badge.textContent = role === 'admin' ? 'Admin' : role === 'mod' ? 'Mod' : 'Staff';
 
   if (!session) {
-    slot.innerHTML = `<a href="/auth/" class="btn btn-primary btn-sm">Sign In</a>`;
+    slot.innerHTML = `<a href="/auth/" class="btn btn-primary btn-sm"><i data-lucide="log-in" class="icon-sm icon-inline"></i>Sign In</a>`;
+    refreshIcons();
     return;
   }
 
@@ -130,14 +132,15 @@ async function populateAuthArea() {
   touchLastActive(session.user.id);
 
   const onAdminPage = window.location.pathname.startsWith('/admin/');
-  const adminLink = (role !== 'user' && !onAdminPage) ? `<a href="/admin/">Admin</a>` : '';
+  const adminLink = (role !== 'user' && !onAdminPage) ? `<a href="/admin/"><i data-lucide="shield" class="icon-sm icon-inline"></i>Admin</a>` : '';
 
   slot.innerHTML = `
     ${adminLink}
-    <a href="/dashboard/">Profile</a>
-    <a href="/settings/">Settings</a>
-    <button class="btn btn-ghost btn-sm" id="nav-sign-out">Sign Out</button>
+    <a href="/dashboard/"><i data-lucide="user" class="icon-sm icon-inline"></i>Profile</a>
+    <a href="/settings/"><i data-lucide="settings" class="icon-sm icon-inline"></i>Settings</a>
+    <button class="btn btn-ghost btn-sm" id="nav-sign-out"><i data-lucide="log-out" class="icon-sm icon-inline"></i>Sign Out</button>
   `;
+  refreshIcons();
 
   document.getElementById('nav-sign-out')?.addEventListener('click', async () => {
     await sb.auth.signOut();

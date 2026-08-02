@@ -108,7 +108,15 @@ const BOUNTY_TIERS = [
 // messages, challenge cards, admin rows, etc.) needs this called again. Every place in this
 // codebase that writes HTML containing a <i data-lucide="..."> tag calls this right after.
 function refreshIcons() {
-  if (window.lucide) lucide.createIcons();
+  if (!window.lucide) return;
+  try {
+    lucide.createIcons();
+  } catch (e) {
+    // An icon render failure must never block whatever ran right after this call —
+    // e.g. nav.js wires up the hamburger menu click handler after its own icon call,
+    // and an uncaught throw here would silently kill that wiring for the whole page.
+    console.error('Icon render failed:', e);
+  }
 }
 
 // A player's chosen display name if set, otherwise their (unique, unchangeable) username.
