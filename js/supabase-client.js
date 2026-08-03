@@ -130,17 +130,19 @@ function displayNameFor(profile) {
 function avatarHtml(profile, size, extraStyle = '') {
   const name = displayNameFor(profile);
   const initial = escapeHtml((name[0] || '?').toUpperCase());
-  const fallback = `<div style="width:${size}px;height:${size}px;border-radius:50%;background:var(--navy-light);display:flex;align-items:center;justify-content:center;font-size:${Math.round(size * 0.4)}px;flex-shrink:0;color:var(--ash);${extraStyle}">${initial}</div>`;
+  const ring = `box-shadow:0 0 0 3px var(--ink), 0 0 0 4px rgb(var(--brass-rgb) / 0.5), 0 4px 18px rgb(var(--shadow-rgb) / 0.4);`;
+  const fallback = `<div style="width:${size}px;height:${size}px;border-radius:50%;background:linear-gradient(150deg, var(--navy-light), var(--navy));display:flex;align-items:center;justify-content:center;font-size:${Math.round(size * 0.4)}px;flex-shrink:0;color:var(--ash);font-family:var(--font-stamp);${ring}${extraStyle}">${initial}</div>`;
   if (!profile?.avatar_url) return fallback;
   const escapedFallback = fallback.replace(/"/g, '&quot;');
-  return `<img src="${profile.avatar_url}" alt="" style="width:${size}px;height:${size}px;border-radius:50%;object-fit:cover;flex-shrink:0;${extraStyle}" onerror="this.outerHTML='${escapedFallback}';">`;
+  return `<img src="${profile.avatar_url}" alt="" style="width:${size}px;height:${size}px;border-radius:50%;object-fit:cover;flex-shrink:0;${ring}${extraStyle}" onerror="this.outerHTML='${escapedFallback}';">`;
 }
 
 // Renders a small colored title badge if the profile has an active title equipped
 // (expects the query to have joined titles(name, color) via active_title_id).
 function titleBadge(profile) {
   if (!profile?.titles?.name) return '';
-  return ` <span style="font-size:0.72rem; padding:1px 8px; border-radius:10px; border:1px solid ${profile.titles.color}; color:${profile.titles.color};">${escapeHtml(profile.titles.name)}</span>`;
+  const c = profile.titles.color;
+  return ` <span style="font-size:0.68rem; font-weight:700; text-transform:uppercase; letter-spacing:0.04em; padding:3px 10px; border-radius:999px; border:1px solid ${c}; color:${c}; background:${c}1a;">${escapeHtml(profile.titles.name)}</span>`;
 }
 
 // Theme: localStorage is the source of truth for instant, flash-free application (every

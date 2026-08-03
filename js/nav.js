@@ -13,23 +13,35 @@ document.addEventListener('DOMContentLoaded', () => {
     links.classList.add('open');
     overlay.classList.add('open');
     document.body.classList.add('drawer-open');
-    toggle.innerHTML = '<i data-lucide="x" class="icon-md"></i>';
+    toggle.setAttribute('aria-expanded', 'true');
     toggle.setAttribute('aria-label', 'Close menu');
+    toggle.classList.add('is-open');
     refreshIcons();
   }
   function closeDrawer() {
     links.classList.remove('open');
     overlay.classList.remove('open');
     document.body.classList.remove('drawer-open');
-    toggle.innerHTML = '<i data-lucide="menu" class="icon-md"></i>';
+    toggle.setAttribute('aria-expanded', 'false');
     toggle.setAttribute('aria-label', 'Open menu');
+    toggle.classList.remove('is-open');
     refreshIcons();
   }
 
   // Wired up first, before anything that touches icons — a menu that opens/closes is more
   // important than the icon inside it, and must not be skipped if icon rendering ever throws.
-  if (toggle && links) {
-    toggle.addEventListener('click', () => {
+  // toggle.dataset.wired guards against this handler ever being attached twice (e.g. if a
+  // page happens to include this script more than once) — a double-bound listener is exactly
+  // what makes a toggle "sometimes" appear to do nothing, since the second firing immediately
+  // undoes the first within the same click.
+  if (toggle && links && !toggle.dataset.wired) {
+    toggle.dataset.wired = '1';
+    // The icon inside the button used to be replaced with a fresh <i>/<svg> on every open and
+    // close (via innerHTML), which meant every single toggle depended on lucide having already
+    // loaded and re-rendering in time. Swapping the icon via a CSS class instead (see the
+    // .nav-toggle.is-open rule) means the click always works even if icon rendering lags.
+    toggle.addEventListener('click', (e) => {
+      e.stopPropagation();
       links.classList.contains('open') ? closeDrawer() : openDrawer();
     });
     overlay.addEventListener('click', closeDrawer);
@@ -40,6 +52,11 @@ document.addEventListener('DOMContentLoaded', () => {
     links.addEventListener('click', (e) => {
       if (e.target.closest('a')) closeDrawer();
     });
+    // Desktop shows nav-links inline (see CSS) — if the viewport crosses into that range while
+    // the mobile drawer happens to be open, drop the drawer-only state so it doesn't get stuck.
+    const desktopQuery = window.matchMedia('(min-width: 880px)');
+    const syncForViewport = (e) => { if (e.matches) closeDrawer(); };
+    desktopQuery.addEventListener ? desktopQuery.addEventListener('change', syncForViewport) : desktopQuery.addListener(syncForViewport);
   }
 
   refreshIcons();

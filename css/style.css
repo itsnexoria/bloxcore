@@ -232,7 +232,7 @@ section.section h2.center::after { margin-left: auto; margin-right: auto; }
   height: 100vh;
   height: 100dvh;
   width: min(300px, 84vw);
-  background: linear-gradient(180deg, rgba(20,20,29,0.98), rgba(14,14,20,0.99) 55%);
+  background: linear-gradient(180deg, var(--navy), var(--ink) 55%);
   backdrop-filter: blur(24px);
   -webkit-backdrop-filter: blur(24px);
   border-left: 1px solid var(--glass-border);
@@ -310,6 +310,11 @@ section.section h2.center::after { margin-left: auto; margin-right: auto; }
   transition: border-color 0.15s ease, color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease;
 }
 .nav-toggle:hover { border-color: var(--brass); color: var(--brass-bright); box-shadow: 0 0 16px rgb(var(--brass-rgb) / 0.3); transform: translateY(-1px); }
+/* Both icons live in the button always; only visibility swaps, so the toggle's click behavior
+   never depends on lucide re-rendering an icon in time. */
+.nav-toggle-icon-close { display: none; }
+.nav-toggle.is-open .nav-toggle-icon-menu { display: none; }
+.nav-toggle.is-open .nav-toggle-icon-close { display: block; }
 
 .nav-overlay {
   position: fixed;
@@ -322,6 +327,49 @@ section.section h2.center::after { margin-left: auto; margin-right: auto; }
   transition: opacity 0.25s ease;
 }
 .nav-overlay.open { opacity: 1; pointer-events: auto; }
+
+/* Desktop: nav-links sit inline in the bar instead of a slide-out drawer, and the hamburger
+   disappears entirely — this is also what keeps the bar from reading as empty on wide screens. */
+@media (min-width: 880px) {
+  .nav-toggle, .nav-overlay { display: none; }
+
+  .nav-links {
+    position: static;
+    height: auto;
+    width: auto;
+    flex-direction: row;
+    align-items: center;
+    gap: 2px;
+    padding: 0;
+    background: none;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    border-left: none;
+    box-shadow: none;
+    transform: none;
+    overflow: visible;
+  }
+  .nav-links::before { display: none; }
+  .nav-links a {
+    padding: 9px 14px;
+    border-left: none;
+    border-bottom: 2px solid transparent;
+    border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+  }
+  .nav-links a:hover { transform: none; }
+  .nav-links a.active { border-left-color: transparent; border-bottom-color: var(--brass); background: rgb(var(--brass-rgb) / 0.1); }
+
+  #nav-auth-slot {
+    flex-direction: row;
+    align-items: center;
+    width: auto;
+    margin: 0 0 0 10px;
+    padding: 0 0 0 14px;
+    border-top: none;
+    border-left: 1px solid var(--glass-border);
+  }
+  #nav-auth-slot .btn { width: auto; margin-top: 0; }
+}
 
 /* --------------------------------- Buttons -------------------------------- */
 
@@ -393,7 +441,7 @@ section.section h2.center::after { margin-left: auto; margin-right: auto; }
 /* ---------------------------------- Cards --------------------------------- */
 
 .panel {
-  background: linear-gradient(165deg, var(--glass-bg-strong), rgba(15,15,21,0.6) 65%);
+  background: linear-gradient(165deg, var(--glass-bg-strong), var(--navy) 65%);
   backdrop-filter: blur(var(--glass-blur));
   -webkit-backdrop-filter: blur(var(--glass-blur));
   border: 1px solid var(--glass-border);
@@ -425,7 +473,7 @@ section.section h2.center::after { margin-left: auto; margin-right: auto; }
 /* Bounty / featured-challenge card — premium glass card with a gold edge, since it
    frames a reward. Rounded, not faceted — matches the rest of the redesigned kit. */
 .poster {
-  background: linear-gradient(160deg, rgba(30,20,15,0.75), rgba(10,10,14,0.92));
+  background: linear-gradient(160deg, rgb(var(--gold-rgb) / 0.1), var(--navy) 75%);
   backdrop-filter: blur(var(--glass-blur));
   -webkit-backdrop-filter: blur(var(--glass-blur));
   color: var(--bone);
@@ -669,6 +717,20 @@ input:focus, select:focus, textarea:focus {
   box-shadow: 0 0 0 3px rgb(var(--brass-rgb) / 0.15);
 }
 
+/* The dropdown list a <select> opens is rendered by the OS/browser, not by our CSS box model —
+   it only respects background-color and color on <select>/<option> themselves. Without this,
+   options inherit var(--bone) (near-white) text on the browser's own white popup background,
+   which is unreadable in dark mode. */
+select {
+  background-color: rgba(255,255,255,0.03);
+  color: var(--bone);
+  cursor: pointer;
+}
+select option {
+  background-color: var(--navy);
+  color: var(--bone);
+}
+
 .field-error {
   color: var(--blood);
   font-size: 0.82rem;
@@ -807,7 +869,7 @@ input:focus, select:focus, textarea:focus {
   left: 0;
   right: 0;
   z-index: 50;
-  background: rgba(20,20,29,0.98);
+  background: var(--navy);
   backdrop-filter: blur(16px);
   border: 1px solid var(--glass-border);
   border-radius: var(--radius-sm);
@@ -1007,7 +1069,7 @@ input:focus, select:focus, textarea:focus {
   position: fixed;
   bottom: 24px;
   right: 24px;
-  background: rgba(20,20,29,0.96);
+  background: var(--navy);
   backdrop-filter: blur(16px);
   border: 1px solid var(--brass);
   padding: 14px 18px;

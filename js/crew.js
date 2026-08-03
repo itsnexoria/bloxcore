@@ -69,27 +69,35 @@ async function render() {
   document.getElementById('crew-content').innerHTML = `
     <div class="panel">
       <div class="flex-between" style="align-items:flex-start;">
-        <div style="display:flex; align-items:center; gap:14px;">
+        <div style="display:flex; align-items:center; gap:16px;">
           ${crew.logo_url
-            ? `<img src="${crew.logo_url}" alt="" style="width:56px; height:56px; border-radius:10px; object-fit:cover; flex-shrink:0;" onerror="this.style.display='none';">`
-            : `<div style="width:56px; height:56px; border-radius:10px; background:var(--navy-light); display:flex; align-items:center; justify-content:center; color:var(--ash); font-size:1.3rem; flex-shrink:0;">${escapeHtml((crew.name[0] || '?').toUpperCase())}</div>`}
+            ? `<img src="${crew.logo_url}" alt="" style="width:68px; height:68px; border-radius:var(--radius); object-fit:cover; flex-shrink:0; box-shadow:0 0 0 1px var(--glass-border), 0 6px 20px rgb(var(--shadow-rgb) / 0.4), 0 0 24px rgb(var(--purple-rgb) / 0.3);" onerror="this.style.display='none';">`
+            : `<div style="width:68px; height:68px; border-radius:var(--radius); background:linear-gradient(150deg, var(--navy-light), var(--navy)); display:flex; align-items:center; justify-content:center; color:var(--ash); font-family:var(--font-stamp); font-size:1.5rem; flex-shrink:0;">${escapeHtml((crew.name[0] || '?').toUpperCase())}</div>`}
           <div>
-            <h1 style="font-size:1.6rem; margin-bottom:4px;">${crew.tag ? `[${escapeHtml(crew.tag)}] ` : ''}${escapeHtml(crew.name)}</h1>
-            <p class="muted" style="margin:0;">${members.length}/30 members · founded ${formatDate(crew.created_at)}</p>
+            <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+              <h1 style="font-size:1.5rem; margin:0;">${escapeHtml(crew.name)}</h1>
+              ${crew.tag ? `<span class="tag tag-legendary">${escapeHtml(crew.tag)}</span>` : ''}
+            </div>
+            <p class="muted" style="margin:4px 0 0; font-size:0.85rem; display:flex; align-items:center; gap:6px;">
+              <i data-lucide="users" class="icon-sm"></i>${members.length}/30 members
+              <span style="opacity:0.5;">·</span>
+              <i data-lucide="calendar" class="icon-sm"></i>founded ${formatDate(crew.created_at)}
+            </p>
           </div>
         </div>
         ${actionHtml}
       </div>
-      <p style="margin:16px 0 0;">${escapeHtml(crew.description)}</p>
-      <div style="display:flex; gap:20px; margin-top:16px; flex-wrap:wrap; align-items:baseline;">
-        <div>
-          <p class="muted" style="margin:0; font-size:0.72rem; text-transform:uppercase; letter-spacing:0.05em;">Crew Bounty</p>
-          <p style="margin:2px 0 0; font-family:var(--font-stamp); font-size:1.2rem; color:var(--brass-bright);">${formatBounty(totalBounty)}</p>
+      <p style="margin:18px 0 0; color:var(--ash);">${escapeHtml(crew.description)}</p>
+      <div style="display:flex; gap:14px; margin-top:20px; flex-wrap:wrap; align-items:center;">
+        <div class="stat-tile" style="text-align:left; padding:14px 20px; flex:0 0 auto; display:flex; align-items:center; gap:12px;">
+          <i data-lucide="skull" class="icon-lg" style="color:var(--gold);"></i>
+          <div>
+            <p class="muted" style="margin:0; font-size:0.68rem; text-transform:uppercase; letter-spacing:0.06em;">Crew Bounty</p>
+            <p style="margin:0; font-family:var(--font-stamp); font-size:1.35rem; color:var(--gold-bright); text-shadow:0 0 14px rgb(var(--gold-rgb) / 0.4);">${formatBounty(totalBounty)}</p>
+          </div>
         </div>
-      </div>
-      <div style="display:flex; gap:10px; margin-top:16px; flex-wrap:wrap; align-items:center;">
         ${crew.roblox_username ? `<span class="info-chip"><span class="info-chip-label">Roblox</span><span class="info-chip-value">${escapeHtml(crew.roblox_username)}</span></span>` : ''}
-        ${crew.discord_invite ? `<a href="${escapeHtml(crew.discord_invite)}" target="_blank" rel="noopener noreferrer" class="btn btn-ghost btn-sm">Join Discord</a>` : ''}
+        ${crew.discord_invite ? `<a href="${escapeHtml(crew.discord_invite)}" target="_blank" rel="noopener noreferrer" class="btn btn-ghost btn-sm"><i data-lucide="message-circle" class="icon-sm icon-inline"></i>Join Discord</a>` : ''}
       </div>
     </div>
 

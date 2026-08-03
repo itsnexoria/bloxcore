@@ -50,14 +50,17 @@ async function loadCrews() {
 
   grid.innerHTML = data.map(c => `
     <div class="panel">
-      <div style="display:flex; align-items:center; gap:12px; margin-bottom:4px;">
+      <div style="display:flex; align-items:center; gap:14px; margin-bottom:12px;">
         ${c.logo_url
-          ? `<img src="${c.logo_url}" alt="" style="width:40px; height:40px; border-radius:8px; object-fit:cover; flex-shrink:0;" onerror="this.style.display='none';">`
-          : `<div style="width:40px; height:40px; border-radius:8px; background:var(--navy-light); display:flex; align-items:center; justify-content:center; color:var(--ash); flex-shrink:0;">${escapeHtml((c.name[0] || '?').toUpperCase())}</div>`}
-        <h3 style="font-size:1.05rem; margin:0;">${c.tag ? `[${escapeHtml(c.tag)}] ` : ''}${escapeHtml(c.name)}</h3>
+          ? `<img src="${c.logo_url}" alt="" style="width:52px; height:52px; border-radius:var(--radius-sm); object-fit:cover; flex-shrink:0; box-shadow:0 0 0 1px var(--glass-border), 0 0 18px rgb(var(--purple-rgb) / 0.25);" onerror="this.style.display='none';">`
+          : `<div style="width:52px; height:52px; border-radius:var(--radius-sm); background:linear-gradient(150deg, var(--navy-light), var(--navy)); display:flex; align-items:center; justify-content:center; color:var(--ash); font-family:var(--font-stamp); font-size:1.2rem; flex-shrink:0;">${escapeHtml((c.name[0] || '?').toUpperCase())}</div>`}
+        <div style="min-width:0;">
+          <h3 style="font-size:1.05rem; margin:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${escapeHtml(c.name)}</h3>
+          ${c.tag ? `<span class="tag tag-legendary" style="margin-top:4px; display:inline-block;">${escapeHtml(c.tag)}</span>` : ''}
+        </div>
       </div>
-      <p class="muted" style="font-size:0.88rem; margin:0 0 14px;">${escapeHtml(c.description)}</p>
-      <a href="/crew/?name=${encodeURIComponent(c.name)}" class="btn btn-ghost btn-sm btn-block">View Crew</a>
+      <p class="muted" style="font-size:0.88rem; margin:0 0 16px; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;">${escapeHtml(c.description)}</p>
+      <a href="/crew/?name=${encodeURIComponent(c.name)}" class="btn btn-primary btn-sm btn-block">View Crew</a>
     </div>
   `).join('');
 }
