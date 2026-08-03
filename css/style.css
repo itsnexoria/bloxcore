@@ -315,6 +315,7 @@ section.section h2.center::after { margin-left: auto; margin-right: auto; }
 .nav-toggle-icon-close { display: none; }
 .nav-toggle.is-open .nav-toggle-icon-menu { display: none; }
 .nav-toggle.is-open .nav-toggle-icon-close { display: block; }
+.nav-toggle svg { pointer-events: none; }
 
 .nav-overlay {
   position: fixed;
@@ -405,7 +406,6 @@ section.section h2.center::after { margin-left: auto; margin-right: auto; }
   border-radius: var(--radius);
   padding: 28px;
   position: relative;
-  overflow: hidden;
   animation: fadeInUp 0.45s ease both;
   transition: transform 0.25s cubic-bezier(.2,.9,.2,1), box-shadow 0.25s ease, border-color 0.25s ease;
 }
@@ -414,6 +414,7 @@ section.section h2.center::after { margin-left: auto; margin-right: auto; }
   position: absolute;
   inset: 0 0 auto 0;
   height: 2px;
+  border-radius: var(--radius) var(--radius) 0 0;
   background: linear-gradient(90deg, var(--brass), var(--gold), var(--purple), var(--blue));
   opacity: 0.75;
 }

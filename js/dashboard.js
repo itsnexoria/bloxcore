@@ -19,15 +19,18 @@ function renderProfileCard(profile, crew) {
   const avatarHtmlStr = avatarHtml(profile, 76, 'border:2px solid var(--brass);');
 
   card.innerHTML = `
-    <div style="position:relative; flex-shrink:0;">
-      ${avatarHtmlStr}
-      <span style="position:absolute; bottom:-4px; right:-4px; background:linear-gradient(135deg, var(--brass), var(--gold)); color:#1a0a06; font-family:var(--font-stamp); font-weight:700; font-size:0.72rem; padding:2px 7px; border-radius:999px; border:2px solid var(--ink); box-shadow:0 2px 8px rgb(var(--shadow-rgb) / 0.4);">Lv${profile.level}</span>
+    <div style="display:flex; flex-direction:column; align-items:center; gap:8px; flex-shrink:0;">
+      <div style="position:relative;">
+        ${avatarHtmlStr}
+        <span style="position:absolute; bottom:-4px; right:-4px; background:linear-gradient(135deg, var(--brass), var(--gold)); color:#1a0a06; font-family:var(--font-stamp); font-weight:700; font-size:0.72rem; padding:2px 7px; border-radius:999px; border:2px solid var(--ink); box-shadow:0 2px 8px rgb(var(--shadow-rgb) / 0.4);">Lv${profile.level}</span>
+      </div>
+      <p class="rank-title" style="margin:2px 0 0; font-size:1.1rem;">${title}</p>
     </div>
-    <div style="flex:1; min-width:220px;">
+    <div style="flex:1; min-width:220px; padding-bottom:38px;">
       <div class="flex-between" style="align-items:flex-start;">
-        <div>
-          <p class="muted" style="margin:0; font-size:0.85rem;">${escapeHtml(displayNameFor(profile))}${titleBadge(profile)}</p>
-          <p class="rank-title" style="margin:2px 0 0;">${title}</p>
+        <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+          ${titleBadge(profile)}
+          <p style="margin:0; font-size:1.5rem; font-weight:700; color:var(--bone);">${escapeHtml(displayNameFor(profile))}</p>
         </div>
         <div style="display:flex; gap:8px;">
           <a href="/player/?u=${encodeURIComponent(profile.username)}" class="btn btn-ghost btn-sm">View Public</a>
@@ -41,20 +44,20 @@ function renderProfileCard(profile, crew) {
         </p>
       </div>
       <div class="xp-bar" style="margin-top:4px;"><div class="xp-bar-fill" style="width:${progress.pct}%;"></div></div>
-      <div class="flex-between" style="margin-top:16px;">
-        <span class="info-chip">
-          <i data-lucide="flame" class="icon-sm" style="color:${streak > 0 ? 'var(--brass-bright)' : 'var(--ash)'};"></i>
-          <span class="info-chip-value" style="color:${streak > 0 ? 'var(--brass-bright)' : 'var(--ash)'};">${streak}-day streak</span>
-          ${streakBonusLabel(streak) ? `<span style="color:var(--gold); font-size:0.72rem; font-weight:700;">${streakBonusLabel(streak)}</span>` : ''}
-        </span>
-        <p class="muted" style="margin:0; font-size:0.78rem;">Best: ${profile.longest_streak || 0} days</p>
-      </div>
-      <div class="flex-between" style="margin-top:14px; padding-top:14px; border-top:1px solid var(--glass-border);">
+      <div class="flex-between" style="margin-top:16px; padding-top:14px; border-top:1px solid var(--glass-border);">
         <p class="muted" style="margin:0; font-size:0.85rem; display:flex; align-items:center; gap:6px;">
           <i data-lucide="users" class="icon-sm"></i>
           ${crew ? `<a href="/crew/?name=${encodeURIComponent(crew.name)}" style="color:var(--brass-bright); font-weight:600;">${crew.tag ? `[${escapeHtml(crew.tag)}] ` : ''}${escapeHtml(crew.name)}</a>` : "You're not in a crew yet."}
         </p>
         ${crew ? '' : `<a href="/crews/" class="btn btn-ghost btn-sm">Find a Crew</a>`}
+      </div>
+      <div style="position:absolute; bottom:20px; right:28px; text-align:right;">
+        <span class="info-chip">
+          <i data-lucide="flame" class="icon-sm" style="color:${streak > 0 ? 'var(--brass-bright)' : 'var(--ash)'};"></i>
+          <span class="info-chip-value" style="color:${streak > 0 ? 'var(--brass-bright)' : 'var(--ash)'};">${streak}-day streak</span>
+          ${streakBonusLabel(streak) ? `<span style="color:var(--gold); font-size:0.72rem; font-weight:700;">${streakBonusLabel(streak)}</span>` : ''}
+        </span>
+        <p class="muted" style="margin:2px 6px 0 0; font-size:0.72rem;">Best: ${profile.longest_streak || 0} days</p>
       </div>
     </div>
   `;

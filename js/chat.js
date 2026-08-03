@@ -53,7 +53,7 @@ function renderMessage(m) {
       ${avatar}
       <div style="max-width:75%;">
         <p style="margin:0 0 3px; font-size:0.78rem; color:var(--ash);">
-          <a href="/player/?u=${encodeURIComponent(profile.username || '')}" style="color:${(profile.role === 'mod' || profile.role === 'admin') ? 'var(--blood-dim)' : 'var(--ash)'}; text-decoration:none; font-weight:600;">${escapeHtml(name)}</a>${titleBadge(profile)}
+          ${titleBadge(profile)} <a href="/player/?u=${encodeURIComponent(profile.username || '')}" style="color:${(profile.role === 'mod' || profile.role === 'admin') ? 'var(--blood-dim)' : 'var(--ash)'}; text-decoration:none; font-weight:600;">${escapeHtml(name)}</a>
           <span style="font-family:var(--font-mono); margin-left:6px;">${timeAgo(m.created_at)}</span>
           ${canDelete ? `<button class="chat-delete-btn" data-delete-id="${m.id}" title="Delete message"><i data-lucide="x" class="icon-sm"></i></button>` : ''}
         </p>

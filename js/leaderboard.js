@@ -55,7 +55,7 @@ async function loadLeaderboard(page) {
         <span style="font-family:var(--font-mono); color:var(--ash); width:28px;">#${from + i + 1}</span>
         ${avatarHtml(p, 36)}
         <div>
-          <a href="/player/?u=${encodeURIComponent(p.username)}" style="margin:0; font-weight:700; color:var(--bone); text-decoration:none; display:block;">${escapeHtml(displayNameFor(p))}${titleBadge(p)}</a>
+          <a href="/player/?u=${encodeURIComponent(p.username)}" style="margin:0; font-weight:700; color:var(--bone); text-decoration:none; display:block;">${titleBadge(p)} ${escapeHtml(displayNameFor(p))}</a>
           <p class="muted" style="margin:0; font-size:0.82rem;">${rankTitleForLevel(p.level)}${p.current_streak > 0 ? ` · <i data-lucide="flame" class="icon-sm" style="color:var(--brass-bright);"></i> ${p.current_streak}` : ''}</p>
         </div>
       </div>

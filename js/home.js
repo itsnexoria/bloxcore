@@ -76,7 +76,7 @@ async function loadTopPirates() {
       <div style="display:flex; align-items:center; gap:14px;">
         <span style="font-family:var(--font-mono); color:var(--ash); width:22px;">#${i + 1}</span>
         ${avatarHtml(p, 32)}
-        <a href="/player/?u=${encodeURIComponent(p.username)}" style="color:var(--bone); font-weight:700; text-decoration:none;">${escapeHtml(displayNameFor(p))}${titleBadge(p)}</a>
+        <a href="/player/?u=${encodeURIComponent(p.username)}" style="color:var(--bone); font-weight:700; text-decoration:none;">${titleBadge(p)} ${escapeHtml(displayNameFor(p))}</a>
       </div>
       <p style="margin:0; font-family:var(--font-mono); color:var(--brass-bright);">Lv. ${p.level}</p>
     </div>

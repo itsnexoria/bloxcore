@@ -61,7 +61,7 @@ function renderProfile(p, crew) {
       <div style="flex:1; min-width:220px;">
         <div class="flex-between" style="align-items:baseline;">
           <div>
-            <h1 style="font-size:1.5rem; margin-bottom:2px;">${escapeHtml(name)}${titleBadge(p)}</h1>
+            <h1 style="font-size:1.5rem; margin-bottom:2px; display:flex; align-items:center; gap:10px; flex-wrap:wrap;">${titleBadge(p)} ${escapeHtml(name)}</h1>
             ${showHandle ? `<p class="muted" style="margin:0 0 2px; font-size:0.8rem;">@${escapeHtml(p.username)}</p>` : ''}
             <p class="rank-title" style="margin:0 0 8px;">${title} · Lv. ${p.level}</p>
             ${crew ? `<a href="/crew/?name=${encodeURIComponent(crew.name)}" class="info-chip" style="text-decoration:none; margin-bottom:8px;">
@@ -106,7 +106,7 @@ function renderProfile(p, crew) {
 
     ${socialLinks.length ? `
       <div style="margin-top:20px; display:flex; gap:10px; flex-wrap:wrap;">
-        ${socialLinks.map(s => `<a href="${escapeHtml(social[s.key])}" target="_blank" rel="noopener noreferrer" class="btn btn-ghost btn-sm" style="padding:9px 12px;" title="${s.label}" aria-label="${s.label}">${SOCIAL_ICONS[s.key] || ''}</a>`).join('')}
+        ${socialLinks.map(s => `<a href="${escapeHtml(social[s.key])}" target="_blank" rel="noopener noreferrer" class="btn btn-ghost btn-sm" style="padding:9px 14px; gap:8px;" title="${s.label}" aria-label="${s.label}">${SOCIAL_ICONS[s.key] || ''}${escapeHtml(s.label)}</a>`).join('')}
       </div>
     ` : ''}
   `;

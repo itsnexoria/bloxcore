@@ -142,8 +142,8 @@ function renderMemberRow(m, isLast, isLeader) {
   return `
     <div class="flex-between" style="padding:12px 20px; ${isLast ? '' : 'border-bottom:1px solid var(--navy-light);'}">
       <div>
-        <a href="/player/?u=${encodeURIComponent(p.username)}" style="color:var(--bone); font-weight:700; text-decoration:none;">${escapeHtml(displayNameFor(p))}</a>
         ${titleBadge(p)}
+        <a href="/player/?u=${encodeURIComponent(p.username)}" style="color:var(--bone); font-weight:700; text-decoration:none;">${escapeHtml(displayNameFor(p))}</a>
         ${m.role === 'leader' ? `<span class="muted" style="font-size:0.78rem; margin-left:6px;"><i data-lucide="star" class="icon-sm"></i> Leader</span>` : ''}
       </div>
       <div style="display:flex; align-items:center; gap:12px;">

@@ -142,7 +142,7 @@ function avatarHtml(profile, size, extraStyle = '') {
 function titleBadge(profile) {
   if (!profile?.titles?.name) return '';
   const c = profile.titles.color;
-  return ` <span style="font-size:0.68rem; font-weight:700; text-transform:uppercase; letter-spacing:0.04em; padding:3px 10px; border-radius:999px; border:1px solid ${c}; color:${c}; background:${c}1a;">${escapeHtml(profile.titles.name)}</span>`;
+  return `<span style="font-size:0.68rem; font-weight:700; text-transform:uppercase; letter-spacing:0.04em; padding:3px 10px; border-radius:999px; border:1px solid ${c}; color:${c}; background:${c}1a;">${escapeHtml(profile.titles.name)}</span>`;
 }
 
 // Theme: localStorage is the source of truth for instant, flash-free application (every
