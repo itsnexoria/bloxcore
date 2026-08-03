@@ -48,15 +48,29 @@ async function loadCrews() {
     return;
   }
 
+  // One bulk query for every crew's members instead of one query per card — reduced
+  // client-side into a crew_id -> total bounty map.
+  const bountyByCrew = {};
+  const { data: allMembers } = await sb.from('crew_members').select('crew_id, profiles(pirate_bounty)');
+  (allMembers || []).forEach(m => {
+    bountyByCrew[m.crew_id] = (bountyByCrew[m.crew_id] || 0) + (m.profiles?.pirate_bounty || 0);
+  });
+
   grid.innerHTML = data.map(c => `
     <div class="panel">
-      <div style="display:flex; align-items:center; gap:14px; margin-bottom:12px;">
-        ${c.logo_url
-          ? `<img src="${c.logo_url}" alt="" style="width:52px; height:52px; border-radius:var(--radius-sm); object-fit:cover; flex-shrink:0; box-shadow:0 0 0 1px var(--glass-border), 0 0 18px rgb(var(--purple-rgb) / 0.25);" onerror="this.style.display='none';">`
-          : `<div style="width:52px; height:52px; border-radius:var(--radius-sm); background:linear-gradient(150deg, var(--navy-light), var(--navy)); display:flex; align-items:center; justify-content:center; color:var(--ash); font-family:var(--font-stamp); font-size:1.2rem; flex-shrink:0;">${escapeHtml((c.name[0] || '?').toUpperCase())}</div>`}
-        <div style="min-width:0;">
-          <h3 style="font-size:1.05rem; margin:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${escapeHtml(c.name)}</h3>
-          ${c.tag ? `<span class="tag tag-legendary" style="margin-top:4px; display:inline-block;">${escapeHtml(c.tag)}</span>` : ''}
+      <div class="flex-between" style="align-items:flex-start; margin-bottom:12px;">
+        <div style="display:flex; align-items:center; gap:14px; min-width:0;">
+          ${c.logo_url
+            ? `<img src="${c.logo_url}" alt="" style="width:52px; height:52px; border-radius:var(--radius-sm); object-fit:cover; flex-shrink:0; box-shadow:0 0 0 1px var(--glass-border), 0 0 18px rgb(var(--purple-rgb) / 0.25);" onerror="this.style.display='none';">`
+            : `<div style="width:52px; height:52px; border-radius:var(--radius-sm); background:linear-gradient(150deg, var(--navy-light), var(--navy)); display:flex; align-items:center; justify-content:center; color:var(--ash); font-family:var(--font-stamp); font-size:1.2rem; flex-shrink:0;">${escapeHtml((c.name[0] || '?').toUpperCase())}</div>`}
+          <div style="min-width:0;">
+            <h3 style="font-size:1.05rem; margin:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${escapeHtml(c.name)}</h3>
+            ${c.tag ? `<span class="tag tag-legendary" style="margin-top:4px; display:inline-block;">${escapeHtml(c.tag)}</span>` : ''}
+          </div>
+        </div>
+        <div style="text-align:right; flex-shrink:0; padding-left:10px;">
+          <p class="muted" style="margin:0; font-size:0.62rem; text-transform:uppercase; letter-spacing:0.05em;">Bounty</p>
+          <p style="margin:0; font-family:var(--font-stamp); font-size:1.05rem; color:var(--gold-bright); text-shadow:0 0 12px rgb(var(--gold-rgb) / 0.35);">${formatBounty(bountyByCrew[c.id] || 0)}</p>
         </div>
       </div>
       <p class="muted" style="font-size:0.88rem; margin:0 0 16px; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;">${escapeHtml(c.description)}</p>

@@ -66,6 +66,17 @@ async function render() {
     actionHtml = `<button class="btn btn-primary" id="join-crew-btn">Join Crew</button>`;
   }
 
+  const bountyHtml = `
+    <div style="text-align:right; flex-shrink:0;">
+      <p class="muted" style="margin:0; font-size:0.62rem; text-transform:uppercase; letter-spacing:0.05em;">Crew Bounty</p>
+      <p style="margin:0; font-family:var(--font-stamp); font-size:1.4rem; color:var(--gold-bright); text-shadow:0 0 14px rgb(var(--gold-rgb) / 0.4); display:flex; align-items:center; gap:6px; justify-content:flex-end;">
+        <i data-lucide="skull" class="icon-md" style="color:var(--gold);"></i>${formatBounty(totalBounty)}
+      </p>
+    </div>
+  `;
+
+  const robloxUsername = crew.roblox_username ? escapeHtml(crew.roblox_username) : '';
+
   document.getElementById('crew-content').innerHTML = `
     <div class="panel">
       <div class="flex-between" style="align-items:flex-start;">
@@ -85,19 +96,13 @@ async function render() {
             </p>
           </div>
         </div>
-        ${actionHtml}
+        ${bountyHtml}
       </div>
       <p style="margin:18px 0 0; color:var(--ash);">${escapeHtml(crew.description)}</p>
       <div style="display:flex; gap:14px; margin-top:20px; flex-wrap:wrap; align-items:center;">
-        <div class="stat-tile" style="text-align:left; padding:14px 20px; flex:0 0 auto; display:flex; align-items:center; gap:12px;">
-          <i data-lucide="skull" class="icon-lg" style="color:var(--gold);"></i>
-          <div>
-            <p class="muted" style="margin:0; font-size:0.68rem; text-transform:uppercase; letter-spacing:0.06em;">Crew Bounty</p>
-            <p style="margin:0; font-family:var(--font-stamp); font-size:1.35rem; color:var(--gold-bright); text-shadow:0 0 14px rgb(var(--gold-rgb) / 0.4);">${formatBounty(totalBounty)}</p>
-          </div>
-        </div>
-        ${crew.roblox_username ? `<span class="info-chip"><span class="info-chip-label">Roblox</span><span class="info-chip-value">${escapeHtml(crew.roblox_username)}</span></span>` : ''}
+        ${robloxUsername ? `<a href="https://www.roblox.com/users/profile?username=${encodeURIComponent(robloxUsername)}" target="_blank" rel="noopener noreferrer" class="btn btn-ghost btn-sm"><i data-lucide="external-link" class="icon-sm icon-inline"></i>${robloxUsername} on Roblox</a>` : ''}
         ${crew.discord_invite ? `<a href="${escapeHtml(crew.discord_invite)}" target="_blank" rel="noopener noreferrer" class="btn btn-ghost btn-sm"><i data-lucide="message-circle" class="icon-sm icon-inline"></i>Join Discord</a>` : ''}
+        ${actionHtml}
       </div>
     </div>
 
@@ -125,7 +130,7 @@ async function render() {
   document.getElementById('delete-crew-btn')?.addEventListener('click', handleDelete);
   document.getElementById('edit-crew-btn')?.addEventListener('click', openEditModal);
   document.getElementById('add-member-form')?.addEventListener('submit', handleAddMember);
-  wireAddMemberAutocomplete();
+  wireAddMemberAutocomplete(members);
   document.querySelectorAll('[data-kick]').forEach(btn => {
     btn.addEventListener('click', () => handleLeave(btn.dataset.kick));
   });
@@ -149,7 +154,7 @@ function renderMemberRow(m, isLast, isLeader) {
   `;
 }
 
-function wireAddMemberAutocomplete() {
+function wireAddMemberAutocomplete(currentMembers) {
   const input = document.getElementById('add-member-username');
   const box = document.getElementById('add-member-suggestions');
   if (!input) return;
@@ -160,9 +165,16 @@ function wireAddMemberAutocomplete() {
     const query = input.value.trim();
     if (!query) { box.classList.remove('open'); box.innerHTML = ''; return; }
     debounceTimer = setTimeout(async () => {
-      const existingIds = new Set(members.map(m => m.user_id));
-      const { data } = await sb.from('profiles').select('id, username, display_name, avatar_url')
+      const existingIds = new Set(currentMembers.map(m => m.user_id));
+      const { data, error } = await sb.from('profiles').select('id, username, display_name, avatar_url')
         .or(`username.ilike.%${query}%,display_name.ilike.%${query}%`).limit(8);
+
+      if (error) {
+        box.innerHTML = `<div class="autocomplete-empty">Couldn't search right now.</div>`;
+        box.classList.add('open');
+        console.error(error);
+        return;
+      }
 
       const candidates = (data || []).filter(u => !existingIds.has(u.id));
       box.innerHTML = candidates.length
@@ -185,9 +197,14 @@ function wireAddMemberAutocomplete() {
     }, 250);
   });
 
-  document.addEventListener('click', (e) => {
-    if (!box.contains(e.target) && e.target !== input) box.classList.remove('open');
-  });
+  // render() calls this again after every member added/removed — guard so we don't stack up
+  // a fresh document-level click listener each time.
+  if (!box.dataset.wired) {
+    box.dataset.wired = '1';
+    document.addEventListener('click', (e) => {
+      if (!box.contains(e.target) && e.target !== input) box.classList.remove('open');
+    });
+  }
 }
 
 async function handleAddMember(e) {
