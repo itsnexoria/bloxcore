@@ -22,7 +22,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   populateBountySelect('pirate_bounty');
   populateBountySelect('marine_bounty');
-  await populateTitleSelect(auth.user.id, auth.profile.active_title_id);
+  await populateTitleSelect(auth.user.id, auth.profile.active_title_id, auth.profile.title_color_override);
   populateForm(auth.profile);
   wireBuildPickers();
 
@@ -34,9 +34,11 @@ let allTitlesForPicker = [];
 const RARITY_ORDER = { divine: 6, mythical: 5, legendary: 4, epic: 3, rare: 2, uncommon: 1, common: 0 };
 let ownedTitleIds = new Set();
 let activeTitleId = '';
+let activeTitleColorOverride = '';
 
-async function populateTitleSelect(userId, activeId) {
+async function populateTitleSelect(userId, activeId, colorOverride) {
   activeTitleId = activeId || '';
+  activeTitleColorOverride = colorOverride || '';
 
   const [{ data: all }, { data: owned }] = await Promise.all([
     sb.from('titles').select('id, name, color, rarity').order('name'),
@@ -63,13 +65,37 @@ async function populateTitleSelect(userId, activeId) {
 function renderTitlePickerValue() {
   const valueEl = document.getElementById('title-picker-value');
   const active = allTitlesForPicker.find(t => t.id === activeTitleId);
+  const colorRow = document.getElementById('title-color-row');
   if (active) {
     valueEl.classList.remove('is-empty');
-    valueEl.innerHTML = `<span style="color:${active.color};">${escapeHtml(active.name)}</span>`;
+    const c = activeTitleColorOverride || active.color;
+    valueEl.innerHTML = c === 'rainbow'
+      ? `<span class="title-badge-rainbow" style="padding:0;">${escapeHtml(active.name)}</span>`
+      : `<span style="color:${c};">${escapeHtml(active.name)}</span>`;
+    colorRow.style.display = 'block';
+    renderTitleColorSwatches();
   } else {
     valueEl.classList.add('is-empty');
     valueEl.textContent = '— None —';
+    colorRow.style.display = 'none';
   }
+}
+
+function renderTitleColorSwatches() {
+  document.getElementById('title_color_override').value = activeTitleColorOverride;
+  document.getElementById('title-color-swatches').innerHTML = TITLE_COLOR_PRESETS.map(p => {
+    const selected = (activeTitleColorOverride || 'default') === p.key || (activeTitleColorOverride === '' && p.key === 'default');
+    const bg = p.key === 'default' ? 'var(--navy-light)' : (p.key === 'rainbow' ? '' : p.swatch);
+    const cls = p.key === 'rainbow' ? 'swatch-rainbow' : '';
+    return `<button type="button" class="color-swatch-btn ${cls} ${selected ? 'selected' : ''}" style="background:${bg};" data-color-key="${p.key}" title="${p.label}"></button>`;
+  }).join('');
+
+  document.querySelectorAll('#title-color-swatches [data-color-key]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      activeTitleColorOverride = btn.dataset.colorKey === 'default' ? '' : btn.dataset.colorKey;
+      renderTitlePickerValue();
+    });
+  });
 }
 
 function openTitleModal() {
@@ -100,6 +126,7 @@ function openTitleModal() {
   document.querySelectorAll('#title-modal-grid [data-title-id]').forEach(tile => {
     tile.addEventListener('click', () => {
       activeTitleId = tile.dataset.titleId;
+      activeTitleColorOverride = '';
       document.getElementById('active_title').value = activeTitleId;
       renderTitlePickerValue();
       closeTitleModal();
@@ -292,6 +319,7 @@ async function handleSave(e) {
   const payload = {
     display_name: document.getElementById('display_name').value.trim() || null,
     active_title_id: document.getElementById('active_title').value || null,
+    title_color_override: document.getElementById('title_color_override').value || null,
     bio: document.getElementById('bio').value.trim() || null,
     region: document.getElementById('region').value.trim() || null,
     pirate_bounty: parseInt(document.getElementById('pirate_bounty').value, 10) || 0,

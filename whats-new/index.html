@@ -4,19 +4,19 @@
 <meta charset="UTF-8">
 <script>(function(){try{var t=localStorage.getItem('bc_theme');if(t)document.documentElement.setAttribute('data-theme',t);if(localStorage.getItem('bc_reduce_motion')==='1')document.documentElement.classList.add('reduce-motion');}catch(e){}})();</script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Leaderboard — BloxCore</title>
+<title>What's New — BloxCore</title>
 <meta name="robots" content="index, follow">
-<meta name="description" content="See the top-ranked Blox Fruits players on BloxCore, ranked by level and XP.">
-<link rel="canonical" href="https://bloxcore.xyz/leaderboard/">
+<meta name="description" content="Everything new on BloxCore — features, fixes, and events.">
+<link rel="canonical" href="https://bloxcore.xyz/whats-new/">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="BloxCore">
-<meta property="og:title" content="Leaderboard — BloxCore">
-<meta property="og:description" content="See the top-ranked Blox Fruits players on BloxCore, ranked by level and XP.">
+<meta property="og:title" content="What's New — BloxCore">
+<meta property="og:description" content="Everything new on BloxCore — features, fixes, and events.">
 <meta property="og:image" content="https://bloxcore.xyz/assets/logo.png">
-<meta property="og:url" content="https://bloxcore.xyz/leaderboard/">
+<meta property="og:url" content="https://bloxcore.xyz/whats-new/">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="Leaderboard — BloxCore">
-<meta name="twitter:description" content="See the top-ranked Blox Fruits players on BloxCore, ranked by level and XP.">
+<meta name="twitter:title" content="What's New — BloxCore">
+<meta name="twitter:description" content="Everything new on BloxCore — features, fixes, and events.">
 <meta name="twitter:image" content="https://bloxcore.xyz/assets/logo.png">
 <link rel="stylesheet" href="/css/style.css">
 <link rel="icon" type="image/png" href="/assets/logo.png">
@@ -36,31 +36,51 @@
       <li><a href="/crews/"><i data-lucide="users" class="icon-sm icon-inline"></i>Crews</a></li>
       <li><a href="/trading/"><i data-lucide="repeat" class="icon-sm icon-inline"></i>Trading</a></li>
       <li><a href="/combos/"><i data-lucide="flame" class="icon-sm icon-inline"></i>Combos</a></li>
-      <li><a href="/whats-new/"><i data-lucide="sparkles" class="icon-sm icon-inline"></i>What's New</a></li>
+      <li><a href="/whats-new/" class="active"><i data-lucide="sparkles" class="icon-sm icon-inline"></i>What's New</a></li>
       <li id="nav-auth-slot"></li>
     </ul>
   </div>
 </nav>
 
 <section class="section">
-  <div class="container">
-    <h1 style="font-size:1.8rem;">Most Wanted</h1>
-    <p class="muted" style="margin-top:-8px;" id="lb-subtitle">Ranked by level, then total XP earned.</p>
-
-    <div style="display:flex; gap:10px; margin:18px 0 10px;">
-      <button class="btn btn-primary btn-sm" id="lb-tab-players">Players</button>
-      <button class="btn btn-ghost btn-sm" id="lb-tab-crews">Crews</button>
+  <div class="container" style="max-width:760px;">
+    <div class="flex-between">
+      <div>
+        <h1 style="font-size:1.8rem; margin-bottom:2px;">What's New</h1>
+        <p class="muted" style="margin:0;">Features, fixes, and events — newest first.</p>
+      </div>
+      <button type="button" class="btn btn-primary btn-sm" id="new-entry-btn" style="display:none;"><i data-lucide="plus" class="icon-sm icon-inline"></i>Post Update</button>
     </div>
 
-    <div style="display:flex; gap:8px; margin-bottom:18px; flex-wrap:wrap;" id="lb-period-tabs">
-      <button class="btn btn-ghost btn-sm" data-period="today">Today</button>
-      <button class="btn btn-ghost btn-sm" data-period="weekly">Weekly</button>
-      <button class="btn btn-ghost btn-sm" data-period="monthly">Monthly</button>
-      <button class="btn btn-primary btn-sm" data-period="alltime">All-Time</button>
+    <div id="entry-compose" class="panel" style="margin-top:20px; display:none;">
+      <form id="entry-form">
+        <div class="two-col-grid" style="gap:16px;">
+          <div>
+            <label for="entry-title">Title</label>
+            <input type="text" id="entry-title" placeholder="e.g. New Crew Wars System" maxlength="100" required>
+          </div>
+          <div>
+            <label for="entry-tag">Tag</label>
+            <select id="entry-tag">
+              <option value="feature">Feature</option>
+              <option value="update" selected>Update</option>
+              <option value="fix">Fix</option>
+              <option value="event">Event</option>
+            </select>
+          </div>
+        </div>
+        <label for="entry-description">Description</label>
+        <textarea id="entry-description" rows="3" maxlength="600" required></textarea>
+        <div style="display:flex; gap:10px;">
+          <button type="submit" class="btn btn-primary">Publish</button>
+          <button type="button" class="btn btn-ghost" id="entry-cancel-btn">Cancel</button>
+        </div>
+      </form>
     </div>
 
-    <div id="leaderboard-list" class="panel panel-plain" style="padding:0;">
-      <div class="skeleton" style="height:60px; margin:16px;"></div>
+    <div id="entry-list" style="margin-top:28px; display:flex; flex-direction:column; gap:16px;">
+      <div class="skeleton" style="height:90px;"></div>
+      <div class="skeleton" style="height:90px;"></div>
     </div>
   </div>
 </section>
@@ -73,6 +93,6 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="/js/supabase-client.js"></script>
 <script src="/js/nav.js"></script>
-<script src="/js/leaderboard.js"></script>
+<script src="/js/whats-new.js"></script>
 </body>
 </html>

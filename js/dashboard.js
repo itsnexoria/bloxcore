@@ -5,7 +5,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   if (!auth) return;
   const { user, profile } = auth;
 
-  const { data: membership } = await sb.from('crew_members').select('crews(name, tag)').eq('user_id', user.id).maybeSingle();
+  const { data: membership } = await sb.from('crew_members').select('crews(name, tag, logo_url)').eq('user_id', user.id).maybeSingle();
 
   renderProfileCard(profile, membership?.crews);
   await loadSubmissions(user.id);
@@ -45,10 +45,10 @@ function renderProfileCard(profile, crew) {
       </div>
       <div class="xp-bar" style="margin-top:4px;"><div class="xp-bar-fill" style="width:${progress.pct}%;"></div></div>
       <div class="flex-between" style="margin-top:16px; padding-top:14px; border-top:1px solid var(--glass-border);">
-        <p class="muted" style="margin:0; font-size:0.85rem; display:flex; align-items:center; gap:6px;">
-          <i data-lucide="users" class="icon-sm"></i>
-          ${crew ? `<a href="/crew/?name=${encodeURIComponent(crew.name)}" style="color:var(--brass-bright); font-weight:600;">${crew.tag ? `[${escapeHtml(crew.tag)}] ` : ''}${escapeHtml(crew.name)}</a>` : "You're not in a crew yet."}
-        </p>
+        ${crew ? `<a href="/crew/?name=${encodeURIComponent(crew.name)}" class="info-chip" style="text-decoration:none;">
+          ${crew.logo_url ? `<img src="${crew.logo_url}" alt="" style="width:16px; height:16px; border-radius:4px; object-fit:cover;" onerror="this.style.display='none';">` : '<i data-lucide="users" class="icon-sm"></i>'}
+          <span class="info-chip-label">Crew</span><span class="info-chip-value">${crew.tag ? `[${escapeHtml(crew.tag)}] ` : ''}${escapeHtml(crew.name)}</span>
+        </a>` : `<p class="muted" style="margin:0; font-size:0.85rem;">You're not in a crew yet.</p>`}
         ${crew ? '' : `<a href="/crews/" class="btn btn-ghost btn-sm">Find a Crew</a>`}
       </div>
       <div style="position:absolute; bottom:20px; right:28px; text-align:right;">

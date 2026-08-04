@@ -706,6 +706,84 @@ select option {
 }
 .chat-delete-btn:hover { color: var(--blood); }
 
+/* --------------------------------- Chat -------------------------------- */
+
+.chat-row {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 18px;
+}
+.chat-row.mine { flex-direction: row-reverse; }
+.chat-row-body { max-width: 75%; }
+.chat-row.mine .chat-row-body { display: flex; flex-direction: column; align-items: flex-end; }
+.chat-row-meta { margin: 0 0 3px; font-size: 0.78rem; color: var(--ash); }
+.chat-row.mine .chat-row-meta { text-align: right; }
+
+.chat-bubble {
+  display: inline-block;
+  padding: 10px 14px;
+  border-radius: var(--radius-sm);
+  background: var(--glass-bg-strong);
+  border: 1px solid var(--glass-border);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+}
+.chat-row.mine .chat-bubble {
+  background: linear-gradient(135deg, rgb(var(--brass-rgb) / 0.22), rgb(var(--brass-rgb) / 0.1));
+  border-color: rgb(var(--brass-rgb) / 0.35);
+}
+
+.reaction-bar {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  flex-wrap: wrap;
+  margin-top: 6px;
+}
+.chat-row.mine .reaction-bar { justify-content: flex-end; }
+
+.reaction-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.78rem;
+  padding: 3px 8px;
+  border-radius: 999px;
+  border: 1px solid var(--glass-border);
+  background: var(--glass-bg);
+  color: var(--ash);
+  cursor: pointer;
+  transition: border-color 0.15s ease, transform 0.15s ease, background 0.15s ease;
+}
+.reaction-pill:hover { transform: translateY(-1px); border-color: var(--brass); }
+.reaction-pill.mine { border-color: var(--brass); background: rgb(var(--brass-rgb) / 0.14); color: var(--brass-bright); }
+.reaction-pill span { font-family: var(--font-mono); font-size: 0.72rem; }
+
+.reaction-popover {
+  display: none;
+  position: absolute;
+  bottom: calc(100% + 6px);
+  left: 0;
+  z-index: 40;
+  background: var(--navy);
+  border: 1px solid var(--glass-border);
+  border-radius: 999px;
+  padding: 6px 8px;
+  gap: 4px;
+  box-shadow: 0 10px 24px rgb(var(--shadow-rgb) / 0.5);
+}
+.reaction-popover.open { display: flex; }
+.reaction-popover button {
+  background: none;
+  border: none;
+  font-size: 1.1rem;
+  cursor: pointer;
+  padding: 2px 4px;
+  border-radius: 6px;
+  line-height: 1;
+}
+.reaction-popover button:hover { background: rgb(var(--brass-rgb) / 0.16); }
+
 /* Build picker buttons */
 .build-picker-grid {
   display: grid;
@@ -983,6 +1061,46 @@ select option {
 }
 .title-tile .lock-icon { font-size: 1.1rem; }
 
+/* Rainbow title style — used for titles whose color is the literal string 'rainbow',
+   and as a selectable preset for a user's own equipped-title color. */
+.title-badge-rainbow {
+  display: inline-block;
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 3px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,0.25);
+  background-image: linear-gradient(90deg, #ef4444, #fbbf24, #34d399, #38bdf8, #a78bfa, #ef4444);
+  background-size: 300% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: rainbowShift 4s linear infinite;
+}
+@keyframes rainbowShift {
+  0% { background-position: 0% 50%; }
+  100% { background-position: 300% 50%; }
+}
+.swatch-rainbow {
+  background: conic-gradient(#ef4444, #fbbf24, #34d399, #38bdf8, #a78bfa, #ef4444);
+}
+
+.color-swatch-btn {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: 2px solid var(--glass-border);
+  cursor: pointer;
+  padding: 0;
+  position: relative;
+  transition: transform 0.15s ease, border-color 0.15s ease;
+  background: var(--navy-light);
+}
+.color-swatch-btn:hover { transform: scale(1.1); }
+.color-swatch-btn.selected { border-color: var(--bone); box-shadow: 0 0 0 2px var(--ink), 0 0 0 4px var(--brass); }
+
 /* -------------------------------- Utility --------------------------------- */
 
 .muted { color: var(--ash); }
@@ -1061,6 +1179,17 @@ footer.site-footer {
   color: var(--ash);
   font-size: 0.85rem;
   text-align: center;
+}
+
+#site-banners { position: sticky; top: 65px; z-index: 90; }
+.site-banner {
+  background: rgba(10,10,14,0.92);
+  backdrop-filter: blur(12px);
+  border-left: 3px solid var(--brass);
+  padding: 10px 24px;
+  font-size: 0.85rem;
+  text-align: center;
+  border-bottom: 1px solid var(--glass-border);
 }
 
 /* -------------------------------- Themes ------------------------------------

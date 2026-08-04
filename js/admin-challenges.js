@@ -72,15 +72,67 @@ async function loadChallenges(page) {
   refreshIcons();
 }
 
+let allTitlesForRewardPicker = [];
+let rewardTitleId = '';
+const RARITY_ORDER = { divine: 6, mythical: 5, legendary: 4, epic: 3, rare: 2, uncommon: 1, common: 0 };
+
 async function populateRewardTitleSelect() {
-  const select = document.getElementById('reward_title_id');
-  const { data: titles } = await sb.from('titles').select('id, name').order('name');
-  (titles || []).forEach(t => {
-    const option = document.createElement('option');
-    option.value = t.id;
-    option.textContent = t.name;
-    select.appendChild(option);
+  const { data: titles } = await sb.from('titles').select('id, name, color, rarity').order('name');
+  allTitlesForRewardPicker = (titles || []).slice().sort((a, b) => {
+    const rarityDiff = (RARITY_ORDER[b.rarity] ?? 0) - (RARITY_ORDER[a.rarity] ?? 0);
+    return rarityDiff !== 0 ? rarityDiff : a.name.localeCompare(b.name);
   });
+
+  document.getElementById('reward-title-picker-btn').addEventListener('click', openRewardTitleModal);
+  document.getElementById('reward-title-modal-close').addEventListener('click', closeRewardTitleModal);
+  document.getElementById('reward-title-picker-modal').addEventListener('click', (e) => {
+    if (e.target.id === 'reward-title-picker-modal') closeRewardTitleModal();
+  });
+}
+
+function setRewardTitleId(id) {
+  rewardTitleId = id || '';
+  document.getElementById('reward_title_id').value = rewardTitleId;
+  const valueEl = document.getElementById('reward-title-picker-value');
+  const picked = allTitlesForRewardPicker.find(t => t.id === rewardTitleId);
+  if (picked) {
+    valueEl.classList.remove('is-empty');
+    valueEl.innerHTML = `<span style="color:${picked.color};">${escapeHtml(picked.name)}</span>`;
+  } else {
+    valueEl.classList.add('is-empty');
+    valueEl.textContent = '— None —';
+  }
+}
+
+function openRewardTitleModal() {
+  const noneTile = `
+    <div class="build-modal-tile title-tile ${rewardTitleId === '' ? 'selected' : ''}" data-title-id="">
+      <i data-lucide="ban" class="icon-lg"></i>
+      <span class="title-tile-name">None</span>
+    </div>
+  `;
+  const tiles = allTitlesForRewardPicker.map(t => `
+    <div class="build-modal-tile title-tile ${rewardTitleId === t.id ? 'selected' : ''}" data-title-id="${t.id}">
+      <span class="title-tile-name" style="color:${t.color};">${escapeHtml(t.name)}</span>
+      <span class="title-rarity-pill title-rarity-${t.rarity}">${t.rarity}</span>
+    </div>
+  `).join('');
+
+  document.getElementById('reward-title-modal-grid').innerHTML = noneTile + tiles;
+  refreshIcons();
+
+  document.querySelectorAll('#reward-title-modal-grid [data-title-id]').forEach(tile => {
+    tile.addEventListener('click', () => {
+      setRewardTitleId(tile.dataset.titleId);
+      closeRewardTitleModal();
+    });
+  });
+
+  document.getElementById('reward-title-picker-modal').classList.add('open');
+}
+
+function closeRewardTitleModal() {
+  document.getElementById('reward-title-picker-modal').classList.remove('open');
 }
 
 function renderPager(total) {
@@ -137,7 +189,7 @@ function openModal(challenge = null) {
   document.getElementById('repeatable').checked = challenge ? challenge.repeatable : false;
   document.getElementById('cooldown_hours').value = challenge?.cooldown_hours ?? 0;
   document.getElementById('cooldown-field').style.display = (challenge ? challenge.repeatable : false) ? 'block' : 'none';
-  document.getElementById('reward_title_id').value = challenge?.reward_title_id || '';
+  setRewardTitleId(challenge?.reward_title_id || '');
 
   modal.style.display = 'flex';
 }

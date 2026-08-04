@@ -141,9 +141,27 @@ function avatarHtml(profile, size, extraStyle = '') {
 // (expects the query to have joined titles(name, color) via active_title_id).
 function titleBadge(profile) {
   if (!profile?.titles?.name) return '';
-  const c = profile.titles.color;
+  const c = profile.title_color_override || profile.titles.color;
+  if (c === 'rainbow') {
+    return `<span class="title-badge-rainbow">${escapeHtml(profile.titles.name)}</span>`;
+  }
   return `<span style="font-size:0.68rem; font-weight:700; text-transform:uppercase; letter-spacing:0.04em; padding:3px 10px; border-radius:999px; border:1px solid ${c}; color:${c}; background:${c}1a;">${escapeHtml(profile.titles.name)}</span>`;
 }
+
+// A curated set of colors users can recolor their equipped title with — not a free color
+// picker, so every combination still fits the site's palette. 'default' means "use the
+// title's own color" (title_color_override = null); 'rainbow' is the special animated style.
+const TITLE_COLOR_PRESETS = [
+  { key: 'default', label: 'Default', swatch: null },
+  { key: '#ef4444', label: 'Red', swatch: '#ef4444' },
+  { key: '#fbbf24', label: 'Gold', swatch: '#fbbf24' },
+  { key: '#a78bfa', label: 'Purple', swatch: '#a78bfa' },
+  { key: '#38bdf8', label: 'Blue', swatch: '#38bdf8' },
+  { key: '#34d399', label: 'Green', swatch: '#34d399' },
+  { key: '#fb7185', label: 'Rose', swatch: '#fb7185' },
+  { key: '#f5f5f7', label: 'White', swatch: '#f5f5f7' },
+  { key: 'rainbow', label: 'Rainbow', swatch: 'rainbow' },
+];
 
 // Theme: localStorage is the source of truth for instant, flash-free application (every
 // page has an inline script in <head> that applies it before paint). For signed-in users,

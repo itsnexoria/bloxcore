@@ -4,19 +4,19 @@
 <meta charset="UTF-8">
 <script>(function(){try{var t=localStorage.getItem('bc_theme');if(t)document.documentElement.setAttribute('data-theme',t);if(localStorage.getItem('bc_reduce_motion')==='1')document.documentElement.classList.add('reduce-motion');}catch(e){}})();</script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Leaderboard — BloxCore</title>
+<title>Trading — BloxCore</title>
 <meta name="robots" content="index, follow">
-<meta name="description" content="See the top-ranked Blox Fruits players on BloxCore, ranked by level and XP.">
-<link rel="canonical" href="https://bloxcore.xyz/leaderboard/">
+<meta name="description" content="Post what you're offering and looking for, and browse live trade listings from the BloxCore community.">
+<link rel="canonical" href="https://bloxcore.xyz/trading/">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="BloxCore">
-<meta property="og:title" content="Leaderboard — BloxCore">
-<meta property="og:description" content="See the top-ranked Blox Fruits players on BloxCore, ranked by level and XP.">
+<meta property="og:title" content="Trading — BloxCore">
+<meta property="og:description" content="Post what you're offering and looking for, and browse live trade listings from the BloxCore community.">
 <meta property="og:image" content="https://bloxcore.xyz/assets/logo.png">
-<meta property="og:url" content="https://bloxcore.xyz/leaderboard/">
+<meta property="og:url" content="https://bloxcore.xyz/trading/">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="Leaderboard — BloxCore">
-<meta name="twitter:description" content="See the top-ranked Blox Fruits players on BloxCore, ranked by level and XP.">
+<meta name="twitter:title" content="Trading — BloxCore">
+<meta name="twitter:description" content="Post what you're offering and looking for, and browse live trade listings from the BloxCore community.">
 <meta name="twitter:image" content="https://bloxcore.xyz/assets/logo.png">
 <link rel="stylesheet" href="/css/style.css">
 <link rel="icon" type="image/png" href="/assets/logo.png">
@@ -34,7 +34,7 @@
       <li><a href="/challenges/"><i data-lucide="swords" class="icon-sm icon-inline"></i>Challenges</a></li>
       <li><a href="/leaderboard/"><i data-lucide="trophy" class="icon-sm icon-inline"></i>Leaderboard</a></li>
       <li><a href="/crews/"><i data-lucide="users" class="icon-sm icon-inline"></i>Crews</a></li>
-      <li><a href="/trading/"><i data-lucide="repeat" class="icon-sm icon-inline"></i>Trading</a></li>
+      <li><a href="/trading/" class="active"><i data-lucide="repeat" class="icon-sm icon-inline"></i>Trading</a></li>
       <li><a href="/combos/"><i data-lucide="flame" class="icon-sm icon-inline"></i>Combos</a></li>
       <li><a href="/whats-new/"><i data-lucide="sparkles" class="icon-sm icon-inline"></i>What's New</a></li>
       <li id="nav-auth-slot"></li>
@@ -44,23 +44,37 @@
 
 <section class="section">
   <div class="container">
-    <h1 style="font-size:1.8rem;">Most Wanted</h1>
-    <p class="muted" style="margin-top:-8px;" id="lb-subtitle">Ranked by level, then total XP earned.</p>
+    <h1 style="font-size:1.8rem;">Trading</h1>
+    <p class="muted" style="margin-top:-8px;">Post what you've got and what you're after. Trade at your own risk — BloxCore doesn't verify or guarantee any trade.</p>
 
-    <div style="display:flex; gap:10px; margin:18px 0 10px;">
-      <button class="btn btn-primary btn-sm" id="lb-tab-players">Players</button>
-      <button class="btn btn-ghost btn-sm" id="lb-tab-crews">Crews</button>
+    <div id="trade-compose" class="panel" style="margin-top:24px; display:none;">
+      <h2 style="font-size:1.05rem; margin-top:0;">Post a Listing</h2>
+      <form id="trade-form">
+        <div class="two-col-grid" style="gap:16px;">
+          <div>
+            <label for="trade-offering">Offering</label>
+            <input type="text" id="trade-offering" placeholder="e.g. Dragon fruit, Fully Awakened" maxlength="120" required>
+          </div>
+          <div>
+            <label for="trade-seeking">Seeking</label>
+            <input type="text" id="trade-seeking" placeholder="e.g. Leopard fruit or 40M beli" maxlength="120" required>
+          </div>
+        </div>
+        <label for="trade-note">Note (optional)</label>
+        <textarea id="trade-note" rows="2" maxlength="240" placeholder="Any extra detail — Roblox username to reach you, etc."></textarea>
+        <button type="submit" class="btn btn-primary" id="trade-submit-btn">Post Listing</button>
+      </form>
     </div>
 
-    <div style="display:flex; gap:8px; margin-bottom:18px; flex-wrap:wrap;" id="lb-period-tabs">
-      <button class="btn btn-ghost btn-sm" data-period="today">Today</button>
-      <button class="btn btn-ghost btn-sm" data-period="weekly">Weekly</button>
-      <button class="btn btn-ghost btn-sm" data-period="monthly">Monthly</button>
-      <button class="btn btn-primary btn-sm" data-period="alltime">All-Time</button>
+    <div id="trade-signed-out" class="panel panel-plain center" style="margin-top:24px; display:none;">
+      <a href="/auth/" class="btn btn-primary btn-sm">Sign in to post a listing</a>
     </div>
 
-    <div id="leaderboard-list" class="panel panel-plain" style="padding:0;">
-      <div class="skeleton" style="height:60px; margin:16px;"></div>
+    <h2 style="font-size:1.1rem; margin-top:40px;">Active Listings</h2>
+    <div id="trade-listings" class="grid" style="margin-top:16px;">
+      <div class="skeleton" style="height:140px;"></div>
+      <div class="skeleton" style="height:140px;"></div>
+      <div class="skeleton" style="height:140px;"></div>
     </div>
   </div>
 </section>
@@ -73,6 +87,6 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="/js/supabase-client.js"></script>
 <script src="/js/nav.js"></script>
-<script src="/js/leaderboard.js"></script>
+<script src="/js/trading.js"></script>
 </body>
 </html>

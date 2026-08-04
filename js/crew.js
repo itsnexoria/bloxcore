@@ -37,7 +37,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 async function render() {
   const { data: members, error } = await sb
     .from('crew_members')
-    .select('user_id, role, joined_at, profiles(username, display_name, level, pirate_bounty, titles(name, color))')
+    .select('user_id, role, joined_at, profiles(username, display_name, level, pirate_bounty, title_color_override, titles(name, color))')
     .eq('crew_id', crew.id)
     .order('role', { ascending: true });
 

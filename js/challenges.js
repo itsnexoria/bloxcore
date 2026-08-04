@@ -62,7 +62,9 @@ async function loadChallenges() {
       <div class="bounty-section">
         <div class="flex-between" style="margin-bottom:16px;">
           <h2 style="font-size:1.15rem; margin:0;">${section.label}</h2>
-          <span class="muted" style="font-size:0.8rem; font-family:var(--font-mono);">${section.hint}</span>
+          <span class="muted" style="font-size:0.8rem; font-family:var(--font-mono); text-align:right;">
+            ${section.hint}${section.key !== 'none' ? `<br><span data-countdown="${section.key}" style="color:var(--brass-bright); font-weight:700;"></span>` : ''}
+          </span>
         </div>
         <div class="grid">${items.map(renderChallengeCard).join('')}</div>
       </div>
@@ -73,6 +75,7 @@ async function loadChallenges() {
     btn.addEventListener('click', () => openModal(btn.dataset.claimId, btn.dataset.claimTitle));
   });
   refreshIcons();
+  startResetCountdowns();
 }
 
 function formatRemaining(ms) {
@@ -247,4 +250,54 @@ async function handleSubmit(e) {
     submitBtn.disabled = false;
     submitBtn.textContent = 'Submit for Review';
   }
+}
+
+// --- Live reset countdowns for the daily/weekly/monthly bounty sections -----------------
+
+let resetCountdownTimer = null;
+
+function nextResetFor(type) {
+  const now = new Date();
+  if (type === 'daily') {
+    const next = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + 1));
+    return next;
+  }
+  if (type === 'weekly') {
+    // Resets every Monday 00:00 UTC.
+    const day = now.getUTCDay(); // 0 = Sunday .. 6 = Saturday
+    const daysUntilMonday = (8 - day) % 7 || 7;
+    const next = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + daysUntilMonday));
+    return next;
+  }
+  if (type === 'monthly') {
+    return new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, 1));
+  }
+  return null;
+}
+
+function formatCountdown(ms) {
+  if (ms <= 0) return 'resetting…';
+  const totalSeconds = Math.floor(ms / 1000);
+  const days = Math.floor(totalSeconds / 86400);
+  const hours = Math.floor((totalSeconds % 86400) / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const seconds = totalSeconds % 60;
+  if (days > 0) return `${days}d ${hours}h ${minutes}m`;
+  if (hours > 0) return `${hours}h ${minutes}m ${seconds}s`;
+  return `${minutes}m ${seconds}s`;
+}
+
+function tickResetCountdowns() {
+  document.querySelectorAll('[data-countdown]').forEach(el => {
+    const type = el.dataset.countdown;
+    const next = nextResetFor(type);
+    if (!next) return;
+    el.textContent = formatCountdown(next.getTime() - Date.now());
+  });
+}
+
+function startResetCountdowns() {
+  if (resetCountdownTimer) clearInterval(resetCountdownTimer);
+  tickResetCountdowns();
+  resetCountdownTimer = setInterval(tickResetCountdowns, 1000);
 }

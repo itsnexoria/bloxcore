@@ -22,6 +22,7 @@
       <li><a href="/admin/giveaways/"><i data-lucide="gift" class="icon-sm icon-inline"></i>Manage Giveaways</a></li>
       <li data-requires-role="admin"><a href="/admin/users/"><i data-lucide="users" class="icon-sm icon-inline"></i>Manage Users</a></li>
       <li data-requires-role="admin"><a href="/admin/titles/"><i data-lucide="tag" class="icon-sm icon-inline"></i>Manage Titles</a></li>
+      <li data-requires-role="admin"><a href="/admin/site/"><i data-lucide="megaphone" class="icon-sm icon-inline"></i>Site Controls</a></li>
       <li><a href="/"><i data-lucide="external-link" class="icon-sm icon-inline"></i>View Site</a></li>
       <li id="nav-auth-slot"></li>
     </ul>
@@ -109,9 +110,11 @@
       </div>
 
       <label for="reward_title_id">Reward Title (optional)</label>
-      <select id="reward_title_id">
-        <option value="">— None —</option>
-      </select>
+      <input type="hidden" id="reward_title_id" value="">
+      <button type="button" class="build-picker-btn" id="reward-title-picker-btn" style="width:100%; flex-direction:row; align-items:center; justify-content:space-between; margin-bottom:16px;">
+        <span class="build-picker-value is-empty" id="reward-title-picker-value">— None —</span>
+        <i data-lucide="chevron-down" class="icon-sm muted"></i>
+      </button>
 
       <p class="field-error" id="challenge-error" style="display:none;"></p>
       <div style="display:flex; gap:10px;">
@@ -125,6 +128,18 @@
 <footer class="site-footer">
   <div class="container">BloxCore admin panel — visible only to reviewers.</div>
 </footer>
+
+<!-- Reward title picker modal — same picker used on the profile page, minus the ownership lock -->
+<div id="reward-title-picker-modal" class="build-modal-overlay">
+  <div class="panel build-modal" style="max-width:520px;">
+    <div class="flex-between" style="margin-bottom:6px;">
+      <h3 style="font-size:1.05rem; margin:0;">Choose a Reward Title</h3>
+      <button type="button" class="btn btn-ghost btn-sm" id="reward-title-modal-close"><i data-lucide="x" class="icon-md"></i></button>
+    </div>
+    <p class="muted" style="margin:0 0 14px; font-size:0.82rem;">Players who complete this challenge will unlock this title.</p>
+    <div id="reward-title-modal-grid" class="build-modal-grid" style="grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));"></div>
+  </div>
+</div>
 
 <script src="https://unpkg.com/lucide@latest"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>

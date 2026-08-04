@@ -1,6 +1,8 @@
 // BloxCore — shared nav behavior, included on every page after supabase-client.js
 
 document.addEventListener('DOMContentLoaded', () => {
+  renderSiteBanners();
+
   const toggle = document.querySelector('.nav-toggle');
   const links = document.querySelector('.nav-links');
 
@@ -181,4 +183,36 @@ function applyRoleGatedNavItems(role) {
     const allowed = required === 'admin' ? role === 'admin' : (role === 'mod' || role === 'admin');
     li.style.display = allowed ? '' : 'none';
   });
+}
+
+// Sitewide broadcast + active XP-event banner — fetched fresh on every page load.
+const BANNER_COLORS = {
+  info: 'var(--blue)', success: 'var(--sea)', warning: 'var(--gold)', danger: 'var(--blood)',
+};
+
+async function renderSiteBanners() {
+  const nav = document.querySelector('.nav');
+  if (!nav || typeof sb === 'undefined') return;
+
+  const [{ data: broadcasts }, { data: events }] = await Promise.all([
+    sb.from('broadcasts').select('id, message, severity').eq('active', true).order('created_at', { ascending: false }).limit(1),
+    sb.from('events').select('id, name, xp_multiplier').eq('active', true).limit(1),
+  ]);
+
+  const banners = [];
+  if (events && events[0]) {
+    banners.push({ severity: 'warning', message: `<i data-lucide="zap" class="icon-sm icon-inline"></i><strong>${escapeHtml(events[0].name)}</strong> is live — earning ${events[0].xp_multiplier}x XP on approved bounties.` });
+  }
+  if (broadcasts && broadcasts[0]) {
+    banners.push({ severity: broadcasts[0].severity, message: escapeHtml(broadcasts[0].message) });
+  }
+  if (!banners.length) return;
+
+  const wrap = document.createElement('div');
+  wrap.id = 'site-banners';
+  wrap.innerHTML = banners.map(b => `
+    <div class="site-banner" style="border-left-color:${BANNER_COLORS[b.severity] || BANNER_COLORS.info};">${b.message}</div>
+  `).join('');
+  nav.insertAdjacentElement('afterend', wrap);
+  refreshIcons();
 }
