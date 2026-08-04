@@ -53,24 +53,28 @@ function renderProfile(p, crew) {
     { key: 'accessory', label: 'Accessory', value: p.build_accessory },
   ].filter(f => f.value);
 
-  const avatarBlock = avatarHtml(p, 84, 'border:2px solid var(--brass);');
+  const avatarBlock = avatarHtml(p, 76, 'border:2px solid var(--brass);');
 
   return `
-    <div class="panel" style="display:flex; gap:22px; align-items:center; flex-wrap:wrap;">
-      ${avatarBlock}
-      <div style="flex:1; min-width:220px;">
-        <div class="flex-between" style="align-items:baseline;">
-          <div>
-            <h1 style="font-size:1.5rem; margin-bottom:2px; display:flex; align-items:center; gap:10px; flex-wrap:wrap;">${titleBadge(p)} ${escapeHtml(name)}</h1>
-            ${showHandle ? `<p class="muted" style="margin:0 0 2px; font-size:0.8rem;">@${escapeHtml(p.username)}</p>` : ''}
-            <p class="rank-title" style="margin:0 0 8px;">${title} · Lv. ${p.level}</p>
-            ${crew ? `<a href="/crew/?name=${encodeURIComponent(crew.name)}" class="info-chip" style="text-decoration:none; margin-bottom:8px;">
-              ${crew.logo_url ? `<img src="${crew.logo_url}" alt="" style="width:16px; height:16px; border-radius:4px; object-fit:cover;" onerror="this.style.display='none';">` : ''}
-              <span class="info-chip-label">Crew</span><span class="info-chip-value">${crew.tag ? `[${escapeHtml(crew.tag)}] ` : ''}${escapeHtml(crew.name)}</span>
-            </a>` : ''}
-          </div>
+    <div class="panel" style="display:flex; gap:22px; align-items:flex-start; flex-wrap:wrap;">
+      <div style="display:flex; flex-direction:column; align-items:center; gap:8px; flex-shrink:0;">
+        <div style="position:relative;">
+          ${avatarBlock}
+          <span style="position:absolute; bottom:-4px; right:-4px; background:linear-gradient(135deg, var(--brass), var(--gold)); color:#1a0a06; font-family:var(--font-stamp); font-weight:700; font-size:0.72rem; padding:2px 7px; border-radius:999px; border:2px solid var(--ink); box-shadow:0 2px 8px rgb(var(--shadow-rgb) / 0.4);">Lv${p.level}</span>
         </div>
-        <div class="xp-bar"><div class="xp-bar-fill" style="width:${progress.pct}%;"></div></div>
+        <p class="rank-title" style="margin:2px 0 0; font-size:1.1rem;">${title}</p>
+      </div>
+      <div style="flex:1; min-width:220px;">
+        <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+          ${titleBadge(p)}
+          <p style="margin:0; font-size:1.5rem; font-weight:700; color:var(--bone);">${escapeHtml(name)}</p>
+        </div>
+        ${showHandle ? `<p class="muted" style="margin:2px 0 0; font-size:0.8rem;">@${escapeHtml(p.username)}</p>` : ''}
+        ${crew ? `<a href="/crew/?name=${encodeURIComponent(crew.name)}" class="info-chip" style="text-decoration:none; margin-top:10px;">
+          ${crew.logo_url ? `<img src="${crew.logo_url}" alt="" style="width:16px; height:16px; border-radius:4px; object-fit:cover;" onerror="this.style.display='none';">` : ''}
+          <span class="info-chip-label">Crew</span><span class="info-chip-value">${crew.tag ? `[${escapeHtml(crew.tag)}] ` : ''}${escapeHtml(crew.name)}</span>
+        </a>` : ''}
+        <div class="xp-bar" style="margin-top:16px;"><div class="xp-bar-fill" style="width:${progress.pct}%;"></div></div>
         <p class="muted" style="margin:8px 0 0; font-size:0.82rem;">
           ${p.region ? `${escapeHtml(p.region)} · ` : ''}Member since ${formatDate(p.created_at)}
           ${p.current_streak > 0 ? ` · <i data-lucide="flame" class="icon-sm" style="color:var(--brass-bright);"></i> ${p.current_streak}-day streak` : ''}

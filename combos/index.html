@@ -61,10 +61,18 @@
             <input type="text" id="combo-title" placeholder="e.g. Dragon Infinite Combo" maxlength="80" required>
           </div>
           <div>
-            <label for="combo-fruit">Fruit / Weapon (optional)</label>
-            <input type="text" id="combo-fruit" placeholder="e.g. Dragon" maxlength="60">
+            <label for="combo-category">Category</label>
+            <select id="combo-category">
+              <option value="fruit">Fruit</option>
+              <option value="sword">Sword</option>
+              <option value="gun">Gun</option>
+              <option value="melee">Melee</option>
+              <option value="race">Race</option>
+            </select>
           </div>
         </div>
+        <label for="combo-fruit">Specific Item</label>
+        <select id="combo-fruit"></select>
         <label for="combo-difficulty">Difficulty</label>
         <select id="combo-difficulty">
           <option value="easy">Easy</option>
@@ -83,7 +91,15 @@
       </form>
     </div>
 
-    <div style="display:flex; gap:8px; margin:20px 0; flex-wrap:wrap;" id="combo-filters">
+    <div style="display:flex; gap:8px; margin:20px 0 8px; flex-wrap:wrap;" id="combo-category-filters">
+      <button class="btn btn-primary btn-sm" data-cat-filter="all">All Types</button>
+      <button class="btn btn-ghost btn-sm" data-cat-filter="fruit">Fruit</button>
+      <button class="btn btn-ghost btn-sm" data-cat-filter="sword">Sword</button>
+      <button class="btn btn-ghost btn-sm" data-cat-filter="gun">Gun</button>
+      <button class="btn btn-ghost btn-sm" data-cat-filter="melee">Melee</button>
+      <button class="btn btn-ghost btn-sm" data-cat-filter="race">Race</button>
+    </div>
+    <div style="display:flex; gap:8px; margin-bottom:20px; flex-wrap:wrap;" id="combo-filters">
       <button class="btn btn-primary btn-sm" data-difficulty="all">All</button>
       <button class="btn btn-ghost btn-sm" data-difficulty="easy">Easy</button>
       <button class="btn btn-ghost btn-sm" data-difficulty="medium">Medium</button>
@@ -104,6 +120,7 @@
 
 <script src="https://unpkg.com/lucide@latest"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="/js/build-options.js"></script>
 <script src="/js/supabase-client.js"></script>
 <script src="/js/nav.js"></script>
 <script src="/js/combos.js"></script>

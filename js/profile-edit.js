@@ -22,7 +22,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   populateBountySelect('pirate_bounty');
   populateBountySelect('marine_bounty');
-  await populateTitleSelect(auth.user.id, auth.profile.active_title_id, auth.profile.title_color_override);
+  await populateTitleSelect(auth.user.id, auth.profile.active_title_id, auth.profile.title_color_override, auth.profile.role);
   populateForm(auth.profile);
   wireBuildPickers();
 
@@ -35,10 +35,12 @@ const RARITY_ORDER = { divine: 6, mythical: 5, legendary: 4, epic: 3, rare: 2, u
 let ownedTitleIds = new Set();
 let activeTitleId = '';
 let activeTitleColorOverride = '';
+let canUseRainbow = false;
 
-async function populateTitleSelect(userId, activeId, colorOverride) {
+async function populateTitleSelect(userId, activeId, colorOverride, role) {
   activeTitleId = activeId || '';
   activeTitleColorOverride = colorOverride || '';
+  canUseRainbow = role === 'mod' || role === 'admin';
 
   const [{ data: all }, { data: owned }] = await Promise.all([
     sb.from('titles').select('id, name, color, rarity').order('name'),
@@ -57,6 +59,7 @@ async function populateTitleSelect(userId, activeId, colorOverride) {
 
   document.getElementById('title-picker-btn').addEventListener('click', openTitleModal);
   document.getElementById('title-modal-close').addEventListener('click', closeTitleModal);
+  document.getElementById('title-modal-done').addEventListener('click', closeTitleModal);
   document.getElementById('title-picker-modal').addEventListener('click', (e) => {
     if (e.target.id === 'title-picker-modal') closeTitleModal();
   });
@@ -65,28 +68,36 @@ async function populateTitleSelect(userId, activeId, colorOverride) {
 function renderTitlePickerValue() {
   const valueEl = document.getElementById('title-picker-value');
   const active = allTitlesForPicker.find(t => t.id === activeTitleId);
-  const colorRow = document.getElementById('title-color-row');
   if (active) {
     valueEl.classList.remove('is-empty');
     const c = activeTitleColorOverride || active.color;
     valueEl.innerHTML = c === 'rainbow'
       ? `<span class="title-badge-rainbow" style="padding:0;">${escapeHtml(active.name)}</span>`
       : `<span style="color:${c};">${escapeHtml(active.name)}</span>`;
-    colorRow.style.display = 'block';
-    renderTitleColorSwatches();
   } else {
     valueEl.classList.add('is-empty');
     valueEl.textContent = '— None —';
-    colorRow.style.display = 'none';
   }
 }
 
 function renderTitleColorSwatches() {
+  const colorRow = document.getElementById('title-color-row');
+  const active = allTitlesForPicker.find(t => t.id === activeTitleId);
+  if (!active) { colorRow.style.display = 'none'; return; }
+  colorRow.style.display = 'block';
+
   document.getElementById('title_color_override').value = activeTitleColorOverride;
-  document.getElementById('title-color-swatches').innerHTML = TITLE_COLOR_PRESETS.map(p => {
-    const selected = (activeTitleColorOverride || 'default') === p.key || (activeTitleColorOverride === '' && p.key === 'default');
-    const bg = p.key === 'default' ? 'var(--navy-light)' : (p.key === 'rainbow' ? '' : p.swatch);
-    const cls = p.key === 'rainbow' ? 'swatch-rainbow' : '';
+  const presets = TITLE_COLOR_PRESETS.filter(p => p.key !== 'rainbow' || canUseRainbow);
+
+  document.getElementById('title-color-swatches').innerHTML = presets.map(p => {
+    const selected = (activeTitleColorOverride || 'default') === p.key;
+    // The default swatch previews the title's own actual color (or its own rainbow, if that's
+    // what the title itself is) — not a generic placeholder — so it's clear what "Default" means.
+    const isDefault = p.key === 'default';
+    const previewColor = isDefault ? active.color : p.swatch;
+    const isRainbowPreview = previewColor === 'rainbow';
+    const cls = isRainbowPreview ? 'swatch-rainbow' : '';
+    const bg = isRainbowPreview ? '' : previewColor;
     return `<button type="button" class="color-swatch-btn ${cls} ${selected ? 'selected' : ''}" style="background:${bg};" data-color-key="${p.key}" title="${p.label}"></button>`;
   }).join('');
 
@@ -94,6 +105,7 @@ function renderTitleColorSwatches() {
     btn.addEventListener('click', () => {
       activeTitleColorOverride = btn.dataset.colorKey === 'default' ? '' : btn.dataset.colorKey;
       renderTitlePickerValue();
+      renderTitleColorSwatches();
     });
   });
 }
@@ -121,6 +133,7 @@ function openTitleModal() {
   }).join('');
 
   document.getElementById('title-modal-grid').innerHTML = noneTile + tiles;
+  renderTitleColorSwatches();
   refreshIcons();
 
   document.querySelectorAll('#title-modal-grid [data-title-id]').forEach(tile => {
@@ -129,7 +142,7 @@ function openTitleModal() {
       activeTitleColorOverride = '';
       document.getElementById('active_title').value = activeTitleId;
       renderTitlePickerValue();
-      closeTitleModal();
+      openTitleModal(); // re-render selection state + color row without closing the modal
     });
   });
 

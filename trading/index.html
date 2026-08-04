@@ -44,40 +44,72 @@
 
 <section class="section">
   <div class="container">
-    <h1 style="font-size:1.8rem;">Trading</h1>
-    <p class="muted" style="margin-top:-8px;">Post what you've got and what you're after. Trade at your own risk — BloxCore doesn't verify or guarantee any trade.</p>
-
-    <div id="trade-compose" class="panel" style="margin-top:24px; display:none;">
-      <h2 style="font-size:1.05rem; margin-top:0;">Post a Listing</h2>
-      <form id="trade-form">
-        <div class="two-col-grid" style="gap:16px;">
-          <div>
-            <label for="trade-offering">Offering</label>
-            <input type="text" id="trade-offering" placeholder="e.g. Dragon fruit, Fully Awakened" maxlength="120" required>
-          </div>
-          <div>
-            <label for="trade-seeking">Seeking</label>
-            <input type="text" id="trade-seeking" placeholder="e.g. Leopard fruit or 40M beli" maxlength="120" required>
-          </div>
-        </div>
-        <label for="trade-note">Note (optional)</label>
-        <textarea id="trade-note" rows="2" maxlength="240" placeholder="Any extra detail — Roblox username to reach you, etc."></textarea>
-        <button type="submit" class="btn btn-primary" id="trade-submit-btn">Post Listing</button>
-      </form>
+    <div class="flex-between">
+      <div>
+        <h1 style="font-size:1.8rem; margin-bottom:2px;">Trading</h1>
+        <p class="muted" style="margin:0;">Fruits, skins, and mutations only — no gamepasses. Trade at your own risk, BloxCore doesn't verify or guarantee any trade.</p>
+      </div>
+      <button type="button" class="btn btn-primary btn-sm" id="new-listing-btn" style="display:none; flex-shrink:0;"><i data-lucide="plus" class="icon-sm icon-inline"></i>New Listing</button>
     </div>
 
     <div id="trade-signed-out" class="panel panel-plain center" style="margin-top:24px; display:none;">
       <a href="/auth/" class="btn btn-primary btn-sm">Sign in to post a listing</a>
     </div>
 
-    <h2 style="font-size:1.1rem; margin-top:40px;">Active Listings</h2>
-    <div id="trade-listings" class="grid" style="margin-top:16px;">
-      <div class="skeleton" style="height:140px;"></div>
-      <div class="skeleton" style="height:140px;"></div>
-      <div class="skeleton" style="height:140px;"></div>
+    <div id="trade-listings" style="display:flex; flex-direction:column; gap:16px; margin-top:28px;">
+      <div class="skeleton" style="height:160px;"></div>
+      <div class="skeleton" style="height:160px;"></div>
     </div>
   </div>
 </section>
+
+<!-- Compose modal -->
+<div id="trade-compose-modal" class="build-modal-overlay">
+  <div class="panel build-modal" style="max-width:680px;">
+    <div class="flex-between" style="margin-bottom:14px;">
+      <h3 style="font-size:1.1rem; margin:0;">New Trade Listing</h3>
+      <button type="button" class="btn btn-ghost btn-sm" id="trade-compose-close"><i data-lucide="x" class="icon-md"></i></button>
+    </div>
+
+    <div class="two-col-grid" style="gap:20px;">
+      <div>
+        <div class="flex-between">
+          <label style="margin:0;">Offering</label>
+          <button type="button" class="btn btn-ghost btn-sm" data-open-item-picker="offering"><i data-lucide="plus" class="icon-sm"></i></button>
+        </div>
+        <div id="offering-items" class="trade-slot-list"></div>
+      </div>
+      <div>
+        <div class="flex-between">
+          <label style="margin:0;">Requesting</label>
+          <button type="button" class="btn btn-ghost btn-sm" data-open-item-picker="requesting"><i data-lucide="plus" class="icon-sm"></i></button>
+        </div>
+        <div id="requesting-items" class="trade-slot-list"></div>
+      </div>
+    </div>
+
+    <label for="trade-note" style="margin-top:16px;">Note (optional)</label>
+    <textarea id="trade-note" rows="2" maxlength="240" placeholder="Roblox username to reach you, extra detail, etc."></textarea>
+    <button type="button" class="btn btn-primary btn-block" id="trade-post-btn">Post Listing</button>
+  </div>
+</div>
+
+<!-- Item picker modal (fruit/skin/mutation) -->
+<div id="item-picker-modal" class="build-modal-overlay">
+  <div class="panel build-modal">
+    <div class="flex-between" style="margin-bottom:14px;">
+      <h3 style="font-size:1.05rem; margin:0;">Choose an Item</h3>
+      <button type="button" class="btn btn-ghost btn-sm" id="item-picker-close"><i data-lucide="x" class="icon-md"></i></button>
+    </div>
+    <div style="display:flex; gap:8px; margin-bottom:14px;" id="item-category-tabs">
+      <button type="button" class="btn btn-primary btn-sm" data-category="fruit">Fruits</button>
+      <button type="button" class="btn btn-ghost btn-sm" data-category="skin">Skins</button>
+      <button type="button" class="btn btn-ghost btn-sm" data-category="mutation">Mutations</button>
+    </div>
+    <input type="text" id="item-picker-search" placeholder="Search…" style="margin-bottom:16px;">
+    <div id="item-picker-grid" class="build-modal-grid"></div>
+  </div>
+</div>
 
 <footer class="site-footer">
   <div class="container">BloxCore is an unofficial fan-made community project for Blox Fruits players.</div>

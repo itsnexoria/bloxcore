@@ -63,12 +63,6 @@
           <span class="muted" id="title-picker-count" style="font-size:0.78rem;"></span>
         </button>
 
-        <div id="title-color-row" style="display:none; margin:-8px 0 16px;">
-          <label style="margin-bottom:8px;">Title Color</label>
-          <input type="hidden" id="title_color_override" value="">
-          <div id="title-color-swatches" style="display:flex; gap:8px; flex-wrap:wrap;"></div>
-        </div>
-
         <label for="bio">Bio</label>
         <textarea id="bio" rows="3" maxlength="300" placeholder="Tell other pirates about yourself…"></textarea>
 
@@ -156,7 +150,8 @@
   </div>
 </div>
 
-<!-- Title picker modal — shows every title's rarity/color, locked vs unlocked, and overall progress -->
+<!-- Title picker modal — shows every title's rarity/color, locked vs unlocked, overall progress,
+     and (once a title is picked) the color presets for it, all in one place -->
 <div id="title-picker-modal" class="build-modal-overlay">
   <div class="panel build-modal" style="max-width:520px;">
     <div class="flex-between" style="margin-bottom:6px;">
@@ -165,6 +160,14 @@
     </div>
     <p class="muted" style="margin:0 0 14px; font-size:0.82rem;" id="title-modal-progress"></p>
     <div id="title-modal-grid" class="build-modal-grid" style="grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));"></div>
+
+    <div id="title-color-row" style="display:none; margin-top:18px; padding-top:16px; border-top:1px solid var(--glass-border);">
+      <label style="margin-bottom:8px;">Title Color</label>
+      <input type="hidden" id="title_color_override" value="">
+      <div id="title-color-swatches" style="display:flex; gap:8px; flex-wrap:wrap;"></div>
+    </div>
+
+    <button type="button" class="btn btn-primary btn-block" id="title-modal-done" style="margin-top:18px;">Done</button>
   </div>
 </div>
 

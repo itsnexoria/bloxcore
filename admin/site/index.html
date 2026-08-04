@@ -77,6 +77,51 @@
       </div>
 
     </div>
+
+    <div class="panel" style="margin-top:24px;">
+      <h2 style="font-size:1.1rem;"><i data-lucide="repeat" class="icon-sm icon-inline"></i>Trade Item Catalog</h2>
+      <p class="muted" style="font-size:0.85rem; margin-top:-8px;">Values aren't pulled from anywhere automatically — set each item's value and demand here so the Trading page shows real numbers.</p>
+      <form id="trade-item-form">
+        <div class="two-col-grid" style="gap:16px;">
+          <div>
+            <label for="ti-name">Name</label>
+            <input type="text" id="ti-name" placeholder="e.g. Leopard" required>
+          </div>
+          <div>
+            <label for="ti-category">Category</label>
+            <select id="ti-category">
+              <option value="fruit">Fruit</option>
+              <option value="skin">Skin</option>
+              <option value="mutation">Mutation</option>
+            </select>
+          </div>
+        </div>
+        <div class="two-col-grid" style="gap:16px;">
+          <div>
+            <label for="ti-value-label">Value Label</label>
+            <input type="text" id="ti-value-label" placeholder="e.g. 670M">
+          </div>
+          <div>
+            <label for="ti-value-num">Value (numeric, for sorting/totals)</label>
+            <input type="number" id="ti-value-num" placeholder="670000000">
+          </div>
+        </div>
+        <div class="two-col-grid" style="gap:16px;">
+          <div>
+            <label for="ti-demand">Demand (1–10)</label>
+            <input type="number" id="ti-demand" min="1" max="10" value="5">
+          </div>
+          <div>
+            <label for="ti-image">Image URL (optional)</label>
+            <input type="text" id="ti-image" placeholder="/assets/game/Fruits/...">
+          </div>
+        </div>
+        <button type="submit" class="btn btn-primary btn-block">Add / Update Item</button>
+      </form>
+      <input type="text" id="ti-search" placeholder="Filter catalog…" style="margin:16px 0 10px;">
+      <div id="trade-item-list" style="max-height:340px; overflow-y:auto; display:flex; flex-direction:column; gap:8px;"></div>
+    </div>
+
   </div>
 </section>
 
