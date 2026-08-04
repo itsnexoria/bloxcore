@@ -827,39 +827,28 @@ select option {
   overflow: hidden;
   aspect-ratio: 1;
   border: 1px solid var(--glass-border);
+  background: linear-gradient(160deg, var(--glass-bg-strong), var(--navy) 70%);
   display: flex;
   align-items: center;
   justify-content: center;
 }
-.trade-item-tile img { width: 68%; height: 68%; object-fit: contain; filter: drop-shadow(0 2px 6px rgb(var(--shadow-rgb) / 0.5)); }
-.trade-item-tile .trade-item-cat-badge {
-  position: absolute;
-  top: 4px;
-  left: 4px;
-  font-size: 0.6rem;
-  font-weight: 700;
-  padding: 1px 5px;
-  border-radius: 5px;
-  background: rgba(0,0,0,0.5);
-  color: #fff;
-  text-transform: uppercase;
-}
+.trade-item-tile img { width: 62%; height: 62%; object-fit: contain; filter: drop-shadow(0 2px 6px rgb(var(--shadow-rgb) / 0.5)); }
 .trade-item-tile .trade-item-footer {
   position: absolute;
   bottom: 0;
   left: 0;
   right: 0;
-  background: linear-gradient(0deg, rgba(0,0,0,0.75), transparent);
-  padding: 3px 5px 4px;
-  display: flex;
-  justify-content: space-between;
-  font-size: 0.62rem;
+  background: linear-gradient(0deg, rgba(0,0,0,0.8), transparent);
+  padding: 3px 4px 4px;
+  text-align: center;
+  font-size: 0.66rem;
   font-family: var(--font-mono);
+  font-weight: 700;
   color: #fff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
-.trade-item-tile.cat-fruit { background: linear-gradient(160deg, rgb(var(--gold-rgb) / 0.35), rgb(var(--brass-rgb) / 0.15)); }
-.trade-item-tile.cat-skin { background: linear-gradient(160deg, rgb(var(--purple-rgb) / 0.4), rgb(var(--blue-rgb) / 0.15)); }
-.trade-item-tile.cat-mutation { background: linear-gradient(160deg, rgb(var(--blue-rgb) / 0.35), rgb(var(--sea-rgb, 52 211 153) / 0.2)); }
 
 .trade-slot-list { display: flex; flex-wrap: wrap; gap: 8px; min-height: 90px; padding: 10px; border: 1px dashed var(--glass-border); border-radius: var(--radius-sm); margin-bottom: 16px; }
 .trade-slot-list:empty::before { content: 'No items added yet'; color: var(--ash); font-size: 0.82rem; align-self: center; }

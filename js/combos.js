@@ -21,9 +21,14 @@ document.addEventListener('DOMContentLoaded', async () => {
       document.getElementById('combo-compose').style.display = 'none';
     });
     document.getElementById('combo-form').addEventListener('submit', handleCreateCombo);
-    Object.entries(COMBO_SELECT_IDS).forEach(([category, id]) => {
-      const select = document.getElementById(id);
-      select.innerHTML += (BUILD_OPTIONS[category] || []).map(opt => `<option value="${escapeHtml(opt.value)}">${escapeHtml(opt.value)}</option>`).join('');
+    document.querySelectorAll('[data-picker-for]').forEach(btn => {
+      btn.addEventListener('click', () => openComboItemModal(btn.dataset.pickerFor));
+    });
+    document.getElementById('combo-item-modal-close').addEventListener('click', () => {
+      document.getElementById('combo-item-modal').classList.remove('open');
+    });
+    document.getElementById('combo-item-modal-search').addEventListener('input', (e) => {
+      renderComboItemGrid(activeComboPickerCategory, e.target.value);
     });
   }
 
@@ -33,6 +38,66 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   await loadCombos();
 });
+
+function iconFor(category, itemName) {
+  const opt = (BUILD_OPTIONS[category] || []).find(o => o.value === itemName);
+  return opt?.icon || null;
+}
+
+let activeComboPickerCategory = null;
+
+function openComboItemModal(category) {
+  activeComboPickerCategory = category;
+  document.getElementById('combo-item-modal-title').textContent = `Choose ${CATEGORY_LABEL[category]}`;
+  document.getElementById('combo-item-modal-search').value = '';
+  renderComboItemGrid(category, '');
+  document.getElementById('combo-item-modal').classList.add('open');
+}
+
+function renderComboItemGrid(category, filter) {
+  const grid = document.getElementById('combo-item-modal-grid');
+  const currentValue = document.getElementById(COMBO_SELECT_IDS[category]).value;
+  const query = filter.trim().toLowerCase();
+  const options = (BUILD_OPTIONS[category] || []).filter(opt => opt.value.toLowerCase().includes(query));
+
+  const noneTile = `
+    <div class="build-modal-tile ${currentValue === '' ? 'selected' : ''}" data-item-value="">
+      <i data-lucide="ban" class="icon-lg"></i>
+      <span>None</span>
+    </div>
+  `;
+  const tiles = options.map(opt => `
+    <div class="build-modal-tile ${currentValue === opt.value ? 'selected' : ''}" data-item-value="${escapeHtml(opt.value)}">
+      <img src="${opt.icon}" alt="${escapeHtml(opt.value)}" loading="lazy">
+      <span>${escapeHtml(opt.value)}</span>
+    </div>
+  `).join('');
+
+  grid.innerHTML = noneTile + tiles;
+  refreshIcons();
+
+  grid.querySelectorAll('[data-item-value]').forEach(tile => {
+    tile.addEventListener('click', () => {
+      setComboItem(category, tile.dataset.itemValue);
+      document.getElementById('combo-item-modal').classList.remove('open');
+    });
+  });
+}
+
+function setComboItem(category, value) {
+  document.getElementById(COMBO_SELECT_IDS[category]).value = value;
+  const btn = document.querySelector(`[data-picker-for="${category}"]`);
+  const valueEl = btn.querySelector(`[data-picker-value="${category}"]`);
+  const icon = iconFor(category, value);
+
+  if (value) {
+    valueEl.classList.remove('is-empty');
+    valueEl.innerHTML = `${icon ? `<img src="${icon}" alt="" style="width:18px; height:18px; object-fit:contain; vertical-align:-4px; margin-right:6px;">` : ''}${escapeHtml(value)}`;
+  } else {
+    valueEl.classList.add('is-empty');
+    valueEl.textContent = '— None —';
+  }
+}
 
 function setFilter(difficulty) {
   activeFilter = difficulty;
@@ -69,10 +134,11 @@ function renderCombos() {
         <h3 style="margin:0; font-size:1.05rem;">${escapeHtml(c.title)}</h3>
         <span class="tag tag-${c.difficulty}">${c.difficulty}</span>
       </div>
-      <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap; margin-top:12px;">
+      <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-top:14px;">
         ${(c.steps || []).map((s, i) => `
           ${i > 0 ? '<i data-lucide="chevron-right" class="icon-sm muted"></i>' : ''}
-          <span style="font-size:0.78rem; padding:4px 9px; border-radius:999px; border:1px solid ${CATEGORY_COLOR[s.category]}; color:${CATEGORY_COLOR[s.category]};">
+          <span style="display:inline-flex; align-items:center; gap:7px; font-size:0.92rem; padding:6px 14px; border-radius:999px; border:1px solid ${CATEGORY_COLOR[s.category]}; color:${CATEGORY_COLOR[s.category]};">
+            ${iconFor(s.category, s.item) ? `<img src="${iconFor(s.category, s.item)}" alt="" style="width:20px; height:20px; object-fit:contain;">` : ''}
             ${CATEGORY_LABEL[s.category]}: ${escapeHtml(s.item)}
           </span>
         `).join('')}
@@ -116,6 +182,7 @@ async function handleCreateCombo(e) {
   if (error) { showToast(error.message, true); return; }
 
   document.getElementById('combo-form').reset();
+  Object.keys(COMBO_SELECT_IDS).forEach(category => setComboItem(category, ''));
   document.getElementById('combo-compose').style.display = 'none';
   loadCombos();
 }

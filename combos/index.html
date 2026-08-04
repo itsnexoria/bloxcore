@@ -34,6 +34,7 @@
       <li><a href="/challenges/"><i data-lucide="swords" class="icon-sm icon-inline"></i>Challenges</a></li>
       <li><a href="/leaderboard/"><i data-lucide="trophy" class="icon-sm icon-inline"></i>Leaderboard</a></li>
       <li><a href="/crews/"><i data-lucide="users" class="icon-sm icon-inline"></i>Crews</a></li>
+      <li><a href="/trading/"><i data-lucide="repeat" class="icon-sm icon-inline"></i>Trading</a></li>
       <li><a href="/combos/" class="active"><i data-lucide="flame" class="icon-sm icon-inline"></i>Combos</a></li>
       <li><a href="/whats-new/"><i data-lucide="sparkles" class="icon-sm icon-inline"></i>What's New</a></li>
       <li id="nav-auth-slot"></li>
@@ -63,22 +64,34 @@
         <p class="muted" style="margin:-8px 0 10px; font-size:0.78rem;">Pick whichever apply — leave the rest blank.</p>
         <div class="two-col-grid" style="gap:16px;">
           <div>
-            <label for="combo-melee">Melee</label>
-            <select id="combo-melee"><option value="">— None —</option></select>
+            <label>Melee</label>
+            <input type="hidden" id="combo-melee" value="">
+            <button type="button" class="build-picker-btn" data-picker-for="melee" style="width:100%; flex-direction:row; align-items:center; justify-content:space-between;">
+              <span class="build-picker-value is-empty" data-picker-value="melee">— None —</span>
+            </button>
           </div>
           <div>
-            <label for="combo-fruit">Fruit</label>
-            <select id="combo-fruit"><option value="">— None —</option></select>
+            <label>Fruit</label>
+            <input type="hidden" id="combo-fruit" value="">
+            <button type="button" class="build-picker-btn" data-picker-for="fruit" style="width:100%; flex-direction:row; align-items:center; justify-content:space-between;">
+              <span class="build-picker-value is-empty" data-picker-value="fruit">— None —</span>
+            </button>
           </div>
         </div>
         <div class="two-col-grid" style="gap:16px;">
           <div>
-            <label for="combo-sword">Sword</label>
-            <select id="combo-sword"><option value="">— None —</option></select>
+            <label>Sword</label>
+            <input type="hidden" id="combo-sword" value="">
+            <button type="button" class="build-picker-btn" data-picker-for="sword" style="width:100%; flex-direction:row; align-items:center; justify-content:space-between;">
+              <span class="build-picker-value is-empty" data-picker-value="sword">— None —</span>
+            </button>
           </div>
           <div>
-            <label for="combo-gun">Gun</label>
-            <select id="combo-gun"><option value="">— None —</option></select>
+            <label>Gun</label>
+            <input type="hidden" id="combo-gun" value="">
+            <button type="button" class="build-picker-btn" data-picker-for="gun" style="width:100%; flex-direction:row; align-items:center; justify-content:space-between;">
+              <span class="build-picker-value is-empty" data-picker-value="gun">— None —</span>
+            </button>
           </div>
         </div>
 
@@ -114,6 +127,17 @@
     </div>
   </div>
 </section>
+
+<div id="combo-item-modal" class="build-modal-overlay">
+  <div class="panel build-modal">
+    <div class="flex-between" style="margin-bottom:14px;">
+      <h3 id="combo-item-modal-title" style="font-size:1.05rem; margin:0;">Choose</h3>
+      <button type="button" class="btn btn-ghost btn-sm" id="combo-item-modal-close"><i data-lucide="x" class="icon-md"></i></button>
+    </div>
+    <input type="text" id="combo-item-modal-search" placeholder="Search…" style="margin-bottom:16px;">
+    <div id="combo-item-modal-grid" class="build-modal-grid"></div>
+  </div>
+</div>
 
 <footer class="site-footer">
   <div class="container">BloxCore is an unofficial fan-made community project for Blox Fruits players.</div>

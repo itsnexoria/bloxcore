@@ -1,11 +1,13 @@
-// BloxCore — trading/index.html logic
+// BloxCore — trading/index.html logic (backed by the bf_items reference table)
 
 let currentUser = null;
 let allTradeItems = [];
 let pickerTarget = null; // 'offering' | 'requesting'
 let pickerCategory = 'fruit';
-let offeringItems = [];
-let requestingItems = [];
+let offeringIds = [];
+let requestingIds = [];
+
+const TREND_COLOR = { stable: 'var(--glass-border)', overpaid: 'var(--blood)', underpaid: 'var(--sea)' };
 
 document.addEventListener('DOMContentLoaded', async () => {
   const { user } = await getCurrentProfile();
@@ -18,7 +20,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.getElementById('trade-signed-out').style.display = 'block';
   }
 
-  const { data } = await sb.from('trade_items').select('*').order('name');
+  const { data } = await sb.from('bf_items').select('*').in('category', ['fruit', 'limited']).order('name');
   allTradeItems = data || [];
 
   document.getElementById('trade-compose-close').addEventListener('click', closeComposeModal);
@@ -43,15 +45,28 @@ document.addEventListener('DOMContentLoaded', async () => {
   await loadListings();
 });
 
-function itemTileHtml(item, { removable = false } = {}) {
+function itemById(id) {
+  return allTradeItems.find(i => i.id === id);
+}
+
+function itemValue(item) {
+  return item.permanent_value || item.regular_value || 0;
+}
+
+function formatValue(n) {
+  if (!n) return '—';
+  if (n >= 1e9) return `${(n / 1e9).toFixed(n % 1e9 === 0 ? 0 : 1)}B`;
+  if (n >= 1e6) return `${(n / 1e6).toFixed(n % 1e6 === 0 ? 0 : 1)}M`;
+  if (n >= 1e3) return `${(n / 1e3).toFixed(n % 1e3 === 0 ? 0 : 1)}K`;
+  return String(n);
+}
+
+function itemTileHtml(item) {
+  const value = itemValue(item);
   return `
-    <div class="trade-item-tile cat-${item.category}">
-      <span class="trade-item-cat-badge">${item.category[0]}</span>
-      ${item.image_url ? `<img src="${item.image_url}" alt="" onerror="this.style.display='none';">` : `<i data-lucide="sparkles" class="icon-lg"></i>`}
-      <div class="trade-item-footer">
-        <span>${item.value_label || '—'}</span>
-        <span><i data-lucide="trending-up" class="icon-sm" style="width:10px; height:10px;"></i> ${item.demand}/10</span>
-      </div>
+    <div class="trade-item-tile" style="border-color:${TREND_COLOR[item.trend] || 'var(--glass-border)'};" title="${escapeHtml(item.name)} — ${formatValue(value)} — demand ${item.demand || '?'}/10 — ${item.trend || 'stable'}">
+      ${item.icon_url ? `<img src="${item.icon_url}" alt="" loading="lazy" onerror="this.style.display='none';">` : `<i data-lucide="sparkles" class="icon-lg"></i>`}
+      <div class="trade-item-footer"><span>${formatValue(value)}</span></div>
     </div>
   `;
 }
@@ -59,8 +74,8 @@ function itemTileHtml(item, { removable = false } = {}) {
 // --- Compose modal -----------------------------------------------------
 
 function openComposeModal() {
-  offeringItems = [];
-  requestingItems = [];
+  offeringIds = [];
+  requestingIds = [];
   document.getElementById('trade-note').value = '';
   renderSlotList('offering');
   renderSlotList('requesting');
@@ -71,17 +86,21 @@ function closeComposeModal() {
 }
 
 function renderSlotList(side) {
-  const items = side === 'offering' ? offeringItems : requestingItems;
+  const ids = side === 'offering' ? offeringIds : requestingIds;
   const container = document.getElementById(`${side}-items`);
-  container.innerHTML = items.map((item, i) => `
-    <div class="trade-slot-tile">
-      ${itemTileHtml(item)}
-      <button type="button" class="trade-slot-remove" data-remove-index="${i}" data-remove-side="${side}">×</button>
-    </div>
-  `).join('');
+  container.innerHTML = ids.map((id, i) => {
+    const item = itemById(id);
+    if (!item) return '';
+    return `
+      <div class="trade-slot-tile">
+        ${itemTileHtml(item)}
+        <button type="button" class="trade-slot-remove" data-remove-index="${i}" data-remove-side="${side}">×</button>
+      </div>
+    `;
+  }).join('');
   container.querySelectorAll('[data-remove-index]').forEach(btn => {
     btn.addEventListener('click', () => {
-      const arr = btn.dataset.removeSide === 'offering' ? offeringItems : requestingItems;
+      const arr = btn.dataset.removeSide === 'offering' ? offeringIds : requestingIds;
       arr.splice(Number(btn.dataset.removeIndex), 1);
       renderSlotList(btn.dataset.removeSide);
     });
@@ -107,15 +126,14 @@ function renderItemPickerGrid() {
 
   grid.innerHTML = items.length
     ? items.map(item => `<div class="build-modal-tile" data-pick-item="${item.id}" style="padding:6px;">${itemTileHtml(item)}<span style="font-size:0.72rem; margin-top:4px;">${escapeHtml(item.name)}</span></div>`).join('')
-    : `<p class="muted" style="grid-column:1/-1;">No ${pickerCategory}s found${query ? ' matching your search' : ' in the catalog yet'}.</p>`;
+    : `<p class="muted" style="grid-column:1/-1;">No items found${query ? ' matching your search' : ''}.</p>`;
 
   grid.querySelectorAll('[data-pick-item]').forEach(tile => {
     tile.addEventListener('click', () => {
-      const item = allTradeItems.find(i => i.id === tile.dataset.pickItem);
-      if (!item) return;
-      const arr = pickerTarget === 'offering' ? offeringItems : requestingItems;
+      const id = Number(tile.dataset.pickItem);
+      const arr = pickerTarget === 'offering' ? offeringIds : requestingIds;
       if (arr.length >= 6) { showToast('You can add up to 6 items per side.', true); return; }
-      arr.push(item);
+      arr.push(id);
       renderSlotList(pickerTarget);
       document.getElementById('item-picker-modal').classList.remove('open');
     });
@@ -124,7 +142,7 @@ function renderItemPickerGrid() {
 }
 
 async function handlePost() {
-  if (!offeringItems.length || !requestingItems.length) {
+  if (!offeringIds.length || !requestingIds.length) {
     showToast('Add at least one item to both sides.', true);
     return;
   }
@@ -134,8 +152,8 @@ async function handlePost() {
 
   const { error } = await sb.from('trade_listings').insert({
     user_id: currentUser.id,
-    offering_items: offeringItems.map(i => ({ id: i.id, name: i.name, category: i.category, image_url: i.image_url, value_label: i.value_label, value_num: i.value_num, demand: i.demand })),
-    requesting_items: requestingItems.map(i => ({ id: i.id, name: i.name, category: i.category, image_url: i.image_url, value_label: i.value_label, value_num: i.value_num, demand: i.demand })),
+    offering_item_ids: offeringIds,
+    requesting_item_ids: requestingIds,
     note: note || null,
   });
   btn.disabled = false;
@@ -152,7 +170,7 @@ async function loadListings() {
   const container = document.getElementById('trade-listings');
   const { data, error } = await sb
     .from('trade_listings')
-    .select('id, user_id, offering_items, requesting_items, note, created_at, profiles(username, display_name, avatar_url, title_color_override, titles(name, color))')
+    .select('id, user_id, offering_item_ids, requesting_item_ids, note, created_at, profiles(username, display_name, avatar_url, title_color_override, titles(name, color))')
     .eq('active', true)
     .order('created_at', { ascending: false })
     .limit(40);
@@ -168,22 +186,23 @@ async function loadListings() {
     return;
   }
 
+  // If the catalog hasn't loaded yet for some reason, still show something reasonable.
   container.innerHTML = data.map(renderListing).join('');
   wireListingActions();
   refreshIcons();
 }
 
-function sideSummary(items) {
-  const total = items.reduce((sum, i) => sum + (i.value_num || 0), 0);
-  const avgDemand = items.length ? (items.reduce((sum, i) => sum + (i.demand || 0), 0) / items.length).toFixed(1) : '0.0';
-  return { total, avgDemand };
+function sideSummary(ids) {
+  const items = ids.map(itemById).filter(Boolean);
+  const total = items.reduce((sum, i) => sum + itemValue(i), 0);
+  return { total, items };
 }
 
 function renderListing(t) {
   const profile = t.profiles || {};
   const canDelete = currentUser && t.user_id === currentUser.id;
-  const offer = sideSummary(t.offering_items || []);
-  const request = sideSummary(t.requesting_items || []);
+  const offer = sideSummary(t.offering_item_ids || []);
+  const request = sideSummary(t.requesting_item_ids || []);
 
   return `
     <div class="panel trade-card" data-listing-id="${t.id}">
@@ -208,17 +227,17 @@ function renderListing(t) {
         <div>
           <div class="trade-side-header" style="color:var(--sea);">
             <i data-lucide="sparkles" class="icon-sm"></i>Offering
-            <span class="trade-side-total">${offer.total.toLocaleString()} · <i data-lucide="trending-up" class="icon-sm" style="width:11px;height:11px;"></i> ${offer.avgDemand}/10</span>
+            <span class="trade-side-total">${formatValue(offer.total)}</span>
           </div>
-          <div class="trade-item-grid">${(t.offering_items || []).map(i => itemTileHtml(i)).join('')}</div>
+          <div class="trade-item-grid">${offer.items.map(itemTileHtml).join('')}</div>
         </div>
         <div class="trade-arrow"><i data-lucide="arrow-right" class="icon-sm"></i></div>
         <div>
           <div class="trade-side-header" style="color:var(--gold-bright);">
             <i data-lucide="sparkles" class="icon-sm"></i>Requesting
-            <span class="trade-side-total">${request.total.toLocaleString()} · <i data-lucide="trending-up" class="icon-sm" style="width:11px;height:11px;"></i> ${request.avgDemand}/10</span>
+            <span class="trade-side-total">${formatValue(request.total)}</span>
           </div>
-          <div class="trade-item-grid">${(t.requesting_items || []).map(i => itemTileHtml(i)).join('')}</div>
+          <div class="trade-item-grid">${request.items.map(itemTileHtml).join('')}</div>
         </div>
       </div>
     </div>
