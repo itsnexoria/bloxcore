@@ -6,12 +6,9 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   await loadBroadcasts();
   await loadEvents();
-  await loadTradeItems();
 
   document.getElementById('broadcast-form').addEventListener('submit', handleCreateBroadcast);
   document.getElementById('event-form').addEventListener('submit', handleCreateEvent);
-  document.getElementById('trade-item-form').addEventListener('submit', handleUpsertTradeItem);
-  document.getElementById('ti-search').addEventListener('input', renderTradeItems);
 });
 
 const SEVERITY_COLOR = { info: 'var(--blue)', success: 'var(--sea)', warning: 'var(--gold)', danger: 'var(--blood)' };
@@ -116,77 +113,3 @@ async function handleCreateEvent(e) {
   loadEvents();
 }
 
-// --- Trade item catalog ---------------------------------------------------
-
-let allTradeItemsAdmin = [];
-
-async function loadTradeItems() {
-  const { data } = await sb.from('trade_items').select('*').order('category').order('name');
-  allTradeItemsAdmin = data || [];
-  renderTradeItems();
-}
-
-function renderTradeItems() {
-  const query = document.getElementById('ti-search').value.trim().toLowerCase();
-  const list = document.getElementById('trade-item-list');
-  const items = allTradeItemsAdmin.filter(i => i.name.toLowerCase().includes(query));
-
-  if (!items.length) { list.innerHTML = `<p class="muted" style="font-size:0.85rem;">No items found.</p>`; return; }
-
-  list.innerHTML = items.map(i => `
-    <div class="flex-between" style="padding:8px 12px; border:1px solid var(--glass-border); border-radius:var(--radius-sm);">
-      <div style="display:flex; align-items:center; gap:10px; min-width:0;">
-        ${i.image_url ? `<img src="${i.image_url}" alt="" style="width:28px; height:28px; object-fit:contain;" onerror="this.style.display='none';">` : ''}
-        <div style="min-width:0;">
-          <p style="margin:0; font-size:0.85rem; font-weight:600;">${escapeHtml(i.name)} <span class="muted" style="font-weight:400;">· ${i.category}</span></p>
-          <p class="muted" style="margin:0; font-size:0.72rem;">${i.value_label || 'no value set'} · demand ${i.demand}/10</p>
-        </div>
-      </div>
-      <div style="display:flex; gap:6px; flex-shrink:0;">
-        <button class="btn btn-ghost btn-sm" data-edit-item="${i.id}"><i data-lucide="pencil" class="icon-sm"></i></button>
-        <button class="btn btn-danger btn-sm" data-delete-item="${i.id}"><i data-lucide="trash-2" class="icon-sm"></i></button>
-      </div>
-    </div>
-  `).join('');
-
-  document.querySelectorAll('[data-edit-item]').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const item = allTradeItemsAdmin.find(i => i.id === btn.dataset.editItem);
-      if (!item) return;
-      document.getElementById('ti-name').value = item.name;
-      document.getElementById('ti-category').value = item.category;
-      document.getElementById('ti-value-label').value = item.value_label || '';
-      document.getElementById('ti-value-num').value = item.value_num || '';
-      document.getElementById('ti-demand').value = item.demand || 5;
-      document.getElementById('ti-image').value = item.image_url || '';
-      document.getElementById('trade-item-form').scrollIntoView({ behavior: 'smooth' });
-    });
-  });
-  document.querySelectorAll('[data-delete-item]').forEach(btn => {
-    btn.addEventListener('click', async () => {
-      await sb.from('trade_items').delete().eq('id', btn.dataset.deleteItem);
-      loadTradeItems();
-    });
-  });
-  refreshIcons();
-}
-
-async function handleUpsertTradeItem(e) {
-  e.preventDefault();
-  const payload = {
-    name: document.getElementById('ti-name').value.trim(),
-    category: document.getElementById('ti-category').value,
-    value_label: document.getElementById('ti-value-label').value.trim() || null,
-    value_num: parseInt(document.getElementById('ti-value-num').value, 10) || 0,
-    demand: parseInt(document.getElementById('ti-demand').value, 10) || 5,
-    image_url: document.getElementById('ti-image').value.trim() || null,
-  };
-  if (!payload.name) return;
-
-  const { error } = await sb.from('trade_items').upsert(payload, { onConflict: 'name,category' });
-  if (error) { showToast(error.message, true); return; }
-
-  document.getElementById('trade-item-form').reset();
-  document.getElementById('ti-demand').value = 5;
-  loadTradeItems();
-}
