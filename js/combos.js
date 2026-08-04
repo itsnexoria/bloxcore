@@ -3,11 +3,10 @@
 let isStaff = false;
 let allCombos = [];
 let activeFilter = 'all';
-let activeCategoryFilter = 'all';
-let currentSteps = [];
 
-const CATEGORY_LABEL = { fruit: 'Fruit', melee: 'Melee', sword: 'Sword', gun: 'Gun', race: 'Race' };
-const CATEGORY_COLOR = { fruit: 'var(--brass-bright)', melee: 'var(--gold)', sword: 'var(--blue)', gun: 'var(--purple)', race: 'var(--sea)' };
+const CATEGORY_LABEL = { fruit: 'Fruit', melee: 'Melee', sword: 'Sword', gun: 'Gun' };
+const CATEGORY_COLOR = { fruit: 'var(--brass-bright)', melee: 'var(--gold)', sword: 'var(--blue)', gun: 'var(--purple)' };
+const COMBO_SELECT_IDS = { melee: 'combo-melee', fruit: 'combo-fruit', sword: 'combo-sword', gun: 'combo-gun' };
 
 document.addEventListener('DOMContentLoaded', async () => {
   const { profile } = await getCurrentProfile();
@@ -15,87 +14,30 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   if (isStaff) {
     document.getElementById('new-combo-btn').style.display = 'inline-flex';
-    document.getElementById('new-combo-btn').addEventListener('click', openCompose);
-    document.getElementById('combo-cancel-btn').addEventListener('click', closeCompose);
+    document.getElementById('new-combo-btn').addEventListener('click', () => {
+      document.getElementById('combo-compose').style.display = 'block';
+    });
+    document.getElementById('combo-cancel-btn').addEventListener('click', () => {
+      document.getElementById('combo-compose').style.display = 'none';
+    });
     document.getElementById('combo-form').addEventListener('submit', handleCreateCombo);
-    document.getElementById('step-category').addEventListener('change', populateStepItemSelect);
-    document.getElementById('add-step-btn').addEventListener('click', addStep);
-    populateStepItemSelect();
+    Object.entries(COMBO_SELECT_IDS).forEach(([category, id]) => {
+      const select = document.getElementById(id);
+      select.innerHTML += (BUILD_OPTIONS[category] || []).map(opt => `<option value="${escapeHtml(opt.value)}">${escapeHtml(opt.value)}</option>`).join('');
+    });
   }
 
   document.querySelectorAll('#combo-filters [data-difficulty]').forEach(btn => {
     btn.addEventListener('click', () => setFilter(btn.dataset.difficulty));
   });
-  document.querySelectorAll('#combo-category-filters [data-cat-filter]').forEach(btn => {
-    btn.addEventListener('click', () => setCategoryFilter(btn.dataset.catFilter));
-  });
 
   await loadCombos();
 });
-
-function openCompose() {
-  currentSteps = [];
-  renderStepsList();
-  document.getElementById('combo-compose').style.display = 'block';
-}
-function closeCompose() {
-  document.getElementById('combo-compose').style.display = 'none';
-}
-
-function populateStepItemSelect() {
-  const category = document.getElementById('step-category').value;
-  const select = document.getElementById('step-item');
-  select.innerHTML = (BUILD_OPTIONS[category] || []).map(opt => `<option value="${escapeHtml(opt.value)}">${escapeHtml(opt.value)}</option>`).join('');
-}
-
-function addStep() {
-  const category = document.getElementById('step-category').value;
-  const item = document.getElementById('step-item').value;
-  const key = document.getElementById('step-key').value.trim();
-  if (!item) return;
-  currentSteps.push({ category, item, key: key || null });
-  document.getElementById('step-key').value = '';
-  renderStepsList();
-}
-
-function renderStepsList() {
-  const list = document.getElementById('combo-steps-list');
-  if (!currentSteps.length) {
-    list.innerHTML = `<p class="muted" style="font-size:0.82rem; margin:0;">No steps added yet — add at least one below.</p>`;
-    return;
-  }
-  list.innerHTML = currentSteps.map((s, i) => `
-    <div class="flex-between" style="padding:8px 12px; border:1px solid var(--glass-border); border-radius:var(--radius-sm);">
-      <span style="font-size:0.85rem;">
-        <span class="muted" style="font-family:var(--font-mono); margin-right:8px;">${i + 1}.</span>
-        <span style="color:${CATEGORY_COLOR[s.category]}; font-weight:700;">${CATEGORY_LABEL[s.category]}</span>
-        — ${escapeHtml(s.item)}
-        ${s.key ? `<span class="tag tag-medium" style="margin-left:8px;">${escapeHtml(s.key)}</span>` : ''}
-      </span>
-      <button type="button" class="btn btn-ghost btn-sm" data-remove-step="${i}"><i data-lucide="x" class="icon-sm"></i></button>
-    </div>
-  `).join('');
-  document.querySelectorAll('[data-remove-step]').forEach(btn => {
-    btn.addEventListener('click', () => {
-      currentSteps.splice(Number(btn.dataset.removeStep), 1);
-      renderStepsList();
-    });
-  });
-  refreshIcons();
-}
 
 function setFilter(difficulty) {
   activeFilter = difficulty;
   document.querySelectorAll('#combo-filters [data-difficulty]').forEach(btn => {
     btn.className = `btn btn-sm ${btn.dataset.difficulty === difficulty ? 'btn-primary' : 'btn-ghost'}`;
-  });
-  renderCombos();
-}
-
-function setCategoryFilter(category) {
-  activeCategoryFilter = category;
-  document.querySelectorAll('#combo-category-filters [data-cat-filter]').forEach(btn => {
-    btn.className = `btn btn-sm ${btn.dataset.catFilter === category ? 'btn-primary' : 'btn-ghost'}`;
   });
   renderCombos();
 }
@@ -114,10 +56,7 @@ async function loadCombos() {
 
 function renderCombos() {
   const list = document.getElementById('combo-list');
-  const items = allCombos.filter(c =>
-    (activeFilter === 'all' || c.difficulty === activeFilter) &&
-    (activeCategoryFilter === 'all' || (c.steps || []).some(s => s.category === activeCategoryFilter))
-  );
+  const items = activeFilter === 'all' ? allCombos : allCombos.filter(c => c.difficulty === activeFilter);
 
   if (!items.length) {
     list.innerHTML = `<div class="empty-state" style="grid-column:1/-1;">No combos here yet.</div>`;
@@ -134,7 +73,7 @@ function renderCombos() {
         ${(c.steps || []).map((s, i) => `
           ${i > 0 ? '<i data-lucide="chevron-right" class="icon-sm muted"></i>' : ''}
           <span style="font-size:0.78rem; padding:4px 9px; border-radius:999px; border:1px solid ${CATEGORY_COLOR[s.category]}; color:${CATEGORY_COLOR[s.category]};">
-            ${escapeHtml(s.item)}${s.key ? ` <span class="muted">(${escapeHtml(s.key)})</span>` : ''}
+            ${CATEGORY_LABEL[s.category]}: ${escapeHtml(s.item)}
           </span>
         `).join('')}
       </div>
@@ -155,7 +94,12 @@ function renderCombos() {
 
 async function handleCreateCombo(e) {
   e.preventDefault();
-  if (!currentSteps.length) { showToast('Add at least one step to the combo.', true); return; }
+
+  const steps = Object.entries(COMBO_SELECT_IDS)
+    .map(([category, id]) => ({ category, item: document.getElementById(id).value }))
+    .filter(s => s.item);
+
+  if (!steps.length) { showToast('Pick at least one of Melee, Fruit, Sword, or Gun.', true); return; }
 
   const { data: { user } } = await sb.auth.getUser();
   const payload = {
@@ -163,7 +107,7 @@ async function handleCreateCombo(e) {
     difficulty: document.getElementById('combo-difficulty').value,
     description: document.getElementById('combo-description').value.trim() || null,
     video_url: document.getElementById('combo-video').value.trim() || null,
-    steps: currentSteps,
+    steps,
     created_by: user.id,
   };
   if (!payload.title) return;
@@ -172,7 +116,6 @@ async function handleCreateCombo(e) {
   if (error) { showToast(error.message, true); return; }
 
   document.getElementById('combo-form').reset();
-  currentSteps = [];
-  closeCompose();
+  document.getElementById('combo-compose').style.display = 'none';
   loadCombos();
 }
