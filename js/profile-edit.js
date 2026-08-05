@@ -11,6 +11,7 @@ const BUILD_FIELDS = [
   { id: 'build_melee', key: 'melee', label: 'Fighting Style' },
   { id: 'build_accessory', key: 'accessory', label: 'Accessory' },
 ];
+let currentFruitSkin = '';
 
 document.addEventListener('DOMContentLoaded', async () => {
   const auth = await requireAuth();
@@ -176,6 +177,7 @@ function populateForm(profile) {
   document.getElementById('pirate_bounty').value = profile.pirate_bounty || 0;
   document.getElementById('marine_bounty').value = profile.marine_bounty || 0;
 
+  currentFruitSkin = profile.build_fruit_skin || '';
   BUILD_FIELDS.forEach(({ id, key, label }) => {
     setBuildValue(key, profile[id] || '', false);
   });
@@ -274,7 +276,7 @@ function renderModalGrid(key, filter) {
   `;
 
   const tiles = options.map(opt => `
-    <div class="build-modal-tile ${currentValue === opt.value ? 'selected' : ''}" data-build-value="${escapeHtml(opt.value)}">
+    <div class="build-modal-tile ${currentValue === opt.value ? 'selected' : ''}" ${opt.rarity ? `data-rarity="${opt.rarity}"` : ''} data-build-value="${escapeHtml(opt.value)}">
       <img src="${opt.icon}" alt="${escapeHtml(opt.value)}" loading="lazy">
       <span>${escapeHtml(opt.value)}</span>
     </div>
@@ -300,12 +302,32 @@ function setBuildValue(key, value, animate) {
   const valueEl = btn.querySelector('.build-picker-value');
   const icon = value ? findBuildIcon(key, value) : null;
 
+  if (key === 'fruit' && !value) currentFruitSkin = '';
+
+  const renderFruitValueLabel = () => {
+    const skinSuffix = key === 'fruit' && currentFruitSkin ? ` <span class="muted" style="font-weight:400;">(${escapeHtml(currentFruitSkin)})</span>` : '';
+    valueEl.innerHTML = `${icon ? `<img src="${icon}" alt="">` : ''}${escapeHtml(value)}${skinSuffix}`;
+  };
+
   if (value) {
     valueEl.classList.remove('is-empty');
-    valueEl.innerHTML = `${icon ? `<img src="${icon}" alt="">` : ''}${escapeHtml(value)}`;
+    renderFruitValueLabel();
   } else {
     valueEl.classList.add('is-empty');
     valueEl.textContent = '— Choose —';
+  }
+
+  // Only prompt when the user just hand-picked a fruit (animate = true from the modal), not
+  // while the form is being populated from the saved profile on page load.
+  if (key === 'fruit' && animate && value) {
+    maybePromptFruitSkin(value, currentFruitSkin, (skin) => {
+      currentFruitSkin = skin || '';
+      document.getElementById('build_fruit_skin').value = currentFruitSkin;
+      renderFruitValueLabel();
+    });
+  }
+  if (key === 'fruit') {
+    document.getElementById('build_fruit_skin').value = currentFruitSkin;
   }
 
   if (animate) {
@@ -338,6 +360,7 @@ async function handleSave(e) {
     pirate_bounty: parseInt(document.getElementById('pirate_bounty').value, 10) || 0,
     marine_bounty: parseInt(document.getElementById('marine_bounty').value, 10) || 0,
     build_fruit: document.getElementById('build_fruit').value || null,
+    build_fruit_skin: document.getElementById('build_fruit_skin').value || null,
     build_race: document.getElementById('build_race').value || null,
     build_sword: document.getElementById('build_sword').value || null,
     build_gun: document.getElementById('build_gun').value || null,

@@ -60,6 +60,12 @@
 .icon-inline { vertical-align: -3px; margin-right: 4px; }
 .lucide { vertical-align: -0.15em; }
 
+/* Icons are always decorative labels inside a button/link, never their own click target.
+   Without this, clicking the exact painted pixels of an icon's stroke can register on the
+   <svg> itself instead of bubbling to the button — which is why some icon buttons only
+   seemed to work when clicked just next to the icon rather than on it. */
+button svg, a svg, .btn svg { pointer-events: none; }
+
 * { box-sizing: border-box; }
 
 html {
@@ -1187,6 +1193,17 @@ select option {
 }
 .color-swatch-btn:hover { transform: scale(1.1); }
 .color-swatch-btn.selected { border-color: var(--bone); box-shadow: 0 0 0 2px var(--ink), 0 0 0 4px var(--brass); }
+
+/* Item-picker tiles tinted by in-game rarity — common through mythical, same color
+   convention the game itself uses (gray/teal/purple/magenta/red). */
+.build-modal-tile[data-rarity] {
+  border-width: 2px;
+}
+.build-modal-tile[data-rarity="common"] { background: linear-gradient(160deg, rgba(148,148,166,0.16), var(--navy) 70%); border-color: #9a9aa8; }
+.build-modal-tile[data-rarity="uncommon"] { background: linear-gradient(160deg, rgb(var(--blue-rgb) / 0.2), var(--navy) 70%); border-color: var(--blue); }
+.build-modal-tile[data-rarity="rare"] { background: linear-gradient(160deg, rgb(var(--purple-rgb) / 0.22), var(--navy) 70%); border-color: var(--purple); }
+.build-modal-tile[data-rarity="legendary"] { background: linear-gradient(160deg, rgba(217,70,239,0.2), var(--navy) 70%); border-color: #d946ef; }
+.build-modal-tile[data-rarity="mythical"] { background: linear-gradient(160deg, rgb(var(--brass-rgb) / 0.22), var(--navy) 70%); border-color: var(--brass); }
 
 /* -------------------------------- Utility --------------------------------- */
 

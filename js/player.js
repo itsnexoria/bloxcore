@@ -45,7 +45,7 @@ function renderProfile(p, crew) {
   ].filter(s => social[s.key]);
 
   const buildFields = [
-    { key: 'fruit', label: 'Fruit', value: p.build_fruit },
+    { key: 'fruit', label: 'Fruit', value: p.build_fruit, sub: p.build_fruit_skin },
     { key: 'race', label: 'Race', value: p.build_race },
     { key: 'sword', label: 'Sword', value: p.build_sword },
     { key: 'gun', label: 'Gun', value: p.build_gun },
@@ -123,6 +123,7 @@ function renderBuildItem(field) {
       ${icon ? `<img src="${icon}" alt="${escapeHtml(field.value)}" style="width:48px; height:48px; object-fit:contain; margin-bottom:8px;">` : ''}
       <p class="muted" style="margin:0 0 2px; font-size:0.72rem; text-transform:uppercase; letter-spacing:0.05em;">${field.label}</p>
       <p style="margin:0; font-size:0.85rem; font-weight:600;">${escapeHtml(field.value)}</p>
+      ${field.sub ? `<p class="muted" style="margin:2px 0 0; font-size:0.72rem;">${escapeHtml(field.sub)} skin</p>` : ''}
     </div>
   `;
 }

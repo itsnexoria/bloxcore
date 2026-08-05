@@ -67,7 +67,7 @@ function renderComboItemGrid(category, filter) {
     </div>
   `;
   const tiles = options.map(opt => `
-    <div class="build-modal-tile ${currentValue === opt.value ? 'selected' : ''}" data-item-value="${escapeHtml(opt.value)}">
+    <div class="build-modal-tile ${currentValue === opt.value ? 'selected' : ''}" ${opt.rarity ? `data-rarity="${opt.rarity}"` : ''} data-item-value="${escapeHtml(opt.value)}">
       <img src="${opt.icon}" alt="${escapeHtml(opt.value)}" loading="lazy">
       <span>${escapeHtml(opt.value)}</span>
     </div>
@@ -84,18 +84,32 @@ function renderComboItemGrid(category, filter) {
   });
 }
 
+let currentSkins = { fruit: '' };
+
 function setComboItem(category, value) {
   document.getElementById(COMBO_SELECT_IDS[category]).value = value;
-  const btn = document.querySelector(`[data-picker-for="${category}"]`);
-  const valueEl = btn.querySelector(`[data-picker-value="${category}"]`);
-  const icon = iconFor(category, value);
+  if (category === 'fruit' && !value) currentSkins.fruit = '';
 
-  if (value) {
-    valueEl.classList.remove('is-empty');
-    valueEl.innerHTML = `${icon ? `<img src="${icon}" alt="" style="width:18px; height:18px; object-fit:contain; vertical-align:-4px; margin-right:6px;">` : ''}${escapeHtml(value)}`;
-  } else {
-    valueEl.classList.add('is-empty');
-    valueEl.textContent = '— None —';
+  const renderLabel = () => {
+    const btn = document.querySelector(`[data-picker-for="${category}"]`);
+    const valueEl = btn.querySelector(`[data-picker-value="${category}"]`);
+    const icon = iconFor(category, value);
+    const skinSuffix = category === 'fruit' && currentSkins.fruit ? ` <span class="muted" style="font-weight:400;">(${escapeHtml(currentSkins.fruit)})</span>` : '';
+    if (value) {
+      valueEl.classList.remove('is-empty');
+      valueEl.innerHTML = `${icon ? `<img src="${icon}" alt="" style="width:18px; height:18px; object-fit:contain; vertical-align:-4px; margin-right:6px;">` : ''}${escapeHtml(value)}${skinSuffix}`;
+    } else {
+      valueEl.classList.add('is-empty');
+      valueEl.textContent = '— None —';
+    }
+  };
+  renderLabel();
+
+  if (category === 'fruit' && value) {
+    maybePromptFruitSkin(value, currentSkins.fruit, (skin) => {
+      currentSkins.fruit = skin || '';
+      renderLabel();
+    });
   }
 }
 
@@ -108,7 +122,7 @@ function setFilter(difficulty) {
 }
 
 async function loadCombos() {
-  const { data, error } = await sb.from('combos').select('*').order('created_at', { ascending: false });
+  const { data, error } = await sb.from('combos').select('*, profiles:created_by(username, display_name, avatar_url, title_color_override, titles(name, color))').order('created_at', { ascending: false });
   const list = document.getElementById('combo-list');
   if (error) {
     list.innerHTML = `<p class="muted">Couldn't load combos right now.</p>`;
@@ -128,26 +142,34 @@ function renderCombos() {
     return;
   }
 
-  list.innerHTML = items.map(c => `
+  list.innerHTML = items.map(c => {
+    const poster = c.profiles || {};
+    return `
     <div class="panel" data-combo-id="${c.id}">
-      <div class="flex-between" style="align-items:flex-start;">
-        <h3 style="margin:0; font-size:1.05rem;">${escapeHtml(c.title)}</h3>
-        <span class="tag tag-${c.difficulty}">${c.difficulty}</span>
+      <div class="flex-between">
+        <a href="/player/?u=${encodeURIComponent(poster.username || '')}" style="display:flex; align-items:center; gap:9px; text-decoration:none; min-width:0;">
+          ${avatarHtml(poster, 28)}
+          <span style="color:var(--bone); font-weight:600; font-size:0.85rem; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${titleBadge(poster)} ${escapeHtml(displayNameFor(poster))}</span>
+        </a>
+        <span class="tag tag-${c.difficulty}" style="flex-shrink:0;">${c.difficulty}</span>
       </div>
-      <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-top:14px;">
+
+      <h3 style="margin:14px 0 0; font-size:1.05rem;">${escapeHtml(c.title)}</h3>
+
+      <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap; margin-top:14px;">
         ${(c.steps || []).map((s, i) => `
           ${i > 0 ? '<i data-lucide="chevron-right" class="icon-sm muted"></i>' : ''}
-          <span style="display:inline-flex; align-items:center; gap:7px; font-size:0.92rem; padding:6px 14px; border-radius:999px; border:1px solid ${CATEGORY_COLOR[s.category]}; color:${CATEGORY_COLOR[s.category]};">
-            ${iconFor(s.category, s.item) ? `<img src="${iconFor(s.category, s.item)}" alt="" style="width:20px; height:20px; object-fit:contain;">` : ''}
-            ${CATEGORY_LABEL[s.category]}: ${escapeHtml(s.item)}
-          </span>
+          <div title="${CATEGORY_LABEL[s.category]}: ${escapeHtml(s.item)}${s.skin ? ` (${escapeHtml(s.skin)})` : ''}" style="width:52px; height:52px; border-radius:var(--radius-sm); border:2px solid ${CATEGORY_COLOR[s.category]}; background:var(--navy); display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+            ${iconFor(s.category, s.item) ? `<img src="${iconFor(s.category, s.item)}" alt="" style="width:70%; height:70%; object-fit:contain;">` : `<i data-lucide="sparkles" class="icon-md"></i>`}
+          </div>
         `).join('')}
       </div>
       ${c.description ? `<p style="margin:14px 0 0; font-size:0.88rem; white-space:pre-wrap; color:var(--ash);">${escapeHtml(c.description)}</p>` : ''}
       ${c.video_url ? `<a href="${escapeHtml(c.video_url)}" target="_blank" rel="noopener noreferrer" class="btn btn-ghost btn-sm" style="margin-top:14px;"><i data-lucide="play" class="icon-sm icon-inline"></i>Watch</a>` : ''}
       ${isStaff ? `<button class="btn btn-danger btn-sm" data-delete-combo="${c.id}" style="margin-top:14px; margin-left:8px;"><i data-lucide="trash-2" class="icon-sm"></i></button>` : ''}
     </div>
-  `).join('');
+  `;
+  }).join('');
 
   document.querySelectorAll('[data-delete-combo]').forEach(btn => {
     btn.addEventListener('click', async () => {
@@ -162,7 +184,7 @@ async function handleCreateCombo(e) {
   e.preventDefault();
 
   const steps = Object.entries(COMBO_SELECT_IDS)
-    .map(([category, id]) => ({ category, item: document.getElementById(id).value }))
+    .map(([category, id]) => ({ category, item: document.getElementById(id).value, skin: category === 'fruit' ? (currentSkins.fruit || null) : null }))
     .filter(s => s.item);
 
   if (!steps.length) { showToast('Pick at least one of Melee, Fruit, Sword, or Gun.', true); return; }
@@ -182,6 +204,7 @@ async function handleCreateCombo(e) {
   if (error) { showToast(error.message, true); return; }
 
   document.getElementById('combo-form').reset();
+  currentSkins.fruit = '';
   Object.keys(COMBO_SELECT_IDS).forEach(category => setComboItem(category, ''));
   document.getElementById('combo-compose').style.display = 'none';
   loadCombos();

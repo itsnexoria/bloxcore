@@ -278,3 +278,59 @@ async function requireAdmin() {
   }
   return result;
 }
+
+// --- Fruit skin/mutation picker -------------------------------------------
+// Some fruits have known equippable skins or mutations (e.g. Dragon has Eclipse,
+// Tiger has Werewolf). Any fruit selector can call maybePromptFruitSkin() after a
+// fruit is chosen — it only prompts when that fruit actually has linked skins in
+// bf_items, and injects its own modal into the page the first time it's needed.
+
+function ensureFruitSkinModal() {
+  if (document.getElementById('fruit-skin-modal')) return;
+  const overlay = document.createElement('div');
+  overlay.id = 'fruit-skin-modal';
+  overlay.className = 'build-modal-overlay';
+  overlay.innerHTML = `
+    <div class="panel build-modal">
+      <div class="flex-between" style="margin-bottom:14px;">
+        <h3 style="font-size:1.05rem; margin:0;" id="fruit-skin-modal-title">Choose a Skin</h3>
+        <button type="button" class="btn btn-ghost btn-sm" id="fruit-skin-modal-close"><i data-lucide="x" class="icon-md"></i></button>
+      </div>
+      <p class="muted" style="margin:0 0 14px; font-size:0.82rem;">This fruit has known skins/mutations — pick the one you're using in-game, or Base for the plain fruit.</p>
+      <div id="fruit-skin-modal-grid" class="build-modal-grid"></div>
+    </div>
+  `;
+  document.body.appendChild(overlay);
+  document.getElementById('fruit-skin-modal-close').addEventListener('click', () => overlay.classList.remove('open'));
+  overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.classList.remove('open'); });
+}
+
+async function maybePromptFruitSkin(fruitName, currentSkin, onSelect) {
+  if (!fruitName) { onSelect(null); return; }
+
+  const { data: skins } = await sb.from('bf_items').select('id, name, icon_url').eq('category', 'limited').eq('base_fruit', fruitName);
+  if (!skins || !skins.length) { onSelect(null); return; }
+
+  ensureFruitSkinModal();
+  const overlay = document.getElementById('fruit-skin-modal');
+  document.getElementById('fruit-skin-modal-title').textContent = `${fruitName} — Choose Your Skin`;
+  const grid = document.getElementById('fruit-skin-modal-grid');
+
+  const noneTile = `<div class="build-modal-tile ${!currentSkin ? 'selected' : ''}" data-skin-name=""><i data-lucide="ban" class="icon-lg"></i><span>Base ${escapeHtml(fruitName)}</span></div>`;
+  const tiles = skins.map(s => `
+    <div class="build-modal-tile ${currentSkin === s.name ? 'selected' : ''}" data-skin-name="${escapeHtml(s.name)}">
+      <img src="${s.icon_url}" alt="${escapeHtml(s.name)}" loading="lazy">
+      <span>${escapeHtml(s.name)}</span>
+    </div>
+  `).join('');
+  grid.innerHTML = noneTile + tiles;
+  refreshIcons();
+
+  grid.querySelectorAll('[data-skin-name]').forEach(tile => {
+    tile.addEventListener('click', () => {
+      overlay.classList.remove('open');
+      onSelect(tile.dataset.skinName || null);
+    });
+  });
+  overlay.classList.add('open');
+}
