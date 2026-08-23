@@ -12,8 +12,9 @@ const BUILD_FIELDS = [
   { id: 'build_accessory', key: 'accessory', label: 'Accessory' },
 ];
 let currentFruitSkin = '';
+let currentFruitSkinIcon = '';
 
-document.addEventListener('DOMContentLoaded', async () => {
+onReady(async () => {
   const auth = await requireAuth();
   if (!auth) return;
   currentUserId = auth.user.id;
@@ -32,7 +33,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 });
 
 let allTitlesForPicker = [];
-const RARITY_ORDER = { divine: 6, mythical: 5, legendary: 4, epic: 3, rare: 2, uncommon: 1, common: 0 };
+const RARITY_ORDER = { divine: 6, mythical: 5, legendary: 4, epic: 3, rare: 2, common: 0 };
 let ownedTitleIds = new Set();
 let activeTitleId = '';
 let activeTitleColorOverride = '';
@@ -74,7 +75,7 @@ function renderTitlePickerValue() {
     const c = activeTitleColorOverride || active.color;
     valueEl.innerHTML = c === 'rainbow'
       ? `<span class="title-badge-rainbow" style="padding:0;">${escapeHtml(active.name)}</span>`
-      : `<span style="color:${c};">${escapeHtml(active.name)}</span>`;
+      : `<span style="${titleColorStyle(c)}">${escapeHtml(active.name)}</span>`;
   } else {
     valueEl.classList.add('is-empty');
     valueEl.textContent = '— None —';
@@ -125,9 +126,9 @@ function openTitleModal() {
   const tiles = allTitlesForPicker.map(t => {
     const owned = ownedTitleIds.has(t.id);
     return `
-      <div class="build-modal-tile title-tile ${!owned ? 'locked' : ''} ${activeTitleId === t.id ? 'selected' : ''}" ${owned ? `data-title-id="${t.id}"` : ''}>
+      <div class="build-modal-tile title-tile ${!owned ? 'locked' : ''} ${activeTitleId === t.id ? 'selected' : ''}" data-rarity="${t.rarity}" ${owned ? `data-title-id="${t.id}"` : ''}>
         ${owned ? '' : '<i data-lucide="lock" class="icon-sm lock-icon"></i>'}
-        <span class="title-tile-name" style="color:${owned ? t.color : 'var(--ash)'};">${escapeHtml(t.name)}</span>
+        <span class="title-tile-name" style="${owned ? titleColorStyle(t.color) : 'color:var(--ash);'}">${escapeHtml(t.name)}</span>
         <span class="title-rarity-pill title-rarity-${t.rarity}">${t.rarity}</span>
       </div>
     `;
@@ -169,7 +170,7 @@ function populateBountySelect(id) {
   });
 }
 
-function populateForm(profile) {
+async function populateForm(profile) {
   renderAvatar(profile.avatar_url);
   document.getElementById('display_name').value = profile.display_name || '';
   document.getElementById('bio').value = profile.bio || '';
@@ -178,6 +179,11 @@ function populateForm(profile) {
   document.getElementById('marine_bounty').value = profile.marine_bounty || 0;
 
   currentFruitSkin = profile.build_fruit_skin || '';
+  currentFruitSkinIcon = '';
+  if (currentFruitSkin) {
+    const { data: skinRow } = await sb.from('bf_items').select('icon_url').eq('category', 'limited').eq('name', currentFruitSkin).maybeSingle();
+    currentFruitSkinIcon = skinRow?.icon_url || '';
+  }
   BUILD_FIELDS.forEach(({ id, key, label }) => {
     setBuildValue(key, profile[id] || '', false);
   });
@@ -203,12 +209,29 @@ function renderAvatar(url) {
   }
 }
 
+const AVATAR_MAX_MB = 5;
+const AVATAR_ALLOWED_TYPES = { 'image/png': 'png', 'image/jpeg': 'jpg', 'image/webp': 'webp', 'image/gif': 'gif' };
+
 async function handleAvatarUpload(e) {
   const file = e.target.files[0];
   if (!file) return;
 
+  if (!AVATAR_ALLOWED_TYPES[file.type]) {
+    showToast('Avatar must be a PNG, JPG, WEBP, or GIF image.', true);
+    e.target.value = '';
+    return;
+  }
+  if (file.size > AVATAR_MAX_MB * 1024 * 1024) {
+    showToast(`Avatar must be under ${AVATAR_MAX_MB}MB.`, true);
+    e.target.value = '';
+    return;
+  }
+
   try {
-    const ext = file.name.split('.').pop();
+    // Derive the extension from the verified MIME type, not the filename, so
+    // a renamed non-image file (e.g. "avatar.jpg" that's actually HTML/SVG)
+    // can't be stored under a misleading extension.
+    const ext = AVATAR_ALLOWED_TYPES[file.type];
     const path = `${currentUserId}/avatar-${Date.now()}.${ext}`;
     const { error: uploadError } = await sb.storage.from('avatars').upload(path, file);
     if (uploadError) throw uploadError;
@@ -302,11 +325,12 @@ function setBuildValue(key, value, animate) {
   const valueEl = btn.querySelector('.build-picker-value');
   const icon = value ? findBuildIcon(key, value) : null;
 
-  if (key === 'fruit' && !value) currentFruitSkin = '';
+  if (key === 'fruit' && !value) { currentFruitSkin = ''; currentFruitSkinIcon = ''; }
 
   const renderFruitValueLabel = () => {
     const skinSuffix = key === 'fruit' && currentFruitSkin ? ` <span class="muted" style="font-weight:400;">(${escapeHtml(currentFruitSkin)})</span>` : '';
-    valueEl.innerHTML = `${icon ? `<img src="${icon}" alt="">` : ''}${escapeHtml(value)}${skinSuffix}`;
+    const displayIcon = (key === 'fruit' && currentFruitSkin && currentFruitSkinIcon) ? currentFruitSkinIcon : icon;
+    valueEl.innerHTML = `${displayIcon ? `<img src="${displayIcon}" alt="">` : ''}${escapeHtml(value)}${skinSuffix}`;
   };
 
   if (value) {
@@ -320,8 +344,9 @@ function setBuildValue(key, value, animate) {
   // Only prompt when the user just hand-picked a fruit (animate = true from the modal), not
   // while the form is being populated from the saved profile on page load.
   if (key === 'fruit' && animate && value) {
-    maybePromptFruitSkin(value, currentFruitSkin, (skin) => {
+    maybePromptFruitSkin(value, currentFruitSkin, (skin, skinIcon) => {
       currentFruitSkin = skin || '';
+      currentFruitSkinIcon = skinIcon || '';
       document.getElementById('build_fruit_skin').value = currentFruitSkin;
       renderFruitValueLabel();
     });
@@ -375,6 +400,18 @@ async function handleSave(e) {
     },
   };
 
+  // Reject anything that isn't a plain http(s) link (e.g. "javascript:...")
+  // before it ever reaches the database — the public profile page renders
+  // these as real <a href> links for every visitor.
+  const badLink = Object.entries(payload.social_links).find(([, v]) => v && safeUrl(v) === '#');
+  if (badLink) {
+    errorEl.textContent = `That ${badLink[0]} link doesn't look like a valid web address.`;
+    errorEl.style.display = 'block';
+    saveBtn.disabled = false;
+    saveBtn.textContent = 'Save Changes';
+    return;
+  }
+
   const { error } = await sb.from('profiles').update(payload).eq('id', currentUserId);
 
   saveBtn.disabled = false;
@@ -386,5 +423,6 @@ async function handleSave(e) {
     return;
   }
 
+  invalidateProfileCache();
   showToast('Profile saved.');
 }

@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="refresh" content="0; url=/chat/?tab=messages">
+<link rel="canonical" href="https://blox.nexorealm.org/chat/?tab=messages">
+<title>Redirecting… — BloxCore</title>
+<script>
+  var params = new URLSearchParams(window.location.search);
+  var target = '/chat/?tab=messages';
+  if (params.get('u')) target += '&u=' + encodeURIComponent(params.get('u'));
+  window.location.replace(target);
+</script>
+</head>
+<body>
+<p>Messages has moved — redirecting to <a href="/chat/?tab=messages">Chat</a>…</p>
+</body>
+</html>

@@ -1,0 +1,924 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<script>(function(){try{var a=localStorage.getItem('bc_accent');if(a==='custom'){var c=JSON.parse(localStorage.getItem('bc_custom_theme')||'null');if(c){var s=document.documentElement.style;s.setProperty('--ink',c.ink);s.setProperty('--navy',c.navy);s.setProperty('--navy-light',c['navy-light']);s.setProperty('--brass',c.brass);s.setProperty('--brass-bright',c['brass-bright']);s.setProperty('--ink-glow',c.navy);var h=c.brass.replace('#','');s.setProperty('--brass-rgb',parseInt(h.substring(0,2),16)+' '+parseInt(h.substring(2,4),16)+' '+parseInt(h.substring(4,6),16));document.documentElement.setAttribute('data-accent','custom');}}else if(a){document.documentElement.setAttribute('data-accent',a);}if(localStorage.getItem('bc_reduce_motion')==='1')document.documentElement.classList.add('reduce-motion');if(localStorage.getItem('bc_compact_mode')==='1')document.documentElement.classList.add('compact-mode');}catch(e){}})();</script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Manage — BloxCore Admin</title>
+<meta name="robots" content="noindex, nofollow">
+<meta name="description" content="BloxCore site management.">
+<link rel="stylesheet" href="/css/style.css">
+<link rel="stylesheet" href="/css/animations.css">
+<link rel="icon" type="image/png" href="/assets/logo.png">
+<link rel="manifest" href="/manifest.json">
+<link rel="apple-touch-icon" href="/assets/apple-touch-icon.png">
+<meta name="theme-color" content="#0a0e17">
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-inner">
+    <a href="/" class="brand"><img src="/assets/logo.png" alt="BloxCore" class="brand-logo"><span class="brand-name">Blox<span>Core</span></span><span class="admin-badge" id="role-badge">Staff</span></a>
+    <div class="nav-header-actions">
+      <div id="nav-messages-slot"></div>
+      <div id="nav-notif-slot"></div>
+      <button type="button" class="nav-toggle" aria-label="Open menu" aria-expanded="false"><i data-lucide="menu" class="icon-md nav-toggle-icon-menu"></i><i data-lucide="x" class="icon-md nav-toggle-icon-close"></i></button>
+      <div id="nav-profile-slot"></div>
+    </div>
+    <ul class="nav-links">
+      <li><a href="/admin/"><i data-lucide="shield" class="icon-sm icon-inline"></i>Admin</a></li>
+      <li><a href="/admin/manage/"><i data-lucide="sliders-horizontal" class="icon-sm icon-inline"></i>Manage</a></li>
+      <li><a href="/"><i data-lucide="external-link" class="icon-sm icon-inline"></i>View Site</a></li>
+      <li id="nav-auth-slot"></li>
+    </ul>
+  </div>
+</nav>
+
+<section class="section">
+  <div class="container">
+    <div>
+      <h1 style="font-size:1.8rem; margin-bottom:2px;">Manage</h1>
+      <p class="muted" style="margin:0;"><a href="/admin/" style="color:var(--brass-bright);"><i data-lucide="chevron-left" class="icon-sm"></i> Back to Admin</a></p>
+    </div>
+
+    <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:20px;" id="manage-tabs">
+      <button type="button" class="btn btn-sm" data-manage-tab="challenges" data-requires-role="admin">Quests</button>
+      <button type="button" class="btn btn-sm" data-manage-tab="giveaways">Giveaways</button>
+      <button type="button" class="btn btn-sm" data-manage-tab="pvp">PvP Results</button>
+      <button type="button" class="btn btn-sm" data-manage-tab="tournaments">Tournaments</button>
+      <button type="button" class="btn btn-sm" data-manage-tab="crews-wars" data-requires-role="admin">Crews &amp; Wars</button>
+      <button type="button" class="btn btn-sm" data-manage-tab="users" data-requires-role="admin">Users</button>
+      <button type="button" class="btn btn-sm" data-manage-tab="titles" data-requires-role="admin">Titles</button>
+      <button type="button" class="btn btn-sm" data-manage-tab="analytics" data-requires-role="admin">Analytics</button>
+      <button type="button" class="btn btn-sm" data-manage-tab="site" data-requires-role="admin">Site Controls</button>
+    </div>
+
+    <!-- ================= Challenges ================= -->
+    <div data-manage-panel="challenges" style="display:none;">
+      <div class="flex-between" style="margin-top:24px;">
+        <h2 style="font-size:1.2rem; margin:0;">Quests</h2>
+        <button class="btn btn-primary" id="new-challenge-btn">+ New Quest</button>
+      </div>
+
+      <div class="panel" style="margin-top:16px;">
+        <div class="flex-between" style="flex-wrap:wrap; gap:16px;">
+          <div>
+            <h3 style="font-size:1rem; margin-bottom:4px;">Rotation Pools</h3>
+            <p class="muted" style="margin:0; font-size:0.85rem;">Runs automatically on schedule — trigger early any time.</p>
+          </div>
+          <div style="display:flex; gap:10px; flex-wrap:wrap;">
+            <button class="btn btn-ghost btn-sm" data-rotate="daily">Rotate Daily Now</button>
+            <button class="btn btn-ghost btn-sm" data-rotate="weekly">Rotate Weekly Now</button>
+            <button class="btn btn-ghost btn-sm" data-rotate="monthly">Rotate Monthly Now</button>
+          </div>
+        </div>
+      </div>
+
+      <div id="challenges-table" style="margin-top:24px;">
+        <div class="skeleton" style="height:60px; margin-bottom:10px;"></div>
+        <div class="skeleton" style="height:60px; margin-bottom:10px;"></div>
+        <div class="skeleton" style="height:60px;"></div>
+      </div>
+    </div>
+
+    <!-- ================= Giveaways ================= -->
+    <div data-manage-panel="giveaways" style="display:none;">
+      <div class="flex-between" style="margin-top:24px;">
+        <h2 style="font-size:1.2rem; margin:0;">Giveaways</h2>
+        <button class="btn btn-primary" id="new-giveaway-btn">+ New Giveaway</button>
+      </div>
+
+      <div id="giveaway-bulk-bar" class="panel panel-plain" style="margin-top:16px; padding:12px 20px; display:none; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap;">
+        <label style="display:flex; align-items:center; gap:8px; text-transform:none; font-weight:600; margin:0;">
+          <input type="checkbox" id="gv-select-all" style="width:auto; margin:0;">
+          <span id="gv-select-count">0 selected</span>
+        </label>
+        <button class="btn btn-danger btn-sm" id="gv-bulk-delete-btn">Delete Selected</button>
+      </div>
+      <div id="giveaways-table" style="margin-top:16px;">
+        <div class="skeleton" style="height:80px; margin-bottom:10px;"></div>
+        <div class="skeleton" style="height:80px;"></div>
+      </div>
+    </div>
+
+    <!-- ================= PvP Results ================= -->
+    <div data-manage-panel="pvp" style="display:none;">
+      <h2 style="font-size:1.2rem; margin-top:24px;">PvP Results</h2>
+      <p class="muted" style="margin:6px 0 16px; font-size:0.85rem;">1v1s need proof from both players before they can be approved — team matches only need the host's.</p>
+      <div style="display:flex; gap:8px; margin-bottom:16px;">
+        <button type="button" class="btn btn-sm btn-primary" data-pvp-filter="pending">Pending</button>
+        <button type="button" class="btn btn-sm btn-ghost" data-pvp-filter="disputed">Disputed</button>
+        <button type="button" class="btn btn-sm btn-ghost" data-pvp-filter="approved">Approved</button>
+        <button type="button" class="btn btn-sm btn-ghost" data-pvp-filter="rejected">Rejected</button>
+      </div>
+      <div id="pvp-results-list">
+        <div class="skeleton" style="height:100px; margin-bottom:10px;"></div>
+        <div class="skeleton" style="height:100px;"></div>
+      </div>
+    </div>
+
+    <!-- ================= Tournaments ================= -->
+    <div data-manage-panel="tournaments" style="display:none;">
+      <div class="flex-between" style="margin-top:24px;">
+        <h2 style="font-size:1.2rem; margin:0;">Tournaments</h2>
+        <button type="button" class="btn btn-primary btn-sm" id="new-tournament-btn"><i data-lucide="plus" class="icon-sm icon-inline"></i>New Tournament</button>
+      </div>
+      <div id="tournaments-admin-list" style="margin-top:16px;">
+        <div class="skeleton" style="height:100px; margin-bottom:10px;"></div>
+        <div class="skeleton" style="height:100px;"></div>
+      </div>
+    </div>
+
+    <!-- ================= Users ================= -->
+    <div data-manage-panel="users" style="display:none;">
+      <h2 style="font-size:1.2rem; margin-top:24px;">Users</h2>
+
+      <input type="text" id="user-search" placeholder="Search by username or display name…" aria-label="Search users" style="margin-top:16px; max-width:360px;">
+
+      <h3 style="font-size:1.1rem; margin-top:32px;">User Activity</h3>
+      <div id="crm-stats" class="grid" style="margin-top:12px;">
+        <div class="skeleton" style="height:70px;"></div>
+        <div class="skeleton" style="height:70px;"></div>
+        <div class="skeleton" style="height:70px;"></div>
+        <div class="skeleton" style="height:70px;"></div>
+      </div>
+
+      <div style="display:flex; gap:10px; margin-top:18px;">
+        <button class="btn btn-primary btn-sm" data-crm-filter="all">All</button>
+        <button class="btn btn-ghost btn-sm" data-crm-filter="online">Online</button>
+        <button class="btn btn-ghost btn-sm" data-crm-filter="idle">Idle</button>
+        <button class="btn btn-ghost btn-sm" data-crm-filter="offline">Offline</button>
+      </div>
+      <div id="active-users" style="margin-top:12px;">
+        <div class="skeleton" style="height:50px;"></div>
+      </div>
+
+      <h3 style="font-size:1.1rem; margin-top:32px;">All Users</h3>
+      <div id="user-bulk-bar" class="panel panel-plain" style="margin-top:12px; padding:12px 20px; display:none; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap;">
+        <label style="display:flex; align-items:center; gap:8px; text-transform:none; font-weight:600; margin:0;">
+          <input type="checkbox" id="user-select-all" style="width:auto; margin:0;">
+          <span id="user-select-count">0 selected</span>
+        </label>
+        <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
+          <input type="number" id="bulk-xp-input" placeholder="+/- XP" aria-label="XP amount to add or remove" style="width:110px; margin:0;">
+          <button class="btn btn-ghost btn-sm" id="bulk-xp-btn">Adjust XP</button>
+          <select id="bulk-role-select" style="width:110px; margin:0;">
+            <option value="user">User</option>
+            <option value="mod">Mod</option>
+            <option value="admin">Admin</option>
+          </select>
+          <button class="btn btn-ghost btn-sm" id="bulk-role-btn">Set Role</button>
+          <button class="btn btn-danger btn-sm" id="bulk-ban-btn">Ban Selected</button>
+          <button class="btn btn-ghost btn-sm" id="bulk-unban-btn">Unban Selected</button>
+        </div>
+      </div>
+      <div id="users-table" style="margin-top:16px;">
+        <div class="skeleton" style="height:60px; margin-bottom:10px;"></div>
+        <div class="skeleton" style="height:60px; margin-bottom:10px;"></div>
+        <div class="skeleton" style="height:60px;"></div>
+      </div>
+    </div>
+
+    <!-- ================= Titles ================= -->
+    <div data-manage-panel="titles" style="display:none;">
+      <h2 style="font-size:1.2rem; margin-top:24px;">Titles</h2>
+
+      <div class="panel" style="margin-top:16px;">
+        <h3 style="font-size:1rem; margin-bottom:4px;" id="title-form-heading">Create a Title</h3>
+        <p class="muted" style="margin:0 0 14px; font-size:0.8rem;">Click any title below to edit it instead.</p>
+        <form id="title-form" style="display:flex; gap:12px; align-items:flex-end; flex-wrap:wrap;">
+          <input type="hidden" id="title-edit-id" value="">
+          <div style="flex:1; min-width:160px;">
+            <label for="title-name">Name</label>
+            <input type="text" id="title-name" required maxlength="30" placeholder="e.g. Wiki Contributor">
+          </div>
+          <div>
+            <label for="title-color-style">Style</label>
+            <select id="title-color-style">
+              <option value="solid">Solid</option>
+              <option value="gradient">Gradient</option>
+              <option value="rainbow">Rainbow (animated)</option>
+            </select>
+          </div>
+          <div id="title-color-solid-row">
+            <label for="title-color">Color</label>
+            <input type="color" id="title-color" value="#7be0ff" style="width:70px; padding:4px; height:44px;">
+          </div>
+          <div id="title-color-gradient-row" style="display:none; gap:8px; align-items:flex-end;">
+            <div>
+              <label for="title-color-from">From</label>
+              <input type="color" id="title-color-from" value="#2563eb" style="width:70px; padding:4px; height:44px;">
+            </div>
+            <div>
+              <label for="title-color-to">To</label>
+              <input type="color" id="title-color-to" value="#a78bfa" style="width:70px; padding:4px; height:44px;">
+            </div>
+          </div>
+          <div style="min-width:140px;">
+            <label for="title-rarity">Rarity</label>
+            <select id="title-rarity">
+              <option value="common">Common</option>
+              <option value="rare">Rare</option>
+              <option value="epic">Epic</option>
+              <option value="legendary">Legendary</option>
+              <option value="mythical">Mythical</option>
+              <option value="divine">Divine</option>
+            </select>
+          </div>
+          <button type="submit" class="btn btn-primary" id="title-form-submit">Create</button>
+          <button type="button" class="btn btn-ghost" id="title-form-cancel" style="display:none;">Cancel</button>
+        </form>
+      </div>
+
+      <h3 style="font-size:1.1rem; margin-top:32px;">Seasonal Awards</h3>
+      <p class="muted" style="margin:6px 0 16px; font-size:0.85rem;">Auto-runs monthly (closest practical approximation to "every 30 days" on a cron schedule): the previous holders are cleared and the current top 10 get the title instead. Leave a slot as "— None —" to skip it.</p>
+      <div class="panel">
+        <div style="display:flex; gap:16px; flex-wrap:wrap; align-items:flex-end;">
+          <div style="flex:1; min-width:200px;">
+            <label for="seasonal-leaderboard">Top 10 Leaderboard Title</label>
+            <select id="seasonal-leaderboard"><option value="">— None —</option></select>
+          </div>
+          <div style="flex:1; min-width:200px;">
+            <label for="seasonal-crew">Top 10 Crew Title</label>
+            <select id="seasonal-crew"><option value="">— None —</option></select>
+          </div>
+          <div style="flex:1; min-width:200px;">
+            <label for="seasonal-crew-wars">Top Crew Wars Title</label>
+            <select id="seasonal-crew-wars"><option value="">— None —</option></select>
+          </div>
+          <button class="btn btn-primary" id="save-seasonal-btn">Save</button>
+        </div>
+        <div class="flex-between" style="margin-top:16px; padding-top:16px; border-top:1px solid var(--navy-light);">
+          <p class="muted" style="margin:0; font-size:0.82rem;" id="seasonal-last-run">Never run yet.</p>
+          <button class="btn btn-ghost btn-sm" id="run-seasonal-btn">Run Now</button>
+        </div>
+      </div>
+
+      <h3 style="font-size:1.1rem; margin-top:32px;">Event-Triggered Awards</h3>
+      <p class="muted" style="margin:6px 0 16px; font-size:0.85rem;">Granted automatically the moment something happens — not on a schedule, and never revoked once earned.</p>
+      <div class="panel">
+        <label for="rival-title-select">"Rival" Title (1v1 PvP)</label>
+        <p class="muted" style="margin:2px 0 8px; font-size:0.8rem;">Awarded to both players the moment one of them hits the 3-win-in-3-days cap against the same opponent.</p>
+        <div style="display:flex; gap:16px; flex-wrap:wrap; align-items:flex-end;">
+          <div style="flex:1; min-width:200px;">
+            <select id="rival-title-select"><option value="">— None —</option></select>
+          </div>
+          <button class="btn btn-primary" id="save-rival-title-btn">Save</button>
+        </div>
+      </div>
+
+      <div class="panel" style="margin-top:12px;">
+        <label for="champion-title-select">"Tournament Champion" Title</label>
+        <p class="muted" style="margin:2px 0 8px; font-size:0.8rem;">Awarded to whoever wins a tournament's final match.</p>
+        <div style="display:flex; gap:16px; flex-wrap:wrap; align-items:flex-end;">
+          <div style="flex:1; min-width:200px;">
+            <select id="champion-title-select"><option value="">— None —</option></select>
+          </div>
+          <button class="btn btn-primary" id="save-champion-title-btn">Save</button>
+        </div>
+      </div>
+
+      <h3 style="font-size:1.1rem; margin-top:32px;">Grant / Revoke a Title</h3>
+      <p class="muted" style="margin:6px 0 16px; font-size:0.85rem;">Pick a title, search for players, check the ones you want, then apply to everyone checked at once.</p>
+      <div class="panel">
+        <div style="display:flex; gap:12px; flex-wrap:wrap; align-items:flex-end; margin-bottom:16px;">
+          <div style="flex:1; min-width:200px;">
+            <label for="grant-title-select">Title</label>
+            <select id="grant-title-select"><option value="">— Choose a title —</option></select>
+          </div>
+          <div style="flex:2; min-width:220px;">
+            <label for="grant-user-search">Search Players</label>
+            <input type="text" id="grant-user-search" placeholder="Search username or display name…">
+          </div>
+        </div>
+        <div id="grant-results"><p class="muted" style="font-size:0.85rem;">Choose a title above to get started.</p></div>
+        <div class="flex-between" id="grant-action-bar" style="margin-top:16px; padding-top:16px; border-top:1px solid var(--navy-light); display:none;">
+          <span class="muted" id="grant-select-count" style="font-size:0.85rem;">0 selected</span>
+          <div style="display:flex; gap:10px;">
+            <button class="btn btn-ghost btn-sm" id="grant-select-all">Select All Shown</button>
+            <button class="btn btn-primary btn-sm" id="grant-apply-btn">Grant to Selected</button>
+            <button class="btn btn-danger btn-sm" id="revoke-apply-btn">Revoke from Selected</button>
+          </div>
+        </div>
+      </div>
+
+      <h3 style="font-size:1.1rem; margin-top:32px;">All Titles</h3>
+      <div id="titles-list" style="margin-top:16px;">
+        <div class="skeleton" style="height:50px; margin-bottom:10px;"></div>
+      </div>
+    </div>
+
+    <!-- ================= Site Controls ================= -->
+    <!-- ================= Analytics ================= -->
+    <div data-manage-panel="analytics" style="display:none;">
+      <h2 style="font-size:1.2rem; margin-top:24px;">Analytics</h2>
+      <p class="muted" style="margin-top:-4px;">Last 30 days. Numbers refresh each time you open this tab.</p>
+
+      <div class="two-col-grid" id="analytics-stat-cards" style="gap:14px; grid-template-columns:repeat(auto-fit, minmax(150px, 1fr)); margin-top:16px;">
+        <div class="skeleton" style="height:76px;"></div>
+        <div class="skeleton" style="height:76px;"></div>
+        <div class="skeleton" style="height:76px;"></div>
+        <div class="skeleton" style="height:76px;"></div>
+        <div class="skeleton" style="height:76px;"></div>
+        <div class="skeleton" style="height:76px;"></div>
+      </div>
+
+      <div class="grid-2-panel" style="margin-top:24px; align-items:start;">
+        <div class="panel">
+          <h3 style="font-size:1.05rem;"><i data-lucide="trending-up" class="icon-sm icon-inline"></i>New Signups (Last 14 Days)</h3>
+          <div id="analytics-signups-chart" style="margin-top:12px;"></div>
+        </div>
+        <div class="panel">
+          <h3 style="font-size:1.05rem;"><i data-lucide="activity" class="icon-sm icon-inline"></i>Activity by Type (Last 30 Days)</h3>
+          <div id="analytics-activity-breakdown" style="margin-top:12px; display:flex; flex-direction:column; gap:10px;"></div>
+        </div>
+      </div>
+
+      <div class="panel" style="margin-top:24px;">
+        <h3 style="font-size:1.05rem;"><i data-lucide="badge-check" class="icon-sm icon-inline"></i>Submission Queue Health</h3>
+        <p class="muted" style="font-size:0.85rem; margin-top:-6px;">Approve/reject rates for player-submitted content, last 30 days.</p>
+        <div id="analytics-queue-health" style="margin-top:12px; display:flex; flex-direction:column; gap:8px;"></div>
+      </div>
+
+      <div class="panel" style="margin-top:24px;">
+        <h3 style="font-size:1.05rem;"><i data-lucide="crosshair" class="icon-sm icon-inline"></i>PvP Health</h3>
+        <p class="muted" style="font-size:0.85rem; margin-top:-6px;">Result reporting, disputes, and current top ratings.</p>
+        <div id="analytics-pvp-health" style="margin-top:12px; display:flex; flex-direction:column; gap:8px;"></div>
+      </div>
+    </div>
+
+    <!-- ================= Crews & Wars ================= -->
+    <div data-manage-panel="crews-wars" style="display:none;">
+      <h2 style="font-size:1.2rem; margin-top:24px;">Crews &amp; Wars</h2>
+
+      <div style="display:flex; gap:8px; margin-top:16px;" id="cw-category-tabs">
+        <button type="button" class="btn btn-sm btn-primary" data-cw-category="crews">Crews</button>
+        <button type="button" class="btn btn-sm btn-ghost" data-cw-category="wars">Wars</button>
+        <button type="button" class="btn btn-sm btn-ghost" data-cw-category="disputes">Needs Resolution</button>
+      </div>
+
+      <!-- Crews -->
+      <div id="cw-panel-crews" style="margin-top:16px;">
+        <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
+          <input type="text" id="cw-crews-search" placeholder="Search by crew name or tag…" style="flex:1; min-width:220px; margin:0;">
+          <button type="button" class="btn btn-danger btn-sm" id="cw-crews-bulk-delete" disabled>Delete Selected (<span id="cw-crews-selected-count">0</span>)</button>
+        </div>
+        <div class="panel panel-plain" style="margin-top:14px; padding:0; overflow:hidden;">
+          <table class="admin-table">
+            <thead><tr>
+              <th style="width:36px;"><input type="checkbox" id="cw-crews-select-all"></th>
+              <th>Crew</th>
+              <th>Leader</th>
+              <th>Members</th>
+              <th>Bounty</th>
+              <th>Created</th>
+              <th style="width:60px;"></th>
+            </tr></thead>
+            <tbody id="cw-crews-tbody">
+              <tr><td colspan="7"><div class="skeleton" style="height:40px;"></div></td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div id="cw-crews-empty" class="empty-state" style="display:none;">No crews match your search.</div>
+      </div>
+
+      <!-- Wars -->
+      <div id="cw-panel-wars" style="margin-top:16px; display:none;">
+        <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
+          <input type="text" id="cw-wars-search" placeholder="Search by either crew's name…" style="flex:1; min-width:220px; margin:0;">
+          <select id="cw-wars-status-filter" style="width:auto; margin:0;">
+            <option value="">All Statuses</option>
+            <option value="pending">Pending</option>
+            <option value="accepted">Active</option>
+            <option value="completed">Completed</option>
+            <option value="declined">Declined</option>
+            <option value="cancelled">Cancelled</option>
+          </select>
+          <button type="button" class="btn btn-danger btn-sm" id="cw-wars-bulk-delete" disabled>Delete Selected (<span id="cw-wars-selected-count">0</span>)</button>
+        </div>
+        <div class="panel panel-plain" style="margin-top:14px; padding:0; overflow:hidden;">
+          <table class="admin-table">
+            <thead><tr>
+              <th style="width:36px;"><input type="checkbox" id="cw-wars-select-all"></th>
+              <th>Challenger</th>
+              <th>Defender</th>
+              <th>Status</th>
+              <th>Called</th>
+              <th>Winner</th>
+            </tr></thead>
+            <tbody id="cw-wars-tbody">
+              <tr><td colspan="6"><div class="skeleton" style="height:40px;"></div></td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div id="cw-wars-empty" class="empty-state" style="display:none;">No wars match your search.</div>
+      </div>
+
+      <!-- Disputes needing a decision -->
+      <div id="cw-panel-disputes" style="margin-top:16px; display:none;">
+        <p class="muted" style="margin-top:0;">Accepted wars waiting on a result — crew leaders can't declare a winner themselves. A crew needs video proof on file to be named winner; with no video from either side, close it out as a tie.</p>
+        <div id="cw-disputes-list"></div>
+      </div>
+    </div>
+
+    <!-- ================= Site Controls ================= -->
+    <div data-manage-panel="site" style="display:none;">
+      <h2 style="font-size:1.2rem; margin-top:24px;">Site Controls</h2>
+
+      <div class="site-jump-nav">
+        <button type="button" class="site-subtab-btn active" data-site-subtab="settings">Settings</button>
+        <button type="button" class="site-subtab-btn" data-site-subtab="maintenance">Maintenance</button>
+        <button type="button" class="site-subtab-btn" data-site-subtab="page-block">Page Blocks</button>
+        <button type="button" class="site-subtab-btn" data-site-subtab="chat-domains">Chat Links</button>
+        <button type="button" class="site-subtab-btn" data-site-subtab="discord-webhooks">Webhooks</button>
+        <button type="button" class="site-subtab-btn" data-site-subtab="broadcasts">Broadcasts</button>
+        <button type="button" class="site-subtab-btn" data-site-subtab="xp-events">XP Events</button>
+      </div>
+
+      <div data-site-subpanel="settings" class="panel" id="site-settings" style="margin-top:16px; scroll-margin-top:90px;">
+        <h3 style="font-size:1.1rem;"><i data-lucide="sliders-horizontal" class="icon-sm icon-inline"></i>Site Settings</h3>
+        <p class="muted" style="font-size:0.85rem; margin-top:-8px;">Live limits used across the site — no redeploy needed.</p>
+        <form id="settings-form">
+          <div class="two-col-grid" style="gap:16px;">
+            <div>
+              <label for="setting-chat-cooldown">Chat Cooldown (seconds)</label>
+              <input type="number" id="setting-chat-cooldown" min="0" required>
+            </div>
+            <div>
+              <label for="setting-chat-length">Max Chat Message Length</label>
+              <input type="number" id="setting-chat-length" min="1" required>
+            </div>
+          </div>
+          <div class="two-col-grid" style="gap:16px;">
+            <div>
+              <label for="setting-max-trades">Max Active Trade Listings (per user)</label>
+              <input type="number" id="setting-max-trades" min="1" required>
+            </div>
+            <div>
+              <label for="setting-max-services">Max Active Service Listings (per user)</label>
+              <input type="number" id="setting-max-services" min="1" required>
+            </div>
+            <div>
+              <label for="setting-max-combos">Max Combos Posted (per user)</label>
+              <input type="number" id="setting-max-combos" min="1" required>
+            </div>
+          </div>
+
+          <details class="settings-accordion">
+            <summary><i data-lucide="ruler" class="icon-sm icon-inline"></i>Minimum Post Lengths</summary>
+            <p class="muted" style="font-size:0.8rem; margin-top:0;">Blocks low-effort/spam posts by requiring at least this many characters. Applies instantly, no redeploy needed.</p>
+            <div class="two-col-grid" style="gap:16px;">
+              <div>
+                <label for="setting-min-chat-length">Min Chat Message Length</label>
+                <input type="number" id="setting-min-chat-length" min="0" required>
+              </div>
+              <div>
+                <label for="setting-min-crew-name">Min Crew Name Length</label>
+                <input type="number" id="setting-min-crew-name" min="0" required>
+              </div>
+              <div>
+                <label for="setting-min-crew-description">Min Crew Description Length</label>
+                <input type="number" id="setting-min-crew-description" min="0" required>
+              </div>
+              <div>
+                <label for="setting-min-service-title">Min Service Title Length</label>
+                <input type="number" id="setting-min-service-title" min="0" required>
+              </div>
+              <div>
+                <label for="setting-min-service-description">Min Service Description Length</label>
+                <input type="number" id="setting-min-service-description" min="0" required>
+              </div>
+              <div>
+                <label for="setting-min-combo-title">Min Combo Title Length</label>
+                <input type="number" id="setting-min-combo-title" min="0" required>
+              </div>
+              <div>
+                <label for="setting-min-combo-description">Min Combo Description Length</label>
+                <input type="number" id="setting-min-combo-description" min="0" required>
+              </div>
+              <div>
+                <label for="setting-min-sea-event-note">Min Sea Event Note Length</label>
+                <input type="number" id="setting-min-sea-event-note" min="0" required>
+              </div>
+              <div>
+                <label for="setting-min-third-party-title">Min 3rd Party Title Length</label>
+                <input type="number" id="setting-min-third-party-title" min="0" required>
+              </div>
+              <div>
+                <label for="setting-max-third-party-title">Max 3rd Party Title Length</label>
+                <input type="number" id="setting-max-third-party-title" min="1" required>
+              </div>
+              <div>
+                <label for="setting-min-third-party-description">Min 3rd Party Description Length</label>
+                <input type="number" id="setting-min-third-party-description" min="0" required>
+              </div>
+              <div>
+                <label for="setting-max-third-party-description">Max 3rd Party Description Length</label>
+                <input type="number" id="setting-max-third-party-description" min="1" required>
+              </div>
+            </div>
+          </details>
+
+          <details class="settings-accordion">
+            <summary><i data-lucide="zap" class="icon-sm icon-inline"></i>Activity XP Rewards</summary>
+            <p class="muted" style="font-size:0.8rem; margin-top:0;">XP awarded automatically the moment a player posts one of these. Set to 0 to disable.</p>
+            <div class="two-col-grid" style="gap:16px;">
+              <div>
+                <label for="setting-xp-combo">XP per Combo Posted</label>
+                <input type="number" id="setting-xp-combo" min="0" required>
+              </div>
+              <div>
+                <label for="setting-xp-sea-event">XP per Sea Event Posted</label>
+                <input type="number" id="setting-xp-sea-event" min="0" required>
+              </div>
+              <div>
+                <label for="setting-xp-service">XP per Service Listing</label>
+                <input type="number" id="setting-xp-service" min="0" required>
+              </div>
+              <div>
+                <label for="setting-xp-trade">XP per Trade Listing</label>
+                <input type="number" id="setting-xp-trade" min="0" required>
+              </div>
+              <div>
+                <label for="setting-xp-chat">XP per Chat Message</label>
+                <input type="number" id="setting-xp-chat" min="0" required>
+              </div>
+              <div>
+                <label for="setting-xp-giveaway-entry">XP per Giveaway Entry</label>
+                <input type="number" id="setting-xp-giveaway-entry" min="0" required>
+              </div>
+              <div>
+                <label for="setting-xp-third-party-post">XP per 3rd Party Post</label>
+                <input type="number" id="setting-xp-third-party-post" min="0" required>
+              </div>
+              <div>
+                <label for="setting-xp-vouch">XP per Vouch Given</label>
+                <input type="number" id="setting-xp-vouch" min="0" required>
+              </div>
+              <div>
+                <label for="setting-xp-pvp">XP per PvP Match Posted</label>
+                <input type="number" id="setting-xp-pvp" min="0" required>
+              </div>
+            </div>
+          </details>
+
+          <details class="settings-accordion">
+            <summary><i data-lucide="badge-check" class="icon-sm icon-inline"></i>Submission Auto-Approve (Trust System)</summary>
+            <label style="display:flex; align-items:center; gap:8px; text-transform:none; font-weight:600; margin:10px 0;">
+              <input type="checkbox" id="setting-trust-enabled" style="width:auto; margin:0;">
+              Enabled
+            </label>
+            <div class="two-col-grid" style="gap:16px;">
+              <div>
+                <label for="setting-trust-min-approved">Approved Submissions Needed</label>
+                <input type="number" id="setting-trust-min-approved" min="1" required>
+              </div>
+              <div>
+                <label for="setting-trust-max-reject-rate">Max Reject Rate (%)</label>
+                <input type="number" id="setting-trust-max-reject-rate" min="0" max="100" required>
+              </div>
+            </div>
+            <p class="muted" style="font-size:0.8rem; margin:-8px 0 16px;">A user auto-approves once they hit the approved count with a reject rate at or below this percentage. Applies to future submissions only — doesn't touch anyone already in the queue.</p>
+          </details>
+
+          <button type="submit" class="btn btn-primary" style="margin-top:20px;">Save Settings</button>
+        </form>
+      </div>
+
+      <div data-site-subpanel="maintenance" style="display:none;">
+        <div class="panel" id="site-maintenance" style="margin-top:16px; scroll-margin-top:90px;">
+          <h3 style="font-size:1.1rem;"><i data-lucide="wrench" class="icon-sm icon-inline"></i>Page Maintenance</h3>
+          <p class="muted" style="font-size:0.85rem; margin-top:-8px;">Take a single page offline for everyone except admins.</p>
+          <form id="maintenance-form">
+            <label for="maintenance-page">Page</label>
+            <select id="maintenance-page" required>
+              <option value="/">Home</option>
+              <option value="/auth/">Sign In / Sign Up</option>
+              <option value="/onboarding/">Onboarding</option>
+              <option value="/dashboard/">Dashboard</option>
+              <option value="/chat/">Chat (Live Chat, Messages, Friends)</option>
+              <option value="/sea-events/">Sea Events</option>
+              <option value="/giveaways/">Giveaways</option>
+              <option value="/challenges/">Quests</option>
+              <option value="/leaderboard/">Leaderboard</option>
+              <option value="/crews/">Crews (incl. Crew Wars)</option>
+              <option value="/crew/">Individual Crew Pages</option>
+              <option value="/trading/">Trading</option>
+              <option value="/services/">Services</option>
+              <option value="/combos/">Combos</option>
+              <option value="/third-party/">3rd Party</option>
+              <option value="/player/">Player Profiles</option>
+              <option value="/profile/">Edit Profile</option>
+              <option value="/whats-new/">What's New</option>
+              <option value="/settings/">Settings</option>
+            </select>
+            <label for="maintenance-message">Message shown to visitors (optional)</label>
+            <textarea id="maintenance-message" rows="2" maxlength="200" placeholder="This page is temporarily unavailable. Check back soon."></textarea>
+            <button type="submit" class="btn btn-primary">Enable Maintenance</button>
+          </form>
+          <div id="maintenance-list" style="margin-top:16px; display:flex; flex-direction:column; gap:8px;"></div>
+        </div>
+      </div>
+
+      <div data-site-subpanel="page-block" style="display:none;">
+        <div class="panel" id="site-page-block" style="margin-top:16px; scroll-margin-top:90px;">
+          <h3 style="font-size:1.1rem;"><i data-lucide="shield-off" class="icon-sm icon-inline"></i>Block User From a Page</h3>
+          <p class="muted" style="font-size:0.85rem; margin-top:-8px;">Restrict one player from a single page without a full site ban.</p>
+          <form id="page-block-form">
+            <label for="page-block-username">Username</label>
+            <input type="text" id="page-block-username" placeholder="e.g. nxrealm08" required>
+            <label for="page-block-page">Page</label>
+            <select id="page-block-page" required>
+              <option value="/chat/">Chat (Live Chat, Messages, Friends)</option>
+              <option value="/sea-events/">Sea Events</option>
+              <option value="/giveaways/">Giveaways</option>
+              <option value="/challenges/">Quests</option>
+              <option value="/crews/">Crews</option>
+              <option value="/trading/">Trading</option>
+              <option value="/services/">Services</option>
+              <option value="/combos/">Combos</option>
+            </select>
+            <label for="page-block-reason">Reason (optional, shown to the user)</label>
+            <input type="text" id="page-block-reason" maxlength="150" placeholder="e.g. Repeated scam listings">
+            <button type="submit" class="btn btn-primary">Block</button>
+          </form>
+          <div id="page-block-list" style="margin-top:16px; display:flex; flex-direction:column; gap:8px;"></div>
+        </div>
+      </div>
+
+      <div data-site-subpanel="chat-domains" style="display:none;">
+      <div class="panel" id="site-chat-domains" style="margin-top:16px; scroll-margin-top:90px;">
+        <h3 style="font-size:1.1rem;"><i data-lucide="link" class="icon-sm icon-inline"></i>Chat Link Allowlist</h3>
+        <p class="muted" style="font-size:0.85rem; margin-top:-8px;">Links in Live Chat are blocked by default. Add a domain here to let it through (subdomains are allowed automatically, e.g. adding "youtube.com" also allows "www.youtube.com").</p>
+        <form id="chat-domain-form" style="display:flex; gap:10px; align-items:flex-end; flex-wrap:wrap;">
+          <div style="flex:1; min-width:200px;">
+            <label for="chat-domain-input">Domain</label>
+            <input type="text" id="chat-domain-input" placeholder="e.g. youtube.com" required>
+          </div>
+          <button type="submit" class="btn btn-primary">Add</button>
+        </form>
+        <div id="chat-domain-list" style="margin-top:16px; display:flex; flex-direction:column; gap:8px;"></div>
+      </div>
+      </div>
+
+      <div data-site-subpanel="discord-webhooks" style="display:none;">
+      <div class="panel" id="site-discord-webhooks" style="margin-top:16px; scroll-margin-top:90px;">
+        <h3 style="font-size:1.1rem;"><i data-lucide="webhook" class="icon-sm icon-inline"></i>Discord Webhooks</h3>
+        <p class="muted" style="font-size:0.85rem; margin-top:-8px;">Where each type of site activity gets posted in Discord. Leave a field blank to disable that channel's notifications.</p>
+        <div id="discord-webhook-list" style="display:flex; flex-direction:column; gap:12px;">
+          <div class="skeleton" style="height:56px;"></div>
+          <div class="skeleton" style="height:56px;"></div>
+        </div>
+      </div>
+      </div>
+
+      <div data-site-subpanel="broadcasts" style="display:none;">
+        <div class="panel" id="site-broadcasts" style="margin-top:16px; scroll-margin-top:90px;">
+          <h3 style="font-size:1.1rem;"><i data-lucide="megaphone" class="icon-sm icon-inline"></i>Broadcasts</h3>
+          <p class="muted" style="font-size:0.85rem; margin-top:-8px;">Shown as a dismissible banner at the top of every page while active. Multiple can run at once.</p>
+          <form id="broadcast-form">
+            <label for="broadcast-title">Title (optional)</label>
+            <input type="text" id="broadcast-title" maxlength="60" placeholder="e.g. Scheduled Maintenance">
+            <label for="broadcast-message">Message</label>
+            <textarea id="broadcast-message" rows="2" maxlength="240" required></textarea>
+            <div class="two-col-grid" style="gap:16px;">
+              <div>
+                <label for="broadcast-link">Link (optional)</label>
+                <input type="url" id="broadcast-link" maxlength="300" placeholder="https://…">
+              </div>
+              <div>
+                <label for="broadcast-link-label">Link Text</label>
+                <input type="text" id="broadcast-link-label" maxlength="30" placeholder="e.g. Read more">
+              </div>
+            </div>
+            <label for="broadcast-severity">Style</label>
+            <select id="broadcast-severity">
+              <option value="info">Info (blue)</option>
+              <option value="success">Success (green)</option>
+              <option value="warning">Warning (gold)</option>
+              <option value="danger">Danger (red)</option>
+            </select>
+            <label for="broadcast-expires">Auto-expire At (optional)</label>
+            <input type="datetime-local" id="broadcast-expires">
+            <button type="submit" class="btn btn-primary btn-block">Post Broadcast</button>
+          </form>
+          <div id="broadcast-list" style="margin-top:18px; display:flex; flex-direction:column; gap:10px;"></div>
+        </div>
+      </div>
+
+      <div data-site-subpanel="xp-events" style="display:none;">
+        <div class="panel" id="site-xp-events" style="margin-top:16px; scroll-margin-top:90px;">
+          <h3 style="font-size:1.1rem;"><i data-lucide="zap" class="icon-sm icon-inline"></i>XP Events</h3>
+          <p class="muted" style="font-size:0.85rem; margin-top:-8px;">Only one event should be active at a time — its multiplier stacks on top of streak bonuses.</p>
+          <form id="event-form">
+            <label for="event-name">Event Name</label>
+            <input type="text" id="event-name" maxlength="40" placeholder="e.g. Weekend x2 XP" required>
+            <label for="event-multiplier">XP Multiplier</label>
+            <select id="event-multiplier">
+              <option value="1.25">1.25x</option>
+              <option value="1.5">1.5x</option>
+              <option value="2" selected>2x</option>
+              <option value="3">3x</option>
+            </select>
+            <label for="event-ends">Ends At (optional)</label>
+            <input type="datetime-local" id="event-ends">
+            <button type="submit" class="btn btn-primary btn-block">Start Event</button>
+          </form>
+          <div id="event-list" style="margin-top:18px; display:flex; flex-direction:column; gap:10px;"></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- Create / edit challenge modal -->
+<div id="challenge-modal" role="dialog" aria-modal="true" aria-labelledby="modal-title" style="display:none; position:fixed; inset:0; background:rgba(6,15,26,0.85); z-index:200; align-items:center; justify-content:center; padding:20px; overflow-y:auto;">
+  <div class="panel" style="max-width:460px; width:100%; margin:20px 0;">
+    <h2 id="modal-title" style="font-size:1.1rem;">New Quest</h2>
+    <form id="challenge-form">
+      <input type="hidden" id="challenge-id">
+
+      <label for="title">Title</label>
+      <input type="text" id="title" required maxlength="60">
+
+      <label for="description">Description</label>
+      <textarea id="description" rows="3" required maxlength="300"></textarea>
+
+      <label for="difficulty">Difficulty</label>
+      <select id="difficulty" required>
+        <option value="easy">Easy</option>
+        <option value="medium">Medium</option>
+        <option value="hard">Hard</option>
+        <option value="legendary">Legendary</option>
+      </select>
+
+      <label for="xp_reward">XP Reward</label>
+      <input type="number" id="xp_reward" min="1" max="1000" required>
+
+      <label for="rotation">Rotation</label>
+      <select id="rotation">
+        <option value="none">None — always visible</option>
+        <option value="daily">Daily — resets once per day</option>
+        <option value="weekly">Weekly — resets once per week</option>
+        <option value="monthly">Monthly — resets once per month</option>
+      </select>
+      <p class="muted" style="margin:-10px 0 16px; font-size:0.8rem;" id="rotation-help">Also controls how often a player can complete it: Daily/Weekly/Monthly quests can be completed once per calendar period (UTC), then reset automatically — the Repeatable/Cooldown fields below only apply when Rotation is None.</p>
+
+      <label style="display:flex; align-items:center; gap:8px; text-transform:none; font-weight:600; margin-bottom:12px;">
+        <input type="checkbox" id="active" style="width:auto; margin:0;" checked>
+        Active (visible to players)
+      </label>
+
+      <div id="repeatable-field">
+        <label style="display:flex; align-items:center; gap:8px; text-transform:none; font-weight:600; margin-bottom:16px;">
+          <input type="checkbox" id="repeatable" style="width:auto; margin:0;">
+          Repeatable (players can complete it more than once)
+        </label>
+
+        <div id="cooldown-field" style="display:none;">
+          <label for="cooldown_hours">Cooldown Between Attempts (hours)</label>
+          <input type="number" id="cooldown_hours" min="0" max="720" value="0">
+          <p class="muted" style="margin:-10px 0 16px; font-size:0.8rem;">0 = no cooldown at all — players can retry immediately and repeat it unlimited times (use this for PvP-style quests). A number here adds a fixed wait between attempts instead.</p>
+        </div>
+      </div>
+
+      <label for="reward_title_id">Reward Title 1 (optional)</label>
+      <input type="hidden" id="reward_title_id" value="">
+      <button type="button" class="build-picker-btn" id="reward-title-picker-btn" style="width:100%; flex-direction:row; align-items:center; justify-content:space-between; margin-bottom:16px;">
+        <span class="build-picker-value is-empty" id="reward-title-picker-value">— None —</span>
+        <i data-lucide="chevron-down" class="icon-sm muted"></i>
+      </button>
+
+      <label for="reward_title_id_2">Reward Title 2 (optional)</label>
+      <input type="hidden" id="reward_title_id_2" value="">
+      <button type="button" class="build-picker-btn" id="reward-title-picker-btn-2" style="width:100%; flex-direction:row; align-items:center; justify-content:space-between; margin-bottom:16px;">
+        <span class="build-picker-value is-empty" id="reward-title-picker-value-2">— None —</span>
+        <i data-lucide="chevron-down" class="icon-sm muted"></i>
+      </button>
+
+      <p class="field-error" id="challenge-error" style="display:none;"></p>
+      <div style="display:flex; gap:10px;">
+        <button type="button" class="btn btn-ghost" id="modal-cancel">Cancel</button>
+        <button type="submit" class="btn btn-primary btn-block" id="save-btn">Save Quest</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Reward title picker modal — same picker used on the profile page, minus the ownership lock. Shared by both reward-title slots; a data-target-slot attribute on the overlay tracks which one is open. -->
+<div id="reward-title-picker-modal" class="build-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="reward-title-picker-title" data-target-slot="1">
+  <div class="panel build-modal" style="max-width:520px;">
+    <div class="flex-between" style="margin-bottom:6px;">
+      <h2 id="reward-title-picker-title" style="font-size:1.05rem; margin:0;">Choose a Reward Title</h2>
+      <button type="button" class="btn btn-ghost btn-sm" id="reward-title-modal-close" aria-label="Close"><i data-lucide="x" class="icon-md"></i></button>
+    </div>
+    <p class="muted" style="margin:0 0 14px; font-size:0.82rem;">Players who complete this quest will unlock this title. Up to 2 titles can be awarded per quest.</p>
+    <div id="reward-title-modal-grid" class="build-modal-grid" style="grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));"></div>
+  </div>
+</div>
+
+<!-- Create giveaway modal -->
+<div id="giveaway-modal" role="dialog" aria-modal="true" aria-labelledby="giveaway-modal-title" style="display:none; position:fixed; inset:0; background:rgba(6,15,26,0.85); z-index:200; align-items:center; justify-content:center; padding:20px; overflow-y:auto;">
+  <div class="panel" style="max-width:460px; width:100%; margin:20px 0;">
+    <h2 id="giveaway-modal-title" style="font-size:1.1rem;">New Giveaway</h2>
+    <form id="giveaway-form">
+      <label for="gv-title">Title</label>
+      <input type="text" id="gv-title" required maxlength="60">
+
+      <label>Prize</label>
+      <input type="hidden" id="gv-prize-item" value="">
+      <button type="button" class="build-picker-btn" id="gv-prize-picker-btn" style="width:100%; flex-direction:row; align-items:center; justify-content:space-between; margin-bottom:16px;">
+        <span class="build-picker-value is-empty" id="gv-prize-picker-value">— Choose a fruit or limited —</span>
+        <span class="tag tag-medium" id="gv-prize-value-toggle" style="display:none; cursor:pointer;" title="Click to toggle physical/permanent"></span>
+        <i data-lucide="chevron-down" class="icon-sm muted"></i>
+      </button>
+
+      <label for="gv-description">Description</label>
+      <textarea id="gv-description" rows="3" required maxlength="400"></textarea>
+
+      <label for="gv-ends">Ends At</label>
+      <input type="datetime-local" id="gv-ends" required>
+
+      <p class="field-error" id="giveaway-error" style="display:none;"></p>
+      <div style="display:flex; gap:10px;">
+        <button type="button" class="btn btn-ghost" id="giveaway-modal-cancel">Cancel</button>
+        <button type="submit" class="btn btn-primary btn-block">Create Giveaway</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div id="tournament-modal" role="dialog" aria-modal="true" aria-labelledby="tournament-modal-title" style="display:none; position:fixed; inset:0; background:rgba(6,15,26,0.85); z-index:200; align-items:center; justify-content:center; padding:20px; overflow-y:auto;">
+  <div class="panel" style="max-width:460px; width:100%; margin:20px 0;">
+    <h2 id="tournament-modal-title" style="font-size:1.1rem;">New Tournament</h2>
+    <form id="tournament-form">
+      <label for="tn-name">Name</label>
+      <input type="text" id="tn-name" required maxlength="60">
+
+      <label for="tn-description">Description (optional)</label>
+      <textarea id="tn-description" rows="2" maxlength="300"></textarea>
+
+      <label for="tn-match-type">Match Type</label>
+      <select id="tn-match-type" required>
+        <option value="1v1">1v1</option>
+        <option value="2v2">2v2</option>
+        <option value="3v3">3v3</option>
+        <option value="4v4">4v4</option>
+      </select>
+
+      <label for="tn-bracket-size">Bracket Size</label>
+      <select id="tn-bracket-size" required>
+        <option value="4">4 players</option>
+        <option value="8" selected>8 players</option>
+        <option value="16">16 players</option>
+        <option value="32">32 players</option>
+      </select>
+
+      <p class="field-error" id="tournament-error" style="display:none;"></p>
+      <div style="display:flex; gap:10px;">
+        <button type="button" class="btn btn-ghost" id="tournament-modal-cancel">Cancel</button>
+        <button type="submit" class="btn btn-primary btn-block">Create Tournament</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div id="gv-prize-picker-modal" class="build-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="gv-prize-picker-title">
+  <div class="panel build-modal">
+    <div class="flex-between" style="margin-bottom:14px;">
+      <h2 id="gv-prize-picker-title" style="font-size:1.05rem; margin:0;">Choose a Prize</h2>
+      <button type="button" class="btn btn-ghost btn-sm" id="gv-prize-picker-close" aria-label="Close"><i data-lucide="x" class="icon-md"></i></button>
+    </div>
+    <div style="display:flex; gap:8px; margin-bottom:14px;" id="gv-prize-category-tabs">
+      <button type="button" class="btn btn-primary btn-sm" data-category="fruit">Fruits</button>
+      <button type="button" class="btn btn-ghost btn-sm" data-category="limited">Limiteds</button>
+      <button type="button" class="btn btn-ghost btn-sm" data-category="gamepass">Gamepasses</button>
+    </div>
+    <input type="text" id="gv-prize-picker-search" placeholder="Search…" aria-label="Search prizes" style="margin-bottom:16px;">
+    <div id="gv-prize-picker-grid" class="build-modal-grid"></div>
+  </div>
+</div>
+
+<footer class="site-footer">
+  <div class="container">BloxCore admin panel — visible only to reviewers.</div>
+</footer>
+
+<script src="https://unpkg.com/lucide@latest"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="/js/animations.js"></script>
+<script src="/js/supabase-client.js"></script>
+<script src="/js/nav.js"></script>
+<script src="/js/search.js"></script>
+<script src="/js/build-options.js"></script>
+<script src="/js/admin-challenges.js"></script>
+<script src="/js/admin-giveaways.js"></script>
+<script src="/js/admin-pvp.js"></script>
+<script src="/js/admin-tournaments.js"></script>
+<script src="/js/admin-crews.js"></script>
+<script src="/js/admin-users.js"></script>
+<script src="/js/admin-titles.js"></script>
+<script src="/js/admin-analytics.js"></script>
+<script src="/js/admin-site.js"></script>
+</body>
+</html>

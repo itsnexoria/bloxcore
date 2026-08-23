@@ -1,31 +1,41 @@
 // BloxCore — admin/users/index.html logic (admin only)
 
 let currentAdminId = null;
-const PAGE_SIZE = 20;
-let currentPage = 0;
+const USERS_PAGE_SIZE = 20;
+let usersPage = 0;
 let currentQuery = '';
 let selectedUserIds = new Set();
 
-document.addEventListener('DOMContentLoaded', async () => {
-  const auth = await requireAdmin();
-  if (!auth) return;
-  currentAdminId = auth.user.id;
+let _usersTabInit = false;
 
-  await loadActiveUsers();
-  await loadUsers('', 0);
-  wireUserBulkBar();
+async function initUsersTab() {
+  if (_usersTabInit) return;
+  _usersTabInit = true;
 
-  let debounceTimer;
-  document.getElementById('user-search').addEventListener('input', (e) => {
-    clearTimeout(debounceTimer);
-    debounceTimer = setTimeout(() => loadUsers(e.target.value.trim(), 0), 250);
-  });
+  try {
+    const { user } = await getCurrentProfile();
+    currentAdminId = user?.id ?? null;
 
-  document.getElementById('users-table').addEventListener('click', (e) => {
-    if (e.target.id === 'u-prev') loadUsers(currentQuery, currentPage - 1);
-    if (e.target.id === 'u-next') loadUsers(currentQuery, currentPage + 1);
-  });
-});
+    await loadActiveUsers();
+    await loadUsers('', 0);
+    wireUserBulkBar();
+
+    let debounceTimer;
+    document.getElementById('user-search').addEventListener('input', (e) => {
+      clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(() => loadUsers(e.target.value.trim(), 0), 250);
+    });
+
+    document.getElementById('users-table').addEventListener('click', (e) => {
+      if (e.target.id === 'u-prev') loadUsers(currentQuery, usersPage - 1);
+      if (e.target.id === 'u-next') loadUsers(currentQuery, usersPage + 1);
+    });
+  } catch (e) {
+    console.error('Failed to init Users tab:', e);
+    _usersTabInit = false;
+    showToast('Something went wrong loading users. Try again.', true);
+  }
+}
 
 function wireUserBulkBar() {
   document.getElementById('user-select-all').addEventListener('change', (e) => {
@@ -37,6 +47,7 @@ function wireUserBulkBar() {
     updateUserBulkBar();
   });
   document.getElementById('bulk-xp-btn').addEventListener('click', bulkAdjustXp);
+  document.getElementById('bulk-role-btn').addEventListener('click', bulkSetRole);
   document.getElementById('bulk-ban-btn').addEventListener('click', () => bulkSetBanned(true));
   document.getElementById('bulk-unban-btn').addEventListener('click', () => bulkSetBanned(false));
 }
@@ -44,7 +55,7 @@ function wireUserBulkBar() {
 function updateUserBulkBar() {
   const count = selectedUserIds.size;
   document.getElementById('user-select-count').textContent = count ? `${count} selected` : 'Select users below';
-  ['bulk-xp-btn', 'bulk-ban-btn', 'bulk-unban-btn'].forEach(id => {
+  ['bulk-xp-btn', 'bulk-role-btn', 'bulk-ban-btn', 'bulk-unban-btn'].forEach(id => {
     document.getElementById(id).disabled = count === 0;
   });
   const selectAll = document.getElementById('user-select-all');
@@ -67,7 +78,23 @@ async function bulkAdjustXp() {
   showToast(failed ? `Done, but ${failed} of ${ids.length} failed.` : `Adjusted XP by ${amount > 0 ? '+' : ''}${amount} for ${ids.length} user${ids.length > 1 ? 's' : ''}.`, failed > 0);
   document.getElementById('bulk-xp-input').value = '';
   selectedUserIds = new Set();
-  await loadUsers(currentQuery, currentPage);
+  await loadUsers(currentQuery, usersPage);
+}
+
+async function bulkSetRole() {
+  const role = document.getElementById('bulk-role-select').value;
+  const ids = Array.from(selectedUserIds);
+  if (!ids.length) return;
+  if (!window.confirm(`Set ${ids.length} user${ids.length > 1 ? 's' : ''} to "${role}"?`)) return;
+
+  let failed = 0;
+  for (const id of ids) {
+    const { error } = await sb.rpc('set_user_role', { target_user_id: id, new_role: role });
+    if (error) failed++;
+  }
+  showToast(failed ? `Done, but ${failed} of ${ids.length} failed.` : `Set ${ids.length} user${ids.length > 1 ? 's' : ''} to ${role}.`, failed > 0);
+  selectedUserIds = new Set();
+  await loadUsers(currentQuery, usersPage);
 }
 
 async function bulkSetBanned(isBanned) {
@@ -89,7 +116,7 @@ async function bulkSetBanned(isBanned) {
   }
   showToast(failed ? `Done, but ${failed} of ${ids.length} failed.` : `${isBanned ? 'Banned' : 'Unbanned'} ${ids.length} user${ids.length > 1 ? 's' : ''}.`, failed > 0);
   selectedUserIds = new Set();
-  await loadUsers(currentQuery, currentPage);
+  await loadUsers(currentQuery, usersPage);
 }
 
 const ONLINE_WINDOW_MS = 5 * 60 * 1000;   // active in the last 5 min = online
@@ -184,13 +211,13 @@ document.querySelectorAll('[data-crm-filter]').forEach(btn => {
 async function loadUsers(query, page) {
   const table = document.getElementById('users-table');
   currentQuery = query;
-  currentPage = page;
-  const from = page * PAGE_SIZE;
-  const to = from + PAGE_SIZE - 1;
+  usersPage = page;
+  const from = page * USERS_PAGE_SIZE;
+  const to = from + USERS_PAGE_SIZE - 1;
 
   let req = sb
     .from('profiles')
-    .select('id, username, display_name, level, xp, region, role, banned, banned_reason, created_at', { count: 'exact' })
+    .select('id, username, display_name, level, xp, region, role, banned, banned_reason, auto_approve_disabled, created_at', { count: 'exact' })
     .order('created_at', { ascending: false })
     .range(from, to);
 
@@ -216,8 +243,8 @@ async function loadUsers(query, page) {
   document.getElementById('user-bulk-bar').style.display = 'flex';
 
   table.innerHTML = `<div class="panel panel-plain" style="padding:0;">` +
-    data.map((u, i) => renderRow(u, i === data.length - 1)).join('') +
-    `</div>` + renderPager(count);
+    data.map((u, i) => renderUserRow(u, i === data.length - 1)).join('') +
+    `</div>` + renderUsersPager(count);
 
   document.querySelectorAll('[data-set-role]').forEach(select => {
     select.addEventListener('change', () => setRole(select.dataset.setRole, select.value, select));
@@ -231,6 +258,9 @@ async function loadUsers(query, page) {
   document.querySelectorAll('[data-xp-form]').forEach(form => {
     form.addEventListener('submit', handleXpAdjust);
   });
+  document.querySelectorAll('[data-toggle-auto-approve]').forEach(btn => {
+    btn.addEventListener('click', () => toggleAutoApprove(btn.dataset.toggleAutoApprove, btn.dataset.next === 'true'));
+  });
   document.querySelectorAll('[data-user-select]').forEach(cb => {
     cb.checked = selectedUserIds.has(cb.dataset.userSelect);
     cb.addEventListener('change', () => {
@@ -243,13 +273,13 @@ async function loadUsers(query, page) {
   refreshIcons();
 }
 
-function renderPager(total) {
-  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+function renderUsersPager(total) {
+  const totalPages = Math.max(1, Math.ceil(total / USERS_PAGE_SIZE));
   return `
     <div class="flex-between" style="padding:14px 20px;">
-      <button class="btn btn-ghost btn-sm" id="u-prev" ${currentPage === 0 ? 'disabled' : ''}><i data-lucide="chevron-left" class="icon-sm"></i> Prev</button>
-      <span class="muted" style="font-size:0.82rem;">Page ${currentPage + 1} of ${totalPages}</span>
-      <button class="btn btn-ghost btn-sm" id="u-next" ${currentPage + 1 >= totalPages ? 'disabled' : ''}>Next <i data-lucide="chevron-right" class="icon-sm"></i></button>
+      <button class="btn btn-ghost btn-sm" id="u-prev" ${usersPage === 0 ? 'disabled' : ''}><i data-lucide="chevron-left" class="icon-sm"></i> Prev</button>
+      <span class="muted" style="font-size:0.82rem;">Page ${usersPage + 1} of ${totalPages}</span>
+      <button class="btn btn-ghost btn-sm" id="u-next" ${usersPage + 1 >= totalPages ? 'disabled' : ''}>Next <i data-lucide="chevron-right" class="icon-sm"></i></button>
     </div>
   `;
 }
@@ -260,7 +290,7 @@ const ROLE_TAG = {
   user: '',
 };
 
-function renderRow(u, isLast) {
+function renderUserRow(u, isLast) {
   const isSelf = u.id === currentAdminId;
   const isAdminUser = u.role === 'admin';
   const bannedTag = u.banned ? `<span class="tag" style="background:rgba(255,77,109,0.3); color:#ffc2cf;">Banned${u.banned_reason ? `: ${escapeHtml(u.banned_reason)}` : ''}</span>` : '';
@@ -298,6 +328,7 @@ function renderRow(u, isLast) {
       <form data-xp-form="${u.id}" style="display:flex; gap:8px; align-items:center; margin-top:10px;">
         <input type="number" data-xp-input step="1" placeholder="e.g. 50 or -50" style="width:160px; margin:0;">
         <button type="submit" class="btn btn-ghost btn-sm">Adjust XP</button>
+        ${!isSelf ? `<button type="button" class="btn btn-ghost btn-sm" data-toggle-auto-approve="${u.id}" data-next="${!u.auto_approve_disabled}">${u.auto_approve_disabled ? 'Re-enable Auto-Approve' : 'Disable Auto-Approve'}</button>` : ''}
       </form>
     </div>
   `;
@@ -310,7 +341,7 @@ async function setRole(userId, newRole, select) {
 
   if (error) {
     showToast(error.message, true);
-    await loadUsers(currentQuery, currentPage);
+    await loadUsers(currentQuery, usersPage);
     return;
   }
   showToast(`Role updated to ${newRole}.`);
@@ -326,7 +357,7 @@ async function handleBan(userId) {
     return;
   }
   showToast('User banned.');
-  await loadUsers(currentQuery, currentPage);
+  await loadUsers(currentQuery, usersPage);
 }
 
 async function handleUnban(userId) {
@@ -336,7 +367,7 @@ async function handleUnban(userId) {
     return;
   }
   showToast('User unbanned.');
-  await loadUsers(currentQuery, currentPage);
+  await loadUsers(currentQuery, usersPage);
 }
 
 async function handleXpAdjust(e) {
@@ -356,5 +387,12 @@ async function handleXpAdjust(e) {
     return;
   }
   showToast(`XP adjusted by ${amount > 0 ? '+' : ''}${amount}.`);
-  await loadUsers(currentQuery, currentPage);
+  await loadUsers(currentQuery, usersPage);
+}
+
+async function toggleAutoApprove(userId, nextDisabled) {
+  const { error } = await sb.rpc('set_auto_approve_disabled', { target_user_id: userId, disabled: nextDisabled });
+  if (error) { showToast(error.message, true); return; }
+  showToast(nextDisabled ? 'Auto-approve disabled for this user.' : 'Auto-approve re-enabled.');
+  await loadUsers(currentQuery, usersPage);
 }

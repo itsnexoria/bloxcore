@@ -2,12 +2,16 @@
 
 let currentUser = null;
 
-document.addEventListener('DOMContentLoaded', async () => {
+onReady(async () => {
   const { data: { session } } = await sb.auth.getSession();
   currentUser = session?.user ?? null;
 
   await loadCrews();
   await guardCreateButton();
+
+  const settings = await getSiteSettings();
+  document.getElementById('crew-name').minLength = settings.minCrewNameLength;
+  document.getElementById('crew-description').minLength = settings.minCrewDescriptionLength;
 
   document.getElementById('create-crew-btn').addEventListener('click', openModal);
   document.getElementById('crew-modal-cancel').addEventListener('click', closeModal);
@@ -33,48 +37,78 @@ async function guardCreateButton() {
   }
 }
 
+const CREWS_PAGE_SIZE = 20;
+
 async function loadCrews() {
   const grid = document.getElementById('crews-grid');
-  const { data, error } = await sb.from('crews').select('*').order('created_at', { ascending: false });
+  const rows = await fetchCrewsPage(0, CREWS_PAGE_SIZE);
 
-  if (error) {
+  if (rows === null) {
     grid.innerHTML = `<p class="muted">Couldn't load crews right now.</p>`;
-    console.error(error);
     return;
   }
 
-  if (!data.length) {
+  if (!rows.length) {
     grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1;">No crews yet.</div>`;
     return;
   }
 
-  // One bulk query for every crew's members instead of one query per card — reduced
-  // client-side into a crew_id -> total bounty map.
-  const bountyByCrew = {};
-  const { data: allMembers } = await sb.from('crew_members').select('crew_id, profiles(pirate_bounty)');
-  (allMembers || []).forEach(m => {
-    bountyByCrew[m.crew_id] = (bountyByCrew[m.crew_id] || 0) + (m.profiles?.pirate_bounty || 0);
-  });
+  grid.innerHTML = rows.map(renderCrewCard).join('');
+  refreshIcons();
 
-  grid.innerHTML = data.map(c => `
-    <div class="panel" style="padding-top:24px;">
-      <div style="position:absolute; top:20px; right:24px; text-align:right;">
-        <p class="muted" style="margin:0; font-size:0.6rem; text-transform:uppercase; letter-spacing:0.05em;">Bounty</p>
-        <p style="margin:0; font-family:var(--font-stamp); font-size:1rem; color:var(--gold-bright); text-shadow:0 0 12px rgb(var(--gold-rgb) / 0.35);">${formatBounty(bountyByCrew[c.id] || 0)}</p>
-      </div>
-      <div style="display:flex; align-items:center; gap:14px; margin-bottom:12px; padding-right:78px;">
+  attachLoadMore(grid, {
+    pageSize: CREWS_PAGE_SIZE,
+    initialOffset: rows.length,
+    fetchPage: (offset, pageSize) => fetchCrewsPage(offset, pageSize).then(r => r || []),
+    renderItem: renderCrewCard,
+    onAppend: refreshIcons,
+  });
+}
+
+// Fetches one page of crews plus a bounty total (sum of members' pirate_bounty) for
+// just those crews — scoped per page instead of pulling every crew's members at once.
+async function fetchCrewsPage(offset, pageSize) {
+  const { data, error } = await sb.from('crews').select('*').order('created_at', { ascending: false }).range(offset, offset + pageSize - 1);
+  if (error) {
+    console.error(error);
+    return null;
+  }
+  if (!data.length) return data;
+
+  const bountyByCrew = {};
+  const countByCrew = {};
+  const { data: members } = await sb.from('crew_members').select('crew_id, profiles(pirate_bounty)').in('crew_id', data.map(c => c.id));
+  (members || []).forEach(m => {
+    bountyByCrew[m.crew_id] = (bountyByCrew[m.crew_id] || 0) + (m.profiles?.pirate_bounty || 0);
+    countByCrew[m.crew_id] = (countByCrew[m.crew_id] || 0) + 1;
+  });
+  data.forEach(c => { c._bounty = bountyByCrew[c.id] || 0; c._memberCount = countByCrew[c.id] || 0; });
+  return data;
+}
+
+function renderCrewCard(c) {
+  return `
+    <div class="panel crew-card">
+      <div class="crew-card-top">
         ${c.logo_url
-          ? `<img src="${c.logo_url}" alt="" style="width:52px; height:52px; border-radius:var(--radius-sm); object-fit:cover; flex-shrink:0; box-shadow:0 0 0 1px var(--glass-border), 0 0 18px rgb(var(--purple-rgb) / 0.25);" onerror="this.style.display='none';">`
-          : `<div style="width:52px; height:52px; border-radius:var(--radius-sm); background:linear-gradient(150deg, var(--navy-light), var(--navy)); display:flex; align-items:center; justify-content:center; color:var(--ash); font-family:var(--font-stamp); font-size:1.2rem; flex-shrink:0;">${escapeHtml((c.name[0] || '?').toUpperCase())}</div>`}
-        <div style="min-width:0;">
-          <h3 style="font-size:1.05rem; margin:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${escapeHtml(c.name)}</h3>
-          ${c.tag ? `<span class="tag tag-legendary" style="margin-top:4px; display:inline-block;">${escapeHtml(c.tag)}</span>` : ''}
+          ? `<img src="${c.logo_url}" alt="" loading="lazy" class="crew-card-logo" onerror="this.style.display='none';">`
+          : `<div class="crew-card-logo crew-card-logo-fallback">${escapeHtml((c.name[0] || '?').toUpperCase())}</div>`}
+        <div style="min-width:0; flex:1;">
+          <h3 title="${escapeHtml(c.name)}">${escapeHtml(c.name)}</h3>
+          ${c.tag ? `<span class="tag tag-legendary">${escapeHtml(c.tag)}</span>` : ''}
+        </div>
+        <div class="crew-card-bounty">
+          <p class="muted">Bounty</p>
+          <p>${formatBounty(c._bounty || 0)}</p>
         </div>
       </div>
-      <p class="muted" style="font-size:0.88rem; margin:0 0 16px; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;">${escapeHtml(c.description)}</p>
-      <a href="/crew/?name=${encodeURIComponent(c.name)}" class="btn btn-primary btn-sm btn-block">View Crew</a>
+      <p class="muted crew-card-desc">${escapeHtml(c.description)}</p>
+      <div class="crew-card-footer">
+        <span class="muted crew-card-members"><i data-lucide="users" class="icon-sm icon-inline"></i>${c._memberCount} member${c._memberCount === 1 ? '' : 's'}</span>
+        <a href="/crew/?name=${encodeURIComponent(c.name)}" class="btn btn-primary btn-sm">View Crew</a>
+      </div>
     </div>
-  `).join('');
+  `;
 }
 
 function openModal() {
@@ -96,6 +130,39 @@ async function handleCreate(e) {
   const errorEl = document.getElementById('crew-error');
   const saveBtn = e.target.querySelector('button[type="submit"]');
   errorEl.style.display = 'none';
+
+  const discordInvite = document.getElementById('crew-discord').value.trim();
+  const logoFile = document.getElementById('crew-logo-file').files[0];
+  const name = document.getElementById('crew-name').value.trim();
+  const description = document.getElementById('crew-description').value.trim();
+  const settings = await getSiteSettings();
+
+  if (!logoFile) {
+    errorEl.textContent = 'A crew icon is required.';
+    errorEl.style.display = 'block';
+    return;
+  }
+  if (logoFile.size > 3 * 1024 * 1024) {
+    errorEl.textContent = 'Crew icon must be 3MB or smaller.';
+    errorEl.style.display = 'block';
+    return;
+  }
+  if (name.length < settings.minCrewNameLength) {
+    errorEl.textContent = `Crew name must be at least ${settings.minCrewNameLength} characters.`;
+    errorEl.style.display = 'block';
+    return;
+  }
+  if (description.length < settings.minCrewDescriptionLength) {
+    errorEl.textContent = `Description must be at least ${settings.minCrewDescriptionLength} characters.`;
+    errorEl.style.display = 'block';
+    return;
+  }
+  if (discordInvite && safeUrl(discordInvite) === '#') {
+    errorEl.textContent = "That Discord invite doesn't look like a valid web address.";
+    errorEl.style.display = 'block';
+    return;
+  }
+
   saveBtn.disabled = true;
   saveBtn.textContent = 'Creating…';
 
@@ -107,9 +174,14 @@ async function handleCreate(e) {
     p_discord_invite: document.getElementById('crew-discord').value.trim() || null,
   });
 
-  const logoUrl = document.getElementById('crew-logo').value.trim();
-  if (!error && logoUrl) {
-    await sb.from('crews').update({ logo_url: logoUrl }).eq('id', crewId);
+  if (!error && logoFile && crewId) {
+    const ext = logoFile.name.split('.').pop();
+    const path = `crew-logos/${crewId}-${Date.now()}.${ext}`;
+    const { error: uploadError } = await sb.storage.from('avatars').upload(path, logoFile);
+    if (!uploadError) {
+      const { data: urlData } = sb.storage.from('avatars').getPublicUrl(path);
+      await sb.from('crews').update({ logo_url: urlData.publicUrl }).eq('id', crewId);
+    }
   }
 
   saveBtn.disabled = false;

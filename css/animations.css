@@ -1,0 +1,119 @@
+/* ==========================================================================
+   BloxCore — global animation & polish layer (v3)
+   Loaded on every page right after style.css. These are opt-in utility
+   classes (.hover-lift, .glow-pulse, .text-gradient-anim, etc.) plus a few
+   page-wide behaviors (scroll reveal for .stat-tile, page transitions,
+   parallax). Deliberately does NOT touch .panel/.poster/.btn hover states —
+   those already have their own polished treatment in style.css, and
+   duplicating it would just create two transforms fighting on one element.
+   Fully respects the site's .reduce-motion opt-out and prefers-reduced-motion.
+   ========================================================================== */
+
+/* ---------------------------- Page transition ---------------------------- */
+html.page-ready body { animation: pageFadeIn .45s ease both; }
+body.page-leaving { animation: pageFadeOut .25s ease both; }
+@keyframes pageFadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+@keyframes pageFadeOut { from { opacity: 1; } to { opacity: 0; } }
+
+/* ------------------------------ Scroll reveal ----------------------------- */
+.reveal {
+  opacity: 0;
+  transform: translateY(22px);
+  transition: opacity .6s cubic-bezier(.16,.8,.3,1), transform .6s cubic-bezier(.16,.8,.3,1);
+  transition-delay: calc(var(--reveal-i, 0) * 70ms);
+}
+.reveal.is-visible { opacity: 1; transform: none; }
+.reveal-left { transform: translateX(-26px); }
+.reveal-left.is-visible { transform: none; }
+.reveal-right { transform: translateX(26px); }
+.reveal-right.is-visible { transform: none; }
+.reveal-scale { transform: scale(.92); }
+.reveal-scale.is-visible { transform: scale(1); }
+
+/* ------------------------------- Hover lift ------------------------------- */
+/* Opt-in utility only — .panel and .stat-tile already ship their own hover-lift
+   + spotlight treatment in style.css, so this doesn't touch them to avoid two
+   competing transforms on the same element. */
+.hover-lift {
+  transition: transform .28s cubic-bezier(.16,.8,.3,1), box-shadow .28s ease, border-color .28s ease;
+}
+.hover-lift:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 14px 34px rgb(var(--shadow-rgb) / 0.35), 0 0 0 1px rgb(var(--brass-rgb) / 0.18);
+}
+
+/* Magnetic button effect removed site-wide (caused jitter/glitching). */
+
+
+/* ---------------------------- Animated gradients --------------------------- */
+.text-gradient-anim {
+  background: linear-gradient(90deg, var(--brass), var(--gold), var(--purple), var(--brass));
+  background-size: 300% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: gradientShift 6s ease infinite;
+}
+.bg-gradient-anim {
+  background: linear-gradient(120deg, rgb(var(--brass-rgb) / .18), rgb(var(--purple-rgb) / .14), rgb(var(--gold-rgb) / .14), rgb(var(--brass-rgb) / .18));
+  background-size: 300% 300%;
+  animation: gradientShift 10s ease infinite;
+}
+@keyframes gradientShift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* ------------------------------- Glow / pulse ------------------------------ */
+.glow-pulse {
+  animation: glowPulse 2.4s ease-in-out infinite;
+}
+@keyframes glowPulse {
+  0%, 100% { box-shadow: 0 0 0 rgb(var(--brass-rgb) / 0); }
+  50% { box-shadow: 0 0 22px rgb(var(--brass-rgb) / 0.55); }
+}
+.dot-pulse {
+  animation: dotPulse 1.6s ease-in-out infinite;
+}
+@keyframes dotPulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: .55; transform: scale(.82); }
+}
+
+/* ------------------------------ Number counters ---------------------------- */
+.stat-number { font-variant-numeric: tabular-nums; }
+
+/* -------------------------------- Parallax --------------------------------- */
+[data-parallax] { will-change: transform; }
+
+/* ---------------------------- Image / card parallax ------------------------- */
+.parallax-card { overflow: hidden; }
+.parallax-card img, .parallax-card .parallax-inner {
+  transition: transform .4s ease;
+}
+.parallax-card:hover img, .parallax-card:hover .parallax-inner {
+  transform: scale(1.06);
+}
+
+/* --------------------------- Crew Wars hub card --------------------------- */
+.war-card-matchup { display:flex; align-items:center; gap:14px; flex-wrap:wrap; }
+.war-chip { display:flex; align-items:center; gap:9px; text-decoration:none; color:var(--bone); }
+.war-vs {
+  font-family: var(--font-stamp);
+  font-size: 0.72rem;
+  color: var(--ash);
+  letter-spacing: 0.05em;
+  padding: 3px 8px;
+  border-radius: 999px;
+  border: 1px solid var(--glass-border);
+  background: rgb(var(--shadow-rgb) / 0.15);
+}
+.war-card-message { margin: 12px 0 0; font-size: 0.85rem; font-style: italic; }
+.war-card-footer { margin-top: 14px; align-items: center; }
+.war-card-winner { font-size: 0.82rem; font-weight: 700; display: flex; align-items: center; gap: 5px; }
+
+/* Respect the site's own reduce-motion toggle and the OS-level preference:
+   both already zero out `animation`/`transition` globally via style.css,
+   so anything added above is automatically neutralized — reveals just show
+   their end state immediately (handled in animations.js). */

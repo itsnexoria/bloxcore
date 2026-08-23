@@ -1,50 +1,120 @@
 // BloxCore — admin/challenges/index.html logic
 
 const ROTATION_COUNTS = { daily: 3, weekly: 3, monthly: 2 };
-const PAGE_SIZE = 20;
+const CHALLENGES_PAGE_SIZE = 20;
 let allChallenges = [];
-let currentPage = 0;
+let challengesPage = 0;
 
-document.addEventListener('DOMContentLoaded', async () => {
-  const auth = await requireAdmin();
+let _challengesTabInit = false;
+
+// tab name -> its lazy init function. Every one of these already guards itself with its
+// own _xTabInit flag, so calling one more than once is safe/cheap.
+const MANAGE_TAB_INIT = {
+  challenges: () => initChallengesTab(),
+  giveaways: () => initGiveawaysManageTab(),
+  pvp: () => initPvpResultsTab(),
+  tournaments: () => initTournamentsTab(),
+  'crews-wars': () => initCrewsWarsTab(),
+  users: () => initUsersTab(),
+  titles: () => initTitlesTab(),
+  analytics: () => initAnalyticsTab(),
+  site: () => initSiteTab(),
+};
+
+// Wires the Manage page's tabs together. Giveaways is the only tab mods can reach
+// (matching the old standalone /admin/giveaways/ page, which used requireMod() while
+// the other four used requireAdmin()) — everything else is admin-only, both visually
+// (button hidden via data-requires-role) and functionally (activateTab refuses to
+// switch to it for a non-admin, so a typed-in #hash can't bypass the button hiding).
+onReady(async () => {
+  const auth = await requireMod();
   if (!auth) return;
+  const role = auth.profile?.role;
+  const isAdmin = role === 'admin';
 
-  await loadChallenges(0);
-  await populateRewardTitleSelect();
+  const tabButtons = document.querySelectorAll('[data-manage-tab]');
+  const panels = document.querySelectorAll('[data-manage-panel]');
 
-  document.getElementById('new-challenge-btn').addEventListener('click', () => openModal());
-  document.getElementById('modal-cancel').addEventListener('click', closeModal);
-  document.getElementById('challenge-form').addEventListener('submit', handleSave);
-
-  document.querySelectorAll('[data-rotate]').forEach(btn => {
-    btn.addEventListener('click', () => triggerRotation(btn.dataset.rotate, btn));
+  tabButtons.forEach(btn => {
+    if (btn.dataset.requiresRole === 'admin' && !isAdmin) btn.style.display = 'none';
   });
 
-  document.getElementById('challenges-table').addEventListener('click', (e) => {
-    if (e.target.id === 'ch-prev') loadChallenges(currentPage - 1);
-    if (e.target.id === 'ch-next') loadChallenges(currentPage + 1);
+  function activateTab(name) {
+    // Giveaways and PvP Results are both mod-reachable (mods handle day-to-day review
+    // work); everything else here is admin-only, same as the button-hiding above.
+    if (!MANAGE_TAB_INIT[name] || (!isAdmin && name !== 'giveaways' && name !== 'pvp' && name !== 'tournaments')) name = 'giveaways';
+    tabButtons.forEach(btn => {
+      btn.className = `btn btn-sm ${btn.dataset.manageTab === name ? 'btn-primary' : 'btn-ghost'}`;
+    });
+    panels.forEach(panel => {
+      panel.style.display = panel.dataset.managePanel === name ? '' : 'none';
+    });
+    MANAGE_TAB_INIT[name]();
+  }
+
+  tabButtons.forEach(btn => {
+    btn.addEventListener('click', () => {
+      history.replaceState(null, '', `#${btn.dataset.manageTab}`);
+      activateTab(btn.dataset.manageTab);
+    });
   });
 
-  document.getElementById('repeatable').addEventListener('change', (e) => {
-    document.getElementById('cooldown-field').style.display = e.target.checked ? 'block' : 'none';
-  });
+  window.addEventListener('hashchange', () => activateTab(location.hash.slice(1)));
+
+  // Supports deep links like /admin/manage/#users — including the old
+  // /admin/challenges/, /admin/giveaways/, /admin/users/, /admin/titles/,
+  // /admin/site/ URLs, which now redirect here with that hash.
+  activateTab(location.hash.slice(1) || (isAdmin ? 'challenges' : 'giveaways'));
 });
+
+async function initChallengesTab() {
+  if (_challengesTabInit) return;
+  _challengesTabInit = true;
+
+  try {
+    await loadChallenges(0);
+    await populateRewardTitleSelect();
+
+    document.getElementById('new-challenge-btn').addEventListener('click', () => openChallengeModal());
+    document.getElementById('modal-cancel').addEventListener('click', closeChallengeModal);
+    document.getElementById('challenge-form').addEventListener('submit', handleSave);
+
+    document.querySelectorAll('[data-rotate]').forEach(btn => {
+      btn.addEventListener('click', () => triggerRotation(btn.dataset.rotate, btn));
+    });
+
+    document.getElementById('challenges-table').addEventListener('click', (e) => {
+      if (e.target.id === 'ch-prev') loadChallenges(challengesPage - 1);
+      if (e.target.id === 'ch-next') loadChallenges(challengesPage + 1);
+    });
+
+    document.getElementById('repeatable').addEventListener('change', (e) => {
+      document.getElementById('cooldown-field').style.display = e.target.checked ? 'block' : 'none';
+    });
+
+    document.getElementById('rotation').addEventListener('change', updateRepeatableFieldVisibility);
+  } catch (e) {
+    console.error('Failed to init Challenges tab:', e);
+    _challengesTabInit = false;
+    showToast('Something went wrong loading challenges. Try again.', true);
+  }
+}
 
 async function loadChallenges(page) {
   const table = document.getElementById('challenges-table');
-  currentPage = page;
-  const from = page * PAGE_SIZE;
-  const to = from + PAGE_SIZE - 1;
+  challengesPage = page;
+  const from = page * CHALLENGES_PAGE_SIZE;
+  const to = from + CHALLENGES_PAGE_SIZE - 1;
 
   const { data, error, count } = await sb
     .from('challenges')
-    .select('*, titles(name)', { count: 'exact' })
+    .select('*, titles!challenges_reward_title_id_fkey(name), titles2:titles!challenges_reward_title_id_2_fkey(name)', { count: 'exact' })
     .order('rotation', { ascending: true })
     .order('created_at', { ascending: false })
     .range(from, to);
 
   if (error) {
-    table.innerHTML = `<p class="muted">Couldn't load challenges right now.</p>`;
+    table.innerHTML = `<p class="muted">Couldn't load quests right now.</p>`;
     console.error(error);
     return;
   }
@@ -52,16 +122,16 @@ async function loadChallenges(page) {
   allChallenges = data;
 
   if (!data.length) {
-    table.innerHTML = `<div class="empty-state">No challenges yet — create the first one.</div>`;
+    table.innerHTML = `<div class="empty-state">No quests yet — create the first one.</div>`;
     return;
   }
 
   table.innerHTML = `<div class="panel panel-plain" style="padding:0;">` +
-    data.map((c, i) => renderRow(c, i === data.length - 1)).join('') +
-    `</div>` + renderPager(count);
+    data.map((c, i) => renderChallengeRow(c, i === data.length - 1)).join('') +
+    `</div>` + renderChallengesPager(count);
 
   document.querySelectorAll('[data-edit]').forEach(btn => {
-    btn.addEventListener('click', () => openModal(allChallenges.find(c => c.id === btn.dataset.edit)));
+    btn.addEventListener('click', () => openChallengeModal(allChallenges.find(c => c.id === btn.dataset.edit)));
   });
   document.querySelectorAll('[data-toggle-active]').forEach(btn => {
     btn.addEventListener('click', () => toggleActive(btn.dataset.toggleActive, btn.dataset.nextState === 'true'));
@@ -74,16 +144,19 @@ async function loadChallenges(page) {
 
 let allTitlesForRewardPicker = [];
 let rewardTitleId = '';
-const RARITY_ORDER = { divine: 6, mythical: 5, legendary: 4, epic: 3, rare: 2, uncommon: 1, common: 0 };
+let rewardTitleId2 = '';
+let rewardTitleModalSlot = 1;
+const CHALLENGE_TITLE_RARITY_ORDER = { divine: 6, mythical: 5, legendary: 4, epic: 3, rare: 2, common: 0 };
 
 async function populateRewardTitleSelect() {
   const { data: titles } = await sb.from('titles').select('id, name, color, rarity').order('name');
   allTitlesForRewardPicker = (titles || []).slice().sort((a, b) => {
-    const rarityDiff = (RARITY_ORDER[b.rarity] ?? 0) - (RARITY_ORDER[a.rarity] ?? 0);
+    const rarityDiff = (CHALLENGE_TITLE_RARITY_ORDER[b.rarity] ?? 0) - (CHALLENGE_TITLE_RARITY_ORDER[a.rarity] ?? 0);
     return rarityDiff !== 0 ? rarityDiff : a.name.localeCompare(b.name);
   });
 
-  document.getElementById('reward-title-picker-btn').addEventListener('click', openRewardTitleModal);
+  document.getElementById('reward-title-picker-btn').addEventListener('click', () => openRewardTitleModal(1));
+  document.getElementById('reward-title-picker-btn-2').addEventListener('click', () => openRewardTitleModal(2));
   document.getElementById('reward-title-modal-close').addEventListener('click', closeRewardTitleModal);
   document.getElementById('reward-title-picker-modal').addEventListener('click', (e) => {
     if (e.target.id === 'reward-title-picker-modal') closeRewardTitleModal();
@@ -97,23 +170,39 @@ function setRewardTitleId(id) {
   const picked = allTitlesForRewardPicker.find(t => t.id === rewardTitleId);
   if (picked) {
     valueEl.classList.remove('is-empty');
-    valueEl.innerHTML = `<span style="color:${picked.color};">${escapeHtml(picked.name)}</span>`;
+    valueEl.innerHTML = `<span style="${titleColorStyle(picked.color)}">${escapeHtml(picked.name)}</span>`;
   } else {
     valueEl.classList.add('is-empty');
     valueEl.textContent = '— None —';
   }
 }
 
-function openRewardTitleModal() {
+function setRewardTitleId2(id) {
+  rewardTitleId2 = id || '';
+  document.getElementById('reward_title_id_2').value = rewardTitleId2;
+  const valueEl = document.getElementById('reward-title-picker-value-2');
+  const picked = allTitlesForRewardPicker.find(t => t.id === rewardTitleId2);
+  if (picked) {
+    valueEl.classList.remove('is-empty');
+    valueEl.innerHTML = `<span style="${titleColorStyle(picked.color)}">${escapeHtml(picked.name)}</span>`;
+  } else {
+    valueEl.classList.add('is-empty');
+    valueEl.textContent = '— None —';
+  }
+}
+
+function openRewardTitleModal(slot) {
+  rewardTitleModalSlot = slot;
+  const currentId = slot === 2 ? rewardTitleId2 : rewardTitleId;
   const noneTile = `
-    <div class="build-modal-tile title-tile ${rewardTitleId === '' ? 'selected' : ''}" data-title-id="">
+    <div class="build-modal-tile title-tile ${currentId === '' ? 'selected' : ''}" data-title-id="">
       <i data-lucide="ban" class="icon-lg"></i>
       <span class="title-tile-name">None</span>
     </div>
   `;
   const tiles = allTitlesForRewardPicker.map(t => `
-    <div class="build-modal-tile title-tile ${rewardTitleId === t.id ? 'selected' : ''}" data-title-id="${t.id}">
-      <span class="title-tile-name" style="color:${t.color};">${escapeHtml(t.name)}</span>
+    <div class="build-modal-tile title-tile ${currentId === t.id ? 'selected' : ''}" data-rarity="${t.rarity}" data-title-id="${t.id}">
+      <span class="title-tile-name" style="${titleColorStyle(t.color)}">${escapeHtml(t.name)}</span>
       <span class="title-rarity-pill title-rarity-${t.rarity}">${t.rarity}</span>
     </div>
   `).join('');
@@ -123,7 +212,8 @@ function openRewardTitleModal() {
 
   document.querySelectorAll('#reward-title-modal-grid [data-title-id]').forEach(tile => {
     tile.addEventListener('click', () => {
-      setRewardTitleId(tile.dataset.titleId);
+      if (rewardTitleModalSlot === 2) setRewardTitleId2(tile.dataset.titleId);
+      else setRewardTitleId(tile.dataset.titleId);
       closeRewardTitleModal();
     });
   });
@@ -135,18 +225,18 @@ function closeRewardTitleModal() {
   document.getElementById('reward-title-picker-modal').classList.remove('open');
 }
 
-function renderPager(total) {
-  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+function renderChallengesPager(total) {
+  const totalPages = Math.max(1, Math.ceil(total / CHALLENGES_PAGE_SIZE));
   return `
     <div class="flex-between" style="padding:14px 0;">
-      <button class="btn btn-ghost btn-sm" id="ch-prev" ${currentPage === 0 ? 'disabled' : ''}><i data-lucide="chevron-left" class="icon-sm"></i> Prev</button>
-      <span class="muted" style="font-size:0.82rem;">Page ${currentPage + 1} of ${totalPages}</span>
-      <button class="btn btn-ghost btn-sm" id="ch-next" ${currentPage + 1 >= totalPages ? 'disabled' : ''}>Next <i data-lucide="chevron-right" class="icon-sm"></i></button>
+      <button class="btn btn-ghost btn-sm" id="ch-prev" ${challengesPage === 0 ? 'disabled' : ''}><i data-lucide="chevron-left" class="icon-sm"></i> Prev</button>
+      <span class="muted" style="font-size:0.82rem;">Page ${challengesPage + 1} of ${totalPages}</span>
+      <button class="btn btn-ghost btn-sm" id="ch-next" ${challengesPage + 1 >= totalPages ? 'disabled' : ''}>Next <i data-lucide="chevron-right" class="icon-sm"></i></button>
     </div>
   `;
 }
 
-function renderRow(c, isLast) {
+function renderChallengeRow(c, isLast) {
   const rotationLabel = c.rotation === 'none' ? 'Standing' : c.rotation.charAt(0).toUpperCase() + c.rotation.slice(1);
   const featuredTag = c.rotation !== 'none' ? (c.currently_featured
     ? `<span class="tag tag-easy">Featured now</span>`
@@ -158,21 +248,21 @@ function renderRow(c, isLast) {
         <p style="margin:0; font-weight:700;">${escapeHtml(c.title)}</p>
         <p class="muted" style="margin:2px 0 0; font-size:0.8rem;">
           <span class="tag tag-${c.difficulty}">${c.difficulty}</span>
-          +${c.xp_reward} XP · ${rotationLabel} ${featuredTag} ${c.repeatable ? `· <span style="color:var(--brass-bright);">Repeatable${c.cooldown_hours > 0 ? ` (${c.cooldown_hours}h cooldown)` : ''}</span>` : ''} ${c.titles ? `· <i data-lucide="tag" class="icon-sm"></i> ${escapeHtml(c.titles.name)}` : ''} ${c.active ? '' : '· <span style="color:var(--blood);">Archived</span>'}
+          +${c.xp_reward} XP · ${rotationLabel} ${featuredTag} ${c.repeatable ? `· <span style="color:var(--brass-bright);">Repeatable${c.cooldown_hours > 0 ? ` (${c.cooldown_hours}h cooldown)` : ''}</span>` : ''} ${c.titles ? `· <i data-lucide="tag" class="icon-sm"></i> ${escapeHtml(c.titles.name)}` : ''} ${c.titles2 ? `· <i data-lucide="tag" class="icon-sm"></i> ${escapeHtml(c.titles2.name)}` : ''} ${c.active ? '' : '· <span style="color:var(--blood);">Archived</span>'}
         </p>
       </div>
       <div style="display:flex; gap:8px; flex-shrink:0;">
-        <button class="btn btn-ghost btn-sm" data-edit="${c.id}">Edit</button>
+        <button class="btn btn-ghost btn-sm" data-edit="${c.id}" title="Edit"><i data-lucide="pencil" class="icon-sm"></i></button>
         <button class="btn ${c.active ? 'btn-danger' : 'btn-ghost'} btn-sm" data-toggle-active="${c.id}" data-next-state="${!c.active}">
           ${c.active ? 'Archive' : 'Restore'}
         </button>
-        <button class="btn btn-danger btn-sm" data-delete="${c.id}" data-title="${escapeHtml(c.title)}">Delete</button>
+        <button class="btn btn-danger btn-sm" data-delete="${c.id}" data-title="${escapeHtml(c.title)}" title="Delete"><i data-lucide="trash-2" class="icon-sm"></i></button>
       </div>
     </div>
   `;
 }
 
-function openModal(challenge = null) {
+function openChallengeModal(challenge = null) {
   const modal = document.getElementById('challenge-modal');
   const errorEl = document.getElementById('challenge-error');
   errorEl.style.display = 'none';
@@ -189,12 +279,22 @@ function openModal(challenge = null) {
   document.getElementById('repeatable').checked = challenge ? challenge.repeatable : false;
   document.getElementById('cooldown_hours').value = challenge?.cooldown_hours ?? 0;
   document.getElementById('cooldown-field').style.display = (challenge ? challenge.repeatable : false) ? 'block' : 'none';
+  updateRepeatableFieldVisibility();
   setRewardTitleId(challenge?.reward_title_id || '');
+  setRewardTitleId2(challenge?.reward_title_id_2 || '');
 
   modal.style.display = 'flex';
 }
 
-function closeModal() {
+// Rotation challenges (daily/weekly/monthly) reset on their own calendar-period schedule —
+// the Repeatable/Cooldown fields only mean something when Rotation is None, so hide them
+// otherwise rather than leaving stale, ignored settings visible in the form.
+function updateRepeatableFieldVisibility() {
+  const rotation = document.getElementById('rotation').value;
+  document.getElementById('repeatable-field').style.display = rotation === 'none' ? '' : 'none';
+}
+
+function closeChallengeModal() {
   document.getElementById('challenge-modal').style.display = 'none';
 }
 
@@ -220,6 +320,7 @@ async function handleSave(e) {
     repeatable: document.getElementById('repeatable').checked,
     cooldown_hours: parseInt(document.getElementById('cooldown_hours').value, 10) || 0,
     reward_title_id: document.getElementById('reward_title_id').value || null,
+    reward_title_id_2: document.getElementById('reward_title_id_2').value || null,
   };
 
   // A brand-new rotating challenge starts unfeatured until the next rotation picks it;
@@ -239,9 +340,9 @@ async function handleSave(e) {
     return;
   }
 
-  closeModal();
+  closeChallengeModal();
   showToast('Challenge saved.');
-  await loadChallenges(currentPage);
+  await loadChallenges(challengesPage);
 }
 
 async function toggleActive(id, nextState) {
@@ -251,7 +352,7 @@ async function toggleActive(id, nextState) {
     return;
   }
   showToast(nextState ? 'Challenge restored.' : 'Challenge archived.');
-  await loadChallenges(currentPage);
+  await loadChallenges(challengesPage);
 }
 
 async function deleteChallenge(id, title) {
@@ -267,7 +368,7 @@ async function deleteChallenge(id, title) {
     return;
   }
   showToast('Challenge deleted.');
-  await loadChallenges(currentPage);
+  await loadChallenges(challengesPage);
 }
 
 async function triggerRotation(period, btn) {
@@ -285,5 +386,5 @@ async function triggerRotation(period, btn) {
     return;
   }
   showToast(`${period[0].toUpperCase()}${period.slice(1)} bounties rotated.`);
-  await loadChallenges(currentPage);
+  await loadChallenges(challengesPage);
 }

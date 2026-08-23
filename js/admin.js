@@ -10,14 +10,41 @@ let pendingSubs = [];
 let selectedIds = new Set();
 let lightboxUrls = [];
 let lightboxIndex = 0;
+let _submissionsTabInit = false;
 
-document.addEventListener('DOMContentLoaded', async () => {
-  const auth = await requireMod();
-  if (!auth) return;
-  await loadPending();
-  wireBulkBar();
-  wireLightbox();
-});
+// Called once, the first time the Submissions tab is activated on the consolidated
+// /admin/ review page — not on DOMContentLoaded, since this page now has five tabs
+// and only the active one should fire its queries.
+async function initSubmissionsTab() {
+  if (_submissionsTabInit) return;
+  _submissionsTabInit = true;
+  try {
+    await loadPending();
+    wireBulkBar();
+    wireLightbox();
+  } catch (e) {
+    console.error('Failed to init Submissions tab:', e);
+    _submissionsTabInit = false; // allow retry if the tab is re-activated
+    showToast('Something went wrong loading submissions. Try again.', true);
+  }
+}
+
+// Called once, the first time the Submissions tab is activated on the consolidated
+// /admin/ review page — not on DOMContentLoaded, since this page now has five tabs
+// and only the active one should fire its queries.
+async function initSubmissionsTab() {
+  if (_submissionsTabInit) return;
+  _submissionsTabInit = true;
+  try {
+    await loadPending();
+    wireBulkBar();
+    wireLightbox();
+  } catch (e) {
+    console.error('Failed to init Submissions tab:', e);
+    _submissionsTabInit = false; // allow retry if the tab is re-activated
+    showToast('Something went wrong loading submissions. Try again.', true);
+  }
+}
 
 async function loadPending() {
   const list = document.getElementById('pending-list');
@@ -58,7 +85,12 @@ function wireCardEvents() {
     btn.addEventListener('click', () => reviewSubmission(btn.dataset.approve, 'approve'));
   });
   document.querySelectorAll('[data-reject]').forEach(btn => {
-    btn.addEventListener('click', () => reviewSubmission(btn.dataset.reject, 'reject'));
+    btn.addEventListener('click', () => {
+      // Optional — an empty/cancelled prompt still rejects, just with no note, same as before.
+      const note = window.prompt('Reason for rejecting (shown to the player, optional):');
+      if (note === null) return; // Cancel button — bail out entirely, unlike an empty confirm.
+      reviewSubmission(btn.dataset.reject, 'reject', false, note.trim() || null);
+    });
   });
   document.querySelectorAll('[data-select]').forEach(cb => {
     cb.addEventListener('change', () => {
@@ -85,7 +117,7 @@ function renderPendingCard(sub) {
   const urlsJson = escapeHtml(JSON.stringify(urls));
   const gallery = urls.length
     ? `<div style="display:grid; grid-template-columns:repeat(${Math.min(urls.length, 2)}, 1fr); gap:8px; margin-bottom:14px;">
-        ${urls.map((u, i) => `<img src="${u}" alt="Submission proof" data-lightbox-open='${urlsJson}' data-lightbox-index="${i}" style="width:100%; border-radius:var(--radius); max-height:260px; object-fit:cover; cursor:zoom-in;">`).join('')}
+        ${urls.map((u, i) => `<img src="${u}" alt="Submission proof" loading="lazy" data-lightbox-open='${urlsJson}' data-lightbox-index="${i}" style="width:100%; border-radius:var(--radius); max-height:260px; object-fit:cover; cursor:zoom-in;">`).join('')}
       </div>`
     : '';
   const videoLink = sub.video_url
@@ -100,7 +132,7 @@ function renderPendingCard(sub) {
       </label>
       ${gallery}
       ${videoLink}
-      <p style="margin:0 0 4px; font-weight:700;">${escapeHtml(sub.challenges?.title || 'Challenge')}</p>
+      <p style="margin:0 0 4px; font-weight:700;">${escapeHtml(sub.challenges?.title || 'Quest')}</p>
       <p class="muted" style="margin:0 0 4px; font-size:0.85rem;">
         by ${escapeHtml(sub.profiles?.username || 'unknown')} · <span class="tag tag-${sub.challenges?.difficulty}">${sub.challenges?.difficulty}</span> · +${sub.challenges?.xp_reward} XP
       </p>
@@ -143,6 +175,15 @@ async function bulkReview(action) {
   if (!ids.length) return;
 
   const verb = action === 'approve' ? 'approve' : 'reject';
+  let note = null;
+  if (action === 'reject') {
+    // Applied to every submission in the batch — fine for a shared reason (e.g. "no
+    // screenshot proof"), less ideal per-item, but still strictly better than the total
+    // silence a bulk reject gave before. Cancel bails out entirely, same as the single-item flow.
+    note = window.prompt(`Reason for rejecting these ${ids.length} submissions (shown to each player, optional):`);
+    if (note === null) return;
+    note = note.trim() || null;
+  }
   if (!window.confirm(`${action === 'approve' ? 'Approve' : 'Reject'} ${ids.length} submission${ids.length > 1 ? 's' : ''}?`)) return;
 
   const bar = document.getElementById('bulk-bar');
@@ -150,7 +191,7 @@ async function bulkReview(action) {
 
   let failed = 0;
   for (const id of ids) {
-    const ok = await reviewSubmission(id, action, true);
+    const ok = await reviewSubmission(id, action, true, note);
     if (!ok) failed++;
   }
 
@@ -161,13 +202,13 @@ async function bulkReview(action) {
 
 // silent=true suppresses the per-item toast/cleanup call sequence noise during a bulk run;
 // returns true/false so bulkReview can count failures.
-async function reviewSubmission(id, action, silent = false) {
+async function reviewSubmission(id, action, silent = false, note = null) {
   const card = document.getElementById(`sub-${id}`);
   const buttons = card?.querySelectorAll('button, input');
   buttons?.forEach(b => b.disabled = true);
 
   const rpcName = action === 'approve' ? 'approve_submission' : 'reject_submission';
-  const { error } = await sb.rpc(rpcName, { submission_id: id, note: null });
+  const { error } = await sb.rpc(rpcName, { submission_id: id, note });
 
   if (error) {
     if (!silent) showToast(error.message, true);

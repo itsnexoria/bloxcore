@@ -2,16 +2,23 @@
 
 let currentUser = null;
 let allTradeItems = [];
+let myActiveListingCount = 0;
 let pickerTarget = null; // 'offering' | 'requesting'
 let pickerCategory = 'fruit';
-let offeringIds = [];
-let requestingIds = [];
+let offeringEntries = []; // [{ id, valueType: 'physical' | 'permanent' }]
+let requestingEntries = [];
 
-const TREND_COLOR = { stable: 'var(--glass-border)', overpaid: 'var(--blood)', underpaid: 'var(--sea)' };
+const RARITY_ORDER = { common: 0, uncommon: 1, rare: 2, legendary: 3, mythical: 4, limited: 5 };
+const FRUIT_ORDER_MAP = new Map(BUILD_OPTIONS.fruit.map((f, i) => [f.value.toLowerCase(), i]));
 
-document.addEventListener('DOMContentLoaded', async () => {
+let maxActiveTrades = 3;
+
+onReady(async () => {
   const { user } = await getCurrentProfile();
   currentUser = user;
+
+  const settings = await getSiteSettings();
+  maxActiveTrades = settings.maxActiveTrades;
 
   if (currentUser) {
     document.getElementById('new-listing-btn').style.display = 'inline-flex';
@@ -20,8 +27,18 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.getElementById('trade-signed-out').style.display = 'block';
   }
 
-  const { data } = await sb.from('bf_items').select('*').in('category', ['fruit', 'limited']).order('name');
-  allTradeItems = data || [];
+  const { data } = await sb.from('bf_items').select('*').in('category', ['fruit', 'limited', 'gamepass']);
+  allTradeItems = (data || []).slice().sort((a, b) => {
+    if (a.category === 'fruit' && b.category === 'fruit') {
+      const ai = FRUIT_ORDER_MAP.get(a.name.toLowerCase());
+      const bi = FRUIT_ORDER_MAP.get(b.name.toLowerCase());
+      if (ai !== undefined && bi !== undefined) return ai - bi;
+      if (ai !== undefined) return -1;
+      if (bi !== undefined) return 1;
+    }
+    const rarityDiff = (RARITY_ORDER[(a.rarity || '').toLowerCase()] ?? 9) - (RARITY_ORDER[(b.rarity || '').toLowerCase()] ?? 9);
+    return rarityDiff !== 0 ? rarityDiff : a.name.localeCompare(b.name);
+  });
 
   document.getElementById('trade-compose-close').addEventListener('click', closeComposeModal);
   document.getElementById('trade-post-btn').addEventListener('click', handlePost);
@@ -49,8 +66,19 @@ function itemById(id) {
   return allTradeItems.find(i => i.id === id);
 }
 
-function itemValue(item) {
-  return item.permanent_value || item.regular_value || 0;
+function hoursLeft(expiresAt) {
+  const ms = new Date(expiresAt).getTime() - Date.now();
+  if (ms <= 0) return 'soon';
+  const hrs = Math.floor(ms / 3600000);
+  if (hrs < 1) return `${Math.max(1, Math.floor(ms / 60000))}m`;
+  return `${hrs}h`;
+}
+
+function valueFor(item, valueType) {
+  // Skins and gamepasses only ever have a regular_value in bf_items (they're always account-bound,
+  // never a "physical" dupeable drop like a fruit can be), so permanent_value is null for them —
+  // fall back to regular_value rather than showing a blank/zero value.
+  return valueType === 'permanent' ? (item.permanent_value ?? item.regular_value) : item.regular_value;
 }
 
 function formatValue(n) {
@@ -61,12 +89,35 @@ function formatValue(n) {
   return String(n);
 }
 
-function itemTileHtml(item) {
-  const value = itemValue(item);
+// Picker grid tile — icon only, tinted by rarity. No value shown here: which value applies
+// (physical vs. permanent) isn't decided until the item is actually added to a side.
+function pickerTileHtml(item) {
+  const rarity = (item.rarity || '').toLowerCase();
   return `
-    <div class="trade-item-tile" style="border-color:${TREND_COLOR[item.trend] || 'var(--glass-border)'};" title="${escapeHtml(item.name)} — ${formatValue(value)} — demand ${item.demand || '?'}/10 — ${item.trend || 'stable'}">
+    <div class="build-modal-tile" data-rarity="${rarity}" data-pick-item="${item.id}" style="padding:8px;">
       ${item.icon_url ? `<img src="${item.icon_url}" alt="" loading="lazy" onerror="this.style.display='none';">` : `<i data-lucide="sparkles" class="icon-lg"></i>`}
-      <div class="trade-item-footer"><span>${formatValue(value)}</span></div>
+      <span style="font-size:0.72rem;">${escapeHtml(item.name)}</span>
+    </div>
+  `;
+}
+
+// Slot / listing tile — shows the value for whichever type is set, and (when editable) a
+// small toggle to flip between physical and permanent.
+function valueTileHtml(item, valueType, { editable = false } = {}) {
+  const rarity = (item.rarity || '').toLowerCase();
+  const value = valueFor(item, valueType);
+  // Only fruits can be a "physical" drop vs. a permanent (gamepass-bought) copy — skins and
+  // gamepasses are always permanent, so don't offer a toggle that has nothing to toggle to.
+  const canToggle = editable && item.category === 'fruit';
+  return `
+    <div style="display:flex; flex-direction:column; align-items:center; gap:4px;">
+      <div class="build-modal-tile" data-rarity="${rarity}" style="width:56px; height:56px; padding:4px; cursor:default;" title="${escapeHtml(item.name)} — ${item.trend || 'stable'} trend, demand ${item.demand ?? '?'}/10">
+        ${item.icon_url ? `<img src="${item.icon_url}" alt="" loading="lazy" onerror="this.style.display='none';">` : `<i data-lucide="sparkles" class="icon-md"></i>`}
+      </div>
+      <span style="font-size:0.66rem; font-family:var(--font-mono); color:var(--gold-bright);">${formatValue(value)}</span>
+      ${canToggle
+        ? `<button type="button" class="tag tag-${valueType === 'permanent' ? 'legendary' : 'medium'}" data-toggle-value-type style="border:none; cursor:pointer;">${valueType === 'permanent' ? 'Permanent' : 'Physical'}</button>`
+        : `<span class="tag tag-${valueType === 'permanent' ? 'legendary' : 'medium'}">${valueType === 'permanent' ? 'Permanent' : 'Physical'}</span>`}
     </div>
   `;
 }
@@ -74,8 +125,12 @@ function itemTileHtml(item) {
 // --- Compose modal -----------------------------------------------------
 
 function openComposeModal() {
-  offeringIds = [];
-  requestingIds = [];
+  if (myActiveListingCount >= maxActiveTrades) {
+    showToast(`You've hit the ${maxActiveTrades} active listing limit — close one first.`, true);
+    return;
+  }
+  offeringEntries = [];
+  requestingEntries = [];
   document.getElementById('trade-note').value = '';
   renderSlotList('offering');
   renderSlotList('requesting');
@@ -86,23 +141,27 @@ function closeComposeModal() {
 }
 
 function renderSlotList(side) {
-  const ids = side === 'offering' ? offeringIds : requestingIds;
+  const entries = side === 'offering' ? offeringEntries : requestingEntries;
   const container = document.getElementById(`${side}-items`);
-  container.innerHTML = ids.map((id, i) => {
-    const item = itemById(id);
+  container.innerHTML = entries.map((entry, i) => {
+    const item = itemById(entry.id);
     if (!item) return '';
     return `
       <div class="trade-slot-tile">
-        ${itemTileHtml(item)}
+        ${valueTileHtml(item, entry.valueType, { editable: true })}
         <button type="button" class="trade-slot-remove" data-remove-index="${i}" data-remove-side="${side}">×</button>
       </div>
     `;
   }).join('');
-  container.querySelectorAll('[data-remove-index]').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const arr = btn.dataset.removeSide === 'offering' ? offeringIds : requestingIds;
-      arr.splice(Number(btn.dataset.removeIndex), 1);
-      renderSlotList(btn.dataset.removeSide);
+
+  container.querySelectorAll('.trade-slot-tile').forEach((tile, i) => {
+    tile.querySelector('[data-toggle-value-type]')?.addEventListener('click', () => {
+      entries[i].valueType = entries[i].valueType === 'permanent' ? 'physical' : 'permanent';
+      renderSlotList(side);
+    });
+    tile.querySelector('[data-remove-index]')?.addEventListener('click', () => {
+      entries.splice(i, 1);
+      renderSlotList(side);
     });
   });
   refreshIcons();
@@ -125,15 +184,16 @@ function renderItemPickerGrid() {
   const grid = document.getElementById('item-picker-grid');
 
   grid.innerHTML = items.length
-    ? items.map(item => `<div class="build-modal-tile" data-pick-item="${item.id}" style="padding:6px;">${itemTileHtml(item)}<span style="font-size:0.72rem; margin-top:4px;">${escapeHtml(item.name)}</span></div>`).join('')
+    ? items.map(pickerTileHtml).join('')
     : `<p class="muted" style="grid-column:1/-1;">No items found${query ? ' matching your search' : ''}.</p>`;
 
   grid.querySelectorAll('[data-pick-item]').forEach(tile => {
     tile.addEventListener('click', () => {
       const id = Number(tile.dataset.pickItem);
-      const arr = pickerTarget === 'offering' ? offeringIds : requestingIds;
-      if (arr.length >= 6) { showToast('You can add up to 6 items per side.', true); return; }
-      arr.push(id);
+      const arr = pickerTarget === 'offering' ? offeringEntries : requestingEntries;
+      if (arr.length >= 4) { showToast('You can add up to 4 items per side — same as in-game.', true); return; }
+      const item = itemById(id);
+      arr.push({ id, valueType: item?.category === 'fruit' ? 'physical' : 'permanent' });
       renderSlotList(pickerTarget);
       document.getElementById('item-picker-modal').classList.remove('open');
     });
@@ -142,7 +202,7 @@ function renderItemPickerGrid() {
 }
 
 async function handlePost() {
-  if (!offeringIds.length || !requestingIds.length) {
+  if (!offeringEntries.length || !requestingEntries.length) {
     showToast('Add at least one item to both sides.', true);
     return;
   }
@@ -152,9 +212,10 @@ async function handlePost() {
 
   const { error } = await sb.from('trade_listings').insert({
     user_id: currentUser.id,
-    offering_item_ids: offeringIds,
-    requesting_item_ids: requestingIds,
+    offering_item_ids: offeringEntries,
+    requesting_item_ids: requestingEntries,
     note: note || null,
+    duration_hours: Number(document.getElementById('trade-duration').value) || 24,
   });
   btn.disabled = false;
 
@@ -166,90 +227,159 @@ async function handlePost() {
 
 // --- Listing feed --------------------------------------------------------
 
-async function loadListings() {
-  const container = document.getElementById('trade-listings');
+const TRADE_LISTINGS_PAGE_SIZE = 40;
+
+async function fetchTradeListingsPage(offset, pageSize) {
   const { data, error } = await sb
     .from('trade_listings')
-    .select('id, user_id, offering_item_ids, requesting_item_ids, note, created_at, profiles(username, display_name, avatar_url, title_color_override, titles(name, color))')
+    .select('id, user_id, offering_item_ids, requesting_item_ids, note, created_at, expires_at, profiles(username, display_name, avatar_url, title_color_override, titles(name, color), created_at)')
     .eq('active', true)
+    .gt('created_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString())
     .order('created_at', { ascending: false })
-    .limit(40);
+    .range(offset, offset + pageSize - 1);
+  if (error) { console.error(error); return null; }
+  return data;
+}
 
-  if (error) {
+async function loadListings() {
+  const container = document.getElementById('trade-listings');
+  const data = await fetchTradeListingsPage(0, TRADE_LISTINGS_PAGE_SIZE);
+
+  if (data === null) {
     container.innerHTML = `<p class="muted">Couldn't load listings right now.</p>`;
-    console.error(error);
     return;
   }
+
+  myActiveListingCount = currentUser ? data.filter(t => t.user_id === currentUser.id).length : 0;
+  updateNewListingButton();
 
   if (!data.length) {
     container.innerHTML = `<div class="empty-state">No trade listings yet — be the first to post one.</div>`;
     return;
   }
 
-  // If the catalog hasn't loaded yet for some reason, still show something reasonable.
   container.innerHTML = data.map(renderListing).join('');
-  wireListingActions();
+  wireListingActions(container);
+  refreshIcons();
+  loadReputationBadges(container, data.map(t => ({ id: t.user_id, createdAt: t.profiles?.created_at })));
+  scrollToHashTarget('data-listing-id');
+
+  if (data.length === TRADE_LISTINGS_PAGE_SIZE) {
+    attachLoadMore(container, {
+      wrapId: 'trade-listings-load-more-wrap',
+      pageSize: TRADE_LISTINGS_PAGE_SIZE,
+      initialOffset: data.length,
+      fetchPage: async (offset, pageSize) => (await fetchTradeListingsPage(offset, pageSize)) || [],
+      renderItem: renderListing,
+      onAppend: (rows) => {
+        const ids = new Set(rows.map(r => String(r.id)));
+        const newEls = [...container.querySelectorAll('[data-listing-id]')].filter(el => ids.has(el.dataset.listingId));
+        newEls.forEach(el => wireListingActions(el));
+        refreshIcons();
+        loadReputationBadges(container, rows.map(t => ({ id: t.user_id, createdAt: t.profiles?.created_at })));
+      },
+    });
+  }
+}
+
+function scrollToHashTarget(attr) {
+  const id = location.hash.slice(1);
+  if (!id) return;
+  const el = document.querySelector(`[${attr}="${id}"]`);
+  if (!el) return;
+  setTimeout(() => {
+    el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    el.classList.add('deep-link-highlight');
+  }, 150);
+}
+
+function updateNewListingButton() {
+  const btn = document.getElementById('new-listing-btn');
+  if (!currentUser || !btn) return;
+  btn.innerHTML = `<i data-lucide="plus" class="icon-sm icon-inline"></i>New Listing (${myActiveListingCount}/${maxActiveTrades})`;
   refreshIcons();
 }
 
-function sideSummary(ids) {
-  const items = ids.map(itemById).filter(Boolean);
-  const total = items.reduce((sum, i) => sum + itemValue(i), 0);
-  return { total, items };
+function sideSummary(entries) {
+  let total = 0;
+  const tiles = (entries || []).map(entry => {
+    const item = itemById(entry.id);
+    if (!item) return '';
+    total += valueFor(item, entry.valueType) || 0;
+    return valueTileHtml(item, entry.valueType);
+  }).join('');
+  return { total, tiles };
 }
 
 function renderListing(t) {
   const profile = t.profiles || {};
-  const canDelete = currentUser && t.user_id === currentUser.id;
-  const offer = sideSummary(t.offering_item_ids || []);
-  const request = sideSummary(t.requesting_item_ids || []);
+  const isOwner = currentUser && t.user_id === currentUser.id;
+  const offer = sideSummary(t.offering_item_ids);
+  const request = sideSummary(t.requesting_item_ids);
 
   return `
     <div class="panel trade-card" data-listing-id="${t.id}">
       <div class="flex-between">
         <div style="display:flex; align-items:center; gap:10px;">
-          ${avatarHtml(profile, 30)}
+          ${avatarHtml(profile, 34)}
           <div>
-            <a href="/player/?u=${encodeURIComponent(profile.username || '')}" style="color:var(--bone); font-weight:700; text-decoration:none; font-size:0.9rem;">${titleBadge(profile)} ${escapeHtml(displayNameFor(profile))}</a>
-            <p class="muted" style="margin:0; font-size:0.75rem;">${timeAgo(t.created_at)}</p>
+            <a href="/player/?u=${encodeURIComponent(profile.username || '')}" style="color:var(--bone); font-weight:700; text-decoration:none; font-size:0.9rem;">${escapeHtml(displayNameFor(profile))}</a> ${titleBadge(profile)} <span data-rep-for="${t.user_id}"></span>
+            <p class="muted" style="margin:0; font-size:0.75rem;">${timeAgo(t.created_at)} · expires in ${hoursLeft(t.expires_at)}</p>
+            <span data-new-account-for="${t.user_id}"></span>
           </div>
         </div>
-        <div style="display:flex; gap:8px;">
-          <a href="/chat/" class="btn btn-ghost btn-sm"><i data-lucide="message-circle" class="icon-sm icon-inline"></i>Chat</a>
-          <a href="/player/?u=${encodeURIComponent(profile.username || '')}" class="btn btn-primary btn-sm"><i data-lucide="repeat" class="icon-sm icon-inline"></i>Trade</a>
-          ${canDelete ? `<button class="btn btn-ghost btn-sm" data-delete-listing="${t.id}"><i data-lucide="x" class="icon-sm"></i></button>` : ''}
-        </div>
+        ${isOwner ? `<div style="display:flex; gap:6px;"><button class="btn btn-ghost btn-sm" data-complete-listing="${t.id}" title="Mark completed" aria-label="Mark completed"><i data-lucide="check" class="icon-sm"></i></button><button class="btn btn-ghost btn-sm" data-delete-listing="${t.id}" aria-label="Delete listing"><i data-lucide="x" class="icon-sm"></i></button></div>` : (currentUser ? `<button class="btn btn-ghost btn-sm" data-report-listing="${t.id}" title="Report" aria-label="Report listing"><i data-lucide="flag" class="icon-sm"></i></button>` : '')}
       </div>
 
       ${t.note ? `<p class="muted" style="margin:12px 0 0; font-size:0.85rem;">${escapeHtml(t.note)}</p>` : ''}
 
-      <div class="trade-columns">
-        <div>
-          <div class="trade-side-header" style="color:var(--sea);">
-            <i data-lucide="sparkles" class="icon-sm"></i>Offering
-            <span class="trade-side-total">${formatValue(offer.total)}</span>
+      <div class="trade-columns-wrap">
+        <div class="trade-columns">
+          <div>
+            <div class="trade-side-header" style="color:var(--sea);">
+              <i data-lucide="sparkles" class="icon-sm"></i>Offering
+              <span class="trade-side-total">${formatValue(offer.total)}</span>
+            </div>
+            <div class="trade-item-grid">${offer.tiles}</div>
           </div>
-          <div class="trade-item-grid">${offer.items.map(itemTileHtml).join('')}</div>
-        </div>
-        <div class="trade-arrow"><i data-lucide="arrow-right" class="icon-sm"></i></div>
-        <div>
-          <div class="trade-side-header" style="color:var(--gold-bright);">
-            <i data-lucide="sparkles" class="icon-sm"></i>Requesting
-            <span class="trade-side-total">${formatValue(request.total)}</span>
+          <div class="trade-arrow"><i data-lucide="arrow-right" class="icon-sm"></i></div>
+          <div>
+            <div class="trade-side-header" style="color:var(--gold-bright);">
+              <i data-lucide="sparkles" class="icon-sm"></i>Requesting
+              <span class="trade-side-total">${formatValue(request.total)}</span>
+            </div>
+            <div class="trade-item-grid">${request.tiles}</div>
           </div>
-          <div class="trade-item-grid">${request.items.map(itemTileHtml).join('')}</div>
         </div>
+      </div>
+
+      <div class="trade-card-footer">
+        <a href="/chat/" class="btn btn-ghost btn-sm"><i data-lucide="message-circle" class="icon-sm icon-inline"></i>Chat</a>
+        <a href="/player/?u=${encodeURIComponent(profile.username || '')}" class="btn btn-primary btn-sm"><i data-lucide="repeat" class="icon-sm icon-inline"></i>Trade</a>
       </div>
     </div>
   `;
 }
 
-function wireListingActions() {
-  document.querySelectorAll('[data-delete-listing]').forEach(btn => {
+function wireListingActions(root) {
+  root = root || document;
+  root.querySelectorAll('[data-complete-listing]').forEach(btn => {
     btn.addEventListener('click', async () => {
+      const { error } = await sb.from('trade_listings').update({ active: false }).eq('id', btn.dataset.completeListing);
+      if (error) { showToast(error.message, true); return; }
+      showToast('Marked as completed.');
+      document.querySelector(`[data-listing-id="${btn.dataset.completeListing}"]`)?.remove();
+    });
+  });
+  root.querySelectorAll('[data-delete-listing]').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      if (!window.confirm('Delete this trade listing?')) return;
       const { error } = await sb.from('trade_listings').delete().eq('id', btn.dataset.deleteListing);
       if (error) { showToast(error.message, true); return; }
       document.querySelector(`[data-listing-id="${btn.dataset.deleteListing}"]`)?.remove();
     });
+  });
+  root.querySelectorAll('[data-report-listing]').forEach(btn => {
+    btn.addEventListener('click', () => reportContent('trade_listing', btn.dataset.reportListing));
   });
 }

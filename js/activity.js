@@ -2,7 +2,7 @@
 
 const ACTIVITY_LIMIT = 15;
 
-document.addEventListener('DOMContentLoaded', async () => {
+onReady(async () => {
   await loadActivity();
   subscribeToActivity();
   initHeroPosterRotation();
@@ -95,10 +95,12 @@ function renderActivityRow(a, isLast) {
   `;
 }
 
+let _activityChannel = null;
+
 function subscribeToActivity() {
   const dot = document.getElementById('activity-live-dot');
 
-  sb.channel('public:activity_log')
+  _activityChannel = sb.channel('public:activity_log')
     .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'activity_log' }, async (payload) => {
       const { data: profile } = await sb.from('profiles').select('display_name').eq('id', payload.new.user_id).single();
       prependActivity({ ...payload.new, displayName: profile?.display_name || payload.new.username });
@@ -109,6 +111,13 @@ function subscribeToActivity() {
     })
     .subscribe();
 }
+
+// Explicitly tear the channel down when leaving the page instead of relying on the
+// browser to close the socket — matters if the page is bfcache-restored later, since a
+// stale channel would otherwise sit open and never get cleared by fresh JS state.
+window.addEventListener('pagehide', () => {
+  if (_activityChannel) sb.removeChannel(_activityChannel);
+});
 
 function prependActivity(a) {
   const feed = document.getElementById('activity-feed');

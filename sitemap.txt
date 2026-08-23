@@ -1,33 +1,13 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <url>
-    <loc>https://bloxcore.xyz/</loc>
-    <changefreq>daily</changefreq>
-    <priority>1.0</priority>
-  </url>
-  <url>
-    <loc>https://bloxcore.xyz/challenges/</loc>
-    <changefreq>daily</changefreq>
-    <priority>0.9</priority>
-  </url>
-  <url>
-    <loc>https://bloxcore.xyz/leaderboard/</loc>
-    <changefreq>hourly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://bloxcore.xyz/chat/</loc>
-    <changefreq>hourly</changefreq>
-    <priority>0.6</priority>
-  </url>
-  <url>
-    <loc>https://bloxcore.xyz/giveaways/</loc>
-    <changefreq>daily</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://bloxcore.xyz/crews/</loc>
-    <changefreq>daily</changefreq>
-    <priority>0.7</priority>
-  </url>
-</urlset>
+https://blox.nexorealm.org/
+https://blox.nexorealm.org/challenges/
+https://blox.nexorealm.org/leaderboard/
+https://blox.nexorealm.org/chat/
+https://blox.nexorealm.org/giveaways/
+https://blox.nexorealm.org/crews/
+https://blox.nexorealm.org/sea-events/
+https://blox.nexorealm.org/pvp/
+https://blox.nexorealm.org/trading/
+https://blox.nexorealm.org/combos/
+https://blox.nexorealm.org/services/
+https://blox.nexorealm.org/third-party/
+https://blox.nexorealm.org/whats-new/

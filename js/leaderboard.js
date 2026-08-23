@@ -4,11 +4,22 @@ const PAGE_SIZE = 20;
 let currentPage = 0;
 let activeTab = 'players';
 let activePeriod = 'alltime';
+let currentUsername = null;
 
-document.addEventListener('DOMContentLoaded', () => {
+onReady(async () => {
+  const { data: { session } } = await sb.auth.getSession();
+  if (session) {
+    const { data: me } = await sb.from('profiles').select('username').eq('id', session.user.id).single();
+    currentUsername = me?.username || null;
+  }
   loadLeaderboard(0);
   document.getElementById('lb-tab-players').addEventListener('click', () => switchTab('players'));
   document.getElementById('lb-tab-crews').addEventListener('click', () => switchTab('crews'));
+  document.getElementById('lb-tab-wars').addEventListener('click', () => switchTab('wars'));
+  document.getElementById('lb-tab-pvp').addEventListener('click', () => switchTab('pvp'));
+  if (window.location.hash === '#crews') switchTab('crews');
+  else if (window.location.hash === '#wars') switchTab('wars');
+  else if (window.location.hash === '#pvp') switchTab('pvp');
   document.querySelectorAll('#lb-period-tabs [data-period]').forEach(btn => {
     btn.addEventListener('click', () => switchPeriod(btn.dataset.period));
   });
@@ -36,8 +47,15 @@ function switchTab(tab) {
   activeTab = tab;
   document.getElementById('lb-tab-players').className = `btn btn-sm ${tab === 'players' ? 'btn-primary' : 'btn-ghost'}`;
   document.getElementById('lb-tab-crews').className = `btn btn-sm ${tab === 'crews' ? 'btn-primary' : 'btn-ghost'}`;
+  document.getElementById('lb-tab-wars').className = `btn btn-sm ${tab === 'wars' ? 'btn-primary' : 'btn-ghost'}`;
+  document.getElementById('lb-tab-pvp').className = `btn btn-sm ${tab === 'pvp' ? 'btn-primary' : 'btn-ghost'}`;
+  // Crew Wars and PvP are both cumulative win/loss records, not period-based XP
+  // totals — the Today/Weekly/etc. tabs don't apply to either, unlike Players and Crews.
+  document.getElementById('lb-period-tabs').style.display = (tab === 'wars' || tab === 'pvp') ? 'none' : 'flex';
   if (tab === 'players') loadLeaderboard(0);
-  else loadCrewLeaderboard();
+  else if (tab === 'crews') loadCrewLeaderboard();
+  else if (tab === 'pvp') loadPvpLeaderboard();
+  else loadCrewWarLeaderboard();
 }
 
 function updateSubtitle(defaultText) {
@@ -62,12 +80,12 @@ async function loadLeaderboard(page) {
       return;
     }
     list.innerHTML = data.map((p, i) => `
-      <div class="flex-between" style="padding:16px 20px; ${i !== data.length - 1 ? 'border-bottom:1px solid var(--navy-light);' : ''}">
+      <div class="flex-between${p.username === currentUsername ? ' lb-row-mine' : ''}" style="padding:16px 20px; ${i !== data.length - 1 ? 'border-bottom:1px solid var(--navy-light);' : ''}">
         <div style="display:flex; align-items:center; gap:16px;">
           <span style="font-family:var(--font-mono); color:var(--ash); width:28px;">#${i + 1}</span>
           ${avatarHtml(p, 36)}
           <div>
-            <a href="/player/?u=${encodeURIComponent(p.username)}" style="margin:0; font-weight:700; color:var(--bone); text-decoration:none; display:block;">${titleBadge({ title_color_override: p.title_color_override, titles: p.title_name ? { name: p.title_name, color: p.title_color } : null })} ${escapeHtml(displayNameFor(p))}</a>
+            <a href="/player/?u=${encodeURIComponent(p.username)}" style="margin:0; font-weight:700; color:var(--bone); text-decoration:none; display:block;">${escapeHtml(displayNameFor(p))} ${titleBadge({ title_color_override: p.title_color_override, titles: p.title_name ? { name: p.title_name, color: p.title_color } : null })}</a>
             <p class="muted" style="margin:0; font-size:0.82rem;">${rankTitleForLevel(p.level)}${p.current_streak > 0 ? ` · <i data-lucide="flame" class="icon-sm" style="color:var(--brass-bright);"></i> ${p.current_streak}` : ''}</p>
           </div>
         </div>
@@ -107,12 +125,12 @@ async function loadLeaderboard(page) {
   }
 
   list.innerHTML = data.map((p, i) => `
-    <div class="flex-between" style="padding:16px 20px; ${i !== data.length - 1 ? 'border-bottom:1px solid var(--navy-light);' : ''}">
+    <div class="flex-between${p.username === currentUsername ? ' lb-row-mine' : ''}" style="padding:16px 20px; ${i !== data.length - 1 ? 'border-bottom:1px solid var(--navy-light);' : ''}">
       <div style="display:flex; align-items:center; gap:16px;">
         <span style="font-family:var(--font-mono); color:var(--ash); width:28px;">#${from + i + 1}</span>
         ${avatarHtml(p, 36)}
         <div>
-          <a href="/player/?u=${encodeURIComponent(p.username)}" style="margin:0; font-weight:700; color:var(--bone); text-decoration:none; display:block;">${titleBadge(p)} ${escapeHtml(displayNameFor(p))}</a>
+          <a href="/player/?u=${encodeURIComponent(p.username)}" style="margin:0; font-weight:700; color:var(--bone); text-decoration:none; display:block;">${escapeHtml(displayNameFor(p))} ${titleBadge(p)}</a>
           <p class="muted" style="margin:0; font-size:0.82rem;">${rankTitleForLevel(p.level)}${p.current_streak > 0 ? ` · <i data-lucide="flame" class="icon-sm" style="color:var(--brass-bright);"></i> ${p.current_streak}` : ''}</p>
         </div>
       </div>
@@ -157,7 +175,7 @@ async function loadCrewLeaderboard() {
         <div style="display:flex; align-items:center; gap:16px;">
           <span style="font-family:var(--font-mono); color:var(--ash); width:28px;">#${i + 1}</span>
           ${c.logo_url
-            ? `<img src="${c.logo_url}" alt="" style="width:36px; height:36px; border-radius:8px; object-fit:cover; flex-shrink:0;" onerror="this.style.visibility='hidden';">`
+            ? `<img src="${c.logo_url}" alt="" loading="lazy" style="width:36px; height:36px; border-radius:8px; object-fit:cover; flex-shrink:0;" onerror="this.style.visibility='hidden';">`
             : `<div style="width:36px; height:36px; border-radius:8px; background:var(--navy-light); display:flex; align-items:center; justify-content:center; font-size:0.85rem; flex-shrink:0; color:var(--ash);">${escapeHtml((c.name[0] || '?').toUpperCase())}</div>`}
           <a href="/crew/?name=${encodeURIComponent(c.name)}" style="color:var(--bone); font-weight:700; text-decoration:none;">
             ${c.tag ? `[${escapeHtml(c.tag)}] ` : ''}${escapeHtml(c.name)}
@@ -191,7 +209,7 @@ async function loadCrewLeaderboard() {
       <div style="display:flex; align-items:center; gap:16px;">
         <span style="font-family:var(--font-mono); color:var(--ash); width:28px;">#${i + 1}</span>
         ${c.logo_url
-          ? `<img src="${c.logo_url}" alt="" style="width:36px; height:36px; border-radius:8px; object-fit:cover; flex-shrink:0;" onerror="this.style.visibility='hidden';">`
+          ? `<img src="${c.logo_url}" alt="" loading="lazy" style="width:36px; height:36px; border-radius:8px; object-fit:cover; flex-shrink:0;" onerror="this.style.visibility='hidden';">`
           : `<div style="width:36px; height:36px; border-radius:8px; background:var(--navy-light); display:flex; align-items:center; justify-content:center; font-size:0.85rem; flex-shrink:0; color:var(--ash);">${escapeHtml((c.name[0] || '?').toUpperCase())}</div>`}
         <a href="/crew/?name=${encodeURIComponent(c.name)}" style="color:var(--bone); font-weight:700; text-decoration:none;">
           ${c.tag ? `[${escapeHtml(c.tag)}] ` : ''}${escapeHtml(c.name)}
@@ -209,3 +227,73 @@ document.addEventListener('click', (e) => {
   if (e.target.id === 'lb-prev') loadLeaderboard(currentPage - 1);
   if (e.target.id === 'lb-next') loadLeaderboard(currentPage + 1);
 });
+
+async function loadPvpLeaderboard() {
+  const list = document.getElementById('leaderboard-list');
+  document.getElementById('lb-subtitle').textContent = 'Ranked by 1v1 rating — needs at least 3 verified matches to appear.';
+  list.innerHTML = `<div class="skeleton" style="height:60px; margin:16px;"></div>`;
+
+  const { data, error } = await sb.rpc('get_pvp_leaderboard');
+
+  if (error) {
+    list.innerHTML = `<p class="muted" style="padding:20px;">Couldn't load the PvP leaderboard right now.</p>`;
+    console.error(error);
+    return;
+  }
+  if (!data.length) {
+    list.innerHTML = `<div class="empty-state">Nobody's played 3 verified 1v1s yet — post a match on the <a href="/pvp/" style="color:var(--brass-bright);">PvP page</a> to get started.</div>`;
+    return;
+  }
+
+  list.innerHTML = data.map((p, i) => `
+    <a href="/player/?u=${encodeURIComponent(p.username)}" style="text-decoration:none; color:inherit;">
+      <div class="flex-between" style="padding:16px 20px; ${i !== data.length - 1 ? 'border-bottom:1px solid var(--navy-light);' : ''}">
+        <div style="display:flex; align-items:center; gap:16px;">
+          <span style="font-family:var(--font-mono); color:var(--ash); width:28px;">#${i + 1}</span>
+          ${avatarHtml(p, 36)}
+          <span style="color:var(--bone); font-weight:700;">${escapeHtml(displayNameFor(p))}</span>
+        </div>
+        <div style="text-align:right;">
+          <p style="margin:0; font-family:var(--font-mono); color:var(--brass-bright);">${p.rating} rating</p>
+          <p class="muted" style="margin:0; font-size:0.78rem;">${p.wins}W – ${p.losses}L</p>
+        </div>
+      </div>
+    </a>
+  `).join('');
+}
+
+async function loadCrewWarLeaderboard() {
+  const list = document.getElementById('leaderboard-list');
+  document.getElementById('lb-subtitle').textContent = 'Ranked by crew war record — wins, then fewest losses.';
+  list.innerHTML = `<div class="skeleton" style="height:60px; margin:16px;"></div>`;
+
+  const { data, error } = await sb.rpc('get_crew_war_leaderboard');
+
+  if (error) {
+    list.innerHTML = `<p class="muted" style="padding:20px;">Couldn't load the crew war leaderboard right now.</p>`;
+    console.error(error);
+    return;
+  }
+  if (!data.length) {
+    list.innerHTML = `<div class="empty-state">No completed wars yet — the first crews to finish one will show up here.</div>`;
+    return;
+  }
+
+  list.innerHTML = data.map((c, i) => `
+    <div class="flex-between" style="padding:16px 20px; ${i !== data.length - 1 ? 'border-bottom:1px solid var(--navy-light);' : ''}">
+      <div style="display:flex; align-items:center; gap:16px;">
+        <span style="font-family:var(--font-mono); color:var(--ash); width:28px;">#${i + 1}</span>
+        ${c.logo_url
+          ? `<img src="${c.logo_url}" alt="" loading="lazy" style="width:36px; height:36px; border-radius:8px; object-fit:cover; flex-shrink:0;" onerror="this.style.visibility='hidden';">`
+          : `<div style="width:36px; height:36px; border-radius:8px; background:var(--navy-light); display:flex; align-items:center; justify-content:center; font-size:0.85rem; flex-shrink:0; color:var(--ash);">${escapeHtml((c.name[0] || '?').toUpperCase())}</div>`}
+        <a href="/crew/?name=${encodeURIComponent(c.name)}" style="color:var(--bone); font-weight:700; text-decoration:none;">
+          ${c.tag ? `[${escapeHtml(c.tag)}] ` : ''}${escapeHtml(c.name)}
+        </a>
+      </div>
+      <div style="text-align:right;">
+        <p style="margin:0; font-family:var(--font-mono); color:var(--brass-bright);">${c.wins}W – ${c.losses}L${c.ties ? ` – ${c.ties}T` : ''}</p>
+        <p class="muted" style="margin:0; font-size:0.78rem;">${c.total_wars} war${c.total_wars == 1 ? '' : 's'} fought</p>
+      </div>
+    </div>
+  `).join('');
+}

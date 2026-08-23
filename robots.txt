@@ -5,5 +5,8 @@ Disallow: /dashboard/
 Disallow: /profile/
 Disallow: /settings/
 Disallow: /auth/
+Disallow: /messages/
+Disallow: /onboarding/
+Disallow: /appeal/
 
-Sitemap: https://bloxcore.xyz/sitemap.xml
+Sitemap: https://blox.nexorealm.org/sitemap.xml

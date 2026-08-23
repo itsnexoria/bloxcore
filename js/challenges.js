@@ -3,16 +3,23 @@
 let currentUser = null;
 let activeChallengeId = null;
 let completionMap = new Map();
+let pendingChallengeIds = new Set();
 const MAX_SCREENSHOTS = 5;
+const MAX_SCREENSHOT_MB = 8;
+const ALLOWED_IMAGE_TYPES = ['image/png', 'image/jpeg', 'image/webp', 'image/gif'];
 let selectedFiles = [];
 
-document.addEventListener('DOMContentLoaded', async () => {
+onReady(async () => {
   const { data: { session } } = await sb.auth.getSession();
   currentUser = session?.user ?? null;
 
   if (currentUser) {
-    const { data: completions } = await sb.from('completions').select('challenge_id, completed_at').eq('user_id', currentUser.id);
+    const [{ data: completions }, { data: pending }] = await Promise.all([
+      sb.from('completions').select('challenge_id, completed_at').eq('user_id', currentUser.id),
+      sb.from('submissions').select('challenge_id').eq('user_id', currentUser.id).eq('status', 'pending'),
+    ]);
     completionMap = new Map((completions || []).map(c => [c.challenge_id, c.completed_at]));
+    pendingChallengeIds = new Set((pending || []).map(s => s.challenge_id));
   }
 
   await loadChallenges();
@@ -38,13 +45,13 @@ async function loadChallenges() {
   const { data, error } = await query;
 
   if (error) {
-    grid.innerHTML = `<p class="muted">Couldn't load challenges right now.</p>`;
+    grid.innerHTML = `<p class="muted">Couldn't load quests right now.</p>`;
     console.error(error);
     return;
   }
 
   if (!data.length) {
-    grid.innerHTML = `<div class="empty-state">No challenges match that filter yet.</div>`;
+    grid.innerHTML = `<div class="empty-state">No quests match that filter yet.</div>`;
     return;
   }
 
@@ -89,37 +96,66 @@ function formatRemaining(ms) {
 function renderChallengeCard(c) {
   const rotate = (Math.random() * 4 - 2).toFixed(1);
   const completedAt = completionMap.get(c.id);
-  const isDone = !!completedAt && !c.repeatable;
+  const isPending = pendingChallengeIds.has(c.id);
 
+  let isDone = false;
   let onCooldown = false;
   let cooldownLabel = '';
-  if (completedAt && c.repeatable && c.cooldown_hours > 0) {
-    const readyAt = new Date(completedAt).getTime() + c.cooldown_hours * 3600 * 1000;
-    if (Date.now() < readyAt) {
-      onCooldown = true;
-      cooldownLabel = formatRemaining(readyAt - Date.now());
+
+  if (completedAt) {
+    if (c.rotation === 'daily' || c.rotation === 'weekly' || c.rotation === 'monthly') {
+      // Resets once per calendar period rather than a rolling cooldown.
+      const unit = c.rotation === 'daily' ? 'day' : c.rotation === 'weekly' ? 'week' : 'month';
+      if (periodKey(new Date(completedAt), unit) === periodKey(new Date(), unit)) {
+        onCooldown = true;
+        cooldownLabel = c.rotation === 'daily' ? 'Resets tomorrow' : c.rotation === 'weekly' ? 'Resets next week' : 'Resets next month';
+      }
+    } else if (!c.repeatable) {
+      isDone = true;
+    } else if (c.cooldown_hours > 0) {
+      const readyAt = new Date(completedAt).getTime() + c.cooldown_hours * 3600 * 1000;
+      if (Date.now() < readyAt) {
+        onCooldown = true;
+        cooldownLabel = formatRemaining(readyAt - Date.now());
+      }
     }
+    // repeatable with cooldown_hours === 0 (PvP-style): no restriction, always resubmittable.
   }
 
-  const actionHtml = isDone
+  const actionHtml = isPending
+    ? `<button class="btn btn-ghost btn-sm" disabled><i data-lucide="clock" class="icon-sm"></i> Pending Review</button>`
+    : isDone
     ? `<button class="btn btn-ghost btn-sm" disabled><i data-lucide="check" class="icon-sm"></i> Completed</button>`
     : onCooldown
-    ? `<button class="btn btn-ghost btn-sm" disabled>On Cooldown · ${cooldownLabel}</button>`
+    ? `<button class="btn btn-ghost btn-sm" disabled>${cooldownLabel}</button>`
     : `<button class="btn btn-primary btn-sm" data-claim-id="${c.id}" data-claim-title="${escapeHtml(c.title)}">Claim Bounty</button>`;
 
   return `
-    <div class="poster" style="transform: rotate(${rotate}deg); ${isDone || onCooldown ? 'opacity:0.6;' : ''}">
+    <div class="poster" style="transform: rotate(${rotate}deg); ${isDone || onCooldown || isPending ? 'opacity:0.6;' : ''}">
       <p class="poster-eyebrow"><i data-lucide="star" class="icon-sm"></i> WANTED <i data-lucide="star" class="icon-sm"></i></p>
       <p class="poster-title">${escapeHtml(c.title)}</p>
       <p class="poster-body">${escapeHtml(c.description)}</p>
       <p class="poster-reward">+${c.xp_reward} XP</p>
       <div class="center" style="margin-top:10px; display:flex; flex-direction:column; gap:8px; align-items:center;">
         <span class="difficulty-label difficulty-${c.difficulty}">${c.difficulty}</span>
-        ${c.repeatable ? `<span class="muted" style="font-size:0.72rem;">Repeatable${c.cooldown_hours > 0 ? ` · ${c.cooldown_hours}h cooldown` : ''}</span>` : ''}
+        ${c.rotation !== 'none' ? `<span class="muted" style="font-size:0.72rem; text-transform:capitalize;">${c.rotation} quest</span>` : c.repeatable ? `<span class="muted" style="font-size:0.72rem;">Repeatable${c.cooldown_hours > 0 ? ` · ${c.cooldown_hours}h cooldown` : ''}</span>` : ''}
         ${actionHtml}
       </div>
     </div>
   `;
+}
+
+// UTC-based period key so "once per day/week/month" resets on a calendar boundary,
+// matching how the rest of the site's daily/weekly/monthly rotation already works.
+function periodKey(date, unit) {
+  if (unit === 'day') return date.toISOString().slice(0, 10);
+  if (unit === 'month') return date.toISOString().slice(0, 7);
+  // ISO week number
+  const d = new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()));
+  d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay() || 7));
+  const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+  const weekNo = Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
+  return `${d.getUTCFullYear()}-W${weekNo}`;
 }
 
 function openModal(challengeId, title) {
@@ -165,7 +201,18 @@ function initDropzone() {
 
 function addFiles(files) {
   const room = Math.max(0, MAX_SCREENSHOTS - selectedFiles.length);
-  const images = files.filter(f => f.type.startsWith('image/'));
+  const maxBytes = MAX_SCREENSHOT_MB * 1024 * 1024;
+
+  const tooBig = files.some(f => ALLOWED_IMAGE_TYPES.includes(f.type) && f.size > maxBytes);
+  const wrongType = files.some(f => !ALLOWED_IMAGE_TYPES.includes(f.type));
+
+  const images = files.filter(f => ALLOWED_IMAGE_TYPES.includes(f.type) && f.size <= maxBytes);
+
+  if (tooBig) {
+    showToast(`Screenshots must be under ${MAX_SCREENSHOT_MB}MB — skipped the oversized ones.`, true);
+  } else if (wrongType) {
+    showToast('Only PNG, JPG, WEBP, or GIF images are allowed.', true);
+  }
   if (images.length > room) {
     showToast(`Only ${MAX_SCREENSHOTS} screenshots max — added the first ${room || 0}.`, room === 0);
   }
@@ -217,6 +264,11 @@ async function handleSubmit(e) {
     errorEl.style.display = 'block';
     return;
   }
+  if (videoUrl && !isVideoPlatformLink(videoUrl)) {
+    errorEl.textContent = 'Video link must be from YouTube, Twitch, Streamable, Medal, Vimeo, TikTok, or a Google Drive link — other sites aren\'t allowed.';
+    errorEl.style.display = 'block';
+    return;
+  }
 
   submitBtn.disabled = true;
   submitBtn.textContent = files.length ? `Uploading ${files.length} image${files.length > 1 ? 's' : ''}…` : 'Submitting…';
@@ -242,6 +294,7 @@ async function handleSubmit(e) {
 
     closeModal();
     showToast('Submitted! The crew will review it soon.');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   } catch (err) {
     console.error(err);
     errorEl.textContent = err.message || 'Something went wrong. Try again.';

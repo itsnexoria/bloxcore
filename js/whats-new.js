@@ -4,7 +4,7 @@ let isAdmin = false;
 
 const TAG_COLOR = { feature: 'var(--purple)', update: 'var(--blue)', fix: 'var(--sea)', event: 'var(--gold)' };
 
-document.addEventListener('DOMContentLoaded', async () => {
+onReady(async () => {
   const { profile } = await getCurrentProfile();
   isAdmin = profile?.role === 'admin';
 
@@ -22,9 +22,28 @@ document.addEventListener('DOMContentLoaded', async () => {
   await loadEntries();
 });
 
+const ENTRIES_PAGE_SIZE = 20;
+let entryListDelegated = false;
+
+function renderEntry(entry) {
+  return `
+    <div class="panel" data-entry-id="${entry.id}">
+      <div class="flex-between" style="align-items:flex-start;">
+        <div>
+          <span style="font-size:0.66rem; font-weight:700; text-transform:uppercase; letter-spacing:0.05em; color:${TAG_COLOR[entry.tag]};">${entry.tag}</span>
+          <h3 style="margin:2px 0 0; font-size:1.1rem;">${escapeHtml(entry.title)}</h3>
+        </div>
+        <span class="muted" style="font-size:0.78rem; white-space:nowrap;">${formatDate(entry.created_at)}</span>
+      </div>
+      <div style="margin:10px 0 0; color:var(--ash);">${markdownToHtml(entry.description)}</div>
+      ${isAdmin ? `<button class="btn btn-ghost btn-sm" data-delete-entry="${entry.id}" style="margin-top:12px;" aria-label="Delete entry"><i data-lucide="trash-2" class="icon-sm"></i></button>` : ''}
+    </div>
+  `;
+}
+
 async function loadEntries() {
   const list = document.getElementById('entry-list');
-  const { data, error } = await sb.from('changelog_entries').select('*').order('created_at', { ascending: false }).limit(50);
+  const { data, error } = await sb.from('changelog_entries').select('*').order('created_at', { ascending: false }).range(0, ENTRIES_PAGE_SIZE - 1);
 
   if (error) {
     list.innerHTML = `<p class="muted">Couldn't load updates right now.</p>`;
@@ -37,27 +56,36 @@ async function loadEntries() {
     return;
   }
 
-  list.innerHTML = data.map(entry => `
-    <div class="panel" data-entry-id="${entry.id}">
-      <div class="flex-between" style="align-items:flex-start;">
-        <div>
-          <span style="font-size:0.66rem; font-weight:700; text-transform:uppercase; letter-spacing:0.05em; color:${TAG_COLOR[entry.tag]};">${entry.tag}</span>
-          <h3 style="margin:2px 0 0; font-size:1.1rem;">${escapeHtml(entry.title)}</h3>
-        </div>
-        <span class="muted" style="font-size:0.78rem; white-space:nowrap;">${formatDate(entry.created_at)}</span>
-      </div>
-      <p style="margin:10px 0 0; color:var(--ash); white-space:pre-wrap;">${escapeHtml(entry.description)}</p>
-      ${isAdmin ? `<button class="btn btn-ghost btn-sm" data-delete-entry="${entry.id}" style="margin-top:12px;"><i data-lucide="trash-2" class="icon-sm"></i></button>` : ''}
-    </div>
-  `).join('');
-
-  document.querySelectorAll('[data-delete-entry]').forEach(btn => {
-    btn.addEventListener('click', async () => {
-      await sb.from('changelog_entries').delete().eq('id', btn.dataset.deleteEntry);
-      loadEntries();
-    });
-  });
+  list.innerHTML = data.map(renderEntry).join('');
   refreshIcons();
+
+  // Delegate delete clicks once so newly-appended (Load More) entries work without rewiring.
+  if (!entryListDelegated) {
+    entryListDelegated = true;
+    list.addEventListener('click', async (e) => {
+      const btn = e.target.closest('[data-delete-entry]');
+      if (!btn) return;
+      if (!window.confirm('Delete this changelog entry?')) return;
+      await sb.from('changelog_entries').delete().eq('id', btn.dataset.deleteEntry);
+      btn.closest('[data-entry-id]')?.remove();
+    });
+  }
+
+  const oldWrap = document.getElementById('entries-load-more-wrap');
+  if (oldWrap) oldWrap.remove();
+  if (data.length === ENTRIES_PAGE_SIZE) {
+    attachLoadMore(list, {
+      wrapId: 'entries-load-more-wrap',
+      pageSize: ENTRIES_PAGE_SIZE,
+      initialOffset: data.length,
+      fetchPage: async (offset, pageSize) => {
+        const { data: rows } = await sb.from('changelog_entries').select('*').order('created_at', { ascending: false }).range(offset, offset + pageSize - 1);
+        return rows || [];
+      },
+      renderItem: renderEntry,
+      onAppend: refreshIcons,
+    });
+  }
 }
 
 async function handleCreateEntry(e) {

@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<script>(function(){try{var a=localStorage.getItem('bc_accent');if(a==='custom'){var c=JSON.parse(localStorage.getItem('bc_custom_theme')||'null');if(c){var s=document.documentElement.style;s.setProperty('--ink',c.ink);s.setProperty('--navy',c.navy);s.setProperty('--navy-light',c['navy-light']);s.setProperty('--brass',c.brass);s.setProperty('--brass-bright',c['brass-bright']);s.setProperty('--ink-glow',c.navy);var h=c.brass.replace('#','');s.setProperty('--brass-rgb',parseInt(h.substring(0,2),16)+' '+parseInt(h.substring(2,4),16)+' '+parseInt(h.substring(4,6),16));document.documentElement.setAttribute('data-accent','custom');}}else if(a){document.documentElement.setAttribute('data-accent',a);}if(localStorage.getItem('bc_reduce_motion')==='1')document.documentElement.classList.add('reduce-motion');if(localStorage.getItem('bc_compact_mode')==='1')document.documentElement.classList.add('compact-mode');}catch(e){}})();</script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sea Events — BloxCore</title>
+<meta name="robots" content="index, follow">
+<meta name="description" content="Find or post a server for Sea Beasts, Terror Sharks, Leviathan, Prehistoric Island and Mirage — join up with other Blox Fruits players in seconds.">
+<link rel="canonical" href="https://blox.nexorealm.org/sea-events/">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="BloxCore">
+<meta property="og:title" content="Sea Events — BloxCore">
+<meta property="og:description" content="Find or post a server for Sea Beasts, Terror Sharks, Leviathan, Prehistoric Island and Mirage — join up with other Blox Fruits players in seconds.">
+<meta property="og:image" content="https://blox.nexorealm.org/assets/logo.png">
+<meta property="og:url" content="https://blox.nexorealm.org/sea-events/">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Sea Events — BloxCore">
+<meta name="twitter:description" content="Find or post a server for Sea Beasts, Terror Sharks, Leviathan, Prehistoric Island and Mirage — join up with other Blox Fruits players in seconds.">
+<meta name="twitter:image" content="https://blox.nexorealm.org/assets/logo.png">
+<link rel="stylesheet" href="/css/style.css">
+<link rel="stylesheet" href="/css/animations.css">
+<link rel="icon" type="image/png" href="/assets/logo.png">
+<link rel="manifest" href="/manifest.json">
+<link rel="apple-touch-icon" href="/assets/apple-touch-icon.png">
+<meta name="theme-color" content="#0a0e17">
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-inner">
+    <a href="/" class="brand"><img src="/assets/logo.png" alt="BloxCore" class="brand-logo"><span class="brand-name">Blox<span>Core</span></span></a>
+    <div class="nav-header-actions">
+      <div id="nav-messages-slot"></div>
+      <div id="nav-notif-slot"></div>
+      <button type="button" class="nav-toggle" aria-label="Open menu" aria-expanded="false"><i data-lucide="menu" class="icon-md nav-toggle-icon-menu"></i><i data-lucide="x" class="icon-md nav-toggle-icon-close"></i></button>
+      <div id="nav-profile-slot"></div>
+    </div>
+    <ul class="nav-links">
+      <li><a href="/"><i data-lucide="home" class="icon-sm icon-inline"></i>Home</a></li>
+      <li><a href="/chat/"><i data-lucide="message-circle" class="icon-sm icon-inline"></i>Chat</a></li>
+      <li><a href="/sea-events/"><i data-lucide="waves" class="icon-sm icon-inline"></i>Sea Events</a></li>
+      <li><a href="/pvp/"><i data-lucide="crosshair" class="icon-sm icon-inline"></i>PvP</a></li>
+      <li><a href="/giveaways/"><i data-lucide="gift" class="icon-sm icon-inline"></i>Giveaways</a></li>
+      <li><a href="/challenges/"><i data-lucide="swords" class="icon-sm icon-inline"></i>Quests</a></li>
+      <li><a href="/leaderboard/"><i data-lucide="trophy" class="icon-sm icon-inline"></i>Leaderboard</a></li>
+      <li><a href="/crews/"><i data-lucide="users" class="icon-sm icon-inline"></i>Crews</a></li>
+      <li><a href="/trading/"><i data-lucide="repeat" class="icon-sm icon-inline"></i>Trading</a></li>
+      <li><a href="/services/"><i data-lucide="briefcase" class="icon-sm icon-inline"></i>Services</a></li>
+      <li><a href="/combos/"><i data-lucide="flame" class="icon-sm icon-inline"></i>Combos</a></li>
+      <li><a href="/third-party/"><i data-lucide="puzzle" class="icon-sm icon-inline"></i>3rd Party</a></li>
+      <li><a href="/whats-new/"><i data-lucide="sparkles" class="icon-sm icon-inline"></i>What's New</a></li>
+      <li id="nav-auth-slot"></li>
+    </ul>
+  </div>
+</nav>
+
+<section class="section">
+  <div class="container">
+    <div class="flex-between">
+      <div>
+        <h1 style="font-size:1.8rem; margin-bottom:2px;">Sea Events</h1>
+        <p class="muted" style="margin:0;">Post a server or join one for Sea Beasts, Terror Sharks, Leviathan, Prehistoric Island and Mirage. Listings auto-expire after 1 hour.</p>
+      </div>
+      <button type="button" class="btn btn-primary btn-sm" id="post-event-btn" style="display:none; flex-shrink:0;"><i data-lucide="plus" class="icon-sm icon-inline"></i>Post Event</button>
+    </div>
+
+    <div style="display:flex; gap:8px; margin-top:24px; flex-wrap:wrap;" id="se-category-tabs">
+      <button type="button" class="btn btn-primary btn-sm" data-filter="all">All</button>
+      <button type="button" class="btn btn-ghost btn-sm" data-filter="sea_beast">Sea Beast</button>
+      <button type="button" class="btn btn-ghost btn-sm" data-filter="terror_shark">Terror Shark</button>
+      <button type="button" class="btn btn-ghost btn-sm" data-filter="leviathan">Leviathan</button>
+      <button type="button" class="btn btn-ghost btn-sm" data-filter="prehistoric_island">Prehistoric Island</button>
+      <button type="button" class="btn btn-ghost btn-sm" data-filter="mirage">Mirage</button>
+      <button type="button" class="btn btn-ghost btn-sm" data-filter="kitsune_shrine">Kitsune Shrine</button>
+    </div>
+
+    <div id="sea-events-list" class="grid" style="margin-top:20px;">
+      <div class="skeleton" style="height:180px;"></div>
+      <div class="skeleton" style="height:180px;"></div>
+      <div class="skeleton" style="height:180px;"></div>
+    </div>
+  </div>
+</section>
+
+<div id="post-event-modal" class="build-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="post-event-title">
+  <div class="panel build-modal">
+    <div class="flex-between" style="margin-bottom:14px;">
+      <h2 id="post-event-title" style="font-size:1.05rem; margin:0;">Post a Sea Event</h2>
+      <button type="button" class="btn btn-ghost btn-sm" id="post-event-close" aria-label="Close"><i data-lucide="x" class="icon-md"></i></button>
+    </div>
+    <p class="muted" style="margin:0 0 14px; font-size:0.82rem;">This auto-deletes in 1 hour. Post again if the server's still going.</p>
+    <form id="post-event-form">
+      <label for="se-type">Event Type</label>
+      <select id="se-type" required>
+        <option value="sea_beast">Sea Beast</option>
+        <option value="terror_shark">Terror Shark</option>
+        <option value="leviathan">Leviathan</option>
+        <option value="prehistoric_island">Prehistoric Island</option>
+        <option value="mirage">Mirage</option>
+        <option value="kitsune_shrine">Kitsune Shrine</option>
+      </select>
+
+      <label for="se-link">Roblox Profile or Server Join Link</label>
+      <input type="url" id="se-link" maxlength="300" placeholder="https://www.roblox.com/users/… or a private server link" required>
+
+      <label for="se-max">Max Players (up to 12)</label>
+      <input type="number" id="se-max" min="1" max="12" value="12" required>
+
+      <label for="se-duration">Auto-Delete After</label>
+      <select id="se-duration" required>
+        <option value="1" selected>1 hour</option>
+        <option value="2">2 hours</option>
+        <option value="3">3 hours</option>
+        <option value="6">6 hours</option>
+        <option value="12">12 hours</option>
+        <option value="24">24 hours</option>
+      </select>
+
+      <label for="se-notes">Notes (optional)</label>
+      <textarea id="se-notes" rows="3" maxlength="300" placeholder="Level requirement, VC only, etc."></textarea>
+
+      <p class="field-error" id="post-event-error" style="display:none;"></p>
+      <button type="submit" class="btn btn-primary btn-block">Post Event</button>
+    </form>
+  </div>
+</div>
+
+<footer class="site-footer">
+  <div class="container">BloxCore is the #1 Blox Fruits community — your ultimate hub for trading, bounty hunting, crews, combos, sea events, giveaways, leaderboards, live chat, and so much more! <a href="/terms/" style="color:inherit; text-decoration:underline;">Terms</a> · <a href="/privacy/" style="color:inherit; text-decoration:underline;">Privacy</a></div>
+</footer>
+
+<script src="https://unpkg.com/lucide@latest"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="/js/animations.js"></script>
+<script src="/js/supabase-client.js"></script>
+<script src="/js/nav.js"></script>
+<script src="/js/search.js"></script>
+<script src="/js/sea-events.js"></script>
+</body>
+</html>
