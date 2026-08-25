@@ -182,7 +182,7 @@ function renderProfile(p, crew, isOwnProfile) {
     { key: 'accessory', label: 'Accessory', value: p.build_accessory },
   ].filter(f => f.value);
 
-  const avatarBlock = avatarHtml(p, 92, 'border-radius:50%;');
+  const avatarBlock = avatarHtml(p, 130, 'border-radius:50%;');
   const presence = presenceStatus(p.last_active_at);
   const presenceColor = { online: 'var(--sea)', idle: 'var(--brass-bright)', offline: 'var(--ash)' }[presence];
 
@@ -190,27 +190,21 @@ function renderProfile(p, crew, isOwnProfile) {
     <div class="profile-hero">
       <div class="profile-hero-banner-wrap">
         ${p.banner_url ? `<img src="${p.banner_url}" alt="" loading="lazy" onerror="this.remove();">` : ''}
-      </div>
-      <div class="profile-hero-actions">
-        ${p.roblox_username ? `
-          <a href="https://www.roblox.com/users/profile?username=${encodeURIComponent(p.roblox_username)}" target="_blank" rel="noopener noreferrer" class="profile-hero-icon-btn profile-hero-roblox-btn" title="View on Roblox">
-            ${SOCIAL_ICONS.roblox}${escapeHtml(p.roblox_username)}${p.roblox_verified ? ' <i data-lucide="badge-check" class="icon-sm"></i>' : ''}
-          </a>
-        ` : ''}
-        <button type="button" id="profile-copy-link" class="profile-hero-icon-btn" title="Copy profile link" aria-label="Copy profile link"><i data-lucide="link" class="icon-sm"></i></button>
-        ${!isOwnProfile ? `<button type="button" id="profile-report" class="profile-hero-icon-btn" title="Report this profile" aria-label="Report this profile"><i data-lucide="flag" class="icon-sm"></i></button>` : ''}
-      </div>
-      <div class="profile-hero-body">
-        <div class="profile-hero-avatar-wrap">
-          ${avatarBlock}
-          <span class="profile-hero-level-pill">Lv${p.level}</span>
+        <div class="profile-hero-actions">
+          ${p.roblox_username ? `
+            <a href="https://www.roblox.com/users/profile?username=${encodeURIComponent(p.roblox_username)}" target="_blank" rel="noopener noreferrer" class="profile-hero-icon-btn profile-hero-roblox-btn" title="View on Roblox">
+              ${SOCIAL_ICONS.roblox}${escapeHtml(p.roblox_username)}${p.roblox_verified ? ' <i data-lucide="badge-check" class="icon-sm"></i>' : ''}
+            </a>
+          ` : ''}
+          <button type="button" id="profile-copy-link" class="profile-hero-icon-btn" title="Copy profile link" aria-label="Copy profile link"><i data-lucide="link" class="icon-sm"></i></button>
+          ${!isOwnProfile ? `<button type="button" id="profile-report" class="profile-hero-icon-btn" title="Report this profile" aria-label="Report this profile"><i data-lucide="flag" class="icon-sm"></i></button>` : ''}
         </div>
-        <div class="profile-hero-info">
+        <div class="profile-hero-overlay-info">
           <div class="profile-hero-name-row">
             <h1 class="profile-hero-name">${escapeHtml(name)}</h1>
             ${titleBadge(p)}
           </div>
-          <p class="profile-hero-rank-title">${title}${showHandle ? ` · @${escapeHtml(p.username)}` : ''}</p>
+          <p class="profile-hero-rank-title">${title}${showHandle ? ` <span class="profile-hero-handle">· @${escapeHtml(p.username)}</span>` : ''}</p>
           ${p.status_line ? `<span class="profile-hero-status"><i data-lucide="message-circle" class="icon-sm"></i>${escapeHtml(p.status_line)}</span>` : ''}
           <div class="profile-hero-meta">
             <span class="profile-hero-meta-dot" style="background:${presenceColor};"></span>
@@ -221,11 +215,21 @@ function renderProfile(p, crew, isOwnProfile) {
             ${p.current_streak > 0 ? `<span class="profile-hero-sep">·</span><span><i data-lucide="flame" class="icon-sm icon-inline" style="color:var(--brass-bright);"></i>${p.current_streak}-day streak</span>` : ''}
           </div>
           <div id="social-actions" style="margin-top:12px; display:flex; gap:8px; flex-wrap:wrap;"></div>
-          ${crew ? `<a href="/crew/?name=${encodeURIComponent(crew.name)}" class="info-chip" style="text-decoration:none; margin-top:10px;">
-            ${crew.logo_url ? `<img src="${crew.logo_url}" alt="" loading="lazy" style="width:16px; height:16px; border-radius:4px; object-fit:cover;" onerror="this.style.display='none';">` : ''}
+        </div>
+      </div>
+      <div class="profile-hero-body">
+        <div class="profile-hero-avatar-wrap">
+          ${avatarBlock}
+          <span class="profile-hero-level-pill">Lv${p.level}</span>
+        </div>
+        <div class="profile-hero-body-content">
+          ${crew ? `<a href="/crew/?name=${encodeURIComponent(crew.name)}" class="profile-hero-crew-chip">
+            ${crew.logo_url ? `<img src="${crew.logo_url}" alt="" loading="lazy" style="width:20px; height:20px; border-radius:5px; object-fit:cover;" onerror="this.style.display='none';">` : '<i data-lucide=\"shield\" class=\"icon-sm\" style=\"color:var(--ash);\"></i>'}
             <span class="info-chip-label">Crew</span><span class="info-chip-value">${crew.tag ? `[${escapeHtml(crew.tag)}] ` : ''}${escapeHtml(crew.name)}</span>
+            <i data-lucide="chevron-right" class="icon-sm"></i>
           </a>` : ''}
           <div class="profile-hero-xp-row">
+            <span class="profile-hero-xp-level">LEVEL ${p.level}</span>
             <div class="xp-bar"><div class="xp-bar-fill" style="width:${progress.pct}%;"></div></div>
             <span class="profile-hero-xp-label">${progress.current}/${progress.needed} XP</span>
           </div>

@@ -2228,34 +2228,43 @@ html.compact-mode .grid { gap: 12px; }
 }
 .profile-hero::before { display: none; }
 .profile-hero-banner-wrap {
-  height: 200px;
   position: relative;
+  min-height: 320px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding: 100px 30px 22px;
   background: linear-gradient(135deg, rgb(var(--brass-rgb) / 0.25), var(--navy-light) 60%, var(--navy) 100%);
   overflow: hidden;
 }
 .profile-hero-banner-wrap img {
+  position: absolute;
+  inset: 0;
   width: 100%;
   height: 100%;
   object-fit: cover;
-  display: block;
+  z-index: 0;
 }
 .profile-hero-banner-wrap::after {
+  /* Scrim so name/rank/status/meta stay legible over any banner image — strongest at
+     the bottom where the text sits, fading out toward the top so the image still reads. */
   content: '';
   position: absolute;
   inset: 0;
-  background: linear-gradient(180deg, rgb(var(--shadow-rgb) / 0) 45%, var(--navy) 100%);
+  z-index: 1;
+  background: linear-gradient(180deg, rgba(5,6,10,0) 25%, rgba(5,6,10,0.5) 62%, rgba(5,6,10,0.92) 100%);
 }
 .profile-hero-actions {
   position: absolute;
-  top: 14px;
-  right: 14px;
+  top: 16px;
+  right: 16px;
   z-index: 3;
   display: flex;
   gap: 8px;
 }
 .profile-hero-icon-btn {
-  width: 38px;
-  height: 38px;
+  width: 40px;
+  height: 40px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -2263,7 +2272,7 @@ html.compact-mode .grid { gap: 12px; }
   background: rgba(10, 10, 16, 0.55);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.14);
+  border: 1px solid rgba(255, 255, 255, 0.16);
   color: var(--bone);
   transition: background 0.15s ease, transform 0.15s ease, border-color 0.15s ease;
   cursor: pointer;
@@ -2278,27 +2287,92 @@ html.compact-mode .grid { gap: 12px; }
 .profile-hero-roblox-btn {
   width: auto;
   border-radius: 999px;
-  padding: 0 14px;
-  gap: 7px;
+  padding: 0 16px;
+  height: 40px;
+  gap: 8px;
   background: linear-gradient(135deg, var(--brass), var(--brass-bright));
   border: 1px solid rgb(var(--brass-rgb) / 0.6);
   color: #05070d;
   font-weight: 700;
-  font-size: 0.82rem;
+  font-size: 0.85rem;
   box-shadow: 0 4px 16px rgb(var(--brass-rgb) / 0.35);
 }
 .profile-hero-roblox-btn:hover {
   background: linear-gradient(135deg, var(--brass-bright), var(--brass));
   transform: translateY(-2px);
 }
+.profile-hero-overlay-info {
+  position: relative;
+  z-index: 2;
+  /* Clears the avatar column, which visually overlaps this lower-left area of the
+     banner even though it lives in .profile-hero-body below (see that rule's comment). */
+  padding-left: 178px;
+}
+.profile-hero-name-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.profile-hero-name {
+  margin: 0;
+  font-size: 2.1rem;
+  font-weight: 800;
+  font-family: var(--font-display);
+  text-transform: none;
+  letter-spacing: normal;
+  background: linear-gradient(120deg, #fff 30%, rgb(var(--brass-rgb)) 90%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  text-shadow: 0 2px 24px rgb(var(--shadow-rgb) / 0.7);
+}
+.profile-hero-rank-title {
+  margin: 4px 0 0;
+  font-size: 0.95rem;
+  color: var(--brass-bright);
+  font-weight: 700;
+}
+.profile-hero-rank-title .profile-hero-handle { color: var(--bone); font-weight: 500; }
+.profile-hero-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin: 12px 0 0;
+  padding: 6px 13px 6px 11px;
+  border-radius: 999px;
+  background: rgba(10, 10, 16, 0.4);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  border: 1px solid rgb(var(--brass-rgb) / 0.35);
+  color: var(--bone);
+  font-size: 0.83rem;
+  font-weight: 600;
+}
+.profile-hero-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin: 12px 0 0;
+  color: var(--ash);
+  font-size: 0.82rem;
+}
+.profile-hero-meta-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.profile-hero-sep { opacity: 0.35; }
 .profile-hero-body {
   position: relative;
-  padding: 0 26px 26px;
-  margin-top: -56px;
+  z-index: 2;
+  padding: 0 30px 26px;
+  margin-top: -76px;
   display: flex;
-  gap: 20px;
   align-items: flex-end;
-  flex-wrap: wrap;
+  gap: 22px;
 }
 .profile-hero-avatar-wrap {
   position: relative;
@@ -2307,79 +2381,50 @@ html.compact-mode .grid { gap: 12px; }
 }
 .profile-hero-level-pill {
   position: absolute;
-  bottom: -2px;
-  right: -6px;
+  bottom: -4px;
+  right: -8px;
   background: linear-gradient(135deg, var(--brass), var(--gold));
   color: #1a0a06;
   font-family: var(--font-stamp);
   font-weight: 700;
-  font-size: 0.74rem;
-  padding: 3px 9px;
+  font-size: 0.8rem;
+  padding: 4px 10px;
   border-radius: 999px;
   border: 3px solid var(--navy);
   box-shadow: 0 2px 10px rgb(var(--shadow-rgb) / 0.45);
 }
-.profile-hero-info {
+.profile-hero-body-content {
   flex: 1;
-  min-width: 220px;
-  padding-bottom: 4px;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
 }
-.profile-hero-name-row {
+.profile-hero-crew-chip {
   display: flex;
   align-items: center;
   gap: 10px;
-  flex-wrap: wrap;
+  padding: 12px 16px;
+  border-radius: var(--radius-sm);
+  background: rgba(10, 10, 16, 0.55);
+  border: 1px solid var(--glass-border);
+  text-decoration: none;
+  transition: border-color 0.15s ease, transform 0.15s ease;
 }
-.profile-hero-name {
-  margin: 0;
-  font-size: 1.65rem;
-  font-weight: 700;
-  color: var(--bone);
-  font-family: var(--font-body);
-  text-transform: none;
-  letter-spacing: normal;
-  text-shadow: 0 2px 12px rgb(var(--shadow-rgb) / 0.6);
-}
-.profile-hero-rank-title {
-  margin: 2px 0 0;
-  font-size: 0.86rem;
-  color: var(--brass-bright);
-  font-weight: 600;
-}
-.profile-hero-status {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  margin: 8px 0 0;
-  padding: 4px 11px 4px 9px;
-  border-radius: 999px;
-  background: rgb(var(--brass-rgb) / 0.14);
-  border: 1px solid rgb(var(--brass-rgb) / 0.3);
-  color: var(--brass-bright);
-  font-size: 0.8rem;
-  font-weight: 600;
-}
-.profile-hero-meta {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  flex-wrap: wrap;
-  margin: 8px 0 0;
-  color: var(--ash);
-  font-size: 0.8rem;
-}
-.profile-hero-meta-dot {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  flex-shrink: 0;
-}
-.profile-hero-sep { opacity: 0.5; }
+.profile-hero-crew-chip:hover { border-color: rgb(var(--brass-rgb) / 0.5); transform: translateY(-1px); }
+.profile-hero-crew-chip .icon-sm:last-child { margin-left: auto; color: var(--ash); }
 .profile-hero-xp-row {
-  margin-top: 18px;
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 14px;
+}
+.profile-hero-xp-level {
+  flex-shrink: 0;
+  font-family: var(--font-stamp);
+  font-weight: 700;
+  font-size: 0.82rem;
+  letter-spacing: 0.06em;
+  color: var(--brass-bright);
 }
 .profile-hero-xp-row .xp-bar { flex: 1; margin: 0; }
 .profile-hero-xp-label {
@@ -2388,10 +2433,15 @@ html.compact-mode .grid { gap: 12px; }
   color: var(--ash);
   font-family: var(--font-mono);
 }
-@media (max-width: 620px) {
-  .profile-hero-banner-wrap { height: 140px; }
-  .profile-hero-body { margin-top: -40px; padding: 0 16px 20px; gap: 14px; }
-  .profile-hero-name { font-size: 1.3rem; }
+@media (max-width: 700px) {
+  .profile-hero-banner-wrap { min-height: 260px; padding: 80px 18px 18px; }
+  .profile-hero-overlay-info { padding-left: 0; }
+  .profile-hero-name { font-size: 1.5rem; }
+  .profile-hero-body { padding: 0 18px 20px; margin-top: -56px; gap: 14px; }
+}
+@media (max-width: 480px) {
+  .profile-hero-body { flex-wrap: wrap; }
+  .profile-hero-body-content { min-width: 100%; order: 3; margin-top: 8px; }
 }
 
 /* ------------------------------ Image crop modal ------------------------------ */
