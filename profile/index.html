@@ -75,6 +75,10 @@
         <input type="text" id="display_name" minlength="2" maxlength="24" placeholder="How other pirates see your name">
         <p class="muted" style="font-size:0.76rem; margin:-12px 0 16px;">Your login handle (@<span id="username-hint"></span>) stays the same — this is just what shows on your profile, the leaderboard, and the activity feed.</p>
 
+        <label>Name Color</label>
+        <input type="hidden" id="name_gradient" value="">
+        <div id="name-gradient-swatches" style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:16px;"></div>
+
         <label for="active_title">Title</label>
         <input type="hidden" id="active_title" value="">
         <button type="button" class="build-picker-btn" id="title-picker-btn" style="width:100%; flex-direction:row; align-items:center; justify-content:space-between;">

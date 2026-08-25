@@ -191,9 +191,11 @@ function renderProfile(p, crew, isOwnProfile) {
       <div class="profile-hero-banner-wrap">
         ${p.banner_url ? `<img src="${p.banner_url}" alt="" loading="lazy" onerror="this.remove();">` : ''}
         <div class="profile-hero-actions">
+          ${socialLinks.map(s => `<a href="${safeUrl(social[s.key])}" target="_blank" rel="noopener noreferrer" class="profile-hero-icon-btn" title="${s.label}" aria-label="${s.label}">${SOCIAL_ICONS[s.key] || ''}</a>`).join('')}
           ${p.roblox_username ? `
-            <a href="https://www.roblox.com/users/profile?username=${encodeURIComponent(p.roblox_username)}" target="_blank" rel="noopener noreferrer" class="profile-hero-icon-btn profile-hero-roblox-btn" title="View on Roblox">
-              ${SOCIAL_ICONS.roblox}${escapeHtml(p.roblox_username)}${p.roblox_verified ? ' <i data-lucide="badge-check" class="icon-sm"></i>' : ''}
+            <a href="https://www.roblox.com/users/profile?username=${encodeURIComponent(p.roblox_username)}" target="_blank" rel="noopener noreferrer" class="profile-hero-icon-btn profile-hero-roblox-btn" title="Roblox: ${escapeHtml(p.roblox_username)}${p.roblox_verified ? ' (verified)' : ''}" aria-label="View on Roblox">
+              ${SOCIAL_ICONS.roblox}
+              ${p.roblox_verified ? '<i data-lucide="badge-check" class="icon-sm profile-hero-verified-badge"></i>' : ''}
             </a>
           ` : ''}
           <button type="button" id="profile-copy-link" class="profile-hero-icon-btn" title="Copy profile link" aria-label="Copy profile link"><i data-lucide="link" class="icon-sm"></i></button>
@@ -201,7 +203,7 @@ function renderProfile(p, crew, isOwnProfile) {
         </div>
         <div class="profile-hero-overlay-info">
           <div class="profile-hero-name-row">
-            <h1 class="profile-hero-name">${escapeHtml(name)}</h1>
+            <h1 class="profile-hero-name" style="${p.name_gradient ? titleColorStyle(p.name_gradient) : ''}">${escapeHtml(name)}</h1>
             ${titleBadge(p)}
           </div>
           <p class="profile-hero-rank-title">${title}${showHandle ? ` <span class="profile-hero-handle">· @${escapeHtml(p.username)}</span>` : ''}</p>
@@ -303,12 +305,6 @@ function renderProfile(p, crew, isOwnProfile) {
       ` : ''}
       <div id="vouch-list" style="display:flex; flex-direction:column; gap:10px;"></div>
     </div>
-
-    ${socialLinks.length ? `
-      <div style="margin-top:20px; display:flex; gap:10px; flex-wrap:wrap;">
-        ${socialLinks.map(s => `<a href="${safeUrl(social[s.key])}" target="_blank" rel="noopener noreferrer" class="btn btn-ghost btn-sm" style="padding:9px 14px; gap:8px;" title="${s.label}" aria-label="${s.label}">${SOCIAL_ICONS[s.key] || ''}${escapeHtml(s.label)}</a>`).join('')}
-      </div>
-    ` : ''}
 
     <div id="player-trades-section" style="display:none; margin-top:28px;">
       <p class="muted" style="margin:0 0 10px; font-size:0.8rem; text-transform:uppercase; letter-spacing:0.05em;"><i data-lucide="repeat" class="icon-sm icon-inline"></i>Active Trade Listings</p>

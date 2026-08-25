@@ -38,6 +38,7 @@ const RARITY_ORDER = { divine: 6, mythical: 5, legendary: 4, epic: 3, rare: 2, c
 let ownedTitleIds = new Set();
 let activeTitleId = '';
 let activeTitleColorOverride = '';
+let activeNameGradient = '';
 let canUseRainbow = false;
 
 async function populateTitleSelect(userId, activeId, colorOverride, role) {
@@ -113,6 +114,25 @@ function renderTitleColorSwatches() {
   });
 }
 
+function renderNameGradientSwatches() {
+  const presets = NAME_GRADIENT_PRESETS.filter(p => p.key !== 'rainbow' || canUseRainbow);
+  document.getElementById('name-gradient-swatches').innerHTML = presets.map(p => {
+    const selected = (activeNameGradient || 'default') === p.key;
+    const isRainbow = p.swatch === 'rainbow';
+    const cls = isRainbow ? 'swatch-rainbow' : '';
+    const bg = isRainbow ? '' : p.swatch;
+    return `<button type="button" class="color-swatch-btn ${cls} ${selected ? 'selected' : ''}" style="background:${bg};" data-gradient-key="${p.key}" title="${p.label}"></button>`;
+  }).join('');
+
+  document.querySelectorAll('#name-gradient-swatches [data-gradient-key]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      activeNameGradient = btn.dataset.gradientKey === 'default' ? '' : btn.dataset.gradientKey;
+      document.getElementById('name_gradient').value = activeNameGradient;
+      renderNameGradientSwatches();
+    });
+  });
+}
+
 function openTitleModal() {
   document.getElementById('title-modal-progress').textContent =
     `${ownedTitleIds.size} of ${allTitlesForPicker.length} titles unlocked`;
@@ -175,6 +195,9 @@ async function populateForm(profile) {
   renderAvatar(profile.avatar_url);
   renderBanner(profile.banner_url);
   document.getElementById('display_name').value = profile.display_name || '';
+  activeNameGradient = profile.name_gradient || '';
+  document.getElementById('name_gradient').value = activeNameGradient;
+  renderNameGradientSwatches();
   document.getElementById('bio').value = profile.bio || '';
   document.getElementById('status_line').value = profile.status_line || '';
   document.getElementById('region').value = profile.region || '';
@@ -451,6 +474,7 @@ async function handleSave(e) {
 
   const payload = {
     display_name: document.getElementById('display_name').value.trim() || null,
+    name_gradient: document.getElementById('name_gradient').value || null,
     active_title_id: document.getElementById('active_title').value || null,
     title_color_override: document.getElementById('title_color_override').value || null,
     bio: document.getElementById('bio').value.trim() || null,
