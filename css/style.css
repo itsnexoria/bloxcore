@@ -405,12 +405,19 @@ section.section h2.center::after { margin-left: auto; margin-right: auto; }
 .nav-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(5,5,8,0.7);
-  backdrop-filter: blur(3px);
   z-index: 60;
   opacity: 0;
   pointer-events: none;
   transition: opacity 0.25s ease;
+}
+.nav-overlay::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: rgba(5,5,8,0.7);
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
 }
 .nav-overlay.open { opacity: 1; pointer-events: auto; }
 
@@ -1306,8 +1313,6 @@ select option {
   display: flex;
   position: fixed;
   inset: 0;
-  background: rgba(5,5,8,0.85);
-  backdrop-filter: blur(4px);
   z-index: 200;
   align-items: center;
   justify-content: center;
@@ -1317,6 +1322,22 @@ select option {
   visibility: hidden;
   pointer-events: none;
   transition: opacity 0.22s ease, visibility 0s linear 0.22s;
+}
+/* The blur/dim layer is a separate ::before rather than background+backdrop-filter
+   directly on .build-modal-overlay — combining backdrop-filter with position:fixed on
+   the very same element is a known cross-browser bug (Safari/Firefox in particular)
+   where the element's own fixed positioning can misrender relative to the viewport,
+   which is what made these modals pop up anchored to their scroll position in the
+   page instead of centered on screen. Keeping the filter on an absolutely-positioned
+   child sidesteps it entirely — the child just fills the already-viewport-sized parent. */
+.build-modal-overlay::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: rgba(5,5,8,0.85);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
 }
 .build-modal-overlay.open {
   opacity: 1;
@@ -2116,11 +2137,18 @@ html.compact-mode .grid { gap: 12px; }
   align-items: center;
   justify-content: center;
   padding: 20px;
+}
+.rankup-overlay::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
   background: rgba(5, 6, 10, 0);
   backdrop-filter: blur(0px);
-  transition: background 0.25s ease, backdrop-filter 0.25s ease;
+  -webkit-backdrop-filter: blur(0px);
+  transition: background 0.25s ease, backdrop-filter 0.25s ease, -webkit-backdrop-filter 0.25s ease;
 }
-.rankup-overlay.open {
+.rankup-overlay.open::before {
   background: rgba(5, 6, 10, 0.72);
   backdrop-filter: blur(6px);
   -webkit-backdrop-filter: blur(6px);
