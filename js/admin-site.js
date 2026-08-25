@@ -56,10 +56,6 @@ async function loadSettingsForm() {
   document.getElementById('setting-min-combo-title').value = map.min_combo_title_length ?? 3;
   document.getElementById('setting-min-combo-description').value = map.min_combo_description_length ?? 10;
   document.getElementById('setting-min-sea-event-note').value = map.min_sea_event_note_length ?? 5;
-  document.getElementById('setting-min-third-party-title').value = map.min_third_party_title_length ?? 4;
-  document.getElementById('setting-max-third-party-title').value = map.max_third_party_title_length ?? 60;
-  document.getElementById('setting-min-third-party-description').value = map.min_third_party_description_length ?? 0;
-  document.getElementById('setting-max-third-party-description').value = map.max_third_party_description_length ?? 300;
   document.getElementById('setting-max-trades').value = map.max_active_trades ?? 3;
   document.getElementById('setting-max-services').value = map.max_active_services ?? 5;
   document.getElementById('setting-max-combos').value = map.max_combos_per_user ?? 10;
@@ -69,7 +65,6 @@ async function loadSettingsForm() {
   document.getElementById('setting-xp-trade').value = map.xp_per_trade_listing ?? 5;
   document.getElementById('setting-xp-chat').value = map.xp_per_chat_message ?? 1;
   document.getElementById('setting-xp-giveaway-entry').value = map.xp_per_giveaway_entry ?? 2;
-  document.getElementById('setting-xp-third-party-post').value = map.xp_per_third_party_post ?? 5;
   document.getElementById('setting-xp-vouch').value = map.xp_per_vouch_given ?? 3;
   document.getElementById('setting-xp-pvp').value = map.xp_per_pvp_match_posted ?? 3;
   document.getElementById('setting-trust-enabled').checked = map.trust_auto_approve_enabled ?? true;
@@ -90,10 +85,6 @@ async function handleSaveSettings(e) {
     { key: 'min_combo_title_length', value: Number(document.getElementById('setting-min-combo-title').value) },
     { key: 'min_combo_description_length', value: Number(document.getElementById('setting-min-combo-description').value) },
     { key: 'min_sea_event_note_length', value: Number(document.getElementById('setting-min-sea-event-note').value) },
-    { key: 'min_third_party_title_length', value: Number(document.getElementById('setting-min-third-party-title').value) },
-    { key: 'max_third_party_title_length', value: Number(document.getElementById('setting-max-third-party-title').value) },
-    { key: 'min_third_party_description_length', value: Number(document.getElementById('setting-min-third-party-description').value) },
-    { key: 'max_third_party_description_length', value: Number(document.getElementById('setting-max-third-party-description').value) },
     { key: 'max_active_trades', value: Number(document.getElementById('setting-max-trades').value) },
     { key: 'max_active_services', value: Number(document.getElementById('setting-max-services').value) },
     { key: 'max_combos_per_user', value: Number(document.getElementById('setting-max-combos').value) },
@@ -103,7 +94,6 @@ async function handleSaveSettings(e) {
     { key: 'xp_per_trade_listing', value: Number(document.getElementById('setting-xp-trade').value) },
     { key: 'xp_per_chat_message', value: Number(document.getElementById('setting-xp-chat').value) },
     { key: 'xp_per_giveaway_entry', value: Number(document.getElementById('setting-xp-giveaway-entry').value) },
-    { key: 'xp_per_third_party_post', value: Number(document.getElementById('setting-xp-third-party-post').value) },
     { key: 'xp_per_vouch_given', value: Number(document.getElementById('setting-xp-vouch').value) },
     { key: 'xp_per_pvp_match_posted', value: Number(document.getElementById('setting-xp-pvp').value) },
     { key: 'trust_auto_approve_enabled', value: document.getElementById('setting-trust-enabled').checked },
@@ -243,7 +233,7 @@ const PAGE_LABELS = {
   '/chat/': 'Chat (Live Chat, Messages, Friends)', '/sea-events/': 'Sea Events',
   '/giveaways/': 'Giveaways', '/challenges/': 'Challenges', '/leaderboard/': 'Leaderboard',
   '/crews/': 'Crews (incl. Crew Wars)', '/crew/': 'Individual Crew Pages', '/trading/': 'Trading',
-  '/services/': 'Services', '/combos/': 'Combos', '/third-party/': '3rd Party',
+  '/services/': 'Services', '/combos/': 'Combos',
   '/player/': 'Player Profiles', '/profile/': 'Edit Profile',
   '/whats-new/': "What's New", '/settings/': 'Settings',
 };

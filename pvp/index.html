@@ -48,7 +48,6 @@
       <li><a href="/trading/"><i data-lucide="repeat" class="icon-sm icon-inline"></i>Trading</a></li>
       <li><a href="/services/"><i data-lucide="briefcase" class="icon-sm icon-inline"></i>Services</a></li>
       <li><a href="/combos/"><i data-lucide="flame" class="icon-sm icon-inline"></i>Combos</a></li>
-      <li><a href="/third-party/"><i data-lucide="puzzle" class="icon-sm icon-inline"></i>3rd Party</a></li>
       <li><a href="/whats-new/"><i data-lucide="sparkles" class="icon-sm icon-inline"></i>What's New</a></li>
       <li id="nav-auth-slot"></li>
     </ul>
@@ -84,6 +83,7 @@
 
     <div id="pvp-tournaments-panel" style="display:none; margin-top:20px;">
       <div id="tournaments-list-view">
+        <div id="tournament-hall-of-fame" style="display:none; margin-bottom:20px;"></div>
         <div id="tournaments-list" class="grid">
           <div class="skeleton" style="height:180px;"></div>
         </div>
@@ -91,6 +91,17 @@
       <div id="tournament-detail-view" style="display:none;">
         <button type="button" class="btn btn-ghost btn-sm" id="tournament-back-btn" style="margin-bottom:16px;"><i data-lucide="arrow-left" class="icon-sm icon-inline"></i>Back to Tournaments</button>
         <div id="tournament-detail-header"></div>
+        <div id="tournament-prediction-panel" style="display:none; margin-top:16px;"></div>
+        <div id="tournament-chat-panel" style="display:none; margin-top:16px;">
+          <div class="panel">
+            <p style="margin:0 0 10px; font-weight:700; font-size:0.9rem;"><i data-lucide="message-circle" class="icon-sm icon-inline"></i>Bracket Chat</p>
+            <div id="tournament-chat-messages" style="max-height:220px; overflow-y:auto;"></div>
+            <form id="tournament-chat-form" style="display:flex; gap:8px; margin-top:10px;">
+              <input type="text" id="tournament-chat-input" placeholder="Message your bracket…" maxlength="500" style="flex:1;">
+              <button type="submit" class="btn btn-primary btn-sm">Send</button>
+            </form>
+          </div>
+        </div>
         <div id="tournament-bracket" style="margin-top:20px; overflow-x:auto; padding-bottom:12px;"></div>
       </div>
     </div>

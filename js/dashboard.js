@@ -82,6 +82,7 @@ onReady(async () => {
   await loadMyServices(user.id);
   await loadMySeaEvents(user.id);
   await loadMyPvpMatches(user.id);
+  await loadMyTournaments(user.id);
   await loadMyGiveaways(user.id, profile.role);
 });
 
@@ -118,6 +119,36 @@ async function loadMyPvpMatches(userId) {
         <span class="muted" style="font-size:0.72rem;">${timeAgo(m.created_at)}</span>
       </div>
       <p class="muted" style="margin:8px 0 0; font-size:0.78rem;">${new Date(m.expires_at) > new Date() ? 'Still live' : 'Expired'}</p>
+    </a>
+  `).join('');
+  refreshIcons();
+}
+
+async function loadMyTournaments(userId) {
+  const container = document.getElementById('my-tournaments-list');
+  const { data: regs, error } = await sb.from('tournament_participants')
+    .select('joined_at, tournaments(id, name, match_type, status, bracket_size, elimination_type)')
+    .eq('user_id', userId)
+    .order('joined_at', { ascending: false });
+
+  if (error) {
+    container.innerHTML = `<p class="muted">Couldn't load your tournaments right now.</p>`;
+    return;
+  }
+  const regsWithTournament = (regs || []).filter(r => r.tournaments);
+  if (!regsWithTournament.length) {
+    container.innerHTML = `<div class="empty-state" style="grid-column:1/-1;">Not registered in any tournaments yet. <a href="/pvp/?tab=tournaments" style="color:var(--brass-bright);">Browse tournaments</a>.</div>`;
+    return;
+  }
+
+  const TN_LABEL = { registration_open: 'Registration Open', in_progress: 'In Progress', completed: 'Completed' };
+  container.innerHTML = regsWithTournament.map(r => `
+    <a href="/pvp/?tab=tournaments" class="panel" style="display:block; text-decoration:none; color:inherit;">
+      <div class="flex-between">
+        <span style="font-size:0.95rem; font-weight:600;">${escapeHtml(r.tournaments.name)}</span>
+        <span class="tag tag-medium" style="font-size:0.68rem;">${TN_LABEL[r.tournaments.status]}</span>
+      </div>
+      <p class="muted" style="margin:8px 0 0; font-size:0.78rem;">${escapeHtml(r.tournaments.match_type)} · ${r.tournaments.bracket_size}-player · ${r.tournaments.elimination_type === 'double' ? 'Double' : 'Single'} Elim</p>
     </a>
   `).join('');
   refreshIcons();

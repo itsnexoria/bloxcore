@@ -435,6 +435,8 @@ const SOCIAL_ICONS = {
   twitter: '<svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M4 4l7 8.5L4.5 20H7l5-5.5L16 20h4l-7.5-9L19.5 4H17l-4.5 5L8 4z"/></svg>',
   tiktok: '<svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M14 2h3c.2 2 1.6 3.6 4 3.9V9c-1.5 0-2.9-.4-4-1.2V15a6 6 0 1 1-6-6c.3 0 .7 0 1 .1v3.2a2.8 2.8 0 1 0 2 2.7z"/></svg>',
   discord: '<svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M8 5.5C6 6 4.5 6.8 4.5 6.8S3 9.5 3 15c0 0 1.4 2.2 5 2.3l.8-1.2c-1.4-.4-2.2-1-2.2-1s.2.1.5.3c0 0 1.6 1 5.4 1s5.4-1 5.4-1l.5-.3s-.8.6-2.2 1l.8 1.2c3.6-.1 5-2.3 5-2.3 0-5.5-1.5-8.2-1.5-8.2S17.5 5.8 16 5.5l-.5 1c-.8-.2-1.7-.3-2.5-.3s-1.7.1-2.5.3l-.5-1zM9.3 11c.7 0 1.3.7 1.3 1.5S10 14 9.3 14s-1.3-.7-1.3-1.5S8.6 11 9.3 11zm5.4 0c.7 0 1.3.7 1.3 1.5s-.6 1.5-1.3 1.5-1.3-.7-1.3-1.5.6-1.5 1.3-1.5z"/></svg>',
+  instagram: '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg>',
+  kick: '<svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M4 3h5v5.5l4.5-5.5H19l-6 7 6.5 8.5h-5.8L9 12.5V18H4z"/></svg>',
 };
 
 // Resolve the current session + profile row together. Returns { user, profile } or nulls.
@@ -641,10 +643,6 @@ async function getSiteSettings() {
     minComboTitleLength: map.min_combo_title_length ?? 3,
     minComboDescriptionLength: map.min_combo_description_length ?? 10,
     minSeaEventNoteLength: map.min_sea_event_note_length ?? 5,
-    minThirdPartyTitleLength: map.min_third_party_title_length ?? 4,
-    maxThirdPartyTitleLength: map.max_third_party_title_length ?? 60,
-    minThirdPartyDescriptionLength: map.min_third_party_description_length ?? 0,
-    maxThirdPartyDescriptionLength: map.max_third_party_description_length ?? 300,
   };
   return _siteSettingsCache;
 }

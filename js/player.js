@@ -44,6 +44,7 @@ async function loadPlayer() {
   wireProfileActions(profile);
   loadSocialActions(profile, viewerId, isOwnProfile);
   loadPlayerAchievements(profile.id);
+  loadPlayerActivity(profile.id);
   loadPlayerTradeListings(profile.id);
   loadPlayerCombos(profile.id);
   loadPlayerServices(profile.id);
@@ -92,7 +93,7 @@ async function loadSocialActions(p, viewerId, isOwnProfile) {
     sb.from('follows').select('followed_id', { count: 'exact', head: true }).eq('follower_id', p.id),
   ]);
   const countsEl = document.getElementById('follow-counts');
-  if (countsEl) countsEl.textContent = `${followerCount || 0} Followers · ${followingCount || 0} Following`;
+  if (countsEl) countsEl.innerHTML = `<span class="profile-hero-sep">·</span> ${followerCount || 0} Followers · ${followingCount || 0} Following`;
 
   const actionsEl = document.getElementById('social-actions');
   if (!actionsEl || isOwnProfile || !viewerId) return;
@@ -169,6 +170,8 @@ function renderProfile(p, crew, isOwnProfile) {
     { key: 'twitter', label: 'X' },
     { key: 'tiktok', label: 'TikTok' },
     { key: 'discord', label: 'Discord' },
+    { key: 'instagram', label: 'Instagram' },
+    { key: 'kick', label: 'Kick' },
   ].filter(s => social[s.key]);
   const buildFields = [
     { key: 'fruit', label: 'Fruit', value: p.build_fruit, sub: p.build_fruit_skin },
@@ -179,44 +182,54 @@ function renderProfile(p, crew, isOwnProfile) {
     { key: 'accessory', label: 'Accessory', value: p.build_accessory },
   ].filter(f => f.value);
 
-  const avatarBlock = avatarHtml(p, 76, 'border:2px solid var(--brass);');
+  const avatarBlock = avatarHtml(p, 92, 'border-radius:50%;');
+  const presence = presenceStatus(p.last_active_at);
+  const presenceColor = { online: 'var(--sea)', idle: 'var(--brass-bright)', offline: 'var(--ash)' }[presence];
 
   return `
-    <div class="panel" style="display:flex; gap:22px; align-items:flex-start; flex-wrap:wrap; position:relative; padding-bottom:52px;">
-      ${p.roblox_username ? `
-        <a href="https://www.roblox.com/users/profile?username=${encodeURIComponent(p.roblox_username)}" target="_blank" rel="noopener noreferrer" class="btn btn-primary btn-sm" style="position:absolute; top:16px; right:16px; gap:6px;" title="View on Roblox">
-          ${SOCIAL_ICONS.roblox}${escapeHtml(p.roblox_username)}${p.roblox_verified ? ' <i data-lucide="badge-check" class="icon-sm"></i>' : ''}
-        </a>
-      ` : ''}
-      <div style="position:absolute; bottom:16px; right:16px; display:flex; gap:6px;">
-        <button type="button" id="profile-copy-link" class="btn btn-ghost btn-sm" title="Copy profile link" aria-label="Copy profile link"><i data-lucide="link" class="icon-sm"></i></button>
-        ${!isOwnProfile ? `<button type="button" id="profile-report" class="btn btn-ghost btn-sm" title="Report this profile" aria-label="Report this profile"><i data-lucide="flag" class="icon-sm"></i></button>` : ''}
+    <div class="profile-hero">
+      <div class="profile-hero-banner-wrap">
+        ${p.banner_url ? `<img src="${p.banner_url}" alt="" loading="lazy" onerror="this.remove();">` : ''}
       </div>
-      <div style="display:flex; flex-direction:column; align-items:center; gap:8px; flex-shrink:0;">
-        <div style="position:relative;">
+      <div class="profile-hero-actions">
+        ${p.roblox_username ? `
+          <a href="https://www.roblox.com/users/profile?username=${encodeURIComponent(p.roblox_username)}" target="_blank" rel="noopener noreferrer" class="profile-hero-icon-btn profile-hero-roblox-btn" title="View on Roblox">
+            ${SOCIAL_ICONS.roblox}${escapeHtml(p.roblox_username)}${p.roblox_verified ? ' <i data-lucide="badge-check" class="icon-sm"></i>' : ''}
+          </a>
+        ` : ''}
+        <button type="button" id="profile-copy-link" class="profile-hero-icon-btn" title="Copy profile link" aria-label="Copy profile link"><i data-lucide="link" class="icon-sm"></i></button>
+        ${!isOwnProfile ? `<button type="button" id="profile-report" class="profile-hero-icon-btn" title="Report this profile" aria-label="Report this profile"><i data-lucide="flag" class="icon-sm"></i></button>` : ''}
+      </div>
+      <div class="profile-hero-body">
+        <div class="profile-hero-avatar-wrap">
           ${avatarBlock}
-          <span style="position:absolute; bottom:-4px; right:-4px; background:linear-gradient(135deg, var(--brass), var(--gold)); color:#1a0a06; font-family:var(--font-stamp); font-weight:700; font-size:0.72rem; padding:2px 7px; border-radius:999px; border:2px solid var(--ink); box-shadow:0 2px 8px rgb(var(--shadow-rgb) / 0.4);">Lv${p.level}</span>
+          <span class="profile-hero-level-pill">Lv${p.level}</span>
         </div>
-        <p class="rank-title" style="margin:2px 0 0; font-size:1.1rem;">${title}</p>
-      </div>
-      <div style="flex:1; min-width:220px;">
-        <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
-          <h1 style="margin:0; font-size:1.5rem; font-weight:700; color:var(--bone); font-family:var(--font-body); text-transform:none; letter-spacing:normal;">${escapeHtml(name)}</h1>
-          ${titleBadge(p)}
+        <div class="profile-hero-info">
+          <div class="profile-hero-name-row">
+            <h1 class="profile-hero-name">${escapeHtml(name)}</h1>
+            ${titleBadge(p)}
+          </div>
+          <p class="profile-hero-rank-title">${title}${showHandle ? ` · @${escapeHtml(p.username)}` : ''}</p>
+          ${p.status_line ? `<span class="profile-hero-status"><i data-lucide="message-circle" class="icon-sm"></i>${escapeHtml(p.status_line)}</span>` : ''}
+          <div class="profile-hero-meta">
+            <span class="profile-hero-meta-dot" style="background:${presenceColor};"></span>
+            <span>${escapeHtml(lastSeenLabel(p.last_active_at))}</span>
+            <span id="follow-counts"></span>
+            ${p.region ? `<span class="profile-hero-sep">·</span><span>${escapeHtml(p.region)}</span>` : ''}
+            <span class="profile-hero-sep">·</span><span>Member since ${formatDate(p.created_at)}</span>
+            ${p.current_streak > 0 ? `<span class="profile-hero-sep">·</span><span><i data-lucide="flame" class="icon-sm icon-inline" style="color:var(--brass-bright);"></i>${p.current_streak}-day streak</span>` : ''}
+          </div>
+          <div id="social-actions" style="margin-top:12px; display:flex; gap:8px; flex-wrap:wrap;"></div>
+          ${crew ? `<a href="/crew/?name=${encodeURIComponent(crew.name)}" class="info-chip" style="text-decoration:none; margin-top:10px;">
+            ${crew.logo_url ? `<img src="${crew.logo_url}" alt="" loading="lazy" style="width:16px; height:16px; border-radius:4px; object-fit:cover;" onerror="this.style.display='none';">` : ''}
+            <span class="info-chip-label">Crew</span><span class="info-chip-value">${crew.tag ? `[${escapeHtml(crew.tag)}] ` : ''}${escapeHtml(crew.name)}</span>
+          </a>` : ''}
+          <div class="profile-hero-xp-row">
+            <div class="xp-bar"><div class="xp-bar-fill" style="width:${progress.pct}%;"></div></div>
+            <span class="profile-hero-xp-label">${progress.current}/${progress.needed} XP</span>
+          </div>
         </div>
-        ${showHandle ? `<p class="muted" style="margin:2px 0 0; font-size:0.8rem;">@${escapeHtml(p.username)}</p>` : ''}
-        <p class="muted" style="margin:4px 0 0; font-size:0.78rem; display:flex; align-items:center; gap:5px;"><span style="width:8px; height:8px; border-radius:50%; background:${{ online: 'var(--sea)', idle: 'var(--brass-bright)', offline: 'var(--ash)' }[presenceStatus(p.last_active_at)]}; display:inline-block; flex-shrink:0;"></span>${escapeHtml(lastSeenLabel(p.last_active_at))}</p>
-        <p id="follow-counts" class="muted" style="margin:4px 0 0; font-size:0.82rem;"></p>
-        <div id="social-actions" style="margin-top:10px; display:flex; gap:8px; flex-wrap:wrap;"></div>
-        ${crew ? `<a href="/crew/?name=${encodeURIComponent(crew.name)}" class="info-chip" style="text-decoration:none; margin-top:10px;">
-          ${crew.logo_url ? `<img src="${crew.logo_url}" alt="" loading="lazy" style="width:16px; height:16px; border-radius:4px; object-fit:cover;" onerror="this.style.display='none';">` : ''}
-          <span class="info-chip-label">Crew</span><span class="info-chip-value">${crew.tag ? `[${escapeHtml(crew.tag)}] ` : ''}${escapeHtml(crew.name)}</span>
-        </a>` : ''}
-        <div class="xp-bar" style="margin-top:16px;"><div class="xp-bar-fill" style="width:${progress.pct}%;"></div></div>
-        <p class="muted" style="margin:8px 0 0; font-size:0.82rem;">
-          ${p.region ? `${escapeHtml(p.region)} · ` : ''}Member since ${formatDate(p.created_at)}
-          ${p.current_streak > 0 ? ` · <i data-lucide="flame" class="icon-sm" style="color:var(--brass-bright);"></i> ${p.current_streak}-day streak` : ''}
-        </p>
       </div>
     </div>
 
@@ -251,7 +264,7 @@ function renderProfile(p, crew, isOwnProfile) {
     </div>
 
     <div id="player-pvp-history-section" style="display:none; margin-top:20px;">
-      <p class="muted" style="margin:0 0 10px; font-size:0.8rem; text-transform:uppercase; letter-spacing:0.05em;"><i data-lucide="crosshair" class="icon-sm icon-inline"></i>Recent PvP Matches</p>
+      <p class="muted" style="margin:0 0 10px; font-size:0.8rem; text-transform:uppercase; letter-spacing:0.05em;"><i data-lucide="crosshair" class="icon-sm icon-inline"></i>Combat Record</p>
       <div id="player-pvp-history-list" style="display:flex; flex-direction:column; gap:6px;"></div>
     </div>
 
@@ -316,6 +329,14 @@ function renderProfile(p, crew, isOwnProfile) {
     <div id="player-giveaways-section" style="display:none; margin-top:28px;">
       <p class="muted" style="margin:0 0 10px; font-size:0.8rem; text-transform:uppercase; letter-spacing:0.05em;"><i data-lucide="gift" class="icon-sm icon-inline"></i>Giveaways Created</p>
       <div id="player-giveaways" class="grid" style="grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));"></div>
+    </div>
+
+    <div id="player-activity-section" style="display:none; margin-top:28px;">
+      <p class="muted" style="margin:0 0 10px; font-size:0.8rem; text-transform:uppercase; letter-spacing:0.05em;"><i data-lucide="activity" class="icon-sm icon-inline"></i>Activity</p>
+      <div class="panel panel-plain" style="padding:20px 20px 4px;">
+        <div id="player-activity-list" class="activity-timeline"></div>
+        <button type="button" id="player-activity-more" class="btn btn-ghost btn-sm btn-block" style="display:none; margin:4px 0 16px;">Load More</button>
+      </div>
     </div>
   `;
 }
@@ -495,6 +516,60 @@ async function loadPlayerAchievements(userId) {
   refreshIcons();
 }
 
+const ACTIVITY_PAGE_SIZE = 12;
+const ACTIVITY_TYPE_META = {
+  challenge_approved: { icon: 'check-circle', color: 'var(--sea)', verb: 'Completed' },
+  rank_up: { icon: 'star', color: 'var(--brass-bright)', verb: 'Ranked up to' },
+  giveaway_win: { icon: 'gift', color: 'var(--gold)', verb: 'Won' },
+};
+let _activityUserId = null;
+let _activityOffset = 0;
+
+async function loadPlayerActivity(userId) {
+  _activityUserId = userId;
+  _activityOffset = 0;
+  document.getElementById('player-activity-list').innerHTML = '';
+  document.getElementById('player-activity-more').addEventListener('click', () => loadActivityPage());
+  await loadActivityPage();
+}
+
+async function loadActivityPage() {
+  const section = document.getElementById('player-activity-section');
+  const list = document.getElementById('player-activity-list');
+  const moreBtn = document.getElementById('player-activity-more');
+
+  const { data } = await sb
+    .from('activity_log')
+    .select('id, type, detail, xp_awarded, created_at')
+    .eq('user_id', _activityUserId)
+    .order('created_at', { ascending: false })
+    .range(_activityOffset, _activityOffset + ACTIVITY_PAGE_SIZE - 1);
+
+  if (!data?.length) {
+    moreBtn.style.display = 'none';
+    return;
+  }
+  section.style.display = 'block';
+  list.insertAdjacentHTML('beforeend', data.map(renderActivityTimelineRow).join(''));
+  refreshIcons();
+
+  _activityOffset += data.length;
+  moreBtn.style.display = data.length === ACTIVITY_PAGE_SIZE ? 'block' : 'none';
+}
+
+function renderActivityTimelineRow(a) {
+  const meta = ACTIVITY_TYPE_META[a.type] || { icon: 'circle', color: 'var(--ash)', verb: 'Did something with' };
+  return `
+    <div class="activity-timeline-row">
+      <span class="activity-timeline-dot" style="background:${meta.color};"><i data-lucide="${meta.icon}" class="icon-sm"></i></span>
+      <div class="activity-timeline-content">
+        <p style="margin:0; font-size:0.86rem;">${meta.verb} <span style="color:var(--brass-bright); font-weight:600;">${escapeHtml(a.detail)}</span>${a.xp_awarded ? ` <span class="muted">· +${a.xp_awarded} XP</span>` : ''}</p>
+        <span class="muted" style="font-size:0.74rem; font-family:var(--font-mono);">${timeAgo(a.created_at)}</span>
+      </div>
+    </div>
+  `;
+}
+
 // --- Reputation / vouches -------------------------------------------------
 
 async function loadPlayerVouches(profileId, viewerId, isOwnProfile) {
@@ -605,22 +680,58 @@ async function loadPlayerPvpHistory(userId) {
   const section = document.getElementById('player-pvp-history-section');
   const list = document.getElementById('player-pvp-history-list');
 
-  const { data, error } = await sb.from('pvp_results')
-    .select('id, match_type, host_id, opponent_id, host_won, created_at, host:profiles!pvp_results_host_id_fkey(username, display_name), opponent:profiles!pvp_results_opponent_id_fkey(username, display_name)')
-    .eq('status', 'approved')
-    .or(`host_id.eq.${userId},opponent_id.eq.${userId}`)
-    .order('created_at', { ascending: false })
-    .limit(10);
+  const [{ data: matches }, { data: championships }, { data: finalsLosses }] = await Promise.all([
+    sb.from('pvp_results')
+      .select('id, match_type, host_id, opponent_id, host_won, created_at, host:profiles!pvp_results_host_id_fkey(username, display_name), opponent:profiles!pvp_results_opponent_id_fkey(username, display_name)')
+      .eq('status', 'approved')
+      .or(`host_id.eq.${userId},opponent_id.eq.${userId}`)
+      .order('created_at', { ascending: false })
+      .limit(10),
+    // Tournaments this player won outright.
+    sb.from('tournaments').select('id, name, created_at').eq('winner_id', userId).order('created_at', { ascending: false }).limit(10),
+    // Tournaments this player made the final of but lost (single-elim final, or a
+    // double-elim grand final — both are identifiable as "the match with no next_match_id").
+    sb.from('tournament_matches')
+      .select('id, winner_id, tournaments(id, name, created_at)')
+      .or(`player1_id.eq.${userId},player2_id.eq.${userId}`)
+      .is('next_match_id', null)
+      .eq('status', 'confirmed')
+      .not('winner_id', 'is', null)
+      .neq('winner_id', userId)
+      .limit(10),
+  ]);
 
-  if (error || !data?.length) return; // section stays hidden — no history yet, nothing to show
+  const feed = [
+    ...(matches || []).map(r => ({ type: 'pvp', sortAt: r.created_at, data: r })),
+    ...(championships || []).map(t => ({ type: 'champion', sortAt: t.created_at, data: t })),
+    ...(finalsLosses || []).filter(m => m.tournaments).map(m => ({ type: 'runner_up', sortAt: m.tournaments.created_at, data: m.tournaments })),
+  ].sort((a, b) => new Date(b.sortAt) - new Date(a.sortAt)).slice(0, 12);
+
+  if (!feed.length) return; // section stays hidden — no history yet, nothing to show
 
   section.style.display = 'block';
-  list.innerHTML = data.map(r => {
+  list.innerHTML = feed.map(entry => {
+    if (entry.type === 'champion') {
+      return `
+        <div class="flex-between" style="padding:8px 10px; background:rgb(var(--brass-rgb) / 0.08); border-radius:6px; font-size:0.84rem;">
+          <span><i data-lucide="crown" class="icon-sm icon-inline" style="color:var(--brass-bright);"></i><span style="font-weight:700; color:var(--brass-bright);">CHAMPION</span><span class="muted"> — ${escapeHtml(entry.data.name)}</span></span>
+          <span class="muted" style="font-size:0.76rem;">${timeAgo(entry.sortAt)}</span>
+        </div>
+      `;
+    }
+    if (entry.type === 'runner_up') {
+      return `
+        <div class="flex-between" style="padding:8px 10px; background:rgba(255,255,255,0.02); border-radius:6px; font-size:0.84rem;">
+          <span><i data-lucide="medal" class="icon-sm icon-inline" style="color:var(--ash);"></i><span style="font-weight:700;">RUNNER-UP</span><span class="muted"> — ${escapeHtml(entry.data.name)}</span></span>
+          <span class="muted" style="font-size:0.76rem;">${timeAgo(entry.sortAt)}</span>
+        </div>
+      `;
+    }
+    const r = entry.data;
     const isHost = r.host_id === userId;
     const won = isHost ? r.host_won : !r.host_won;
     const opponentProfile = isHost ? r.opponent : r.host;
     const opponentLabel = opponentProfile ? displayNameFor(opponentProfile) : 'a team';
-
     return `
       <div class="flex-between" style="padding:8px 10px; background:rgba(255,255,255,0.02); border-radius:6px; font-size:0.84rem;">
         <span>

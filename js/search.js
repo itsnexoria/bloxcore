@@ -113,19 +113,19 @@ async function runSiteSearch(query) {
   const like = `%${query.replace(/[%_]/g, '\\$&')}%`;
   const nowIso = new Date().toISOString();
 
-  let players, crews, challenges, combos, services, thirdParty, giveaways, seaEvents, pvpMatches, matchedItems, tradeListings;
+  let players, crews, challenges, combos, services, giveaways, seaEvents, pvpMatches, matchedItems, tradeListings, tournaments;
   try {
-    [players, crews, challenges, combos, services, thirdParty, giveaways, seaEvents, pvpMatches, matchedItems] = await Promise.all([
-      sb.from('profiles').select('username, display_name, avatar_url').or(`username.ilike.${like},display_name.ilike.${like}`).limit(SEARCH_RESULTS_PER_GROUP),
+    [players, crews, challenges, combos, services, giveaways, seaEvents, pvpMatches, matchedItems, tournaments] = await Promise.all([
+      sb.from('profiles').select('username, display_name, avatar_url').eq('profile_visibility', 'public').or(`username.ilike.${like},display_name.ilike.${like}`).limit(SEARCH_RESULTS_PER_GROUP),
       sb.from('crews').select('id, name, tag, logo_url').or(`name.ilike.${like},tag.ilike.${like}`).limit(SEARCH_RESULTS_PER_GROUP),
       sb.from('challenges').select('id, title, difficulty').eq('active', true).ilike('title', like).limit(SEARCH_RESULTS_PER_GROUP),
       sb.from('combos').select('id, title, difficulty').ilike('title', like).limit(SEARCH_RESULTS_PER_GROUP),
       sb.from('service_listings').select('id, title, category').eq('status', 'open').ilike('title', like).limit(SEARCH_RESULTS_PER_GROUP),
-      sb.from('third_party_posts').select('id, title, category').eq('status', 'active').ilike('title', like).limit(SEARCH_RESULTS_PER_GROUP),
       sb.from('giveaways').select('id, title, prize').eq('status', 'active').or(`title.ilike.${like},prize.ilike.${like}`).limit(SEARCH_RESULTS_PER_GROUP),
       sb.from('sea_events').select('id, type, notes').gt('expires_at', nowIso).or(`type.ilike.${like},notes.ilike.${like}`).limit(SEARCH_RESULTS_PER_GROUP),
       sb.from('pvp_matches').select('id, match_type, notes').gt('expires_at', nowIso).or(`match_type.ilike.${like},notes.ilike.${like}`).limit(SEARCH_RESULTS_PER_GROUP),
       sb.from('bf_items').select('id, name').ilike('name', like).limit(SEARCH_RESULTS_PER_GROUP),
+      sb.from('tournaments').select('id, name, status').neq('status', 'cancelled').ilike('name', like).limit(SEARCH_RESULTS_PER_GROUP),
     ]);
 
     // Trading listings store items as jsonb id arrays, not a searchable title — so a fruit-name
@@ -178,10 +178,6 @@ async function runSiteSearch(query) {
         href: `/services/?tab=${s.category}#${s.id}`,
         html: `<i data-lucide="hammer" class="icon-sm" style="color:var(--sea); flex-shrink:0;"></i><span style="margin-left:10px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${escapeHtml(s.title)}</span>`,
       })) },
-    { label: 'Fast Flags / Macros / AHK', icon: 'file-code', items: (thirdParty.data || []).map(p => ({
-        href: `/third-party/?tab=${p.category}#${p.id}`,
-        html: `<i data-lucide="file-code" class="icon-sm" style="color:var(--purple); flex-shrink:0;"></i><span style="margin-left:10px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${escapeHtml(p.title)}</span>`,
-      })) },
     { label: 'Giveaways', icon: 'gift', items: (giveaways.data || []).map(g => ({
         href: `/giveaways/#${g.id}`,
         html: `<i data-lucide="gift" class="icon-sm" style="color:var(--gold-bright); flex-shrink:0;"></i><span style="margin-left:10px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${escapeHtml(g.title)}</span>`,
@@ -193,6 +189,10 @@ async function runSiteSearch(query) {
     { label: 'PvP', icon: 'crosshair', items: (pvpMatches.data || []).map(m => ({
         href: `/pvp/`,
         html: `<i data-lucide="crosshair" class="icon-sm" style="color:var(--blood-dim); flex-shrink:0;"></i><span style="margin-left:10px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${escapeHtml(m.match_type)} match${m.notes ? ` — ${escapeHtml(m.notes)}` : ''}</span>`,
+      })) },
+    { label: 'Tournaments', icon: 'trophy', items: (tournaments.data || []).map(t => ({
+        href: `/pvp/?tab=tournaments`,
+        html: `<i data-lucide="trophy" class="icon-sm" style="color:var(--brass-bright); flex-shrink:0;"></i><span style="margin-left:10px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${escapeHtml(t.name)}</span>`,
       })) },
     { label: 'Trading', icon: 'repeat', items: (tradeListings || []).map(t => ({
         href: `/trading/#${t.id}`,

@@ -29,6 +29,7 @@ onReady(async () => {
   wireBuildPickers();
 
   document.getElementById('avatar-file').addEventListener('change', handleAvatarUpload);
+  document.getElementById('banner-file').addEventListener('change', handleBannerUpload);
   document.getElementById('profile-form').addEventListener('submit', handleSave);
 });
 
@@ -172,8 +173,10 @@ function populateBountySelect(id) {
 
 async function populateForm(profile) {
   renderAvatar(profile.avatar_url);
+  renderBanner(profile.banner_url);
   document.getElementById('display_name').value = profile.display_name || '';
   document.getElementById('bio').value = profile.bio || '';
+  document.getElementById('status_line').value = profile.status_line || '';
   document.getElementById('region').value = profile.region || '';
   document.getElementById('pirate_bounty').value = profile.pirate_bounty || 0;
   document.getElementById('marine_bounty').value = profile.marine_bounty || 0;
@@ -194,6 +197,8 @@ async function populateForm(profile) {
   document.getElementById('social_twitter').value = social.twitter || '';
   document.getElementById('social_tiktok').value = social.tiktok || '';
   document.getElementById('social_discord').value = social.discord || '';
+  document.getElementById('social_instagram').value = social.instagram || '';
+  document.getElementById('social_kick').value = social.kick || '';
 }
 
 function renderAvatar(url) {
@@ -209,8 +214,67 @@ function renderAvatar(url) {
   }
 }
 
+function renderBanner(url) {
+  const img = document.getElementById('banner-preview');
+  if (url) {
+    img.src = url;
+    img.style.display = 'block';
+  } else {
+    img.style.display = 'none';
+  }
+}
+
 const AVATAR_MAX_MB = 5;
 const AVATAR_ALLOWED_TYPES = { 'image/png': 'png', 'image/jpeg': 'jpg', 'image/webp': 'webp', 'image/gif': 'gif' };
+const BANNER_MAX_MB = 5;
+const BANNER_ALLOWED_TYPES = AVATAR_ALLOWED_TYPES;
+
+async function handleBannerUpload(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+
+  if (!BANNER_ALLOWED_TYPES[file.type]) {
+    showToast('Banner must be a PNG, JPG, WEBP, or GIF image.', true);
+    e.target.value = '';
+    return;
+  }
+  if (file.size > BANNER_MAX_MB * 1024 * 1024) {
+    showToast(`Banner must be under ${BANNER_MAX_MB}MB.`, true);
+    e.target.value = '';
+    return;
+  }
+
+  // GIFs go straight through — cropping would flatten it to a single static frame,
+  // losing the animation. Everything else gets cropped to the banner's 18:5 shape
+  // before upload, so it's not just a random slice of whatever the source photo was.
+  let uploadBlob = file;
+  let ext = BANNER_ALLOWED_TYPES[file.type];
+  if (file.type !== 'image/gif') {
+    const cropped = await openImageCropper({
+      file, aspect: 18 / 5, outputW: 1440, outputH: 400,
+      title: 'Crop Banner', mimeType: 'image/jpeg', quality: 0.9,
+    });
+    if (!cropped) { e.target.value = ''; return; }
+    uploadBlob = cropped;
+    ext = 'jpg';
+  }
+
+  try {
+    const path = `${currentUserId}/banner-${Date.now()}.${ext}`;
+    const { error: uploadError } = await sb.storage.from('banners').upload(path, uploadBlob);
+    if (uploadError) throw uploadError;
+
+    const { data: urlData } = sb.storage.from('banners').getPublicUrl(path);
+    const { error: updateError } = await sb.from('profiles').update({ banner_url: urlData.publicUrl }).eq('id', currentUserId);
+    if (updateError) throw updateError;
+
+    renderBanner(urlData.publicUrl);
+    showToast('Banner updated.');
+  } catch (err) {
+    console.error(err);
+    showToast(err.message || 'Could not upload banner.', true);
+  }
+}
 
 async function handleAvatarUpload(e) {
   const file = e.target.files[0];
@@ -227,13 +291,22 @@ async function handleAvatarUpload(e) {
     return;
   }
 
+  // Same GIF exception as the banner above — keep the animation instead of flattening it.
+  let uploadBlob = file;
+  let ext = AVATAR_ALLOWED_TYPES[file.type];
+  if (file.type !== 'image/gif') {
+    const cropped = await openImageCropper({
+      file, aspect: 1, outputW: 512, outputH: 512, circle: true,
+      title: 'Crop Avatar', mimeType: 'image/png',
+    });
+    if (!cropped) { e.target.value = ''; return; }
+    uploadBlob = cropped;
+    ext = 'png';
+  }
+
   try {
-    // Derive the extension from the verified MIME type, not the filename, so
-    // a renamed non-image file (e.g. "avatar.jpg" that's actually HTML/SVG)
-    // can't be stored under a misleading extension.
-    const ext = AVATAR_ALLOWED_TYPES[file.type];
     const path = `${currentUserId}/avatar-${Date.now()}.${ext}`;
-    const { error: uploadError } = await sb.storage.from('avatars').upload(path, file);
+    const { error: uploadError } = await sb.storage.from('avatars').upload(path, uploadBlob);
     if (uploadError) throw uploadError;
 
     const { data: urlData } = sb.storage.from('avatars').getPublicUrl(path);
@@ -381,6 +454,7 @@ async function handleSave(e) {
     active_title_id: document.getElementById('active_title').value || null,
     title_color_override: document.getElementById('title_color_override').value || null,
     bio: document.getElementById('bio').value.trim() || null,
+    status_line: document.getElementById('status_line').value.trim() || null,
     region: document.getElementById('region').value.trim() || null,
     pirate_bounty: parseInt(document.getElementById('pirate_bounty').value, 10) || 0,
     marine_bounty: parseInt(document.getElementById('marine_bounty').value, 10) || 0,
@@ -397,6 +471,8 @@ async function handleSave(e) {
       twitter: document.getElementById('social_twitter').value.trim(),
       tiktok: document.getElementById('social_tiktok').value.trim(),
       discord: document.getElementById('social_discord').value.trim(),
+      instagram: document.getElementById('social_instagram').value.trim(),
+      kick: document.getElementById('social_kick').value.trim(),
     },
   };
 

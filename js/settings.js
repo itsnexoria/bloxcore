@@ -96,6 +96,20 @@ onReady(async () => {
     showToast(hideToggle.checked ? "You're hidden from the leaderboard." : "You're visible on the leaderboard again.");
   });
 
+  const unlistedToggle = document.getElementById('profile-unlisted-toggle');
+  unlistedToggle.checked = profile?.profile_visibility === 'unlisted';
+  unlistedToggle.addEventListener('change', async () => {
+    unlistedToggle.disabled = true;
+    const { error } = await sb.from('profiles').update({ profile_visibility: unlistedToggle.checked ? 'unlisted' : 'public' }).eq('id', user.id);
+    unlistedToggle.disabled = false;
+    if (error) {
+      showToast(error.message, true);
+      unlistedToggle.checked = !unlistedToggle.checked;
+      return;
+    }
+    showToast(unlistedToggle.checked ? "Your profile is unlisted from search." : "Your profile is listed in search again.");
+  });
+
   const notifyGiveawaysToggle = document.getElementById('notify-giveaways-toggle');
   notifyGiveawaysToggle.checked = profile?.notify_new_giveaways !== false;
   notifyGiveawaysToggle.addEventListener('change', async () => {
@@ -401,9 +415,8 @@ async function renderConnectionsPanel(user, profile) {
     const { error } = await sb.auth.signInWithOAuth({ provider: 'discord', options: { redirectTo: window.location.origin + '/settings/#account' } });
     if (error) showToast(error.message, true);
   });
-  const robloxRow = buildRow('Roblox', 'gamepad-2', hasRobloxIdentity || !!profile?.roblox_verified, profile?.roblox_username, async () => {
-    const { error } = await sb.auth.linkIdentity({ provider: 'custom:roblox', options: { redirectTo: window.location.origin + '/settings/#account' } });
-    if (error) showToast(error.message, true);
+  const robloxRow = buildRow('Roblox', 'gamepad-2', hasRobloxIdentity || !!profile?.roblox_verified, profile?.roblox_username, () => {
+    startRobloxOAuthConnect(window.location.origin + '/settings/#account');
   });
 
   list.innerHTML = discordRow.html + robloxRow.html;

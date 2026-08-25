@@ -9,5 +9,4 @@ https://blox.nexorealm.org/pvp/
 https://blox.nexorealm.org/trading/
 https://blox.nexorealm.org/combos/
 https://blox.nexorealm.org/services/
-https://blox.nexorealm.org/third-party/
 https://blox.nexorealm.org/whats-new/

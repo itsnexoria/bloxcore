@@ -96,11 +96,6 @@
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://blox.nexorealm.org/third-party/</loc>
-    <changefreq>hourly</changefreq>
-    <priority>0.6</priority>
-  </url>
-  <url>
     <loc>https://blox.nexorealm.org/combos/</loc>
     <changefreq>daily</changefreq>
     <priority>0.6</priority>

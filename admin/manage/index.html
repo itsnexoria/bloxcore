@@ -123,6 +123,16 @@
         <h2 style="font-size:1.2rem; margin:0;">Tournaments</h2>
         <button type="button" class="btn btn-primary btn-sm" id="new-tournament-btn"><i data-lucide="plus" class="icon-sm icon-inline"></i>New Tournament</button>
       </div>
+
+      <div class="panel" style="margin-top:16px;">
+        <div class="flex-between">
+          <p style="margin:0; font-weight:700; font-size:0.9rem;">Templates</p>
+          <button type="button" class="btn btn-ghost btn-sm" id="new-template-btn"><i data-lucide="plus" class="icon-sm icon-inline"></i>New Template</button>
+        </div>
+        <p class="muted" style="margin:4px 0 10px; font-size:0.78rem;">Spin up a repeat event (like a weekly bracket) in one click instead of re-filling the form every time.</p>
+        <div id="tournament-templates-list"><p class="muted" style="font-size:0.82rem;">No templates yet.</p></div>
+      </div>
+
       <div id="tournaments-admin-list" style="margin-top:16px;">
         <div class="skeleton" style="height:100px; margin-bottom:10px;"></div>
         <div class="skeleton" style="height:100px;"></div>
@@ -500,22 +510,6 @@
                 <label for="setting-min-sea-event-note">Min Sea Event Note Length</label>
                 <input type="number" id="setting-min-sea-event-note" min="0" required>
               </div>
-              <div>
-                <label for="setting-min-third-party-title">Min 3rd Party Title Length</label>
-                <input type="number" id="setting-min-third-party-title" min="0" required>
-              </div>
-              <div>
-                <label for="setting-max-third-party-title">Max 3rd Party Title Length</label>
-                <input type="number" id="setting-max-third-party-title" min="1" required>
-              </div>
-              <div>
-                <label for="setting-min-third-party-description">Min 3rd Party Description Length</label>
-                <input type="number" id="setting-min-third-party-description" min="0" required>
-              </div>
-              <div>
-                <label for="setting-max-third-party-description">Max 3rd Party Description Length</label>
-                <input type="number" id="setting-max-third-party-description" min="1" required>
-              </div>
             </div>
           </details>
 
@@ -546,10 +540,6 @@
               <div>
                 <label for="setting-xp-giveaway-entry">XP per Giveaway Entry</label>
                 <input type="number" id="setting-xp-giveaway-entry" min="0" required>
-              </div>
-              <div>
-                <label for="setting-xp-third-party-post">XP per 3rd Party Post</label>
-                <input type="number" id="setting-xp-third-party-post" min="0" required>
               </div>
               <div>
                 <label for="setting-xp-vouch">XP per Vouch Given</label>
@@ -606,7 +596,6 @@
               <option value="/trading/">Trading</option>
               <option value="/services/">Services</option>
               <option value="/combos/">Combos</option>
-              <option value="/third-party/">3rd Party</option>
               <option value="/player/">Player Profiles</option>
               <option value="/profile/">Edit Profile</option>
               <option value="/whats-new/">What's New</option>
@@ -869,16 +858,98 @@
 
       <label for="tn-bracket-size">Bracket Size</label>
       <select id="tn-bracket-size" required>
-        <option value="4">4 players</option>
-        <option value="8" selected>8 players</option>
-        <option value="16">16 players</option>
-        <option value="32">32 players</option>
+        <option value="4">4 slots</option>
+        <option value="8" selected>8 slots</option>
+        <option value="16">16 slots</option>
+        <option value="32">32 slots</option>
       </select>
+
+      <label for="tn-elimination-type">Elimination Type</label>
+      <select id="tn-elimination-type" required>
+        <option value="single">Single Elimination</option>
+        <option value="double">Double Elimination</option>
+      </select>
+
+      <label for="tn-starts-at">Scheduled Start (optional)</label>
+      <input type="datetime-local" id="tn-starts-at">
+      <p class="muted" style="margin:4px 0 0; font-size:0.78rem;">If set, the bracket auto-starts at this time (as long as enough players have registered). Leave blank to start it yourself whenever you're ready.</p>
+
+      <label for="tn-prize-item">Prize (optional)</label>
+      <select id="tn-prize-item"><option value="">— No prize —</option></select>
+      <div style="display:flex; align-items:center; gap:8px; margin-top:8px;">
+        <input type="checkbox" id="tn-prize-permanent" style="width:auto;">
+        <label for="tn-prize-permanent" style="margin:0; display:inline;">Permanent (fruit only)</label>
+      </div>
+      <p class="muted" style="margin:4px 0 0; font-size:0.78rem;">Auto-delivered to the champion as a giveaway win the moment the final is confirmed.</p>
+
+      <div style="display:flex; align-items:center; gap:8px; margin-top:14px;">
+        <input type="checkbox" id="tn-team-based" style="width:auto;">
+        <label for="tn-team-based" style="margin:0; display:inline;">Team tournament (crews register, not individuals)</label>
+      </div>
+      <p class="muted" id="tn-team-note" style="margin:4px 0 0; font-size:0.78rem; display:none;">Each bracket slot is one crew — the crew leader registers on behalf of the whole crew. Bracket seeding is random (no reliable crew-vs-crew rating to seed by).</p>
 
       <p class="field-error" id="tournament-error" style="display:none;"></p>
       <div style="display:flex; gap:10px;">
         <button type="button" class="btn btn-ghost" id="tournament-modal-cancel">Cancel</button>
         <button type="submit" class="btn btn-primary btn-block">Create Tournament</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div id="template-modal" role="dialog" aria-modal="true" aria-labelledby="template-modal-title" style="display:none; position:fixed; inset:0; background:rgba(6,15,26,0.85); z-index:200; align-items:center; justify-content:center; padding:20px; overflow-y:auto;">
+  <div class="panel" style="max-width:460px; width:100%; margin:20px 0;">
+    <h2 id="template-modal-title" style="font-size:1.1rem;">New Tournament Template</h2>
+    <form id="template-form">
+      <label for="tpl-name">Name</label>
+      <input type="text" id="tpl-name" required maxlength="60">
+
+      <label for="tpl-description">Description (optional)</label>
+      <textarea id="tpl-description" rows="2" maxlength="300"></textarea>
+
+      <label for="tpl-match-type">Match Type</label>
+      <select id="tpl-match-type" required>
+        <option value="1v1">1v1</option>
+        <option value="2v2">2v2</option>
+        <option value="3v3">3v3</option>
+        <option value="4v4">4v4</option>
+      </select>
+
+      <label for="tpl-bracket-size">Bracket Size</label>
+      <select id="tpl-bracket-size" required>
+        <option value="4">4 slots</option>
+        <option value="8" selected>8 slots</option>
+        <option value="16">16 slots</option>
+        <option value="32">32 slots</option>
+      </select>
+
+      <label for="tpl-elimination-type">Elimination Type</label>
+      <select id="tpl-elimination-type" required>
+        <option value="single">Single Elimination</option>
+        <option value="double">Double Elimination</option>
+      </select>
+
+      <label for="tpl-recurrence">Recurrence</label>
+      <select id="tpl-recurrence" required>
+        <option value="none">None — spin up manually whenever</option>
+        <option value="weekly">Weekly — auto-creates itself</option>
+      </select>
+
+      <div id="tpl-recurrence-fields" style="display:none;">
+        <label for="tpl-day-of-week">Day of Week</label>
+        <select id="tpl-day-of-week">
+          <option value="0">Sunday</option><option value="1">Monday</option><option value="2">Tuesday</option>
+          <option value="3">Wednesday</option><option value="4">Thursday</option><option value="5">Friday</option>
+          <option value="6">Saturday</option>
+        </select>
+        <label for="tpl-time-of-day">Time (UTC)</label>
+        <input type="time" id="tpl-time-of-day">
+      </div>
+
+      <p class="field-error" id="template-error" style="display:none;"></p>
+      <div style="display:flex; gap:10px;">
+        <button type="button" class="btn btn-ghost" id="template-modal-cancel">Cancel</button>
+        <button type="submit" class="btn btn-primary btn-block">Save Template</button>
       </div>
     </form>
   </div>

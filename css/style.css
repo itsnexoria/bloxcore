@@ -2186,3 +2186,276 @@ html.compact-mode .grid { gap: 12px; }
 }
 .reduce-motion #hero-poster { transform: rotate(-3deg) !important; }
 
+
+/* ------------------------------ Player profile hero ------------------------------ */
+.profile-hero {
+  position: relative;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  background: var(--navy);
+  border: 1px solid var(--glass-border);
+  box-shadow: 0 18px 44px rgb(var(--shadow-rgb) / 0.4);
+  padding: 0 !important;
+  animation: fadeInUp 0.45s ease both;
+}
+.profile-hero::before { display: none; }
+.profile-hero-banner-wrap {
+  height: 200px;
+  position: relative;
+  background: linear-gradient(135deg, rgb(var(--brass-rgb) / 0.25), var(--navy-light) 60%, var(--navy) 100%);
+  overflow: hidden;
+}
+.profile-hero-banner-wrap img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.profile-hero-banner-wrap::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgb(var(--shadow-rgb) / 0) 45%, var(--navy) 100%);
+}
+.profile-hero-actions {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  z-index: 3;
+  display: flex;
+  gap: 8px;
+}
+.profile-hero-icon-btn {
+  width: 38px;
+  height: 38px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: rgba(10, 10, 16, 0.55);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  color: var(--bone);
+  transition: background 0.15s ease, transform 0.15s ease, border-color 0.15s ease;
+  cursor: pointer;
+  text-decoration: none;
+  flex-shrink: 0;
+}
+.profile-hero-icon-btn:hover {
+  background: rgba(10, 10, 16, 0.8);
+  border-color: rgb(var(--brass-rgb) / 0.5);
+  transform: translateY(-2px);
+}
+.profile-hero-roblox-btn {
+  width: auto;
+  border-radius: 999px;
+  padding: 0 14px;
+  gap: 7px;
+  background: linear-gradient(135deg, var(--brass), var(--brass-bright));
+  border: 1px solid rgb(var(--brass-rgb) / 0.6);
+  color: #05070d;
+  font-weight: 700;
+  font-size: 0.82rem;
+  box-shadow: 0 4px 16px rgb(var(--brass-rgb) / 0.35);
+}
+.profile-hero-roblox-btn:hover {
+  background: linear-gradient(135deg, var(--brass-bright), var(--brass));
+  transform: translateY(-2px);
+}
+.profile-hero-body {
+  position: relative;
+  padding: 0 26px 26px;
+  margin-top: -56px;
+  display: flex;
+  gap: 20px;
+  align-items: flex-end;
+  flex-wrap: wrap;
+}
+.profile-hero-avatar-wrap {
+  position: relative;
+  flex-shrink: 0;
+  z-index: 2;
+}
+.profile-hero-level-pill {
+  position: absolute;
+  bottom: -2px;
+  right: -6px;
+  background: linear-gradient(135deg, var(--brass), var(--gold));
+  color: #1a0a06;
+  font-family: var(--font-stamp);
+  font-weight: 700;
+  font-size: 0.74rem;
+  padding: 3px 9px;
+  border-radius: 999px;
+  border: 3px solid var(--navy);
+  box-shadow: 0 2px 10px rgb(var(--shadow-rgb) / 0.45);
+}
+.profile-hero-info {
+  flex: 1;
+  min-width: 220px;
+  padding-bottom: 4px;
+}
+.profile-hero-name-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.profile-hero-name {
+  margin: 0;
+  font-size: 1.65rem;
+  font-weight: 700;
+  color: var(--bone);
+  font-family: var(--font-body);
+  text-transform: none;
+  letter-spacing: normal;
+  text-shadow: 0 2px 12px rgb(var(--shadow-rgb) / 0.6);
+}
+.profile-hero-rank-title {
+  margin: 2px 0 0;
+  font-size: 0.86rem;
+  color: var(--brass-bright);
+  font-weight: 600;
+}
+.profile-hero-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin: 8px 0 0;
+  padding: 4px 11px 4px 9px;
+  border-radius: 999px;
+  background: rgb(var(--brass-rgb) / 0.14);
+  border: 1px solid rgb(var(--brass-rgb) / 0.3);
+  color: var(--brass-bright);
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+.profile-hero-meta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin: 8px 0 0;
+  color: var(--ash);
+  font-size: 0.8rem;
+}
+.profile-hero-meta-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.profile-hero-sep { opacity: 0.5; }
+.profile-hero-xp-row {
+  margin-top: 18px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.profile-hero-xp-row .xp-bar { flex: 1; margin: 0; }
+.profile-hero-xp-label {
+  flex-shrink: 0;
+  font-size: 0.76rem;
+  color: var(--ash);
+  font-family: var(--font-mono);
+}
+@media (max-width: 620px) {
+  .profile-hero-banner-wrap { height: 140px; }
+  .profile-hero-body { margin-top: -40px; padding: 0 16px 20px; gap: 14px; }
+  .profile-hero-name { font-size: 1.3rem; }
+}
+
+/* ------------------------------ Image crop modal ------------------------------ */
+.crop-modal { max-width: 480px; width: 100%; }
+.crop-stage {
+  position: relative;
+  width: 100%;
+  margin: 0 auto;
+  overflow: hidden;
+  border-radius: var(--radius-sm);
+  background: #000;
+  border: 1px solid var(--glass-border);
+  cursor: grab;
+  touch-action: none;
+}
+.crop-stage:active { cursor: grabbing; }
+.crop-stage.is-circle { border-radius: 50%; }
+.crop-stage img {
+  position: absolute;
+  left: 0;
+  top: 0;
+  user-select: none;
+  -webkit-user-drag: none;
+  pointer-events: none;
+  will-change: transform;
+}
+.crop-zoom-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 18px;
+}
+.crop-zoom-row input[type="range"] {
+  flex: 1;
+  -webkit-appearance: none;
+  appearance: none;
+  height: 4px;
+  border-radius: 999px;
+  background: var(--navy-light);
+  outline: none;
+}
+.crop-zoom-row input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--brass-bright);
+  border: 2px solid var(--ink);
+  box-shadow: 0 2px 8px rgb(var(--shadow-rgb) / 0.5);
+  cursor: pointer;
+}
+.crop-zoom-row input[type="range"]::-moz-range-thumb {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--brass-bright);
+  border: 2px solid var(--ink);
+  cursor: pointer;
+}
+.crop-modal-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 20px;
+}
+.crop-modal-actions .btn { flex: 1; }
+
+/* ------------------------------ Profile activity timeline ------------------------------ */
+.activity-timeline-row {
+  position: relative;
+  display: flex;
+  gap: 14px;
+  padding-bottom: 20px;
+}
+.activity-timeline-row:last-child { padding-bottom: 16px; }
+.activity-timeline-row:not(:last-child)::before {
+  content: '';
+  position: absolute;
+  left: 15px;
+  top: 32px;
+  bottom: 0;
+  width: 1px;
+  background: var(--navy-light);
+}
+.activity-timeline-dot {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  color: #05070d;
+  z-index: 1;
+}
+.activity-timeline-content { padding-top: 4px; min-width: 0; }

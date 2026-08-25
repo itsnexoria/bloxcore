@@ -11,7 +11,6 @@ const TARGET_LABEL = {
   profile: 'Player Profile',
   service_listing: 'Service Listing',
   direct_message: 'Direct Message',
-  third_party_post: '3rd Party Post',
   vouch: 'Vouch',
 };
 const TARGET_LINK = {
@@ -24,13 +23,12 @@ const TARGET_LINK = {
   service_listing: () => `/services/`,
   // DMs have no public page — the message content itself is shown inline instead of a link.
   direct_message: () => null,
-  third_party_post: () => `/third-party/`,
   // A vouch's own id isn't a profile — the target profile is resolved separately, same as 'profile'.
   vouch: id => reportedVouchProfiles.get(id) ? `/player/?u=${encodeURIComponent(reportedVouchProfiles.get(id))}` : null,
 };
 // Deleting a reported profile isn't a real action — banning/moderating a player goes
 // through admin/users instead, so 'profile' is deliberately absent here.
-const TARGET_TABLE = { trade_listing: 'trade_listings', sea_event: 'sea_events', pvp_match: 'pvp_matches', crew: 'crews', service_listing: 'service_listings', direct_message: 'direct_messages', third_party_post: 'third_party_posts', vouch: 'vouches' };
+const TARGET_TABLE = { trade_listing: 'trade_listings', sea_event: 'sea_events', pvp_match: 'pvp_matches', crew: 'crews', service_listing: 'service_listings', direct_message: 'direct_messages', vouch: 'vouches' };
 let reportedUsernames = new Map();
 let reportedVouchProfiles = new Map();
 let reportedMessages = new Map();

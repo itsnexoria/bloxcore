@@ -34,18 +34,4 @@ onReady(async () => {
       errorEl.style.display = 'block';
     }
   });
-
-  document.getElementById('roblox-btn').addEventListener('click', async () => {
-    const errorEl = document.getElementById('signin-error');
-    errorEl.style.display = 'none';
-
-    const { error } = await sb.auth.signInWithOAuth({
-      provider: 'custom:roblox',
-      options: { redirectTo: window.location.origin + '/dashboard/' }
-    });
-    if (error) {
-      errorEl.textContent = error.message;
-      errorEl.style.display = 'block';
-    }
-  });
 });

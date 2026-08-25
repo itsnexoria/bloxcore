@@ -37,7 +37,6 @@
       <li><a href="/trading/"><i data-lucide="repeat" class="icon-sm icon-inline"></i>Trading</a></li>
       <li><a href="/services/"><i data-lucide="briefcase" class="icon-sm icon-inline"></i>Services</a></li>
       <li><a href="/combos/"><i data-lucide="flame" class="icon-sm icon-inline"></i>Combos</a></li>
-      <li><a href="/third-party/"><i data-lucide="puzzle" class="icon-sm icon-inline"></i>3rd Party</a></li>
       <li><a href="/whats-new/"><i data-lucide="sparkles" class="icon-sm icon-inline"></i>What's New</a></li>
       <li id="nav-auth-slot"></li>
     </ul>
@@ -53,6 +52,13 @@
     <p class="muted" style="margin-top:0;">This is what other pirates see when they click your name.</p>
 
     <div class="panel" style="margin-top:20px;">
+
+      <div id="banner-preview-wrap" style="position:relative; margin:-20px -20px 24px; height:120px; border-radius:12px 12px 0 0; overflow:hidden; background:linear-gradient(135deg, var(--navy), var(--navy-light));">
+        <img id="banner-preview" src="" alt="" style="width:100%; height:100%; object-fit:cover; display:none;">
+        <label for="banner-file" class="btn btn-ghost btn-sm" style="cursor:pointer; position:absolute; bottom:10px; right:10px;">Change Banner</label>
+        <input type="file" id="banner-file" accept="image/*" style="display:none;">
+      </div>
+      <p class="muted" style="margin:-16px 0 20px; font-size:0.78rem;">JPG, PNG, WEBP, or GIF, up to 5MB — wide images (e.g. 1200×300) look best.</p>
 
       <div style="display:flex; align-items:center; gap:18px; margin-bottom:24px;">
         <img id="avatar-preview" src="" alt="" style="width:76px; height:76px; border-radius:50%; object-fit:cover; border:2px solid var(--brass); display:none;">
@@ -78,6 +84,9 @@
 
         <label for="bio">Bio</label>
         <textarea id="bio" rows="3" maxlength="300" placeholder="Tell other pirates about yourself…"></textarea>
+
+        <label for="status_line">Status</label>
+        <input type="text" id="status_line" maxlength="40" placeholder="e.g. Looking for crew, Trading, Grinding lvl 2500">
 
         <label for="region">Region</label>
         <input type="text" id="region" maxlength="40" placeholder="e.g. NA East, EU, SEA">
@@ -144,6 +153,10 @@
         <input type="url" id="social_tiktok" maxlength="200" placeholder="https://tiktok.com/@yourname">
         <label for="social_discord">Discord Server Invite</label>
         <input type="url" id="social_discord" maxlength="200" placeholder="https://discord.gg/yourserver">
+        <label for="social_instagram">Instagram</label>
+        <input type="url" id="social_instagram" maxlength="200" placeholder="https://instagram.com/yourname">
+        <label for="social_kick">Kick</label>
+        <input type="url" id="social_kick" maxlength="200" placeholder="https://kick.com/yourname">
 
         <p class="field-error" id="profile-error" style="display:none;"></p>
         <button type="submit" class="btn btn-primary btn-block" id="save-profile-btn">Save Profile</button>
@@ -185,6 +198,28 @@
   </div>
 </div>
 
+<!-- Crop modal — shared by avatar and banner uploads, configured per-use by js/image-crop.js -->
+<div id="crop-modal" class="build-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="crop-modal-title">
+  <div class="panel crop-modal">
+    <div class="flex-between" style="margin-bottom:14px;">
+      <h2 id="crop-modal-title" style="font-size:1.05rem; margin:0;">Crop Image</h2>
+      <button type="button" class="btn btn-ghost btn-sm" id="crop-modal-close" aria-label="Close"><i data-lucide="x" class="icon-md"></i></button>
+    </div>
+    <div class="crop-stage" id="crop-stage">
+      <img id="crop-stage-img" src="" alt="">
+    </div>
+    <div class="crop-zoom-row">
+      <i data-lucide="zoom-out" class="icon-sm" style="color:var(--ash); flex-shrink:0;"></i>
+      <input type="range" id="crop-zoom-slider" min="0" max="100" value="0" aria-label="Zoom">
+      <i data-lucide="zoom-in" class="icon-sm" style="color:var(--ash); flex-shrink:0;"></i>
+    </div>
+    <div class="crop-modal-actions">
+      <button type="button" class="btn btn-ghost" id="crop-modal-cancel">Cancel</button>
+      <button type="button" class="btn btn-primary" id="crop-modal-save">Save</button>
+    </div>
+  </div>
+</div>
+
 <footer class="site-footer">
   <div class="container">BloxCore is the #1 Blox Fruits community — your ultimate hub for trading, bounty hunting, crews, combos, sea events, giveaways, leaderboards, live chat, and so much more! <a href="/terms/" style="color:inherit; text-decoration:underline;">Terms</a> · <a href="/privacy/" style="color:inherit; text-decoration:underline;">Privacy</a></div>
 </footer>
@@ -196,6 +231,7 @@
 <script src="/js/nav.js"></script>
 <script src="/js/search.js"></script>
 <script src="/js/build-options.js"></script>
+<script src="/js/image-crop.js"></script>
 <script src="/js/profile-edit.js"></script>
 </body>
 </html>
