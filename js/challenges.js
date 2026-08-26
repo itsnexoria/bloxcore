@@ -74,6 +74,7 @@ async function loadChallenges() {
           </span>
         </div>
         <div class="grid">${items.map(renderChallengeCard).join('')}</div>
+        ${section.key === 'daily' ? renderDailyCompletionFooter(items) : ''}
       </div>
     `;
   }).join('');
@@ -85,6 +86,45 @@ async function loadChallenges() {
   startResetCountdowns();
 }
 
+// Purely a "how many of today's daily quests have you cleared" readout — there's no
+// backend concept of a milestone/bonus reward for finishing all of them, so this only
+// ever shows real completion counts, not an invented bonus.
+function renderDailyCompletionFooter(dailyItems) {
+  const doneCount = dailyItems.filter(c => {
+    const completedAt = completionMap.get(c.id);
+    return completedAt && periodKey(new Date(completedAt), 'day') === periodKey(new Date(), 'day');
+  }).length;
+  const total = dailyItems.length;
+  const pct = total ? Math.round((doneCount / total) * 100) : 0;
+
+  const steps = dailyItems.map((_, i) => {
+    const n = i + 1;
+    const done = n <= doneCount;
+    return `
+      <div class="quest-progress-step-wrap">
+        <span class="quest-progress-step ${done ? 'done' : ''}">${done ? '<i data-lucide="check" style="width:13px;height:13px;"></i>' : n}</span>
+        <span class="quest-progress-step-label">${n} Bount${n === 1 ? 'y' : 'ies'}</span>
+      </div>
+    `;
+  }).join('');
+
+  return `
+    <div class="quest-daily-footer">
+      <div style="display:flex; align-items:center; gap:14px; flex:1; min-width:220px;">
+        <span class="quest-daily-footer-icon"><i data-lucide="skull" class="icon-sm"></i></span>
+        <div class="quest-daily-footer-text">
+          <p>Complete bounties to earn XP and progress your legend.</p>
+          <p class="muted">New bounties every day. Don't miss out!</p>
+        </div>
+      </div>
+      <div class="quest-progress-wrap">
+        <div class="quest-progress-line"><div class="quest-progress-line-fill" style="width:${pct}%;"></div></div>
+        <div class="quest-progress-steps">${steps}</div>
+      </div>
+    </div>
+  `;
+}
+
 function formatRemaining(ms) {
   const totalMinutes = Math.ceil(ms / 60000);
   const hours = Math.floor(totalMinutes / 60);
@@ -93,8 +133,27 @@ function formatRemaining(ms) {
   return `${minutes}m`;
 }
 
+// No per-quest artwork exists in the data model, so the card's "hero" icon is inferred
+// from a few keywords in the title/description instead — close enough to read as themed
+// without needing a real image field admins would have to fill in for every quest.
+const QUEST_ICON_RULES = [
+  { icon: 'anchor', words: ['sea beast', 'sea', 'shark', 'ocean', 'fish'] },
+  { icon: 'swords', words: ['raid', 'dungeon', 'boss', 'trial'] },
+  { icon: 'crosshair', words: ['pvp', 'duel', 'kill', 'defeat player'] },
+  { icon: 'crown', words: ['bounty', 'wanted level'] },
+  { icon: 'circle-dollar-sign', words: ['beli', 'money', 'earn', 'cash'] },
+  { icon: 'users', words: ['crew', 'team'] },
+  { icon: 'gift', words: ['giveaway'] },
+];
+function questIconFor(c) {
+  const text = `${c.title} ${c.description}`.toLowerCase();
+  for (const rule of QUEST_ICON_RULES) {
+    if (rule.words.some(w => text.includes(w))) return rule.icon;
+  }
+  return 'target';
+}
+
 function renderChallengeCard(c) {
-  const rotate = (Math.random() * 4 - 2).toFixed(1);
   const completedAt = completionMap.get(c.id);
   const isPending = pendingChallengeIds.has(c.id);
 
@@ -123,22 +182,28 @@ function renderChallengeCard(c) {
   }
 
   const actionHtml = isPending
-    ? `<button class="btn btn-ghost btn-sm" disabled><i data-lucide="clock" class="icon-sm"></i> Pending Review</button>`
+    ? `<button class="quest-card-claim-btn" disabled><i data-lucide="clock" class="icon-sm"></i> Pending Review</button>`
     : isDone
-    ? `<button class="btn btn-ghost btn-sm" disabled><i data-lucide="check" class="icon-sm"></i> Completed</button>`
+    ? `<button class="quest-card-claim-btn" disabled><i data-lucide="check" class="icon-sm"></i> Completed</button>`
     : onCooldown
-    ? `<button class="btn btn-ghost btn-sm" disabled>${cooldownLabel}</button>`
-    : `<button class="btn btn-primary btn-sm" data-claim-id="${c.id}" data-claim-title="${escapeHtml(c.title)}">Claim Bounty</button>`;
+    ? `<button class="quest-card-claim-btn" disabled>${cooldownLabel}</button>`
+    : `<button class="quest-card-claim-btn" data-claim-id="${c.id}" data-claim-title="${escapeHtml(c.title)}">Claim Bounty <i data-lucide="chevron-right" class="icon-sm"></i></button>`;
 
   return `
-    <div class="poster" style="transform: rotate(${rotate}deg); ${isDone || onCooldown || isPending ? 'opacity:0.6;' : ''}">
-      <p class="poster-eyebrow"><i data-lucide="star" class="icon-sm"></i> WANTED <i data-lucide="star" class="icon-sm"></i></p>
-      <p class="poster-title">${escapeHtml(c.title)}</p>
-      <p class="poster-body">${escapeHtml(c.description)}</p>
-      <p class="poster-reward">+${c.xp_reward} XP</p>
-      <div class="center" style="margin-top:10px; display:flex; flex-direction:column; gap:8px; align-items:center;">
-        <span class="difficulty-label difficulty-${c.difficulty}">${c.difficulty}</span>
-        ${c.rotation !== 'none' ? `<span class="muted" style="font-size:0.72rem; text-transform:capitalize;">${c.rotation} quest</span>` : c.repeatable ? `<span class="muted" style="font-size:0.72rem;">Repeatable${c.cooldown_hours > 0 ? ` · ${c.cooldown_hours}h cooldown` : ''}</span>` : ''}
+    <div class="quest-card ${isDone || onCooldown || isPending ? 'is-inactive' : ''}" data-difficulty="${c.difficulty}">
+      <div class="quest-card-hero">
+        <i data-lucide="${questIconFor(c)}" class="quest-card-hero-icon"></i>
+        <span class="quest-card-wanted-pill"><i data-lucide="star" style="width:10px;height:10px;"></i> WANTED <i data-lucide="star" style="width:10px;height:10px;"></i></span>
+        <span class="quest-card-badge"><i data-lucide="${questIconFor(c)}" class="icon-md"></i></span>
+      </div>
+      <div class="quest-card-body">
+        <h3 class="quest-card-title">${escapeHtml(c.title)}</h3>
+        <p class="quest-card-desc">${escapeHtml(c.description)}</p>
+        <div class="quest-card-divider"></div>
+        <p class="quest-card-reward-label">Reward</p>
+        <p class="quest-card-reward-value">+${c.xp_reward} XP</p>
+        <p class="quest-card-meta-row"><span class="quest-card-meta-dot"></span>${c.difficulty}</p>
+        <p class="quest-card-meta-sub">${c.rotation !== 'none' ? `${c.rotation.charAt(0).toUpperCase()}${c.rotation.slice(1)} Quest` : c.repeatable ? `Repeatable${c.cooldown_hours > 0 ? ` · ${c.cooldown_hours}h cooldown` : ''}` : 'One-Time Quest'}</p>
         ${actionHtml}
       </div>
     </div>
