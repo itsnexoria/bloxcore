@@ -54,8 +54,8 @@ onReady(async () => {
 
 async function loadFriendData() {
   const [{ data: asRequester }, { data: asAddressee }] = await Promise.all([
-    sb.from('friendships').select('id, status, addressee:addressee_id(id, username, display_name, avatar_url, title_color_override, last_active_at, titles(name, color))').eq('requester_id', currentUser.id),
-    sb.from('friendships').select('id, status, requester:requester_id(id, username, display_name, avatar_url, title_color_override, last_active_at, titles(name, color))').eq('addressee_id', currentUser.id),
+    sb.from('friendships').select('id, status, addressee:addressee_id(id, username, display_name, avatar_url, avatar_frame, title_color_override, last_active_at, titles(name, color))').eq('requester_id', currentUser.id),
+    sb.from('friendships').select('id, status, requester:requester_id(id, username, display_name, avatar_url, avatar_frame, title_color_override, last_active_at, titles(name, color))').eq('addressee_id', currentUser.id),
   ]);
 
   const accepted = [];
@@ -227,7 +227,7 @@ function handleSearchInput() {
 }
 
 async function searchPlayers(query) {
-  const { data } = await sb.from('profiles').select('id, username, display_name, avatar_url').ilike('username', `%${query}%`).limit(8);
+  const { data } = await sb.from('profiles').select('id, username, display_name, avatar_url, avatar_frame').ilike('username', `%${query}%`).limit(8);
   const results = document.getElementById('friend-search-results');
   const list = (data || []).filter(p => p.id !== currentUser.id);
 

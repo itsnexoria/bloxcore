@@ -275,7 +275,7 @@ const SERVICE_LISTINGS_PAGE_SIZE = 30;
 async function fetchServiceListingsPage(offset, pageSize) {
   const { data, error } = await sb
     .from('service_listings')
-    .select('*, profiles(username, display_name, avatar_url, title_color_override, titles(name, color), roblox_username, roblox_verified, roblox_user_id, discord_username, created_at)')
+    .select('*, profiles(username, display_name, avatar_url, avatar_frame, title_color_override, titles(name, color), roblox_username, roblox_verified, roblox_user_id, discord_username, created_at)')
     .eq('category', activeTab)
     .eq('status', 'open')
     .order('created_at', { ascending: false })
@@ -289,7 +289,7 @@ async function fetchDungeonParticipants(listings) {
   if (activeTab !== 'dungeon' || !listings.length) return participantsByListing;
   const { data: participants } = await sb
     .from('service_dungeon_participants')
-    .select('listing_id, user_id, profiles(username, display_name, avatar_url)')
+    .select('listing_id, user_id, profiles(username, display_name, avatar_url, avatar_frame)')
     .in('listing_id', listings.map(s => s.id));
   (participants || []).forEach(p => {
     (participantsByListing[p.listing_id] ||= []).push(p);
@@ -374,7 +374,7 @@ function renderDungeonListing(s, profile, isOwner, participants) {
   const joinedCount = participants.length + 1; // +1 for the host
   const isFull = joinedCount >= s.max_players;
   const hasJoined = currentUser && participants.some(p => p.user_id === currentUser.id);
-  const roster = [{ username: profile.username, display_name: profile.display_name, avatar_url: profile.avatar_url, isHost: true }]
+  const roster = [{ username: profile.username, display_name: profile.display_name, avatar_url: profile.avatar_url, avatar_frame: profile.avatar_frame, isHost: true }]
     .concat(participants.map(p => ({ ...(p.profiles || {}), isHost: false })));
 
   const joinAction = !currentUser

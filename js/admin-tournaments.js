@@ -232,7 +232,7 @@ async function loadTournamentAdminDetail(id) {
 
   if (t.status === 'registration_open') {
     const { data: participants } = await sb.from('tournament_participants')
-      .select('user_id, joined_at, profiles(username, display_name, avatar_url), crews(name, logo_url)')
+      .select('user_id, joined_at, profiles(username, display_name, avatar_url, avatar_frame), crews(name, logo_url)')
       .eq('tournament_id', id).order('joined_at');
     el.innerHTML = `
       <p class="muted" style="margin:0 0 8px; font-size:0.72rem; text-transform:uppercase; letter-spacing:0.05em;">Registered ${t.team_based ? 'Crews' : 'Players'}</p>
@@ -250,8 +250,8 @@ async function loadTournamentAdminDetail(id) {
 
   const { data: matches } = await sb.from('tournament_matches')
     .select(`id, round, match_number, bracket, player1_id, player2_id, winner_id, status, claimed_winner_id, claimed_by,
-      player1:profiles!tournament_matches_player1_id_fkey(username, display_name, avatar_url),
-      player2:profiles!tournament_matches_player2_id_fkey(username, display_name, avatar_url),
+      player1:profiles!tournament_matches_player1_id_fkey(username, display_name, avatar_url, avatar_frame),
+      player2:profiles!tournament_matches_player2_id_fkey(username, display_name, avatar_url, avatar_frame),
       team1:crews!tournament_matches_team1_id_fkey(name, logo_url),
       team2:crews!tournament_matches_team2_id_fkey(name, logo_url)`)
     .eq('tournament_id', id).order('round').order('match_number');

@@ -257,14 +257,27 @@ async function loadReputationBadges(container, posters) {
 // Shared circular avatar renderer. Discord CDN avatar URLs can go stale when a user changes
 // their pfp (the old hash 404s), which otherwise shows the browser's broken-image icon —
 // onerror swaps it for an initials placeholder instead, site-wide, from one place.
+// Curated avatar frames, unlocked by level (enforced server-side too, in the
+// validate_avatar_frame trigger — keep minLevel here in sync with that function).
+const AVATAR_FRAME_PRESETS = [
+  { key: 'bronze', label: 'Bronze', minLevel: 10, ring: 'box-shadow:0 0 0 3px var(--ink), 0 0 0 5px #cd7f32, 0 4px 18px rgba(205,127,50,0.45);' },
+  { key: 'silver', label: 'Silver', minLevel: 30, ring: 'box-shadow:0 0 0 3px var(--ink), 0 0 0 5px #c0c0c0, 0 4px 18px rgba(192,192,192,0.4);' },
+  { key: 'gold', label: 'Gold', minLevel: 50, ring: 'box-shadow:0 0 0 3px var(--ink), 0 0 0 5px #fbbf24, 0 4px 20px rgba(251,191,36,0.55);' },
+  { key: 'emerald', label: 'Emerald', minLevel: 80, ring: 'box-shadow:0 0 0 3px var(--ink), 0 0 0 5px #34d399, 0 4px 22px rgba(52,211,153,0.55);' },
+  { key: 'diamond', label: 'Diamond', minLevel: 100, ring: 'box-shadow:0 0 0 3px var(--ink), 0 0 0 5px #38bdf8, 0 4px 24px rgba(56,189,248,0.6);' },
+  { key: 'prismatic', label: 'Prismatic', minLevel: 150, cls: 'avatar-frame-prismatic' },
+];
+
 function avatarHtml(profile, size, extraStyle = '', presence = null) {
   const name = displayNameFor(profile);
   const initial = escapeHtml((name[0] || '?').toUpperCase());
-  const ring = `box-shadow:0 0 0 3px var(--ink), 0 0 0 4px rgb(var(--brass-rgb) / 0.5), 0 4px 18px rgb(var(--shadow-rgb) / 0.4);`;
-  const fallback = `<div style="width:${size}px;height:${size}px;border-radius:50%;background:linear-gradient(150deg, var(--navy-light), var(--navy));display:flex;align-items:center;justify-content:center;font-size:${Math.round(size * 0.4)}px;flex-shrink:0;color:var(--ash);font-family:var(--font-stamp);${ring}${presence ? '' : extraStyle}">${initial}</div>`;
+  const framePreset = AVATAR_FRAME_PRESETS.find(f => f.key === profile?.avatar_frame);
+  const ring = framePreset?.ring || `box-shadow:0 0 0 3px var(--ink), 0 0 0 4px rgb(var(--brass-rgb) / 0.5), 0 4px 18px rgb(var(--shadow-rgb) / 0.4);`;
+  const frameClass = framePreset?.cls ? ` class="${framePreset.cls}"` : '';
+  const fallback = `<div${frameClass} style="width:${size}px;height:${size}px;border-radius:50%;background:linear-gradient(150deg, var(--navy-light), var(--navy));display:flex;align-items:center;justify-content:center;font-size:${Math.round(size * 0.4)}px;flex-shrink:0;color:var(--ash);font-family:var(--font-stamp);${ring}${presence ? '' : extraStyle}">${initial}</div>`;
   const inner = (!profile?.avatar_url) ? fallback : (() => {
     const escapedFallback = fallback.replace(/"/g, '&quot;');
-    return `<img src="${profile.avatar_url}" alt="" loading="lazy" style="width:${size}px;height:${size}px;border-radius:50%;object-fit:cover;flex-shrink:0;${ring}${presence ? '' : extraStyle}" onerror="this.outerHTML='${escapedFallback}';">`;
+    return `<img${frameClass} src="${profile.avatar_url}" alt="" loading="lazy" style="width:${size}px;height:${size}px;border-radius:50%;object-fit:cover;flex-shrink:0;${ring}${presence ? '' : extraStyle}" onerror="this.outerHTML='${escapedFallback}';">`;
   })();
 
   if (!presence) return inner;

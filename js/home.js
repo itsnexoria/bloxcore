@@ -80,7 +80,7 @@ async function loadTopPirates() {
   const el = document.getElementById('top-pirates');
   const { data, error } = await sb
     .from('profiles')
-    .select('username, display_name, avatar_url, level, xp, title_color_override, titles(name, color)')
+    .select('username, display_name, avatar_url, avatar_frame, level, xp, title_color_override, titles(name, color)')
     .eq('hide_from_leaderboard', false)
     .order('level', { ascending: false })
     .order('xp', { ascending: false })

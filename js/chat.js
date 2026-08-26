@@ -49,7 +49,7 @@ async function loadHistory() {
 
   const { data, error } = await sb
     .from('chat_messages')
-    .select('id, user_id, message, image_url, created_at, reply_to_id, profiles(id, username, display_name, avatar_url, role, title_color_override, chat_name_color, titles(name, color)), reply_to:reply_to_id(id, message, profiles(username, display_name))')
+    .select('id, user_id, message, image_url, created_at, reply_to_id, profiles(id, username, display_name, avatar_url, avatar_frame, role, title_color_override, chat_name_color, titles(name, color)), reply_to:reply_to_id(id, message, profiles(username, display_name))')
     .order('created_at', { ascending: false })
     .limit(CHAT_HISTORY_LIMIT);
 
@@ -215,7 +215,7 @@ function subscribeToChat() {
     .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'chat_messages' }, async (payload) => {
       const { data: profile } = await sb
         .from('profiles')
-        .select('id, username, display_name, avatar_url, role, title_color_override, chat_name_color, titles(name, color)')
+        .select('id, username, display_name, avatar_url, avatar_frame, role, title_color_override, chat_name_color, titles(name, color)')
         .eq('id', payload.new.user_id)
         .single();
 

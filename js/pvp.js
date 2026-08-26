@@ -52,8 +52,8 @@ async function loadMatches() {
   }
 
   const [{ data: matches, error }, { data: participants }] = await Promise.all([
-    sb.from('pvp_matches').select('*, profiles!pvp_matches_host_id_fkey(username, display_name, avatar_url, roblox_verified)').order('created_at', { ascending: false }),
-    sb.from('pvp_match_participants').select('match_id, user_id, profiles(username, display_name, avatar_url)'),
+    sb.from('pvp_matches').select('*, profiles!pvp_matches_host_id_fkey(username, display_name, avatar_url, avatar_frame, roblox_verified)').order('created_at', { ascending: false }),
+    sb.from('pvp_match_participants').select('match_id, user_id, profiles(username, display_name, avatar_url, avatar_frame)'),
   ]);
 
   if (error) {

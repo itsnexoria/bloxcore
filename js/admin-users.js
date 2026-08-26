@@ -141,7 +141,7 @@ async function loadActiveUsers() {
 
   const { data, error } = await sb
     .from('profiles')
-    .select('id, username, display_name, avatar_url, last_active_at')
+    .select('id, username, display_name, avatar_url, avatar_frame, last_active_at')
     .order('last_active_at', { ascending: false, nullsFirst: false })
     .limit(200);
 

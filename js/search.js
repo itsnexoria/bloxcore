@@ -116,7 +116,7 @@ async function runSiteSearch(query) {
   let players, crews, challenges, combos, services, giveaways, seaEvents, pvpMatches, matchedItems, tradeListings, tournaments;
   try {
     [players, crews, challenges, combos, services, giveaways, seaEvents, pvpMatches, matchedItems, tournaments] = await Promise.all([
-      sb.from('profiles').select('username, display_name, avatar_url').eq('profile_visibility', 'public').or(`username.ilike.${like},display_name.ilike.${like}`).limit(SEARCH_RESULTS_PER_GROUP),
+      sb.from('profiles').select('username, display_name, avatar_url, avatar_frame').eq('profile_visibility', 'public').or(`username.ilike.${like},display_name.ilike.${like}`).limit(SEARCH_RESULTS_PER_GROUP),
       sb.from('crews').select('id, name, tag, logo_url').or(`name.ilike.${like},tag.ilike.${like}`).limit(SEARCH_RESULTS_PER_GROUP),
       sb.from('challenges').select('id, title, difficulty').eq('active', true).ilike('title', like).limit(SEARCH_RESULTS_PER_GROUP),
       sb.from('combos').select('id, title, difficulty').ilike('title', like).limit(SEARCH_RESULTS_PER_GROUP),

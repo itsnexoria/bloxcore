@@ -491,7 +491,7 @@ async function wirePushNotifToggle() {
 async function loadBlockedUsersList(userId) {
   const container = document.getElementById('blocked-users-list');
   const { data, error } = await sb.from('blocked_users')
-    .select('id, kind, blocked_id, profiles!blocked_users_blocked_id_fkey(username, display_name, avatar_url)')
+    .select('id, kind, blocked_id, profiles!blocked_users_blocked_id_fkey(username, display_name, avatar_url, avatar_frame)')
     .eq('blocker_id', userId)
     .order('created_at', { ascending: false });
 

@@ -133,7 +133,7 @@ let combosHasMore = true;
 async function fetchCombosPage(offset, pageSize) {
   const { data, error } = await sb
     .from('combos')
-    .select('*, profiles:created_by(username, display_name, avatar_url, title_color_override, titles(name, color))')
+    .select('*, profiles:created_by(username, display_name, avatar_url, avatar_frame, title_color_override, titles(name, color))')
     .order('created_at', { ascending: false })
     .range(offset, offset + pageSize - 1);
   if (error) {

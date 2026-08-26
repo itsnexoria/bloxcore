@@ -105,7 +105,7 @@ async function loadLeaderboard(page) {
 
   const { data, error, count } = await sb
     .from('profiles')
-    .select('username, display_name, avatar_url, level, xp, current_streak, title_color_override, titles(name, color)', { count: 'exact' })
+    .select('username, display_name, avatar_url, avatar_frame, level, xp, current_streak, title_color_override, titles(name, color)', { count: 'exact' })
     .eq('hide_from_leaderboard', false)
     .order('level', { ascending: false })
     .order('xp', { ascending: false })

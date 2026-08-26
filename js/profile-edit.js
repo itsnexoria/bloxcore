@@ -39,6 +39,8 @@ let ownedTitleIds = new Set();
 let activeTitleId = '';
 let activeTitleColorOverride = '';
 let activeNameGradient = '';
+let currentLevel = 0;
+let activeAvatarFrame = '';
 let canUseRainbow = false;
 
 async function populateTitleSelect(userId, activeId, colorOverride, role) {
@@ -194,6 +196,9 @@ function populateBountySelect(id) {
 async function populateForm(profile) {
   renderAvatar(profile.avatar_url);
   renderBanner(profile.banner_url);
+  currentLevel = profile.level || 0;
+  activeAvatarFrame = profile.avatar_frame || '';
+  renderAvatarFrameSwatches();
   document.getElementById('display_name').value = profile.display_name || '';
   activeNameGradient = profile.name_gradient || '';
   document.getElementById('name_gradient').value = activeNameGradient;
@@ -245,6 +250,48 @@ function renderBanner(url) {
   } else {
     img.style.display = 'none';
   }
+}
+
+function renderAvatarFrameSwatches() {
+  const avatarUrl = document.getElementById('avatar-preview').style.display !== 'none'
+    ? document.getElementById('avatar-preview').src
+    : '';
+  const ringFor = (preset) => preset?.ring || `box-shadow:0 0 0 3px var(--ink), 0 0 0 4px rgb(var(--brass-rgb) / 0.5), 0 4px 18px rgb(var(--shadow-rgb) / 0.4);`;
+  const previewFor = (preset) => {
+    const cls = preset?.cls ? ` ${preset.cls}` : '';
+    const style = `width:48px;height:48px;border-radius:50%;object-fit:cover;background:linear-gradient(150deg, var(--navy-light), var(--navy));${ringFor(preset)}`;
+    return avatarUrl
+      ? `<img class="${cls.trim()}" src="${avatarUrl}" alt="" style="${style}">`
+      : `<div class="${cls.trim()}" style="${style}"></div>`;
+  };
+
+  const options = [{ key: '', label: 'None', minLevel: 0 }, ...AVATAR_FRAME_PRESETS];
+  document.getElementById('avatar-frame-swatches').innerHTML = options.map(preset => {
+    const locked = currentLevel < preset.minLevel;
+    const selected = (activeAvatarFrame || '') === preset.key;
+    return `
+      <div>
+        <button type="button" class="frame-swatch-btn ${selected ? 'selected' : ''} ${locked ? 'locked' : ''}" data-frame-key="${preset.key}" data-frame-min-level="${preset.minLevel}" title="${preset.label}${locked ? ` — unlocks at level ${preset.minLevel}` : ''}">
+          ${previewFor(preset.key ? preset : null)}
+          ${locked ? '<span class="frame-swatch-lock"><i data-lucide="lock" class="icon-sm"></i></span>' : ''}
+        </button>
+        <span class="frame-swatch-label">${preset.label}</span>
+      </div>
+    `;
+  }).join('');
+  refreshIcons();
+
+  document.querySelectorAll('#avatar-frame-swatches [data-frame-key]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const minLevel = Number(btn.dataset.frameMinLevel);
+      if (currentLevel < minLevel) {
+        showToast(`Unlocks at level ${minLevel}.`, true);
+        return;
+      }
+      activeAvatarFrame = btn.dataset.frameKey || '';
+      renderAvatarFrameSwatches();
+    });
+  });
 }
 
 const AVATAR_MAX_MB = 5;
@@ -337,6 +384,7 @@ async function handleAvatarUpload(e) {
     if (updateError) throw updateError;
 
     renderAvatar(urlData.publicUrl);
+    renderAvatarFrameSwatches();
     showToast('Avatar updated.');
   } catch (err) {
     console.error(err);
@@ -475,6 +523,7 @@ async function handleSave(e) {
   const payload = {
     display_name: document.getElementById('display_name').value.trim() || null,
     name_gradient: document.getElementById('name_gradient').value || null,
+    avatar_frame: activeAvatarFrame || null,
     active_title_id: document.getElementById('active_title').value || null,
     title_color_override: document.getElementById('title_color_override').value || null,
     bio: document.getElementById('bio').value.trim() || null,

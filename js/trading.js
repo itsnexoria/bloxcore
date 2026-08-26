@@ -232,7 +232,7 @@ const TRADE_LISTINGS_PAGE_SIZE = 40;
 async function fetchTradeListingsPage(offset, pageSize) {
   const { data, error } = await sb
     .from('trade_listings')
-    .select('id, user_id, offering_item_ids, requesting_item_ids, note, created_at, expires_at, profiles(username, display_name, avatar_url, title_color_override, titles(name, color), created_at)')
+    .select('id, user_id, offering_item_ids, requesting_item_ids, note, created_at, expires_at, profiles(username, display_name, avatar_url, avatar_frame, title_color_override, titles(name, color), created_at)')
     .eq('active', true)
     .gt('created_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString())
     .order('created_at', { ascending: false })

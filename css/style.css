@@ -2783,3 +2783,60 @@ html.compact-mode .grid { gap: 12px; }
 .quest-progress-step > * { transform: rotate(-45deg); }
 .quest-progress-step.done { background: linear-gradient(145deg, var(--brass), var(--brass-bright)); border-color: var(--brass-bright); color: #05070d; }
 .quest-progress-step-label { font-size: 0.68rem; color: var(--ash); white-space: nowrap; }
+
+/* ------------------------------ Avatar frames ------------------------------ */
+@keyframes prismaticRing {
+  0%   { box-shadow: 0 0 0 3px var(--ink), 0 0 0 5px #ef4444, 0 4px 20px rgba(239,68,68,0.5); }
+  16%  { box-shadow: 0 0 0 3px var(--ink), 0 0 0 5px #f97316, 0 4px 20px rgba(249,115,22,0.5); }
+  33%  { box-shadow: 0 0 0 3px var(--ink), 0 0 0 5px #fbbf24, 0 4px 20px rgba(251,191,36,0.5); }
+  50%  { box-shadow: 0 0 0 3px var(--ink), 0 0 0 5px #34d399, 0 4px 20px rgba(52,211,153,0.5); }
+  66%  { box-shadow: 0 0 0 3px var(--ink), 0 0 0 5px #38bdf8, 0 4px 20px rgba(56,189,248,0.5); }
+  83%  { box-shadow: 0 0 0 3px var(--ink), 0 0 0 5px #a78bfa, 0 4px 20px rgba(167,139,250,0.5); }
+  100% { box-shadow: 0 0 0 3px var(--ink), 0 0 0 5px #ef4444, 0 4px 20px rgba(239,68,68,0.5); }
+}
+.avatar-frame-prismatic { animation: prismaticRing 6s linear infinite; }
+.reduce-motion .avatar-frame-prismatic { animation: none; box-shadow: 0 0 0 3px var(--ink), 0 0 0 5px #a78bfa, 0 4px 20px rgba(167,139,250,0.5); }
+
+.frame-swatch-btn {
+  position: relative;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  opacity: 1;
+  transition: transform 0.15s ease;
+}
+.frame-swatch-btn:hover { transform: scale(1.08); }
+.frame-swatch-btn.locked { cursor: not-allowed; opacity: 0.45; }
+.frame-swatch-btn.locked:hover { transform: none; }
+.frame-swatch-btn.selected::after {
+  content: '';
+  position: absolute;
+  inset: -4px;
+  border-radius: 50%;
+  border: 2px solid var(--brass-bright);
+}
+.frame-swatch-lock {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--bone);
+  background: rgba(5,6,10,0.55);
+  border-radius: 50%;
+}
+.frame-swatch-label {
+  display: block;
+  text-align: center;
+  font-size: 0.66rem;
+  color: var(--ash);
+  margin-top: 4px;
+}

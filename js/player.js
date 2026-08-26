@@ -575,7 +575,7 @@ function renderActivityTimelineRow(a) {
 async function loadPlayerVouches(profileId, viewerId, isOwnProfile) {
   const [{ data: rep }, { data: vouches }] = await Promise.all([
     sb.rpc('get_reputation', { p_user_id: profileId }),
-    sb.from('vouches').select('id, direction, comment, created_at, voucher_id, profiles!vouches_voucher_id_fkey(username, display_name, avatar_url)').eq('target_id', profileId).order('created_at', { ascending: false }).limit(30),
+    sb.from('vouches').select('id, direction, comment, created_at, voucher_id, profiles!vouches_voucher_id_fkey(username, display_name, avatar_url, avatar_frame)').eq('target_id', profileId).order('created_at', { ascending: false }).limit(30),
   ]);
 
   const positive = rep?.[0]?.positive || 0;

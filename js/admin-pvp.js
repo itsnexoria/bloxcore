@@ -25,7 +25,7 @@ async function loadPvpResults() {
   container.innerHTML = `<div class="skeleton" style="height:100px; margin-bottom:10px;"></div><div class="skeleton" style="height:100px;"></div>`;
 
   const { data: results, error } = await sb.from('pvp_results')
-    .select('id, match_type, host_id, opponent_id, host_won, status, admin_note, dispute_reason, created_at, host:profiles!pvp_results_host_id_fkey(username, display_name, avatar_url), opponent:profiles!pvp_results_opponent_id_fkey(username, display_name, avatar_url, pvp_disputes_against)')
+    .select('id, match_type, host_id, opponent_id, host_won, status, admin_note, dispute_reason, created_at, host:profiles!pvp_results_host_id_fkey(username, display_name, avatar_url, avatar_frame), opponent:profiles!pvp_results_opponent_id_fkey(username, display_name, avatar_url, avatar_frame, pvp_disputes_against)')
     .eq('status', pvpResultsFilter)
     .order('created_at', { ascending: false })
     .limit(60);

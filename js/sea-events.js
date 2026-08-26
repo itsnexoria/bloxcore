@@ -53,8 +53,8 @@ async function loadEvents() {
   }
 
   const [{ data: events, error }, { data: participants }] = await Promise.all([
-    sb.from('sea_events').select('*, profiles!sea_events_host_id_fkey(username, display_name, avatar_url, roblox_verified)').order('created_at', { ascending: false }),
-    sb.from('sea_event_participants').select('event_id, user_id, profiles(username, display_name, avatar_url)'),
+    sb.from('sea_events').select('*, profiles!sea_events_host_id_fkey(username, display_name, avatar_url, avatar_frame, roblox_verified)').order('created_at', { ascending: false }),
+    sb.from('sea_event_participants').select('event_id, user_id, profiles(username, display_name, avatar_url, avatar_frame)'),
   ]);
 
   if (error) {

@@ -229,8 +229,8 @@ async function openTournamentDetail(id) {
 
   const { data: matches } = await sb.from('tournament_matches')
     .select(`id, round, match_number, bracket, player1_id, player2_id, winner_id, status, claimed_winner_id,
-      player1:profiles!tournament_matches_player1_id_fkey(username, display_name, avatar_url),
-      player2:profiles!tournament_matches_player2_id_fkey(username, display_name, avatar_url),
+      player1:profiles!tournament_matches_player1_id_fkey(username, display_name, avatar_url, avatar_frame),
+      player2:profiles!tournament_matches_player2_id_fkey(username, display_name, avatar_url, avatar_frame),
       team1:crews!tournament_matches_team1_id_fkey(name, logo_url),
       team2:crews!tournament_matches_team2_id_fkey(name, logo_url)`)
     .eq('tournament_id', id)
@@ -256,7 +256,7 @@ async function loadRosterPicker(tournamentId) {
   const { data: reg } = await sb.from('tournament_participants').select('id, crew_id, roster_user_ids').eq('tournament_id', tournamentId).eq('user_id', currentUser.id).maybeSingle();
   if (!reg) { panel.innerHTML = ''; return; }
 
-  const { data: members } = await sb.from('crew_members').select('user_id, profiles(username, display_name, avatar_url)').eq('crew_id', reg.crew_id);
+  const { data: members } = await sb.from('crew_members').select('user_id, profiles(username, display_name, avatar_url, avatar_frame)').eq('crew_id', reg.crew_id);
   const currentRoster = new Set(reg.roster_user_ids || []);
 
   panel.innerHTML = `
@@ -357,7 +357,7 @@ async function initTournamentChat(tournamentId) {
   list.innerHTML = `<div class="skeleton" style="height:60px;"></div>`;
 
   const { data: messages } = await sb.from('tournament_messages')
-    .select('id, user_id, message, created_at, profiles(username, display_name, avatar_url)')
+    .select('id, user_id, message, created_at, profiles(username, display_name, avatar_url, avatar_frame)')
     .eq('tournament_id', tournamentId)
     .order('created_at', { ascending: true })
     .limit(50);
@@ -381,7 +381,7 @@ async function initTournamentChat(tournamentId) {
   if (tournamentChatChannel) sb.removeChannel(tournamentChatChannel);
   tournamentChatChannel = sb.channel(`tournament-chat:${tournamentId}`)
     .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'tournament_messages', filter: `tournament_id=eq.${tournamentId}` }, async (payload) => {
-      const { data: profile } = await sb.from('profiles').select('username, display_name, avatar_url').eq('id', payload.new.user_id).single();
+      const { data: profile } = await sb.from('profiles').select('username, display_name, avatar_url, avatar_frame').eq('id', payload.new.user_id).single();
       if (list.querySelector('.muted')) list.innerHTML = '';
       list.insertAdjacentHTML('beforeend', renderTournamentChatMessage({ ...payload.new, profiles: profile }));
       list.scrollTop = list.scrollHeight;

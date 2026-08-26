@@ -175,7 +175,7 @@ function wireAddMemberAutocomplete(currentMembers) {
     if (!query) { box.classList.remove('open'); box.innerHTML = ''; return; }
     debounceTimer = setTimeout(async () => {
       const existingIds = new Set(currentMembers.map(m => m.user_id));
-      const { data, error } = await sb.from('profiles').select('id, username, display_name, avatar_url')
+      const { data, error } = await sb.from('profiles').select('id, username, display_name, avatar_url, avatar_frame')
         .or(`username.ilike.%${query}%,display_name.ilike.%${query}%`).limit(8);
 
       if (error) {
