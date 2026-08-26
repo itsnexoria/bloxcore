@@ -1436,6 +1436,19 @@ select option {
   overflow-y: auto;
 }
 .autocomplete-list.open { display: block; }
+/* Variant for dropdowns sitting in a short form directly above other page content
+   (e.g. crew "Add a Member") rather than inside a modal or a mid-text mention popup —
+   floating absolutely over the very next section read as one jumbled, overlapping list
+   when that section's rows look similar (e.g. a member row also has an avatar+username).
+   This variant flows in place instead, so opening it pushes that content down rather
+   than covering it. */
+.autocomplete-list-inline {
+  position: static;
+  top: auto;
+  left: auto;
+  right: auto;
+  margin-top: 8px;
+}
 .autocomplete-item {
   display: flex;
   align-items: center;

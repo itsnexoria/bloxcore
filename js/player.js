@@ -216,7 +216,6 @@ function renderProfile(p, crew, isOwnProfile) {
             <span class="profile-hero-sep">·</span><span>Member since ${formatDate(p.created_at)}</span>
             ${p.current_streak > 0 ? `<span class="profile-hero-sep">·</span><span><i data-lucide="flame" class="icon-sm icon-inline" style="color:var(--brass-bright);"></i>${p.current_streak}-day streak</span>` : ''}
           </div>
-          <div id="social-actions" style="margin-top:12px; display:flex; gap:8px; flex-wrap:wrap;"></div>
         </div>
       </div>
       <div class="profile-hero-body">
@@ -225,6 +224,7 @@ function renderProfile(p, crew, isOwnProfile) {
           <span class="profile-hero-level-pill">Lv${p.level}</span>
         </div>
         <div class="profile-hero-body-content">
+          <div id="social-actions" style="display:flex; gap:8px; flex-wrap:wrap;"></div>
           ${crew ? `<a href="/crew/?name=${encodeURIComponent(crew.name)}" class="profile-hero-crew-chip">
             ${crew.logo_url ? `<img src="${crew.logo_url}" alt="" loading="lazy" style="width:20px; height:20px; border-radius:5px; object-fit:cover;" onerror="this.style.display='none';">` : '<i data-lucide=\"shield\" class=\"icon-sm\" style=\"color:var(--ash);\"></i>'}
             <span class="info-chip-label">Crew</span><span class="info-chip-value">${crew.tag ? `[${escapeHtml(crew.tag)}] ` : ''}${escapeHtml(crew.name)}</span>

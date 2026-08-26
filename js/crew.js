@@ -118,7 +118,7 @@ async function render() {
       <form id="add-member-form" style="display:flex; gap:10px; align-items:flex-start; position:relative;">
         <div style="flex:1; position:relative;">
           <input type="text" id="add-member-username" placeholder="Search a BloxCore username…" autocomplete="off" style="margin:0; width:100%;" ${members.length >= 30 ? 'disabled' : ''}>
-          <div id="add-member-suggestions" class="autocomplete-list"></div>
+          <div id="add-member-suggestions" class="autocomplete-list autocomplete-list-inline"></div>
         </div>
         <button type="submit" class="btn btn-primary btn-sm" ${members.length >= 30 ? 'disabled' : ''} title="Add"><i data-lucide="plus" class="icon-sm"></i></button>
       </form>
