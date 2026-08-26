@@ -74,7 +74,6 @@ async function loadChallenges() {
           </span>
         </div>
         <div class="grid">${items.map(renderChallengeCard).join('')}</div>
-        ${section.key === 'daily' ? renderDailyCompletionFooter(items) : ''}
       </div>
     `;
   }).join('');

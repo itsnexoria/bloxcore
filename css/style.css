@@ -2688,10 +2688,13 @@ html.compact-mode .grid { gap: 12px; }
   cursor: default;
   transform: none;
 }
-/* Per-difficulty accent — sets --qc-rgb, which every rule above reads from */
+/* Per-difficulty accent — sets --qc-rgb, which every rule above reads from. Fixed
+   values, not tied to --brass (the user's chosen site accent theme) — difficulty is a
+   property of the quest, not something that should shift when someone picks a different
+   theme color. */
 .quest-card[data-difficulty="easy"] { --qc-rgb: 52 211 153; }
 .quest-card[data-difficulty="medium"] { --qc-rgb: var(--gold-rgb); }
-.quest-card[data-difficulty="hard"] { --qc-rgb: var(--brass-rgb); }
+.quest-card[data-difficulty="hard"] { --qc-rgb: 249 115 22; }
 .quest-card[data-difficulty="legendary"] { --qc-rgb: var(--purple-rgb); }
 
 .quest-progress-wrap {
