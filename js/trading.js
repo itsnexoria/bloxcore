@@ -318,7 +318,7 @@ function renderListing(t) {
   const request = sideSummary(t.requesting_item_ids);
 
   return `
-    <div class="panel trade-card" data-listing-id="${t.id}">
+    <div class="panel trade-card hover-lift-card" data-listing-id="${t.id}">
       <div class="flex-between">
         <div style="display:flex; align-items:center; gap:10px;">
           ${avatarHtml(profile, 34)}

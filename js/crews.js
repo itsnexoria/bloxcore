@@ -88,7 +88,7 @@ async function fetchCrewsPage(offset, pageSize) {
 
 function renderCrewCard(c) {
   return `
-    <div class="panel crew-card">
+    <div class="panel crew-card hover-lift-card">
       <div class="crew-card-top">
         ${c.logo_url
           ? `<img src="${c.logo_url}" alt="" loading="lazy" class="crew-card-logo" onerror="this.style.display='none';">`

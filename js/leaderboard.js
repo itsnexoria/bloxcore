@@ -79,10 +79,13 @@ async function loadLeaderboard(page) {
       list.innerHTML = `<div class="empty-state">No pirates have made a name for themselves yet.</div>`;
       return;
     }
-    list.innerHTML = data.map((p, i) => `
-      <div class="flex-between${p.username === currentUsername ? ' lb-row-mine' : ''}" style="padding:16px 20px; ${i !== data.length - 1 ? 'border-bottom:1px solid var(--navy-light);' : ''}">
+    list.innerHTML = data.map((p, i) => {
+      const rank = i + 1;
+      const podium = rank <= 3;
+      return `
+      <div class="flex-between${p.username === currentUsername ? ' lb-row-mine' : ''}${podium ? ' lb-row-podium' : ''}" ${podium ? `data-rank="${rank}"` : ''} style="padding:16px 20px; ${i !== data.length - 1 && !podium ? 'border-bottom:1px solid var(--navy-light);' : ''}">
         <div style="display:flex; align-items:center; gap:16px;">
-          <span style="font-family:var(--font-mono); color:var(--ash); width:28px;">#${i + 1}</span>
+          <span class="${podium ? 'lb-podium-rank' : ''}" style="font-family:var(--font-mono); color:var(--ash); width:28px;">${podium ? `<i data-lucide="${rank === 1 ? 'crown' : 'medal'}" class="icon-sm"></i>` : `#${rank}`}</span>
           ${avatarHtml(p, 36)}
           <div>
             <a href="/player/?u=${encodeURIComponent(p.username)}" style="margin:0; font-weight:700; color:var(--bone); text-decoration:none; display:block;">${escapeHtml(displayNameFor(p))} ${titleBadge({ title_color_override: p.title_color_override, titles: p.title_name ? { name: p.title_name, color: p.title_color } : null })}</a>
@@ -94,7 +97,8 @@ async function loadLeaderboard(page) {
           <p class="muted" style="margin:0; font-size:0.78rem;">Lv. ${p.level}</p>
         </div>
       </div>
-    `).join('');
+    `;
+    }).join('');
     refreshIcons();
     return;
   }
@@ -124,10 +128,13 @@ async function loadLeaderboard(page) {
     return;
   }
 
-  list.innerHTML = data.map((p, i) => `
-    <div class="flex-between${p.username === currentUsername ? ' lb-row-mine' : ''}" style="padding:16px 20px; ${i !== data.length - 1 ? 'border-bottom:1px solid var(--navy-light);' : ''}">
+  list.innerHTML = data.map((p, i) => {
+    const rank = from + i + 1;
+    const podium = rank <= 3;
+    return `
+    <div class="flex-between${p.username === currentUsername ? ' lb-row-mine' : ''}${podium ? ' lb-row-podium' : ''}" ${podium ? `data-rank="${rank}"` : ''} style="padding:16px 20px; ${i !== data.length - 1 && !podium ? 'border-bottom:1px solid var(--navy-light);' : ''}">
       <div style="display:flex; align-items:center; gap:16px;">
-        <span style="font-family:var(--font-mono); color:var(--ash); width:28px;">#${from + i + 1}</span>
+        <span class="${podium ? 'lb-podium-rank' : ''}" style="font-family:var(--font-mono); color:var(--ash); width:28px;">${podium ? `<i data-lucide="${rank === 1 ? 'crown' : 'medal'}" class="icon-sm"></i>` : `#${rank}`}</span>
         ${avatarHtml(p, 36)}
         <div>
           <a href="/player/?u=${encodeURIComponent(p.username)}" style="margin:0; font-weight:700; color:var(--bone); text-decoration:none; display:block;">${escapeHtml(displayNameFor(p))} ${titleBadge(p)}</a>
@@ -139,7 +146,8 @@ async function loadLeaderboard(page) {
         <p class="muted" style="margin:0; font-size:0.78rem;">${p.xp} XP</p>
       </div>
     </div>
-  `).join('') + renderPager(count);
+  `;
+  }).join('') + renderPager(count);
   refreshIcons();
 }
 
@@ -170,10 +178,13 @@ async function loadCrewLeaderboard() {
       list.innerHTML = `<div class="empty-state">No crews yet — be the first to start one.</div>`;
       return;
     }
-    list.innerHTML = data.map((c, i) => `
-      <div class="flex-between" style="padding:16px 20px; ${i !== data.length - 1 ? 'border-bottom:1px solid var(--navy-light);' : ''}">
+    list.innerHTML = data.map((c, i) => {
+      const rank = i + 1;
+      const podium = rank <= 3;
+      return `
+      <div class="flex-between${podium ? ' lb-row-podium' : ''}" ${podium ? `data-rank="${rank}"` : ''} style="padding:16px 20px; ${i !== data.length - 1 && !podium ? 'border-bottom:1px solid var(--navy-light);' : ''}">
         <div style="display:flex; align-items:center; gap:16px;">
-          <span style="font-family:var(--font-mono); color:var(--ash); width:28px;">#${i + 1}</span>
+          <span class="${podium ? 'lb-podium-rank' : ''}" style="font-family:var(--font-mono); color:var(--ash); width:28px;">${podium ? `<i data-lucide="${rank === 1 ? 'crown' : 'medal'}" class="icon-sm"></i>` : `#${rank}`}</span>
           ${c.logo_url
             ? `<img src="${c.logo_url}" alt="" loading="lazy" style="width:36px; height:36px; border-radius:8px; object-fit:cover; flex-shrink:0;" onerror="this.style.visibility='hidden';">`
             : `<div style="width:36px; height:36px; border-radius:8px; background:var(--navy-light); display:flex; align-items:center; justify-content:center; font-size:0.85rem; flex-shrink:0; color:var(--ash);">${escapeHtml((c.name[0] || '?').toUpperCase())}</div>`}
@@ -186,7 +197,9 @@ async function loadCrewLeaderboard() {
           <p class="muted" style="margin:0; font-size:0.78rem;">${c.member_count} member${c.member_count == 1 ? '' : 's'}</p>
         </div>
       </div>
-    `).join('');
+    `;
+    }).join('');
+    refreshIcons();
     return;
   }
 
@@ -204,10 +217,13 @@ async function loadCrewLeaderboard() {
     return;
   }
 
-  list.innerHTML = data.map((c, i) => `
-    <div class="flex-between" style="padding:16px 20px; ${i !== data.length - 1 ? 'border-bottom:1px solid var(--navy-light);' : ''}">
+  list.innerHTML = data.map((c, i) => {
+    const rank = i + 1;
+    const podium = rank <= 3;
+    return `
+    <div class="flex-between${podium ? ' lb-row-podium' : ''}" ${podium ? `data-rank="${rank}"` : ''} style="padding:16px 20px; ${i !== data.length - 1 && !podium ? 'border-bottom:1px solid var(--navy-light);' : ''}">
       <div style="display:flex; align-items:center; gap:16px;">
-        <span style="font-family:var(--font-mono); color:var(--ash); width:28px;">#${i + 1}</span>
+        <span class="${podium ? 'lb-podium-rank' : ''}" style="font-family:var(--font-mono); color:var(--ash); width:28px;">${podium ? `<i data-lucide="${rank === 1 ? 'crown' : 'medal'}" class="icon-sm"></i>` : `#${rank}`}</span>
         ${c.logo_url
           ? `<img src="${c.logo_url}" alt="" loading="lazy" style="width:36px; height:36px; border-radius:8px; object-fit:cover; flex-shrink:0;" onerror="this.style.visibility='hidden';">`
           : `<div style="width:36px; height:36px; border-radius:8px; background:var(--navy-light); display:flex; align-items:center; justify-content:center; font-size:0.85rem; flex-shrink:0; color:var(--ash);">${escapeHtml((c.name[0] || '?').toUpperCase())}</div>`}
@@ -220,7 +236,9 @@ async function loadCrewLeaderboard() {
         <p class="muted" style="margin:0; font-size:0.78rem;">${c.member_count} member${c.member_count == 1 ? '' : 's'} · avg Lv. ${Math.round(c.avg_level)}</p>
       </div>
     </div>
-  `).join('');
+  `;
+  }).join('');
+  refreshIcons();
 }
 
 document.addEventListener('click', (e) => {
@@ -245,11 +263,14 @@ async function loadPvpLeaderboard() {
     return;
   }
 
-  list.innerHTML = data.map((p, i) => `
+  list.innerHTML = data.map((p, i) => {
+    const rank = i + 1;
+    const podium = rank <= 3;
+    return `
     <a href="/player/?u=${encodeURIComponent(p.username)}" style="text-decoration:none; color:inherit;">
-      <div class="flex-between" style="padding:16px 20px; ${i !== data.length - 1 ? 'border-bottom:1px solid var(--navy-light);' : ''}">
+      <div class="flex-between${podium ? ' lb-row-podium' : ''}" ${podium ? `data-rank="${rank}"` : ''} style="padding:16px 20px; ${i !== data.length - 1 && !podium ? 'border-bottom:1px solid var(--navy-light);' : ''}">
         <div style="display:flex; align-items:center; gap:16px;">
-          <span style="font-family:var(--font-mono); color:var(--ash); width:28px;">#${i + 1}</span>
+          <span class="${podium ? 'lb-podium-rank' : ''}" style="font-family:var(--font-mono); color:var(--ash); width:28px;">${podium ? `<i data-lucide="${rank === 1 ? 'crown' : 'medal'}" class="icon-sm"></i>` : `#${rank}`}</span>
           ${avatarHtml(p, 36)}
           <span style="color:var(--bone); font-weight:700;">${escapeHtml(displayNameFor(p))}</span>
         </div>
@@ -259,7 +280,9 @@ async function loadPvpLeaderboard() {
         </div>
       </div>
     </a>
-  `).join('');
+  `;
+  }).join('');
+  refreshIcons();
 }
 
 async function loadCrewWarLeaderboard() {
@@ -279,10 +302,13 @@ async function loadCrewWarLeaderboard() {
     return;
   }
 
-  list.innerHTML = data.map((c, i) => `
-    <div class="flex-between" style="padding:16px 20px; ${i !== data.length - 1 ? 'border-bottom:1px solid var(--navy-light);' : ''}">
+  list.innerHTML = data.map((c, i) => {
+    const rank = i + 1;
+    const podium = rank <= 3;
+    return `
+    <div class="flex-between${podium ? ' lb-row-podium' : ''}" ${podium ? `data-rank="${rank}"` : ''} style="padding:16px 20px; ${i !== data.length - 1 && !podium ? 'border-bottom:1px solid var(--navy-light);' : ''}">
       <div style="display:flex; align-items:center; gap:16px;">
-        <span style="font-family:var(--font-mono); color:var(--ash); width:28px;">#${i + 1}</span>
+        <span class="${podium ? 'lb-podium-rank' : ''}" style="font-family:var(--font-mono); color:var(--ash); width:28px;">${podium ? `<i data-lucide="${rank === 1 ? 'crown' : 'medal'}" class="icon-sm"></i>` : `#${rank}`}</span>
         ${c.logo_url
           ? `<img src="${c.logo_url}" alt="" loading="lazy" style="width:36px; height:36px; border-radius:8px; object-fit:cover; flex-shrink:0;" onerror="this.style.visibility='hidden';">`
           : `<div style="width:36px; height:36px; border-radius:8px; background:var(--navy-light); display:flex; align-items:center; justify-content:center; font-size:0.85rem; flex-shrink:0; color:var(--ash);">${escapeHtml((c.name[0] || '?').toUpperCase())}</div>`}
@@ -295,5 +321,7 @@ async function loadCrewWarLeaderboard() {
         <p class="muted" style="margin:0; font-size:0.78rem;">${c.total_wars} war${c.total_wars == 1 ? '' : 's'} fought</p>
       </div>
     </div>
-  `).join('');
+  `;
+  }).join('');
+  refreshIcons();
 }

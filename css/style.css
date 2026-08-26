@@ -2840,3 +2840,47 @@ html.compact-mode .grid { gap: 12px; }
   color: var(--ash);
   margin-top: 4px;
 }
+
+/* ------------------------------ Premium card treatment (Trading/Services/Crews) ------------------------------ */
+/* Shared "lift on hover" polish so these list cards feel consistent with the newer
+   profile/quest-card work, without needing a full bespoke redesign per page. */
+.hover-lift-card {
+  transition: transform 0.22s cubic-bezier(.2,.9,.2,1), box-shadow 0.22s ease, border-color 0.22s ease;
+}
+.hover-lift-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 16px 34px rgb(var(--shadow-rgb) / 0.5);
+}
+
+/* .panel::before already draws a thin top accent gradient using the site's theme accent
+   (--brass) — these override just its color per page, rather than adding a second
+   pseudo-element (an element can only have one ::before). */
+.trade-card::before { background: linear-gradient(90deg, var(--sea), var(--gold-bright)); opacity: 1; }
+.services-card::before { background: linear-gradient(90deg, rgb(var(--sc-rgb, var(--brass-rgb))), rgb(var(--sc-rgb, var(--brass-rgb)) / 0.4)); opacity: 1; }
+.services-card[data-category="raid"] { --sc-rgb: var(--purple-rgb); }
+.services-card[data-category="trial"] { --sc-rgb: 249 115 22; }
+.services-card[data-category="dungeon"] { --sc-rgb: 52 211 153; }
+
+.crew-card::before { background: linear-gradient(90deg, var(--purple), rgb(var(--purple-rgb) / 0.4)); opacity: 1; }
+
+/* ------------------------------ Leaderboard podium (top 3) ------------------------------ */
+.lb-row-podium {
+  position: relative;
+  border-radius: var(--radius-sm);
+  margin: 0 8px 8px;
+  border-bottom: none !important;
+}
+.lb-row-podium[data-rank="1"] { background: linear-gradient(90deg, rgb(var(--gold-rgb) / 0.16), transparent 70%); box-shadow: inset 3px 0 0 var(--gold-bright); }
+.lb-row-podium[data-rank="2"] { background: linear-gradient(90deg, rgba(200,200,210,0.14), transparent 70%); box-shadow: inset 3px 0 0 #c0c0c0; }
+.lb-row-podium[data-rank="3"] { background: linear-gradient(90deg, rgba(205,127,50,0.14), transparent 70%); box-shadow: inset 3px 0 0 #cd7f32; }
+.lb-podium-rank {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  font-weight: 700;
+  font-family: var(--font-stamp);
+}
+.lb-row-podium[data-rank="1"] .lb-podium-rank { color: var(--gold-bright); }
+.lb-row-podium[data-rank="2"] .lb-podium-rank { color: #c0c0c0; }
+.lb-row-podium[data-rank="3"] .lb-podium-rank { color: #cd7f32; }

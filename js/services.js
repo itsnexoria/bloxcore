@@ -332,7 +332,7 @@ function renderListing(s, participants) {
   const discord = profile.discord_username || null;
 
   return `
-    <div class="panel" data-listing-id="${s.id}">
+    <div class="panel services-card hover-lift-card" data-listing-id="${s.id}" data-category="${s.category}">
       <div class="flex-between">
         <div style="display:flex; align-items:center; gap:10px;">
           ${avatarHtml(profile, 30)}
@@ -389,7 +389,7 @@ function renderDungeonListing(s, profile, isOwner, participants) {
     : `<button class="btn btn-primary btn-sm" data-join-dungeon="${s.id}">Join</button>`;
 
   return `
-    <div class="panel" data-listing-id="${s.id}">
+    <div class="panel services-card hover-lift-card" data-listing-id="${s.id}" data-category="dungeon">
       <div class="flex-between">
         <div style="display:flex; align-items:center; gap:10px;">
           ${avatarHtml(profile, 30)}
