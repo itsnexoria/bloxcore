@@ -465,6 +465,8 @@ section.section h2.center::after { margin-left: auto; margin-right: auto; }
   transition: transform 0.5s ease;
 }
 .btn:hover::before { transform: translateX(120%); }
+.btn:active { transform: scale(0.96); }
+.reduce-motion .btn:active { transform: none; }
 
 .btn:focus-visible {
   outline: 2px solid var(--brass-bright);
@@ -486,6 +488,7 @@ section.section h2.center::after { margin-left: auto; margin-right: auto; }
   backdrop-filter: blur(8px);
 }
 .btn-ghost:hover { border-color: var(--brass); color: var(--brass-bright); transform: translateY(-2px); background: rgb(var(--brass-rgb) / 0.08); box-shadow: 0 8px 20px rgb(var(--shadow-rgb) / 0.35), 0 0 16px rgb(var(--brass-rgb) / 0.15); }
+.btn-primary:active, .btn-ghost:active { transform: scale(0.96); }
 
 .btn-danger {
   background: transparent;
@@ -2965,6 +2968,14 @@ html.compact-mode .grid { gap: 12px; }
 .icon-badge[data-tone="purple"] { --badge-rgb: var(--purple-rgb); }
 .icon-badge[data-tone="blue"] { --badge-rgb: var(--blue-rgb); }
 .icon-badge[data-tone="sea"] { --badge-rgb: 52 211 153; }
+
+/* Backdrop fade-in for the site's dialog-style modals (create crew, submit proof,
+   call a war, edit crew) — CSS animations replay automatically each time an element
+   goes from display:none to visible, so this needs no JS changes to the existing
+   open/close toggles. */
+.modal-overlay { animation: modalOverlayFade 0.18s ease both; }
+@keyframes modalOverlayFade { from { opacity: 0; } to { opacity: 1; } }
+.reduce-motion .modal-overlay { animation: none; }
 
 .trust-strip {
   display: flex;

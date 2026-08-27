@@ -72,6 +72,12 @@ function updateReportBulkBar() {
   const count = selectedReportIds.size;
   document.getElementById('report-select-count').textContent = count ? `${count} selected` : 'Select reports below';
   document.getElementById('report-bulk-dismiss-btn').disabled = count === 0;
+  // Load More appends fresh, unchecked rows — without this, checking "select all" then
+  // loading more would leave the select-all box looking checked even though the new
+  // rows aren't actually selected.
+  const selectAll = document.getElementById('report-select-all');
+  const rowCount = document.querySelectorAll('[data-report-select]').length;
+  selectAll.checked = count > 0 && rowCount > 0 && document.querySelectorAll('[data-report-select]:checked').length === rowCount;
 }
 
 async function bulkDismissReports() {

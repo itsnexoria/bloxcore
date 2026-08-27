@@ -178,13 +178,14 @@ async function loadCombos() {
 }
 
 async function loadMoreCombos() {
-  if (!combosHasMore) return;
+  if (!combosHasMore) return true;
   const rows = await fetchCombosPage(combosOffset, COMBOS_PAGE_SIZE);
-  if (rows === null) return;
+  if (rows === null) return false;
   allCombos = allCombos.concat(rows);
   combosOffset += rows.length;
   combosHasMore = rows.length === COMBOS_PAGE_SIZE;
   renderCombos();
+  return true;
 }
 
 async function handleComboVote(comboId, dir) {
@@ -320,9 +321,18 @@ function renderCombos() {
       </div>
     `);
     document.getElementById('combos-load-more-btn').addEventListener('click', async (e) => {
-      e.target.disabled = true;
-      e.target.textContent = 'Loading…';
-      await loadMoreCombos();
+      const btn = e.target;
+      btn.disabled = true;
+      btn.textContent = 'Loading…';
+      const ok = await loadMoreCombos();
+      if (!ok) {
+        // renderCombos() (which recreates this button in its normal state) only runs on
+        // success — on failure the button would otherwise sit disabled/"Loading…" forever
+        // with no feedback, so reset it by hand and let the user retry.
+        btn.disabled = false;
+        btn.textContent = 'Load more';
+        showToast("Couldn't load more combos — try again.", true);
+      }
     });
   }
 }
