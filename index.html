@@ -102,8 +102,23 @@
   </div>
 </nav>
 
-<header class="section">
-  <div class="container hero-grid">
+<header class="section" style="position:relative; overflow:hidden;">
+  <div class="hero-atlas" aria-hidden="true"></div>
+  <svg class="compass-mark" aria-hidden="true" style="top:-60px; right:2%;" viewBox="0 0 100 100" data-parallax="0.03">
+    <circle cx="50" cy="50" r="46" fill="none" stroke="currentColor" stroke-width="0.6"/>
+    <circle cx="50" cy="50" r="34" fill="none" stroke="currentColor" stroke-width="0.4"/>
+    <g stroke="currentColor" stroke-width="0.6">
+      <line x1="50" y1="4" x2="50" y2="96"/><line x1="4" y1="50" x2="96" y2="50"/>
+      <line x1="15" y1="15" x2="85" y2="85"/><line x1="85" y1="15" x2="15" y2="85"/>
+    </g>
+    <path d="M50 12 L57 50 L50 88 L43 50 Z" fill="currentColor" opacity="0.85"/>
+    <path d="M12 50 L50 43 L88 50 L50 57 Z" fill="currentColor" opacity="0.4"/>
+    <text x="50" y="10" text-anchor="middle" font-size="7" fill="currentColor" font-family="monospace">N</text>
+  </svg>
+  <img src="/assets/game/Fruits/Flame_Fruit.png" alt="" aria-hidden="true" class="hero-fruit" style="top:14%; left:5%; animation-delay:0s;">
+  <img src="/assets/game/Fruits/Ice_Fruit.png" alt="" aria-hidden="true" class="hero-fruit" style="top:62%; left:10%; animation-delay:1.3s; width:38px; height:38px;">
+  <img src="/assets/game/Fruits/Dragon_Fruit.png" alt="" aria-hidden="true" class="hero-fruit" style="top:8%; right:6%; animation-delay:2.1s;">
+  <div class="container hero-grid" style="position:relative; z-index:1;">
     <div>
       <p class="muted" style="font-family: var(--font-mono); text-transform:uppercase; letter-spacing:0.08em; font-size:0.85rem;">A Blox Fruits community board</p>
       <h1 style="font-size: clamp(2.1rem, 4.5vw + 1rem, 3.2rem); line-height:1.1;">Every <span class="text-gradient-anim">bounty</span> starts with one job done.</h1>
@@ -114,6 +129,11 @@
       <div style="display:flex; gap:14px; margin-top:24px; flex-wrap:wrap;">
         <a href="/auth/" class="btn btn-primary glow-pulse">Start Your Bounty</a>
         <a href="/challenges/" class="btn btn-ghost">Browse Quests</a>
+      </div>
+      <div class="trust-strip">
+        <span><i data-lucide="check-circle-2"></i>Free to join</span>
+        <span><i data-lucide="shield-check"></i>Screenshot-verified</span>
+        <span><i data-lucide="users"></i>Active crews daily</span>
       </div>
     </div>
     <div style="position:relative; justify-self:center;">
@@ -127,6 +147,9 @@
       </div>
     </div>
   </div>
+  <svg class="wave-divider" viewBox="0 0 1440 60" preserveAspectRatio="none" aria-hidden="true">
+    <path d="M0,32 C240,60 480,4 720,24 C960,44 1200,58 1440,20 L1440,60 L0,60 Z"/>
+  </svg>
 </header>
 
 <main>
@@ -218,43 +241,53 @@
     <p class="muted center" style="max-width:640px; margin:10px auto 0;">BloxCore brings the whole Blox Fruits grind into one place — trading, bounty hunting, crews, and more, all built around one honest ranking system.</p>
     <div class="grid" style="margin-top:32px; grid-template-columns:repeat(auto-fit, minmax(260px, 1fr));">
       <article class="panel">
-        <h3 style="font-size:1.05rem; color:var(--brass-bright);"><i data-lucide="repeat" class="icon-sm icon-inline"></i>Blox Fruits Trading</h3>
+        <div class="icon-badge" data-tone="gold"><i data-lucide="repeat" class="icon-md"></i></div>
+        <h3 style="font-size:1.05rem;">Blox Fruits Trading</h3>
         <p class="muted">Post what you're offering, browse item-for-item trades from the community, and close deals safely with a report system watching your back. <a href="/blox-fruits-trading">See how BloxCore trading works</a> or check <a href="/blox-fruits-values">current Blox Fruits values</a>.</p>
       </article>
       <article class="panel">
-        <h3 style="font-size:1.05rem; color:var(--brass-bright);"><i data-lucide="scroll" class="icon-sm icon-inline"></i>Bounty Quests</h3>
+        <div class="icon-badge"><i data-lucide="scroll" class="icon-md"></i></div>
+        <h3 style="font-size:1.05rem;">Bounty Quests</h3>
         <p class="muted">Complete real in-game objectives — boss kills, awakenings, style mastery — submit proof, and earn XP that climbs you from Rookie to Pirate King. <a href="/blox-fruits-bounties">Learn about BloxCore bounties</a>.</p>
       </article>
       <article class="panel">
-        <h3 style="font-size:1.05rem; color:var(--brass-bright);"><i data-lucide="users" class="icon-sm icon-inline"></i>Crews</h3>
+        <div class="icon-badge" data-tone="purple"><i data-lucide="users" class="icon-md"></i></div>
+        <h3 style="font-size:1.05rem;">Crews</h3>
         <p class="muted">Found or join a crew, recruit members through your Roblox username or Discord invite, and climb the crew leaderboard together. <a href="/blox-fruits-crews">Explore Blox Fruits crews</a>.</p>
       </article>
       <article class="panel">
-        <h3 style="font-size:1.05rem; color:var(--brass-bright);"><i data-lucide="swords" class="icon-sm icon-inline"></i>Daily &amp; Weekly Quests</h3>
+        <div class="icon-badge"><i data-lucide="swords" class="icon-md"></i></div>
+        <h3 style="font-size:1.05rem;">Daily &amp; Weekly Quests</h3>
         <p class="muted">A rotating pool of daily, weekly, and monthly quests keeps the bounty board fresh, with streak tracking that rewards showing up. <a href="/blox-fruits-challenges">Browse quest types</a>.</p>
       </article>
       <article class="panel">
-        <h3 style="font-size:1.05rem; color:var(--brass-bright);"><i data-lucide="flame" class="icon-sm icon-inline"></i>Combos</h3>
+        <div class="icon-badge" data-tone="gold"><i data-lucide="flame" class="icon-md"></i></div>
+        <h3 style="font-size:1.05rem;">Combos</h3>
         <p class="muted">Share and discover fruit, sword, and gun combos from the community, with an upvote system that surfaces the best ones. <a href="/blox-fruits-combos">Browse Blox Fruits combos</a>.</p>
       </article>
       <article class="panel">
-        <h3 style="font-size:1.05rem; color:var(--brass-bright);"><i data-lucide="waves" class="icon-sm icon-inline"></i>Sea Events</h3>
+        <div class="icon-badge" data-tone="blue"><i data-lucide="waves" class="icon-md"></i></div>
+        <h3 style="font-size:1.05rem;">Sea Events</h3>
         <p class="muted">Post or find a live server for Sea Beasts, Terror Sharks, Leviathan, Prehistoric Island, and Mirage — squad up in seconds. <a href="/blox-fruits-sea-events">See Sea Events on BloxCore</a>.</p>
       </article>
       <article class="panel">
-        <h3 style="font-size:1.05rem; color:var(--brass-bright);"><i data-lucide="gift" class="icon-sm icon-inline"></i>Giveaways</h3>
+        <div class="icon-badge" data-tone="purple"><i data-lucide="gift" class="icon-md"></i></div>
+        <h3 style="font-size:1.05rem;">Giveaways</h3>
         <p class="muted">Enter community giveaways for fruits and limiteds, or host your own — every submission goes through staff review to keep things honest. <a href="/blox-fruits-giveaways">View active giveaways</a>.</p>
       </article>
       <article class="panel">
-        <h3 style="font-size:1.05rem; color:var(--brass-bright);"><i data-lucide="message-circle" class="icon-sm icon-inline"></i>Live Chat</h3>
+        <div class="icon-badge" data-tone="blue"><i data-lucide="message-circle" class="icon-md"></i></div>
+        <h3 style="font-size:1.05rem;">Live Chat</h3>
         <p class="muted">A real-time community chat with reactions, replies, and mentions — talk trades, combos, and raids with other players as they happen.</p>
       </article>
       <article class="panel">
-        <h3 style="font-size:1.05rem; color:var(--brass-bright);"><i data-lucide="trophy" class="icon-sm icon-inline"></i>Leaderboards</h3>
+        <div class="icon-badge" data-tone="gold"><i data-lucide="trophy" class="icon-md"></i></div>
+        <h3 style="font-size:1.05rem;">Leaderboards</h3>
         <p class="muted">Track the top pirates and top crews by XP, and a separate crew wars leaderboard ranked by win/loss record. <a href="/blox-fruits-leaderboards">Check the leaderboards</a>.</p>
       </article>
       <article class="panel">
-        <h3 style="font-size:1.05rem; color:var(--brass-bright);"><i data-lucide="user" class="icon-sm icon-inline"></i>Player Profiles</h3>
+        <div class="icon-badge" data-tone="sea"><i data-lucide="user" class="icon-md"></i></div>
+        <h3 style="font-size:1.05rem;">Player Profiles</h3>
         <p class="muted">A public profile for your build, bounty, titles, and history — follow other pirates, add friends, and message the ones you trust.</p>
       </article>
     </div>
@@ -262,12 +295,12 @@
 </section>
 
 <section class="section" style="padding-top:0;">
-  <div class="container panel" style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:20px;">
+  <div class="container panel bg-gradient-anim" style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:20px; overflow:hidden;">
     <div>
       <h2 style="font-size:1.4rem; margin-bottom:6px;">Ready to make a name for yourself?</h2>
       <p class="muted" style="margin:0;">Sign up with email or Discord — it takes a minute.</p>
     </div>
-    <a href="/auth/" class="btn btn-primary">Join BloxCore</a>
+    <a href="/auth/" class="btn btn-primary glow-pulse">Join BloxCore</a>
   </div>
 </section>
 
