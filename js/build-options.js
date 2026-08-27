@@ -207,3 +207,10 @@ const BUILD_OPTIONS = {
     { value: "Sanguine Cloak", icon: "/assets/game/Accessory/Sanguine_Cloak.png", rarity: "mythical" }
   ],
 };
+
+// Shared by player.js and profile-edit.js (both already load this file for BUILD_OPTIONS
+// itself) to look up an option's icon path from its stored value.
+function findBuildIcon(key, value) {
+  const match = (BUILD_OPTIONS[key] || []).find(opt => opt.value === value);
+  return match ? match.icon : null;
+}

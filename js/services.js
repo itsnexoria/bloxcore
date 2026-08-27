@@ -8,17 +8,7 @@ let maxActiveServices = 5;
 let allServiceItems = [];
 let priceEntries = []; // [{ id, valueType: 'physical' | 'permanent' }]
 
-const RARITY_ORDER = { common: 0, uncommon: 1, rare: 2, legendary: 3, mythical: 4, limited: 5 };
-const FRUIT_ORDER_MAP = new Map(BUILD_OPTIONS.fruit.map((f, i) => [f.value.toLowerCase(), i]));
 const TAB_LABELS = { raid: 'Raids', trial: 'Trials', dungeon: 'Dungeons' };
-
-function hoursLeft(expiresAt) {
-  const ms = new Date(expiresAt).getTime() - Date.now();
-  if (ms <= 0) return 'soon';
-  const hrs = Math.floor(ms / 3600000);
-  if (hrs < 1) return `${Math.max(1, Math.floor(ms / 60000))}m`;
-  return `${hrs}h`;
-}
 
 onReady(async () => {
   const { user, profile } = await getCurrentProfile();
@@ -28,18 +18,7 @@ onReady(async () => {
   const settings = await getSiteSettings();
   maxActiveServices = settings.maxActiveServices;
 
-  const { data } = await sb.from('bf_items').select('*').in('category', ['fruit', 'limited', 'gamepass']);
-  allServiceItems = (data || []).slice().sort((a, b) => {
-    if (a.category === 'fruit' && b.category === 'fruit') {
-      const ai = FRUIT_ORDER_MAP.get(a.name.toLowerCase());
-      const bi = FRUIT_ORDER_MAP.get(b.name.toLowerCase());
-      if (ai !== undefined && bi !== undefined) return ai - bi;
-      if (ai !== undefined) return -1;
-      if (bi !== undefined) return 1;
-    }
-    const rarityDiff = (RARITY_ORDER[(a.rarity || '').toLowerCase()] ?? 9) - (RARITY_ORDER[(b.rarity || '').toLowerCase()] ?? 9);
-    return rarityDiff !== 0 ? rarityDiff : a.name.localeCompare(b.name);
-  });
+  allServiceItems = await fetchBfItemCatalog();
 
   if (currentUser) {
     document.getElementById('new-listing-btn').style.display = 'inline-flex';
@@ -80,45 +59,6 @@ onReady(async () => {
 
 function itemById(id) {
   return allServiceItems.find(i => i.id === id);
-}
-
-function valueFor(item, valueType) {
-  return valueType === 'permanent' ? (item.permanent_value ?? item.regular_value) : item.regular_value;
-}
-
-function formatValue(n) {
-  if (!n) return '—';
-  if (n >= 1e9) return `${(n / 1e9).toFixed(n % 1e9 === 0 ? 0 : 1)}B`;
-  if (n >= 1e6) return `${(n / 1e6).toFixed(n % 1e6 === 0 ? 0 : 1)}M`;
-  if (n >= 1e3) return `${(n / 1e3).toFixed(n % 1e3 === 0 ? 0 : 1)}K`;
-  return String(n);
-}
-
-function pickerTileHtml(item) {
-  const rarity = (item.rarity || '').toLowerCase();
-  return `
-    <div class="build-modal-tile" data-rarity="${rarity}" data-pick-item="${item.id}" style="padding:8px;">
-      ${item.icon_url ? `<img src="${item.icon_url}" alt="" loading="lazy" onerror="this.style.display='none';">` : `<i data-lucide="sparkles" class="icon-lg"></i>`}
-      <span style="font-size:0.72rem;">${escapeHtml(item.name)}</span>
-    </div>
-  `;
-}
-
-function valueTileHtml(item, valueType, { editable = false } = {}) {
-  const rarity = (item.rarity || '').toLowerCase();
-  const value = valueFor(item, valueType);
-  const canToggle = editable && item.category === 'fruit';
-  return `
-    <div style="display:flex; flex-direction:column; align-items:center; gap:4px;">
-      <div class="build-modal-tile" data-rarity="${rarity}" style="width:56px; height:56px; padding:4px; cursor:default;" title="${escapeHtml(item.name)}">
-        ${item.icon_url ? `<img src="${item.icon_url}" alt="" loading="lazy" onerror="this.style.display='none';">` : `<i data-lucide="sparkles" class="icon-md"></i>`}
-      </div>
-      <span style="font-size:0.66rem; font-family:var(--font-mono); color:var(--gold-bright);">${formatValue(value)}</span>
-      ${canToggle
-        ? `<button type="button" class="tag tag-${valueType === 'permanent' ? 'legendary' : 'medium'}" data-toggle-value-type style="border:none; cursor:pointer;">${valueType === 'permanent' ? 'Permanent' : 'Physical'}</button>`
-        : `<span class="tag tag-legendary">Permanent</span>`}
-    </div>
-  `;
 }
 
 function renderPriceSlotList() {
@@ -295,17 +235,6 @@ async function fetchDungeonParticipants(listings) {
     (participantsByListing[p.listing_id] ||= []).push(p);
   });
   return participantsByListing;
-}
-
-function scrollToHashTarget(attr) {
-  const id = location.hash.slice(1);
-  if (!id) return;
-  const el = document.querySelector(`[${attr}="${id}"]`);
-  if (!el) return;
-  setTimeout(() => {
-    el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    el.classList.add('deep-link-highlight');
-  }, 150);
 }
 
 function priceSummary(entries) {

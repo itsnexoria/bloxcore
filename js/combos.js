@@ -207,17 +207,6 @@ async function handleComboVote(comboId, dir) {
   renderCombos();
 }
 
-function scrollToHashTarget(attr) {
-  const id = location.hash.slice(1);
-  if (!id) return;
-  const el = document.querySelector(`[${attr}="${id}"]`);
-  if (!el) return;
-  setTimeout(() => {
-    el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    el.classList.add('deep-link-highlight');
-  }, 150);
-}
-
 function renderCombos() {
   const list = document.getElementById('combo-list');
   const items = activeFilter === 'all' ? allCombos : allCombos.filter(c => c.difficulty === activeFilter);

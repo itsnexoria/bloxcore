@@ -138,7 +138,7 @@ function renderEventCard(ev) {
 
         <div class="flex-between" style="font-size:0.78rem; margin-bottom:6px;">
           <span class="muted">${ev.participants.length}/${ev.max_players} joined</span>
-          <span style="color:${urgent ? 'var(--blood-dim)' : 'var(--ash)'};">${timeRemaining(ev.expires_at)}</span>
+          <span style="color:${urgent ? 'var(--blood-dim)' : 'var(--ash)'};">${timeRemainingCompact(ev.expires_at)}</span>
         </div>
         <div style="height:4px; border-radius:2px; background:rgba(255,255,255,0.06); overflow:hidden; margin-bottom:14px;">
           <div style="height:100%; width:${pctLeft}%; background:${urgent ? 'var(--blood-dim)' : 'var(--brass)'}; transition:width 1s linear;"></div>
@@ -152,24 +152,6 @@ function renderEventCard(ev) {
       </div>
     </div>
   `;
-}
-
-function isRobloxLink(url) {
-  try {
-    const host = new URL(url).hostname.toLowerCase();
-    return host === 'roblox.com' || host.endsWith('.roblox.com');
-  } catch {
-    return false;
-  }
-}
-
-function timeRemaining(iso) {
-  const ms = new Date(iso).getTime() - Date.now();
-  if (ms <= 0) return 'Expired';
-  const minutes = Math.floor(ms / 60000);
-  if (minutes < 1) return 'Expires in <1m';
-  if (minutes < 60) return `Expires in ${minutes}m`;
-  return `Expires in ${Math.floor(minutes / 60)}h ${minutes % 60}m`;
 }
 
 async function handlePostEvent(e) {

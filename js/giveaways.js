@@ -159,15 +159,11 @@ async function handleSubmitProof(e) {
   submitBtn.textContent = 'Uploading…';
 
   try {
-    const ext = file.name.split('.').pop();
-    const path = `${currentUser.id}/giveaway-${giveawayId}-${Date.now()}.${ext}`;
-    const { error: uploadError } = await sb.storage.from('screenshots').upload(path, file);
-    if (uploadError) throw uploadError;
-    const { data: urlData } = sb.storage.from('screenshots').getPublicUrl(path);
+    const proofUrl = await uploadScreenshot(currentUser.id, file, `giveaway-${giveawayId}-${Date.now()}`);
 
     const { error: rpcError } = await sb.rpc('submit_giveaway_proof', {
       p_giveaway_id: giveawayId,
-      p_proof_url: urlData.publicUrl,
+      p_proof_url: proofUrl,
     });
     if (rpcError) throw rpcError;
 
@@ -303,17 +299,6 @@ function renderEndedRow(g) {
       </p>
     </div>
   `;
-}
-
-function timeRemaining(iso) {
-  const ms = new Date(iso).getTime() - Date.now();
-  if (ms <= 0) return 'Ending soon';
-  const days = Math.floor(ms / 86400000);
-  const hours = Math.floor((ms % 86400000) / 3600000);
-  if (days > 0) return `Ends in ${days}d ${hours}h`;
-  const minutes = Math.floor((ms % 3600000) / 60000);
-  if (hours > 0) return `Ends in ${hours}h ${minutes}m`;
-  return `Ends in ${minutes}m`;
 }
 
 async function enterGiveaway(giveawayId, btn) {

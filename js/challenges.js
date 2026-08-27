@@ -237,7 +237,7 @@ function openModal(challengeId, title) {
 }
 
 function closeModal() {
-  document.getElementById('submit-modal').style.display = 'none';
+  hideModalById('submit-modal');
   activeChallengeId = null;
 }
 
@@ -340,12 +340,8 @@ async function handleSubmit(e) {
   try {
     const screenshotUrls = [];
     for (const file of files) {
-      const ext = file.name.split('.').pop();
-      const path = `${currentUser.id}/${activeChallengeId}-${Date.now()}-${screenshotUrls.length}.${ext}`;
-      const { error: uploadError } = await sb.storage.from('screenshots').upload(path, file);
-      if (uploadError) throw uploadError;
-      const { data: urlData } = sb.storage.from('screenshots').getPublicUrl(path);
-      screenshotUrls.push(urlData.publicUrl);
+      const url = await uploadScreenshot(currentUser.id, file, `${activeChallengeId}-${Date.now()}-${screenshotUrls.length}`);
+      screenshotUrls.push(url);
     }
 
     const { error: insertError } = await sb.from('submissions').insert({

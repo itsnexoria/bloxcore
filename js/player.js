@@ -475,11 +475,6 @@ function renderBuildItem(field) {
   `;
 }
 
-function findBuildIcon(key, value) {
-  const match = (BUILD_OPTIONS[key] || []).find(opt => opt.value === value);
-  return match ? match.icon : null;
-}
-
 const ACHIEVEMENT_TIER_COLORS = {
   // hex + matching r,g,b triple — this site avoids CSS relative-color syntax (rgb(from ...))
   // for browser-support reasons, using the same "var(--x-rgb) / alpha" pattern everywhere else.

@@ -122,7 +122,7 @@ function openModal() {
 }
 
 function closeModal() {
-  document.getElementById('crew-modal').style.display = 'none';
+  hideModalById('crew-modal');
 }
 
 async function handleCreate(e) {

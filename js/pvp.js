@@ -164,26 +164,6 @@ function renderMatchCard(m) {
   `;
 }
 
-function isRobloxLink(url) {
-  try {
-    const host = new URL(url).hostname.toLowerCase();
-    return host === 'roblox.com' || host.endsWith('.roblox.com');
-  } catch {
-    return false;
-  }
-}
-
-function timeRemaining(iso) {
-  const ms = new Date(iso).getTime() - Date.now();
-  if (ms <= 0) return 'Ending soon';
-  const days = Math.floor(ms / 86400000);
-  const hours = Math.floor((ms % 86400000) / 3600000);
-  if (days > 0) return `Ends in ${days}d ${hours}h`;
-  const minutes = Math.floor((ms % 3600000) / 60000);
-  if (hours > 0) return `Ends in ${hours}h ${minutes}m`;
-  return `Ends in ${minutes}m`;
-}
-
 async function handlePostMatch(e) {
   e.preventDefault();
   const errorEl = document.getElementById('post-match-error');
@@ -342,11 +322,7 @@ async function handleReportResult(e) {
 
     let proofUrl = null;
     if (file) {
-      const ext = file.name.split('.').pop();
-      const path = `${currentUser.id}/pvp-${result.id}-${Date.now()}.${ext}`;
-      const { error: uploadError } = await sb.storage.from('screenshots').upload(path, file);
-      if (uploadError) throw uploadError;
-      proofUrl = sb.storage.from('screenshots').getPublicUrl(path).data.publicUrl;
+      proofUrl = await uploadScreenshot(currentUser.id, file, `pvp-${result.id}-${Date.now()}`);
     }
 
     const { error: proofError } = await sb.from('pvp_result_proofs').insert({
@@ -402,11 +378,7 @@ async function handleSubmitProof(e) {
   try {
     let proofUrl = null;
     if (file) {
-      const ext = file.name.split('.').pop();
-      const path = `${currentUser.id}/pvp-${proofTargetResultId}-${Date.now()}.${ext}`;
-      const { error: uploadError } = await sb.storage.from('screenshots').upload(path, file);
-      if (uploadError) throw uploadError;
-      proofUrl = sb.storage.from('screenshots').getPublicUrl(path).data.publicUrl;
+      proofUrl = await uploadScreenshot(currentUser.id, file, `pvp-${proofTargetResultId}-${Date.now()}`);
     }
 
     const { error } = await sb.from('pvp_result_proofs').insert({

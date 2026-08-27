@@ -505,11 +505,6 @@ function setBuildValue(key, value, animate) {
   }
 }
 
-function findBuildIcon(key, value) {
-  const match = (BUILD_OPTIONS[key] || []).find(opt => opt.value === value);
-  return match ? match.icon : null;
-}
-
 // ---- Save ----
 
 async function handleSave(e) {
