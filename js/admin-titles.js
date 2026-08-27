@@ -34,7 +34,7 @@ async function initTitlesTab() {
     document.getElementById('grant-apply-btn').addEventListener('click', () => applyBulk('grant'));
     document.getElementById('revoke-apply-btn').addEventListener('click', () => applyBulk('revoke'));
   } catch (e) {
-    console.error('Failed to init Titles tab:', e);
+    logError('Failed to init Titles tab:', e);
     _titlesTabInit = false;
     showToast('Something went wrong loading titles. Try again.', true);
   }
@@ -46,7 +46,7 @@ async function loadTitles() {
 
   if (error) {
     list.innerHTML = `<p class="muted">Couldn't load titles right now.</p>`;
-    console.error(error);
+    logError(error);
     return;
   }
 
@@ -146,7 +146,7 @@ function resetTitleForm() {
 async function loadSeasonalConfig() {
   const { data, error } = await sb.from('seasonal_titles').select('*');
   if (error) {
-    console.error(error);
+    logError(error);
     return;
   }
 
@@ -181,7 +181,7 @@ async function saveSeasonalConfig() {
 
 async function loadRivalTitleConfig() {
   const { data, error } = await sb.from('site_settings').select('value').eq('key', 'pvp_rival_title_id').maybeSingle();
-  if (error) { console.error(error); return; }
+  if (error) { logError(error); return; }
   const titleId = data?.value;
   if (titleId && titleId !== 'null') document.getElementById('rival-title-select').value = titleId;
 }
@@ -195,7 +195,7 @@ async function saveRivalTitleConfig() {
 
 async function loadChampionTitleConfig() {
   const { data, error } = await sb.from('site_settings').select('value').eq('key', 'tournament_champion_title_id').maybeSingle();
-  if (error) { console.error(error); return; }
+  if (error) { logError(error); return; }
   const titleId = data?.value;
   if (titleId && titleId !== 'null') document.getElementById('champion-title-select').value = titleId;
 }
@@ -288,7 +288,7 @@ async function searchUsers(query) {
 
   if (error) {
     results.innerHTML = `<p class="muted">Couldn't search users right now.</p>`;
-    console.error(error);
+    logError(error);
     return;
   }
 

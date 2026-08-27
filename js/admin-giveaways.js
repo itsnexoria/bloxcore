@@ -23,7 +23,7 @@ async function initGiveawaysManageTab() {
       if (e.target.id === 'gv-next') loadGiveaways(giveawaysPage + 1);
     });
   } catch (e) {
-    console.error('Failed to init Giveaways tab:', e);
+    logError('Failed to init Giveaways tab:', e);
     _giveawaysManageTabInit = false;
     showToast('Something went wrong loading giveaways. Try again.', true);
   }
@@ -73,7 +73,7 @@ async function loadGiveaways(page) {
   if (error) {
     table.innerHTML = `<p class="muted">Couldn't load giveaways right now.</p>`;
     document.getElementById('giveaway-bulk-bar').style.display = 'none';
-    console.error(error);
+    logError(error);
     return;
   }
 

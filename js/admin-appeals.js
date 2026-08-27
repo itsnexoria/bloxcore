@@ -20,7 +20,7 @@ async function initAppealsTab() {
 
     await loadAppeals();
   } catch (e) {
-    console.error('Failed to init Appeals tab:', e);
+    logError('Failed to init Appeals tab:', e);
     _appealsTabInit = false;
     showToast('Something went wrong loading appeals. Try again.', true);
   }
@@ -36,7 +36,7 @@ async function fetchAppealsPage(offset, pageSize) {
     .eq('status', currentAppealStatus)
     .order('created_at', { ascending: false })
     .range(offset, offset + pageSize - 1);
-  if (error) { console.error(error); return null; }
+  if (error) { logError(error); return null; }
   return data;
 }
 

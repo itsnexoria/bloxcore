@@ -341,7 +341,7 @@ async function handleBannerUpload(e) {
     renderBanner(urlData.publicUrl);
     showToast('Banner updated.');
   } catch (err) {
-    console.error(err);
+    logError(err);
     showToast(err.message || 'Could not upload banner.', true);
   }
 }
@@ -387,7 +387,7 @@ async function handleAvatarUpload(e) {
     renderAvatarFrameSwatches();
     showToast('Avatar updated.');
   } catch (err) {
-    console.error(err);
+    logError(err);
     showToast(err.message || 'Could not upload avatar.', true);
   }
 }

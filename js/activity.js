@@ -56,7 +56,7 @@ async function loadActivity() {
 
   if (error) {
     feed.innerHTML = `<p class="muted" style="padding:20px;">Couldn't load recent activity right now.</p>`;
-    console.error(error);
+    logError(error);
     return;
   }
 

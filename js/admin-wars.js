@@ -8,7 +8,7 @@ async function initWarsTab() {
   try {
     await loadDisputedWars();
   } catch (e) {
-    console.error('Failed to init Wars tab:', e);
+    logError('Failed to init Wars tab:', e);
     _warsTabInit = false;
     showToast('Something went wrong loading wars. Try again.', true);
   }
@@ -25,7 +25,7 @@ async function loadDisputedWars() {
 
   if (error) {
     list.innerHTML = `<p class="muted">Couldn't load wars right now.</p>`;
-    console.error(error);
+    logError(error);
     return;
   }
 

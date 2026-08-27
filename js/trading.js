@@ -168,7 +168,7 @@ async function fetchTradeListingsPage(offset, pageSize) {
     .gt('created_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString())
     .order('created_at', { ascending: false })
     .range(offset, offset + pageSize - 1);
-  if (error) { console.error(error); return null; }
+  if (error) { logError(error); return null; }
   return data;
 }
 

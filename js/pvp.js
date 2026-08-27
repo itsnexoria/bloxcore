@@ -58,7 +58,7 @@ async function loadMatches() {
 
   if (error) {
     container.innerHTML = `<p class="muted">Couldn't load matches right now.</p>`;
-    console.error(error);
+    logError(error);
     return;
   }
 

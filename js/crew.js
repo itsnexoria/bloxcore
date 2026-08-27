@@ -49,7 +49,7 @@ async function render() {
 
   if (error) {
     document.getElementById('crew-content').innerHTML = `<p class="muted">Couldn't load crew members.</p>`;
-    console.error(error);
+    logError(error);
     return;
   }
 
@@ -181,7 +181,7 @@ function wireAddMemberAutocomplete(currentMembers) {
       if (error) {
         box.innerHTML = `<div class="autocomplete-empty">Couldn't search right now.</div>`;
         box.classList.add('open');
-        console.error(error);
+        logError(error);
         return;
       }
 
@@ -383,7 +383,7 @@ async function loadWars() {
   const list = document.getElementById('crew-wars-list');
   if (error) {
     list.innerHTML = `<p class="muted">Couldn't load wars right now.</p>`;
-    console.error(error);
+    logError(error);
     return;
   }
   allWars = data;

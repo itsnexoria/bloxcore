@@ -55,7 +55,7 @@ async function loadHistory() {
 
   if (error) {
     container.innerHTML = `<p class="muted">Couldn't load chat right now.</p>`;
-    console.error(error);
+    logError(error);
     return;
   }
 

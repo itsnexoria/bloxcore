@@ -70,7 +70,7 @@ async function loadCrews() {
 async function fetchCrewsPage(offset, pageSize) {
   const { data, error } = await sb.from('crews').select('*').order('created_at', { ascending: false }).range(offset, offset + pageSize - 1);
   if (error) {
-    console.error(error);
+    logError(error);
     return null;
   }
   if (!data.length) return data;

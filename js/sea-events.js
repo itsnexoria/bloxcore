@@ -59,7 +59,7 @@ async function loadEvents() {
 
   if (error) {
     container.innerHTML = `<p class="muted">Couldn't load events right now.</p>`;
-    console.error(error);
+    logError(error);
     return;
   }
 

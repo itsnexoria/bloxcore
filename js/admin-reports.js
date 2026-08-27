@@ -62,7 +62,7 @@ async function initReportsTab() {
 
     await loadReports();
   } catch (e) {
-    console.error('Failed to init Reports tab:', e);
+    logError('Failed to init Reports tab:', e);
     _reportsTabInit = false;
     showToast('Something went wrong loading reports. Try again.', true);
   }
@@ -100,7 +100,7 @@ async function fetchReportsPage(offset, pageSize) {
     .eq('status', currentStatus)
     .order('created_at', { ascending: false })
     .range(offset, offset + pageSize - 1);
-  if (error) { console.error(error); return null; }
+  if (error) { logError(error); return null; }
 
   const profileTargetIds = [...new Set(data.filter(r => r.target_type === 'profile').map(r => r.target_id))];
   if (profileTargetIds.length) {

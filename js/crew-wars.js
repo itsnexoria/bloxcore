@@ -43,7 +43,7 @@ async function loadActiveWars() {
     .order('created_at', { ascending: false })
     .limit(40);
 
-  if (error) { list.innerHTML = `<p class="muted">Couldn't load wars right now.</p>`; console.error(error); return; }
+  if (error) { list.innerHTML = `<p class="muted">Couldn't load wars right now.</p>`; logError(error); return; }
   if (!data.length) { list.innerHTML = `<div class="empty-state">No pending or active wars right now.</div>`; return; }
 
   list.innerHTML = data.map(renderHubWarCard).join('');
@@ -62,7 +62,7 @@ async function loadWarHistory() {
     .order('created_at', { ascending: false })
     .limit(50);
 
-  if (error) { list.innerHTML = `<p class="muted">Couldn't load war history right now.</p>`; console.error(error); return; }
+  if (error) { list.innerHTML = `<p class="muted">Couldn't load war history right now.</p>`; logError(error); return; }
   if (!data.length) { list.innerHTML = `<div class="empty-state">No settled wars yet.</div>`; return; }
 
   list.innerHTML = data.map(renderHubWarCard).join('');
@@ -75,7 +75,7 @@ async function loadWarLeaderboard() {
   el.innerHTML = `<div class="skeleton" style="height:60px; margin:16px;"></div>`;
 
   const { data, error } = await sb.rpc('get_crew_war_leaderboard');
-  if (error) { el.innerHTML = `<p class="muted" style="padding:20px;">Couldn't load the leaderboard right now.</p>`; console.error(error); return; }
+  if (error) { el.innerHTML = `<p class="muted" style="padding:20px;">Couldn't load the leaderboard right now.</p>`; logError(error); return; }
   if (!data.length) { el.innerHTML = `<div class="empty-state">No completed wars yet — the first crews to finish one will show up here.</div>`; return; }
 
   el.innerHTML = data.map((c, i) => `

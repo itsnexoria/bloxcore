@@ -23,7 +23,7 @@ async function initSubmissionsTab() {
     wireBulkBar();
     wireLightbox();
   } catch (e) {
-    console.error('Failed to init Submissions tab:', e);
+    logError('Failed to init Submissions tab:', e);
     _submissionsTabInit = false; // allow retry if the tab is re-activated
     showToast('Something went wrong loading submissions. Try again.', true);
   }
@@ -40,7 +40,7 @@ async function initSubmissionsTab() {
     wireBulkBar();
     wireLightbox();
   } catch (e) {
-    console.error('Failed to init Submissions tab:', e);
+    logError('Failed to init Submissions tab:', e);
     _submissionsTabInit = false; // allow retry if the tab is re-activated
     showToast('Something went wrong loading submissions. Try again.', true);
   }
@@ -60,7 +60,7 @@ async function loadPending() {
 
   if (error) {
     list.innerHTML = `<p class="muted">Couldn't load submissions right now.</p>`;
-    console.error(error);
+    logError(error);
     return;
   }
 
@@ -227,7 +227,7 @@ async function reviewSubmission(id, action, silent = false, note = null) {
     document.getElementById('pending-list').innerHTML = `<div class="empty-state" style="grid-column:1/-1;">Nothing pending — the board is clear.</div>`;
     document.getElementById('bulk-bar').style.display = 'none';
   }
-  cleanupReviewedSubmission(id, urls).catch(err => console.error('Cleanup failed:', err));
+  cleanupReviewedSubmission(id, urls).catch(err => logError('Cleanup failed:', err));
   return true;
 }
 
@@ -235,11 +235,11 @@ async function cleanupReviewedSubmission(id, urls) {
   const paths = urls.map(extractStoragePath).filter(Boolean);
   if (paths.length) {
     const { error: storageError } = await sb.storage.from('screenshots').remove(paths);
-    if (storageError) console.error('Could not delete screenshots from storage:', storageError);
+    if (storageError) logError('Could not delete screenshots from storage:', storageError);
   }
 
   const { error: updateError } = await sb.from('submissions').update({ screenshot_url: null, screenshot_urls: [] }).eq('id', id);
-  if (updateError) console.error('Could not clear screenshot references:', updateError);
+  if (updateError) logError('Could not clear screenshot references:', updateError);
 }
 
 function extractStoragePath(url) {

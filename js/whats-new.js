@@ -47,7 +47,7 @@ async function loadEntries() {
 
   if (error) {
     list.innerHTML = `<p class="muted">Couldn't load updates right now.</p>`;
-    console.error(error);
+    logError(error);
     return;
   }
 

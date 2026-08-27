@@ -72,7 +72,7 @@ async function loadLeaderboard(page) {
     const { data, error } = await sb.rpc('get_period_player_leaderboard', { period: activePeriod });
     if (error) {
       list.innerHTML = `<p class="muted" style="padding:20px;">Couldn't load the leaderboard right now.</p>`;
-      console.error(error);
+      logError(error);
       return;
     }
     if (!data.length) {
@@ -117,7 +117,7 @@ async function loadLeaderboard(page) {
 
   if (error) {
     list.innerHTML = `<p class="muted" style="padding:20px;">Couldn't load the leaderboard right now.</p>`;
-    console.error(error);
+    logError(error);
     return;
   }
 
@@ -171,7 +171,7 @@ async function loadCrewLeaderboard() {
     const { data, error } = await sb.rpc('get_period_crew_leaderboard', { period: activePeriod });
     if (error) {
       list.innerHTML = `<p class="muted" style="padding:20px;">Couldn't load the crew leaderboard right now.</p>`;
-      console.error(error);
+      logError(error);
       return;
     }
     if (!data.length) {
@@ -208,7 +208,7 @@ async function loadCrewLeaderboard() {
 
   if (error) {
     list.innerHTML = `<p class="muted" style="padding:20px;">Couldn't load the crew leaderboard right now.</p>`;
-    console.error(error);
+    logError(error);
     return;
   }
 
@@ -255,7 +255,7 @@ async function loadPvpLeaderboard() {
 
   if (error) {
     list.innerHTML = `<p class="muted" style="padding:20px;">Couldn't load the PvP leaderboard right now.</p>`;
-    console.error(error);
+    logError(error);
     return;
   }
   if (!data.length) {
@@ -294,7 +294,7 @@ async function loadCrewWarLeaderboard() {
 
   if (error) {
     list.innerHTML = `<p class="muted" style="padding:20px;">Couldn't load the crew war leaderboard right now.</p>`;
-    console.error(error);
+    logError(error);
     return;
   }
   if (!data.length) {

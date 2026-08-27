@@ -68,7 +68,7 @@ async function initGiveawaysReviewTab() {
   try {
     await loadPendingGiveaways();
   } catch (e) {
-    console.error('Failed to init Giveaways review tab:', e);
+    logError('Failed to init Giveaways review tab:', e);
     _giveawaysReviewTabInit = false;
     showToast('Something went wrong loading giveaways. Try again.', true);
   }
@@ -85,7 +85,7 @@ async function loadPendingGiveaways() {
 
   if (error) {
     list.innerHTML = `<p class="muted">Couldn't load pending giveaways right now.</p>`;
-    console.error(error);
+    logError(error);
     return;
   }
 

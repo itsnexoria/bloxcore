@@ -195,7 +195,7 @@ async function loadGiveaways() {
 
   if (error) {
     activeEl.innerHTML = `<p class="muted">Couldn't load giveaways right now.</p>`;
-    console.error(error);
+    logError(error);
     return;
   }
 
@@ -241,7 +241,7 @@ async function fetchEndedGiveawaysPage(offset, pageSize) {
     .eq('status', 'ended')
     .order('ends_at', { ascending: false })
     .range(offset, offset + pageSize - 1);
-  if (error) { console.error(error); return null; }
+  if (error) { logError(error); return null; }
   return data;
 }
 

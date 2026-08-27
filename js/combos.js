@@ -137,7 +137,7 @@ async function fetchCombosPage(offset, pageSize) {
     .order('created_at', { ascending: false })
     .range(offset, offset + pageSize - 1);
   if (error) {
-    console.error(error);
+    logError(error);
     return null;
   }
   return attachVoteData(data || []);

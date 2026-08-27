@@ -220,7 +220,7 @@ async function fetchServiceListingsPage(offset, pageSize) {
     .eq('status', 'open')
     .order('created_at', { ascending: false })
     .range(offset, offset + pageSize - 1);
-  if (error) { console.error('Failed to load service listings', error); return null; }
+  if (error) { logError('Failed to load service listings', error); return null; }
   return data;
 }
 

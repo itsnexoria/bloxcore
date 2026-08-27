@@ -407,7 +407,7 @@ async function loadSubmissions(userId) {
 
   if (error) {
     list.innerHTML = `<p class="muted">Couldn't load your submissions right now.</p>`;
-    console.error(error);
+    logError(error);
     return;
   }
 

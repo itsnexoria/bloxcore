@@ -94,7 +94,7 @@ async function initChallengesTab() {
 
     document.getElementById('rotation').addEventListener('change', updateRepeatableFieldVisibility);
   } catch (e) {
-    console.error('Failed to init Challenges tab:', e);
+    logError('Failed to init Challenges tab:', e);
     _challengesTabInit = false;
     showToast('Something went wrong loading challenges. Try again.', true);
   }
@@ -115,7 +115,7 @@ async function loadChallenges(page) {
 
   if (error) {
     table.innerHTML = `<p class="muted">Couldn't load quests right now.</p>`;
-    console.error(error);
+    logError(error);
     return;
   }
 

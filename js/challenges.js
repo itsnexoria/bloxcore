@@ -46,7 +46,7 @@ async function loadChallenges() {
 
   if (error) {
     grid.innerHTML = `<p class="muted">Couldn't load quests right now.</p>`;
-    console.error(error);
+    logError(error);
     return;
   }
 
@@ -356,7 +356,7 @@ async function handleSubmit(e) {
     showToast('Submitted! The crew will review it soon.');
     window.scrollTo({ top: 0, behavior: 'smooth' });
   } catch (err) {
-    console.error(err);
+    logError(err);
     errorEl.textContent = err.message || 'Something went wrong. Try again.';
     errorEl.style.display = 'block';
   } finally {

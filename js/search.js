@@ -149,7 +149,7 @@ async function runSiteSearch(query) {
     });
   } catch (e) {
     if (requestId !== _searchRequestId) return;
-    console.error('Site search failed:', e);
+    logError('Site search failed:', e);
     resultsEl.innerHTML = `<p class="muted" style="padding:16px; margin:0; font-size:0.85rem;">Search is having trouble right now — try again in a moment.</p>`;
     return;
   }

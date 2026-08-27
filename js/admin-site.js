@@ -26,7 +26,7 @@ async function initSiteTab() {
       btn.addEventListener('click', () => activateSiteSubtab(btn.dataset.siteSubtab));
     });
   } catch (e) {
-    console.error('Failed to init Site Controls tab:', e);
+    logError('Failed to init Site Controls tab:', e);
     _siteTabInit = false;
     showToast('Something went wrong loading site controls. Try again.', true);
   }

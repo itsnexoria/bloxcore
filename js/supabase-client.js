@@ -7,6 +7,17 @@ const SUPABASE_ANON_KEY = 'sb_publishable_g14CxS8Kbu5hjGIpRGirQg_L5SY7ZWW';
 // `supabase` global comes from the CDN script tag included in each HTML page.
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+// Flip to true locally for full error objects/stack traces in the console. Left false in
+// production: these ~66 call sites are all genuine error-path logs (catch blocks, failed
+// queries), not debug noise, so they still print — just trimmed to the message only, so a
+// live bug report's console output stays short and readable instead of dumping full
+// PostgrestError/Error objects.
+const DEBUG = false;
+function logError(...args) {
+  if (DEBUG) { console.error(...args); return; }
+  console.error(...args.map(a => (a && typeof a === 'object' && 'message' in a) ? a.message : a));
+}
+
 const RANK_THRESHOLDS = [
   { level: 250, title: 'Eternal One' },
   { level: 200, title: 'Reaper of the Grand Line' },
@@ -200,7 +211,7 @@ function refreshIcons() {
     // An icon render failure must never block whatever ran right after this call —
     // e.g. nav.js wires up the hamburger menu click handler after its own icon call,
     // and an uncaught throw here would silently kill that wiring for the whole page.
-    console.error('Icon render failed:', e);
+    logError('Icon render failed:', e);
   }
 }
 
@@ -491,7 +502,7 @@ async function getCurrentProfile() {
       .eq('id', session.user.id)
       .single();
     if (error) {
-      console.error('Failed to load profile', error);
+      logError('Failed to load profile', error);
       return { user: session.user, profile: null };
     }
     await syncDiscordAvatar(session.user, profile);
@@ -687,7 +698,7 @@ function onReady(fn) {
     try {
       await fn();
     } catch (e) {
-      console.error('Unhandled error during page init:', e);
+      logError('Unhandled error during page init:', e);
       if (typeof showToast === 'function') {
         showToast('Something went wrong loading this page. Try refreshing.', true);
       }
@@ -724,7 +735,7 @@ function attachLoadMore(container, { pageSize = 20, initialOffset = 0, fetchPage
       }
       btn.style.display = rows.length < pageSize ? 'none' : 'inline-flex';
     } catch (e) {
-      console.error('Load more failed:', e);
+      logError('Load more failed:', e);
       btn.textContent = 'Couldn\'t load more — retry';
     } finally {
       loading = false;

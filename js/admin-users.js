@@ -31,7 +31,7 @@ async function initUsersTab() {
       if (e.target.id === 'u-next') loadUsers(currentQuery, usersPage + 1);
     });
   } catch (e) {
-    console.error('Failed to init Users tab:', e);
+    logError('Failed to init Users tab:', e);
     _usersTabInit = false;
     showToast('Something went wrong loading users. Try again.', true);
   }
@@ -148,7 +148,7 @@ async function loadActiveUsers() {
   if (error) {
     statsEl.innerHTML = '';
     listEl.innerHTML = `<p class="muted">Couldn't load user activity right now.</p>`;
-    console.error(error);
+    logError(error);
     return;
   }
 
@@ -230,7 +230,7 @@ async function loadUsers(query, page) {
   if (error) {
     table.innerHTML = `<p class="muted">Couldn't load users right now.</p>`;
     document.getElementById('user-bulk-bar').style.display = 'none';
-    console.error(error);
+    logError(error);
     return;
   }
 
