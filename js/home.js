@@ -50,6 +50,26 @@ async function loadStats() {
   `).join('');
 }
 
+// Same "quest-card" component used on /challenges/ (css/style.css .quest-card-*),
+// so the homepage's Live Bounties preview visually matches the full quest board
+// instead of running its own separate wanted-poster design.
+const QUEST_ICON_RULES = [
+  { icon: 'anchor', words: ['sea beast', 'sea', 'shark', 'ocean', 'fish'] },
+  { icon: 'swords', words: ['raid', 'dungeon', 'boss', 'trial'] },
+  { icon: 'crosshair', words: ['pvp', 'duel', 'kill', 'defeat player'] },
+  { icon: 'crown', words: ['bounty', 'wanted level'] },
+  { icon: 'circle-dollar-sign', words: ['beli', 'money', 'earn', 'cash'] },
+  { icon: 'users', words: ['crew', 'team'] },
+  { icon: 'gift', words: ['giveaway'] },
+];
+function questIconFor(c) {
+  const text = `${c.title} ${c.description}`.toLowerCase();
+  for (const rule of QUEST_ICON_RULES) {
+    if (rule.words.some(w => text.includes(w))) return rule.icon;
+  }
+  return 'target';
+}
+
 async function loadFeaturedChallenges() {
   const el = document.getElementById('featured-challenges');
   const { data, error } = await sb
@@ -64,13 +84,22 @@ async function loadFeaturedChallenges() {
     return;
   }
 
-  el.innerHTML = data.map((c, i) => `
-    <div class="poster" style="transform: rotate(${(i - 1) * 1.5}deg);">
-      <p class="poster-eyebrow"><i data-lucide="star" class="icon-sm"></i> WANTED <i data-lucide="star" class="icon-sm"></i></p>
-      <p class="poster-title">${escapeHtml(c.title)}</p>
-      <p class="poster-body">${escapeHtml(c.description)}</p>
-      <p class="poster-reward">+${c.xp_reward} XP</p>
-      <div class="center" style="margin-top:10px;"><span class="tag tag-${c.difficulty}">${c.difficulty}</span></div>
+  el.innerHTML = data.map(c => `
+    <div class="quest-card" data-difficulty="${c.difficulty}">
+      <div class="quest-card-hero">
+        <i data-lucide="${questIconFor(c)}" class="quest-card-hero-icon"></i>
+        <span class="quest-card-wanted-pill"><i data-lucide="star" style="width:10px;height:10px;"></i> WANTED <i data-lucide="star" style="width:10px;height:10px;"></i></span>
+        <span class="quest-card-badge"><i data-lucide="${questIconFor(c)}" class="icon-md"></i></span>
+      </div>
+      <div class="quest-card-body">
+        <h3 class="quest-card-title">${escapeHtml(c.title)}</h3>
+        <p class="quest-card-desc">${escapeHtml(c.description)}</p>
+        <div class="quest-card-divider"></div>
+        <p class="quest-card-reward-label">Reward</p>
+        <p class="quest-card-reward-value">+${c.xp_reward} XP</p>
+        <p class="quest-card-meta-row"><span class="quest-card-meta-dot"></span>${c.difficulty}</p>
+        <a href="/challenges/" class="quest-card-claim-btn" style="text-decoration:none;">View Quest <i data-lucide="chevron-right" class="icon-sm"></i></a>
+      </div>
     </div>
   `).join('');
   refreshIcons();
@@ -91,16 +120,21 @@ async function loadTopPirates() {
     return;
   }
 
-  el.innerHTML = data.map((p, i) => `
-    <div class="flex-between" style="padding:12px 20px; ${i === data.length - 1 ? '' : 'border-bottom:1px solid var(--navy-light);'}">
+  el.innerHTML = data.map((p, i) => {
+    const rank = i + 1;
+    const podium = rank <= 3;
+    return `
+    <div class="flex-between${podium ? ' lb-row-podium' : ''}" ${podium ? `data-rank="${rank}"` : ''} style="padding:12px 20px; ${i === data.length - 1 || podium ? '' : 'border-bottom:1px solid var(--navy-light);'}">
       <div style="display:flex; align-items:center; gap:14px;">
-        <span style="font-family:var(--font-mono); color:var(--ash); width:22px;">#${i + 1}</span>
+        <span class="${podium ? 'lb-podium-rank' : ''}" style="font-family:var(--font-mono); color:var(--ash); width:22px;">${podium ? `<i data-lucide="${rank === 1 ? 'crown' : 'medal'}" class="icon-sm"></i>` : `#${rank}`}</span>
         ${avatarHtml(p, 32)}
         <a href="/player/?u=${encodeURIComponent(p.username)}" style="color:var(--bone); font-weight:700; text-decoration:none;">${escapeHtml(displayNameFor(p))}</a> ${titleBadge(p)}
       </div>
       <p style="margin:0; font-family:var(--font-mono); color:var(--brass-bright);">Lv. ${p.level}</p>
     </div>
-  `).join('');
+  `;
+  }).join('');
+  refreshIcons();
 }
 
 async function loadTopCrewWars() {
@@ -115,10 +149,13 @@ async function loadTopCrewWars() {
   }
 
   const top5 = data.slice(0, 5);
-  el.innerHTML = top5.map((c, i) => `
-    <div class="flex-between" style="padding:12px 20px; ${i === top5.length - 1 ? '' : 'border-bottom:1px solid var(--navy-light);'}">
+  el.innerHTML = top5.map((c, i) => {
+    const rank = i + 1;
+    const podium = rank <= 3;
+    return `
+    <div class="flex-between${podium ? ' lb-row-podium' : ''}" ${podium ? `data-rank="${rank}"` : ''} style="padding:12px 20px; ${i === top5.length - 1 || podium ? '' : 'border-bottom:1px solid var(--navy-light);'}">
       <div style="display:flex; align-items:center; gap:14px;">
-        <span style="font-family:var(--font-mono); color:var(--ash); width:22px;">#${i + 1}</span>
+        <span class="${podium ? 'lb-podium-rank' : ''}" style="font-family:var(--font-mono); color:var(--ash); width:22px;">${podium ? `<i data-lucide="${rank === 1 ? 'crown' : 'medal'}" class="icon-sm"></i>` : `#${rank}`}</span>
         ${c.logo_url
           ? `<img src="${c.logo_url}" alt="" loading="lazy" style="width:32px; height:32px; border-radius:8px; object-fit:cover; flex-shrink:0;" onerror="this.style.visibility='hidden';">`
           : `<div style="width:32px; height:32px; border-radius:8px; background:var(--navy-light); display:flex; align-items:center; justify-content:center; font-size:0.8rem; flex-shrink:0; color:var(--ash);">${escapeHtml((c.name[0] || '?').toUpperCase())}</div>`}
@@ -126,7 +163,9 @@ async function loadTopCrewWars() {
       </div>
       <p style="margin:0; font-family:var(--font-mono); color:var(--brass-bright);">${c.wins}W – ${c.losses}L${c.ties ? ` – ${c.ties}T` : ''}</p>
     </div>
-  `).join('');
+  `;
+  }).join('');
+  refreshIcons();
 }
 
 async function loadTopCrews() {
@@ -141,10 +180,13 @@ async function loadTopCrews() {
   }
 
   const top5 = data.slice(0, 5);
-  el.innerHTML = top5.map((c, i) => `
-    <div class="flex-between" style="padding:12px 20px; ${i === top5.length - 1 ? '' : 'border-bottom:1px solid var(--navy-light);'}">
+  el.innerHTML = top5.map((c, i) => {
+    const rank = i + 1;
+    const podium = rank <= 3;
+    return `
+    <div class="flex-between${podium ? ' lb-row-podium' : ''}" ${podium ? `data-rank="${rank}"` : ''} style="padding:12px 20px; ${i === top5.length - 1 || podium ? '' : 'border-bottom:1px solid var(--navy-light);'}">
       <div style="display:flex; align-items:center; gap:14px;">
-        <span style="font-family:var(--font-mono); color:var(--ash); width:22px;">#${i + 1}</span>
+        <span class="${podium ? 'lb-podium-rank' : ''}" style="font-family:var(--font-mono); color:var(--ash); width:22px;">${podium ? `<i data-lucide="${rank === 1 ? 'crown' : 'medal'}" class="icon-sm"></i>` : `#${rank}`}</span>
         ${c.logo_url
           ? `<img src="${c.logo_url}" alt="" style="width:32px; height:32px; border-radius:8px; object-fit:cover; flex-shrink:0;" onerror="this.style.visibility='hidden';">`
           : `<div style="width:32px; height:32px; border-radius:8px; background:var(--navy-light); display:flex; align-items:center; justify-content:center; font-size:0.8rem; flex-shrink:0; color:var(--ash);">${escapeHtml((c.name[0] || '?').toUpperCase())}</div>`}
@@ -152,5 +194,7 @@ async function loadTopCrews() {
       </div>
       <p style="margin:0; font-family:var(--font-mono); color:var(--brass-bright);">${Number(c.total_xp).toLocaleString()} XP</p>
     </div>
-  `).join('');
+  `;
+  }).join('');
+  refreshIcons();
 }

@@ -75,8 +75,8 @@ function withDisplayName(a) {
 
 function renderActivityRow(a, isLast) {
   const icon = a.type === 'rank_up'
-    ? '<i data-lucide="star" class="icon-md" style="color:var(--brass-bright);"></i>'
-    : '<i data-lucide="check-circle" class="icon-md" style="color:var(--sea);"></i>';
+    ? '<div class="icon-badge" data-tone="gold" style="width:30px; height:30px; margin:0;"><i data-lucide="star" style="width:15px;height:15px;"></i></div>'
+    : '<div class="icon-badge" data-tone="sea" style="width:30px; height:30px; margin:0;"><i data-lucide="check-circle" style="width:15px;height:15px;"></i></div>';
   const text = a.type === 'rank_up'
     ? `ranked up to <span style="color:var(--brass-bright);">${escapeHtml(a.detail)}</span>`
     : `completed <span style="color:var(--brass-bright);">${escapeHtml(a.detail)}</span>${a.xp_awarded ? ` · +${a.xp_awarded} XP` : ''}`;
@@ -84,7 +84,7 @@ function renderActivityRow(a, isLast) {
   return `
     <div class="flex-between" data-activity-id="${a.id}" style="padding:14px 20px; ${isLast ? '' : 'border-bottom:1px solid var(--navy-light);'}">
       <div style="display:flex; align-items:center; gap:12px; min-width:0;">
-        <span style="font-size:1.1rem;">${icon}</span>
+        ${icon}
         <p style="margin:0; font-size:0.9rem;">
           <a href="/player/?u=${encodeURIComponent(a.username)}" style="color:var(--bone); font-weight:700; text-decoration:none;">${escapeHtml(a.displayName)}</a>
           ${text}
