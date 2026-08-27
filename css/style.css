@@ -2919,20 +2919,6 @@ html.compact-mode .grid { gap: 12px; }
 
 @keyframes compassSpin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
 
-.hero-fruit {
-  position: absolute;
-  width: 46px;
-  height: 46px;
-  filter: drop-shadow(0 6px 14px rgb(var(--shadow-rgb) / 0.5));
-  animation: fruitFloat 6s ease-in-out infinite;
-  pointer-events: none;
-}
-.reduce-motion .hero-fruit { animation: none; }
-@keyframes fruitFloat {
-  0%, 100% { transform: translateY(0) rotate(-6deg); }
-  50% { transform: translateY(-16px) rotate(6deg); }
-}
-
 .wave-divider { display: block; width: 100%; height: auto; margin-top: -1px; }
 .wave-divider path { fill: var(--navy); opacity: 0.5; }
 
