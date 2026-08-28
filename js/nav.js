@@ -576,16 +576,34 @@ function requestBrowserNotifPermission() {
   Notification.requestPermission().then(() => loadNotifications());
 }
 
+// Web Push (sw.js's service worker) already shows a native OS notification for the same
+// event when the user has push enabled — checked here so the realtime listener below
+// doesn't also fire one, which is what was causing a duplicate popup for anyone who'd
+// enabled push and had a tab open when the event landed. Only checks for an existing
+// registration/subscription (never registers or prompts) so this stays a passive check.
+async function nativePopupAlreadyCoveredByPush() {
+  if (!('serviceWorker' in navigator) || !('PushManager' in window)) return false;
+  try {
+    const reg = await navigator.serviceWorker.getRegistration('/sw.js');
+    if (!reg) return false;
+    const sub = await reg.pushManager.getSubscription();
+    return !!sub;
+  } catch {
+    return false;
+  }
+}
+
 function subscribeToNotifications(userId) {
   if (_notifChannel) return;
   _notifChannel = sb
     .channel(`notifications:${userId}`)
-    .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'notifications', filter: `user_id=eq.${userId}` }, (payload) => {
+    .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'notifications', filter: `user_id=eq.${userId}` }, async (payload) => {
       refreshUnreadBadge();
       const dropdown = document.getElementById('notif-dropdown');
       if (dropdown?.classList.contains('open')) loadNotifications();
 
       if (typeof Notification !== 'undefined' && Notification.permission === 'granted') {
+        if (await nativePopupAlreadyCoveredByPush()) return;
         const n = new Notification('BloxCore', { body: payload.new.message, icon: '/assets/icon-192.png' });
         n.onclick = () => {
           window.focus();
