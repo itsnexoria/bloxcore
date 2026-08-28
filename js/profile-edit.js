@@ -27,6 +27,7 @@ onReady(async () => {
   await populateTitleSelect(auth.user.id, auth.profile.active_title_id, auth.profile.title_color_override, auth.profile.role);
   populateForm(auth.profile);
   wireBuildPickers();
+  wireNameGradientPickers();
 
   document.getElementById('avatar-file').addEventListener('change', handleAvatarUpload);
   document.getElementById('banner-file').addEventListener('change', handleBannerUpload);
@@ -40,7 +41,6 @@ let activeTitleId = '';
 let activeTitleColorOverride = '';
 let activeNameGradient = '';
 let currentLevel = 0;
-let activeAvatarFrame = '';
 let canUseRainbow = false;
 
 async function populateTitleSelect(userId, activeId, colorOverride, role) {
@@ -116,23 +116,27 @@ function renderTitleColorSwatches() {
   });
 }
 
-function renderNameGradientSwatches() {
-  const presets = NAME_GRADIENT_PRESETS.filter(p => p.key !== 'rainbow' || canUseRainbow);
-  document.getElementById('name-gradient-swatches').innerHTML = presets.map(p => {
-    const selected = (activeNameGradient || 'default') === p.key;
-    const isRainbow = p.swatch === 'rainbow';
-    const cls = isRainbow ? 'swatch-rainbow' : '';
-    const bg = isRainbow ? '' : p.swatch;
-    return `<button type="button" class="color-swatch-btn ${cls} ${selected ? 'selected' : ''}" style="background:${bg};" data-gradient-key="${p.key}" title="${p.label}"></button>`;
-  }).join('');
+// Parses an existing `linear-gradient(120deg, #xxxxxx 30%, #yyyyyy 90%)` string (as saved
+// by this picker) back into its two hex stops, so re-opening the edit page shows the
+// colors the user actually picked instead of resetting to the defaults.
+function parseNameGradient(value) {
+  const matches = value?.match(/#[0-9a-fA-F]{6}/g);
+  return matches && matches.length >= 2 ? [matches[0], matches[1]] : null;
+}
 
-  document.querySelectorAll('#name-gradient-swatches [data-gradient-key]').forEach(btn => {
-    btn.addEventListener('click', () => {
-      activeNameGradient = btn.dataset.gradientKey === 'default' ? '' : btn.dataset.gradientKey;
-      document.getElementById('name_gradient').value = activeNameGradient;
-      renderNameGradientSwatches();
-    });
-  });
+function renderNameGradientPreview() {
+  const c1 = document.getElementById('name_gradient_color1').value;
+  const c2 = document.getElementById('name_gradient_color2').value;
+  activeNameGradient = `linear-gradient(120deg, ${c1} 30%, ${c2} 90%)`;
+  document.getElementById('name_gradient').value = activeNameGradient;
+  const preview = document.getElementById('name-gradient-preview');
+  preview.textContent = document.getElementById('display_name').value || 'Preview';
+  preview.style.cssText += titleColorStyle(activeNameGradient);
+}
+
+function wireNameGradientPickers() {
+  document.getElementById('name_gradient_color1').addEventListener('input', renderNameGradientPreview);
+  document.getElementById('name_gradient_color2').addEventListener('input', renderNameGradientPreview);
 }
 
 function openTitleModal() {
@@ -197,12 +201,13 @@ async function populateForm(profile) {
   renderAvatar(profile.avatar_url);
   renderBanner(profile.banner_url);
   currentLevel = profile.level || 0;
-  activeAvatarFrame = profile.avatar_frame || '';
-  renderAvatarFrameSwatches();
   document.getElementById('display_name').value = profile.display_name || '';
   activeNameGradient = profile.name_gradient || '';
   document.getElementById('name_gradient').value = activeNameGradient;
-  renderNameGradientSwatches();
+  const stops = parseNameGradient(activeNameGradient) || ['#ffffff', '#d99b4e'];
+  document.getElementById('name_gradient_color1').value = stops[0];
+  document.getElementById('name_gradient_color2').value = stops[1];
+  renderNameGradientPreview();
   document.getElementById('bio').value = profile.bio || '';
   document.getElementById('status_line').value = profile.status_line || '';
   document.getElementById('region').value = profile.region || '';
@@ -250,48 +255,6 @@ function renderBanner(url) {
   } else {
     img.style.display = 'none';
   }
-}
-
-function renderAvatarFrameSwatches() {
-  const avatarUrl = document.getElementById('avatar-preview').style.display !== 'none'
-    ? document.getElementById('avatar-preview').src
-    : '';
-  const ringFor = (preset) => preset?.ring || `box-shadow:0 0 0 3px var(--ink), 0 0 0 4px rgb(var(--brass-rgb) / 0.5), 0 4px 18px rgb(var(--shadow-rgb) / 0.4);`;
-  const previewFor = (preset) => {
-    const cls = preset?.cls ? ` ${preset.cls}` : '';
-    const style = `width:48px;height:48px;border-radius:50%;object-fit:cover;background:linear-gradient(150deg, var(--navy-light), var(--navy));${ringFor(preset)}`;
-    return avatarUrl
-      ? `<img class="${cls.trim()}" src="${avatarUrl}" alt="" style="${style}">`
-      : `<div class="${cls.trim()}" style="${style}"></div>`;
-  };
-
-  const options = [{ key: '', label: 'None', minLevel: 0 }, ...AVATAR_FRAME_PRESETS];
-  document.getElementById('avatar-frame-swatches').innerHTML = options.map(preset => {
-    const locked = currentLevel < preset.minLevel;
-    const selected = (activeAvatarFrame || '') === preset.key;
-    return `
-      <div>
-        <button type="button" class="frame-swatch-btn ${selected ? 'selected' : ''} ${locked ? 'locked' : ''}" data-frame-key="${preset.key}" data-frame-min-level="${preset.minLevel}" title="${preset.label}${locked ? ` — unlocks at level ${preset.minLevel}` : ''}">
-          ${previewFor(preset.key ? preset : null)}
-          ${locked ? '<span class="frame-swatch-lock"><i data-lucide="lock" class="icon-sm"></i></span>' : ''}
-        </button>
-        <span class="frame-swatch-label">${preset.label}</span>
-      </div>
-    `;
-  }).join('');
-  refreshIcons();
-
-  document.querySelectorAll('#avatar-frame-swatches [data-frame-key]').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const minLevel = Number(btn.dataset.frameMinLevel);
-      if (currentLevel < minLevel) {
-        showToast(`Unlocks at level ${minLevel}.`, true);
-        return;
-      }
-      activeAvatarFrame = btn.dataset.frameKey || '';
-      renderAvatarFrameSwatches();
-    });
-  });
 }
 
 const AVATAR_MAX_MB = 5;
@@ -384,7 +347,6 @@ async function handleAvatarUpload(e) {
     if (updateError) throw updateError;
 
     renderAvatar(urlData.publicUrl);
-    renderAvatarFrameSwatches();
     showToast('Avatar updated.');
   } catch (err) {
     logError(err);
@@ -518,7 +480,6 @@ async function handleSave(e) {
   const payload = {
     display_name: document.getElementById('display_name').value.trim() || null,
     name_gradient: document.getElementById('name_gradient').value || null,
-    avatar_frame: activeAvatarFrame || null,
     active_title_id: document.getElementById('active_title').value || null,
     title_color_override: document.getElementById('title_color_override').value || null,
     bio: document.getElementById('bio').value.trim() || null,

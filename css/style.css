@@ -357,6 +357,7 @@ section.section h2.center::after { margin-left: auto; margin-right: auto; }
   align-items: center;
   gap: 8px;
 }
+#nav-profile-slot { margin-left: 6px; }
 
 .nav-toggle {
   position: relative;
@@ -2897,6 +2898,24 @@ html.compact-mode .grid { gap: 12px; }
 .services-card[data-category="dungeon"] { --sc-rgb: 52 211 153; }
 
 .crew-card::before { background: linear-gradient(90deg, var(--purple), rgb(var(--purple-rgb) / 0.4)); opacity: 1; }
+
+/* Player profile stat tiles + bio + build items */
+.stat-card::before { background: linear-gradient(90deg, rgb(var(--sc-rgb, var(--brass-rgb))), rgb(var(--sc-rgb, var(--brass-rgb)) / 0.4)); opacity: 1; }
+.stat-card[data-tone="gold"] { --sc-rgb: var(--gold-rgb); }
+.stat-card[data-tone="blood"] { --sc-rgb: 251 113 133; }
+.stat-card[data-tone="pink"] { --sc-rgb: 244 114 182; }
+.stat-card[data-tone="blue"] { --sc-rgb: var(--blue-rgb); }
+.stat-card[data-tone="sea"] { --sc-rgb: 52 211 153; }
+.stat-card .icon-badge { width: 34px; height: 34px; border-radius: 10px; margin-bottom: 10px; }
+.stat-card .icon-badge svg { width: 16px; height: 16px; }
+
+.bio-panel { position: relative; overflow: hidden; }
+.bio-panel .bio-quote-icon { position: absolute; top: 10px; right: 14px; opacity: 0.1; width: 46px; height: 46px; color: var(--brass-bright); pointer-events: none; }
+.bio-panel p { position: relative; z-index: 1; }
+
+.build-card { text-align: center; }
+.build-card .build-icon-wrap { display: inline-flex; align-items: center; justify-content: center; width: 64px; height: 64px; border-radius: 14px; background: rgb(var(--brass-rgb) / 0.1); box-shadow: inset 0 0 0 1px rgb(var(--brass-rgb) / 0.25); margin-bottom: 8px; }
+.build-card .build-icon-wrap img { width: 40px; height: 40px; object-fit: contain; }
 
 /* ------------------------------ Leaderboard podium (top 3) ------------------------------ */
 .lb-row-podium {

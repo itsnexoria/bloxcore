@@ -240,29 +240,35 @@ function renderProfile(p, crew, isOwnProfile) {
     </div>
 
     ${p.bio ? `
-      <div class="panel" style="margin-top:20px;">
+      <div class="panel bio-panel" style="margin-top:20px;">
+        <i data-lucide="quote" class="bio-quote-icon"></i>
         <p style="margin:0; white-space:pre-wrap;">${escapeHtml(p.bio)}</p>
       </div>
     ` : ''}
 
     <div class="grid" style="margin-top:20px; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));">
-      <div class="panel">
+      <div class="panel hover-lift-card stat-card" data-tone="gold">
+        <div class="icon-badge" data-tone="gold"><i data-lucide="skull"></i></div>
         <p class="muted" style="margin:0 0 6px; font-size:0.8rem; text-transform:uppercase; letter-spacing:0.05em;">Pirate Bounty</p>
         <p class="stat-number" style="margin:0; font-family:var(--font-stamp); font-size:1.3rem; color:var(--brass-bright);">${formatBounty(p.pirate_bounty)}</p>
       </div>
-      <div class="panel">
+      <div class="panel hover-lift-card stat-card" data-tone="blood">
+        <div class="icon-badge" style="--badge-rgb:251 113 133;"><i data-lucide="anchor"></i></div>
         <p class="muted" style="margin:0 0 6px; font-size:0.8rem; text-transform:uppercase; letter-spacing:0.05em;">Marine Bounty</p>
         <p class="stat-number" style="margin:0; font-family:var(--font-stamp); font-size:1.3rem; color:var(--brass-bright);">${formatBounty(p.marine_bounty)}</p>
       </div>
-      <div class="panel">
+      <div class="panel hover-lift-card stat-card" data-tone="pink">
+        <div class="icon-badge" style="--badge-rgb:244 114 182;"><i data-lucide="heart"></i></div>
         <p class="muted" style="margin:0 0 6px; font-size:0.8rem; text-transform:uppercase; letter-spacing:0.05em;">Likes Received</p>
         <p style="margin:0; font-family:var(--font-stamp); font-size:1.3rem; color:var(--brass-bright);" id="player-likes-total"><span class="skeleton" style="display:inline-block; width:40px; height:18px;"></span></p>
       </div>
-      <div class="panel">
+      <div class="panel hover-lift-card stat-card" data-tone="blue">
+        <div class="icon-badge" data-tone="blue"><i data-lucide="shield-check"></i></div>
         <p class="muted" style="margin:0 0 6px; font-size:0.8rem; text-transform:uppercase; letter-spacing:0.05em;">Reputation</p>
         <p style="margin:0; font-size:1.1rem;" id="player-reputation-stat"><span class="skeleton" style="display:inline-block; width:40px; height:18px;"></span></p>
       </div>
-      <div class="panel">
+      <div class="panel hover-lift-card stat-card" data-tone="sea">
+        <div class="icon-badge" data-tone="sea"><i data-lucide="swords"></i></div>
         <p class="muted" style="margin:0 0 6px; font-size:0.8rem; text-transform:uppercase; letter-spacing:0.05em;">PvP Record</p>
         <p style="margin:0; font-family:var(--font-stamp); font-size:1.3rem;"><span style="color:#34d399;">${p.pvp_wins ?? 0}W</span> <span class="muted" style="font-size:0.9rem;">—</span> <span style="color:var(--blood-dim);">${p.pvp_losses ?? 0}L</span></p>
         ${(p.pvp_wins ?? 0) + (p.pvp_losses ?? 0) >= 3 ? `<p class="muted" style="margin:2px 0 0; font-size:0.76rem;">${p.pvp_rating ?? 1000} rating</p>` : ''}
@@ -435,18 +441,21 @@ async function loadPlayerSeaEvents(userId) {
 async function loadPlayerGiveaways(userId, viewerId) {
   const section = document.getElementById('player-giveaways-section');
   const container = document.getElementById('player-giveaways');
-  const { data } = await sb.from('giveaways').select('id, title, status, created_at').eq('created_by', userId).order('created_at', { ascending: false });
+  const { data } = await sb.from('giveaways').select('id, title, status, created_at, image_url').eq('created_by', userId).order('created_at', { ascending: false });
 
   if (!data || !data.length) return;
   section.style.display = 'block';
 
   container.innerHTML = data.map(g => `
-    <a href="/giveaways/" class="panel" style="display:block; text-decoration:none; color:inherit;">
-      <div class="flex-between">
-        <h3 style="margin:0; font-size:0.95rem;">${escapeHtml(g.title)}</h3>
-        <span class="tag" style="text-transform:capitalize;">${escapeHtml(g.status)}</span>
+    <a href="/giveaways/" class="panel hover-lift-card" style="display:flex; align-items:center; gap:12px; text-decoration:none; color:inherit;">
+      ${g.image_url ? `<img src="${g.image_url}" alt="" loading="lazy" style="width:36px; height:36px; object-fit:contain; border-radius:var(--radius-sm, 8px); border:1px solid var(--glass-border); background:rgba(255,255,255,0.03); padding:4px; flex-shrink:0;">` : ''}
+      <div style="flex:1; min-width:0;">
+        <div class="flex-between">
+          <h3 style="margin:0; font-size:0.95rem;">${escapeHtml(g.title)}</h3>
+          <span class="tag" style="text-transform:capitalize;">${escapeHtml(g.status)}</span>
+        </div>
+        <p class="muted" style="margin:8px 0 0; font-size:0.72rem;">${timeAgo(g.created_at)}</p>
       </div>
-      <p class="muted" style="margin:8px 0 0; font-size:0.72rem;">${timeAgo(g.created_at)}</p>
     </a>
   `).join('');
 }
@@ -466,8 +475,8 @@ async function loadPlayerLikesTotal(userId) {
 function renderBuildItem(field) {
   const icon = (field.key === 'fruit' && field.sub && fruitSkinIconMap[field.sub]) || findBuildIcon(field.key, field.value);
   return `
-    <div class="panel" style="padding:14px; text-align:center;">
-      ${icon ? `<img src="${icon}" alt="${escapeHtml(field.value)}" loading="lazy" style="width:48px; height:48px; object-fit:contain; margin-bottom:8px;">` : ''}
+    <div class="panel hover-lift-card build-card" style="padding:14px;">
+      ${icon ? `<div class="build-icon-wrap"><img src="${icon}" alt="${escapeHtml(field.value)}" loading="lazy"></div>` : ''}
       <p class="muted" style="margin:0 0 2px; font-size:0.72rem; text-transform:uppercase; letter-spacing:0.05em;">${field.label}</p>
       <p style="margin:0; font-size:0.85rem; font-weight:600;">${escapeHtml(field.value)}</p>
       ${field.sub ? `<p class="muted" style="margin:2px 0 0; font-size:0.72rem;">${escapeHtml(field.sub)} skin</p>` : ''}

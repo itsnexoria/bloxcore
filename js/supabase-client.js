@@ -367,21 +367,6 @@ const CHAT_NAME_COLOR_PALETTE = [
   '#60a5fa', '#a78bfa', '#e879f9', '#f472b6', '#fb7185', '#2dd4bf',
 ];
 
-// A curated set of gradients users can recolor their profile display name with — same
-// "presets, not a free picker" approach as TITLE_COLOR_PRESETS. null/'default' keeps the
-// site's own white->brass gradient. Reuses titleColorStyle() to render, since that already
-// handles a plain hex, a CSS gradient string, or the animated 'rainbow' special case.
-const NAME_GRADIENT_PRESETS = [
-  { key: 'default', label: 'Default', swatch: 'linear-gradient(120deg, #fff 30%, #d99b4e 90%)' },
-  { key: 'linear-gradient(120deg, #fff 30%, #60a5fa 90%)', label: 'Ocean', swatch: 'linear-gradient(120deg, #fff 30%, #60a5fa 90%)' },
-  { key: 'linear-gradient(120deg, #fff 30%, #34d399 90%)', label: 'Toxic', swatch: 'linear-gradient(120deg, #fff 30%, #34d399 90%)' },
-  { key: 'linear-gradient(120deg, #fff 30%, #a78bfa 90%)', label: 'Royal', swatch: 'linear-gradient(120deg, #fff 30%, #a78bfa 90%)' },
-  { key: 'linear-gradient(120deg, #fff 30%, #f87171 90%)', label: 'Blood', swatch: 'linear-gradient(120deg, #fff 30%, #f87171 90%)' },
-  { key: 'linear-gradient(120deg, #f472b6 20%, #fbbf24 90%)', label: 'Sunset', swatch: 'linear-gradient(120deg, #f472b6 20%, #fbbf24 90%)' },
-  { key: '#f5f5f7', label: 'White', swatch: '#f5f5f7' },
-  { key: 'rainbow', label: 'Rainbow', swatch: 'rainbow' },
-];
-
 function chatNameColor(profile) {
   if (profile?.chat_name_color) return profile.chat_name_color;
   if (profile?.role === 'mod' || profile?.role === 'admin') return 'var(--blood-dim)';
