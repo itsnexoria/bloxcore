@@ -118,6 +118,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // .nav-toggle.is-open rule) means the click always works even if icon rendering lags.
     bindDrawerTrigger(toggle);
     _drawerOverlay.addEventListener('click', closeDrawer);
+    document.querySelector('.nav-drawer-close')?.addEventListener('click', closeDrawer);
     document.addEventListener('keydown', (e) => {
       if (e.key === 'Escape') closeDrawer();
     });
