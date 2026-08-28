@@ -177,7 +177,8 @@ async function loadListings() {
   const data = await fetchTradeListingsPage(0, TRADE_LISTINGS_PAGE_SIZE);
 
   if (data === null) {
-    container.innerHTML = `<p class="muted">Couldn't load listings right now.</p>`;
+    container.innerHTML = errorStateHtml("Couldn't load listings right now.", 'loadListings()');
+    refreshIcons();
     return;
   }
 

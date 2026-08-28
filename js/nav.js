@@ -544,7 +544,7 @@ async function loadNotifications() {
 
 function renderNotif(n) {
   const actions = n.meta?.actions?.length
-    ? `<span class="notif-actions">${n.meta.actions.map(a => `<a href="${escapeHtml(a.url)}" target="_blank" rel="noopener noreferrer" class="btn btn-ghost btn-sm" data-notif-action-id="${n.id}">${escapeHtml(a.label)}</a>`).join('')}</span>`
+    ? `<span class="notif-actions">${n.meta.actions.map(a => `<a href="${safeUrl(a.url)}" target="_blank" rel="noopener noreferrer" class="btn btn-ghost btn-sm" data-notif-action-id="${n.id}">${escapeHtml(a.label)}</a>`).join('')}</span>`
     : '';
   return `
     <a href="${n.link || '#'}" class="notif-item ${n.read ? '' : 'unread'}" data-notif-id="${n.id}" data-notif-link="${escapeHtml(n.link || '')}">

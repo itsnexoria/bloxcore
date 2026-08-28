@@ -55,7 +55,8 @@ async function loadActivity() {
     .limit(ACTIVITY_LIMIT);
 
   if (error) {
-    feed.innerHTML = `<p class="muted" style="padding:20px;">Couldn't load recent activity right now.</p>`;
+    feed.innerHTML = errorStateHtml("Couldn't load recent activity right now.", 'loadActivity()');
+    refreshIcons();
     logError(error);
     return;
   }

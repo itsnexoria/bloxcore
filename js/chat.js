@@ -54,7 +54,8 @@ async function loadHistory() {
     .limit(CHAT_HISTORY_LIMIT);
 
   if (error) {
-    container.innerHTML = `<p class="muted">Couldn't load chat right now.</p>`;
+    container.innerHTML = errorStateHtml("Couldn't load chat right now.", 'loadHistory()');
+    refreshIcons();
     logError(error);
     return;
   }

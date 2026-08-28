@@ -194,7 +194,8 @@ async function loadGiveaways() {
   ]);
 
   if (error) {
-    activeEl.innerHTML = `<p class="muted">Couldn't load giveaways right now.</p>`;
+    activeEl.innerHTML = errorStateHtml("Couldn't load giveaways right now.", 'loadGiveaways()');
+    refreshIcons();
     logError(error);
     return;
   }

@@ -69,6 +69,15 @@ button svg, a svg, .btn svg { pointer-events: none; }
 
 * { box-sizing: border-box; }
 
+/* Sitewide fallback focus ring — component-specific rules (.btn:focus-visible,
+   .build-modal-tile:focus-visible, input:focus, etc.) take precedence via specificity;
+   this just makes sure nothing focusable is ever left with no visible ring at all
+   (plain links, autocomplete rows, and any other ad hoc clickable element). */
+a:focus-visible, [tabindex]:focus-visible, summary:focus-visible {
+  outline: 2px solid var(--brass-bright);
+  outline-offset: 2px;
+}
+
 html {
   scroll-behavior: smooth;
   overflow-x: hidden;
@@ -1398,6 +1407,7 @@ select option {
   transition: border-color 0.15s ease, background 0.15s ease, transform 0.15s ease;
 }
 .build-modal-tile:hover { border-color: var(--brass); transform: translateY(-2px); }
+.build-modal-tile:focus-visible { outline: 2px solid var(--brass-bright); outline-offset: 2px; }
 .build-modal-tile.selected { border-color: var(--brass); background: rgb(var(--brass-rgb) / 0.16); }
 .build-modal-tile img { width: 40px; height: 40px; object-fit: contain; }
 .build-modal-tile span { font-size: 0.7rem; line-height: 1.15; word-break: break-word; }

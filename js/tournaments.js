@@ -24,7 +24,7 @@ async function loadTournamentsList() {
     .order('created_at', { ascending: false })
     .limit(30);
 
-  if (error) { listEl.innerHTML = `<p class="muted">Couldn't load tournaments right now.</p>`; return; }
+  if (error) { listEl.innerHTML = errorStateHtml("Couldn't load tournaments right now.", 'loadTournamentsList()'); refreshIcons(); return; }
   if (!tournaments.length) { listEl.innerHTML = `<div class="empty-state" style="grid-column:1/-1;">No tournaments yet — check back soon.</div>`; return; }
 
   const tournamentIds = tournaments.map(t => t.id);
@@ -195,7 +195,7 @@ async function openTournamentDetail(id) {
   const { data: t, error } = await sb.from('tournaments')
     .select('id, name, description, match_type, bracket_size, status, elimination_type, team_based, winner:profiles!tournaments_winner_id_fkey(username, display_name)')
     .eq('id', id).single();
-  if (error) { header.innerHTML = `<p class="muted">Couldn't load this tournament.</p>`; return; }
+  if (error) { header.innerHTML = errorStateHtml("Couldn't load this tournament.", `openTournamentDetail('${id}')`); refreshIcons(); return; }
 
   header.innerHTML = `
     <div class="flex-between" style="align-items:flex-start; flex-wrap:wrap; gap:10px;">

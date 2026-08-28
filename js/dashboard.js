@@ -58,10 +58,19 @@ function showRankUpCelebration(level) {
   overlay.addEventListener('click', (e) => { if (e.target === overlay) close(); });
 }
 
+// Set once in onReady below — lets error-state Retry buttons re-call the same loader
+// with the right arguments without needing them threaded through as globals elsewhere.
+let dashUserId = null;
+let dashMaxActiveTrades = 3;
+let dashMaxCombosPerUser = 10;
+let dashRole = 'member';
+
 onReady(async () => {
   const auth = await requireAuth();
   if (!auth) return;
   const { user, profile } = auth;
+  dashUserId = user.id;
+  dashRole = profile.role;
 
   claimPendingReferral(profile);
   checkRankUpCelebration(profile, user.id);
@@ -73,6 +82,8 @@ onReady(async () => {
 
   const { data: membership } = await sb.from('crew_members').select('crews(name, tag, logo_url)').eq('user_id', user.id).maybeSingle();
   const settings = await getSiteSettings();
+  dashMaxActiveTrades = settings.maxActiveTrades;
+  dashMaxCombosPerUser = settings.maxCombosPerUser;
 
   renderProfileCard(profile, membership?.crews);
   initMyListingsTabs(profile.role);
@@ -105,7 +116,8 @@ async function loadMyPvpMatches(userId) {
   const { data, error } = await sb.from('pvp_matches').select('id, match_type, created_at, expires_at').eq('host_id', userId).order('created_at', { ascending: false });
 
   if (error || !data) {
-    container.innerHTML = `<p class="muted">Couldn't load your matches right now.</p>`;
+    container.innerHTML = errorStateHtml("Couldn't load your matches right now.", 'loadMyPvpMatches(dashUserId)');
+    refreshIcons();
     return;
   }
   if (!data.length) {
@@ -132,7 +144,8 @@ async function loadMyTournaments(userId) {
     .order('joined_at', { ascending: false });
 
   if (error) {
-    container.innerHTML = `<p class="muted">Couldn't load your tournaments right now.</p>`;
+    container.innerHTML = errorStateHtml("Couldn't load your tournaments right now.", 'loadMyTournaments(dashUserId)');
+    refreshIcons();
     return;
   }
   const regsWithTournament = (regs || []).filter(r => r.tournaments);
@@ -159,7 +172,8 @@ async function loadMyServices(userId) {
   const { data, error } = await sb.from('service_listings').select('id, category, title, status, created_at').eq('user_id', userId).order('created_at', { ascending: false });
 
   if (error || !data) {
-    container.innerHTML = `<p class="muted">Couldn't load your services right now.</p>`;
+    container.innerHTML = errorStateHtml("Couldn't load your services right now.", 'loadMyServices(dashUserId)');
+    refreshIcons();
     return;
   }
   if (!data.length) {
@@ -184,7 +198,8 @@ async function loadMySeaEvents(userId) {
   const { data, error } = await sb.from('sea_events').select('id, type, created_at, expires_at').eq('host_id', userId).order('created_at', { ascending: false });
 
   if (error || !data) {
-    container.innerHTML = `<p class="muted">Couldn't load your sea events right now.</p>`;
+    container.innerHTML = errorStateHtml("Couldn't load your sea events right now.", 'loadMySeaEvents(dashUserId)');
+    refreshIcons();
     return;
   }
   if (!data.length) {
@@ -211,7 +226,8 @@ async function loadMyGiveaways(userId, role) {
   const { data, error } = await sb.from('giveaways').select('id, title, status, created_at').eq('created_by', userId).order('created_at', { ascending: false });
 
   if (error || !data) {
-    container.innerHTML = `<p class="muted">Couldn't load your giveaways right now.</p>`;
+    container.innerHTML = errorStateHtml("Couldn't load your giveaways right now.", 'loadMyGiveaways(dashUserId, dashRole)');
+    refreshIcons();
     return;
   }
   if (!data.length) {
@@ -240,7 +256,8 @@ async function loadMyTradeListings(userId, maxActiveTrades = 3) {
     .order('created_at', { ascending: false });
 
   if (error || !data) {
-    container.innerHTML = `<p class="muted">Couldn't load your listings right now.</p>`;
+    container.innerHTML = errorStateHtml("Couldn't load your listings right now.", 'loadMyTradeListings(dashUserId, dashMaxActiveTrades)');
+    refreshIcons();
     return;
   }
 
@@ -287,7 +304,8 @@ async function loadMyCombos(userId, maxCombosPerUser = 10) {
   const { data, error } = await sb.from('combos').select('id, title, difficulty, steps, created_at').eq('created_by', userId).order('created_at', { ascending: false });
 
   if (error || !data) {
-    container.innerHTML = `<p class="muted">Couldn't load your combos right now.</p>`;
+    container.innerHTML = errorStateHtml("Couldn't load your combos right now.", 'loadMyCombos(dashUserId, dashMaxCombosPerUser)');
+    refreshIcons();
     return;
   }
 
@@ -406,7 +424,8 @@ async function loadSubmissions(userId) {
     .order('submitted_at', { ascending: false });
 
   if (error) {
-    list.innerHTML = `<p class="muted">Couldn't load your submissions right now.</p>`;
+    list.innerHTML = errorStateHtml("Couldn't load your submissions right now.", 'loadSubmissions(dashUserId)');
+    refreshIcons();
     logError(error);
     return;
   }

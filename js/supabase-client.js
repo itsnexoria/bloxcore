@@ -70,6 +70,21 @@ function showToast(message, isError = false) {
   }, 3750);
 }
 
+// Consistent "couldn't load" state — was previously ~50 near-identical plain-text <p>
+// tags copy-pasted across every list/grid on the site. retryFn, when given, must be the
+// name of a globally-accessible function (all the load*() functions here are declared
+// with `function`, not a local const, so they're callable by name) — call refreshIcons()
+// after inserting this into the DOM so the icon actually renders.
+function errorStateHtml(message, retryFn) {
+  return `
+    <div class="empty-state" style="padding:20px; text-align:center;">
+      <i data-lucide="alert-triangle" class="icon-md" style="color:var(--blood-dim); margin-bottom:6px;"></i>
+      <p class="muted" style="margin:0 0 ${retryFn ? '10px' : '0'};">${escapeHtml(message)}</p>
+      ${retryFn ? `<button type="button" class="btn btn-ghost btn-sm" onclick="${retryFn}"><i data-lucide="refresh-cw" class="icon-sm icon-inline"></i>Retry</button>` : ''}
+    </div>
+  `;
+}
+
 function escapeHtml(str) {
   const div = document.createElement('div');
   div.textContent = str ?? '';
@@ -765,3 +780,35 @@ function startRobloxOAuthConnect(returnTo) {
   url.searchParams.set('state', state);
   location.href = url.toString();
 }
+
+// ---- Keyboard accessibility for .build-modal-tile picker grids -------------------------
+// This class is used site-wide (trading/services item pickers, giveaway prize pickers,
+// profile build pickers, combo pickers, title pickers — 6+ files) as a clickable <div>
+// "tile" with no tabindex/role, which made every one of those grids mouse-only. Rather
+// than touch each render call site individually, a single MutationObserver here patches
+// any tile as soon as it appears in the DOM, so this fixes all current and future picker
+// grids at once.
+function makeTileKeyboardAccessible(tile) {
+  if (tile.hasAttribute('tabindex')) return;
+  tile.setAttribute('tabindex', '0');
+  if (!tile.hasAttribute('role')) tile.setAttribute('role', 'button');
+  tile.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      tile.click();
+    }
+  });
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  document.querySelectorAll('.build-modal-tile').forEach(makeTileKeyboardAccessible);
+  new MutationObserver((mutations) => {
+    for (const m of mutations) {
+      for (const node of m.addedNodes) {
+        if (node.nodeType !== 1) continue;
+        if (node.matches?.('.build-modal-tile')) makeTileKeyboardAccessible(node);
+        node.querySelectorAll?.('.build-modal-tile').forEach(makeTileKeyboardAccessible);
+      }
+    }
+  }).observe(document.body, { childList: true, subtree: true });
+});

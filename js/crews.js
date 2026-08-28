@@ -44,7 +44,8 @@ async function loadCrews() {
   const rows = await fetchCrewsPage(0, CREWS_PAGE_SIZE);
 
   if (rows === null) {
-    grid.innerHTML = `<p class="muted">Couldn't load crews right now.</p>`;
+    grid.innerHTML = errorStateHtml("Couldn't load crews right now.", 'loadCrews()');
+    refreshIcons();
     return;
   }
 

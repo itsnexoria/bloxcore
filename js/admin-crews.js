@@ -221,11 +221,11 @@ function renderCwDisputeCard(w) {
       <div style="display:flex; gap:24px; flex-wrap:wrap; margin-bottom:14px;">
         <div>
           <p class="muted" style="margin:0 0 4px; font-size:0.72rem; text-transform:uppercase;">${escapeHtml(w.challenger?.name || 'Challenger')}'s clip</p>
-          ${w.challenger_video_url ? `<a href="${escapeHtml(w.challenger_video_url)}" target="_blank" rel="noopener noreferrer" class="btn btn-ghost btn-sm">Watch</a>` : `<p class="muted" style="font-size:0.82rem; margin:0;">Not submitted</p>`}
+          ${w.challenger_video_url ? `<a href="${safeUrl(w.challenger_video_url)}" target="_blank" rel="noopener noreferrer" class="btn btn-ghost btn-sm">Watch</a>` : `<p class="muted" style="font-size:0.82rem; margin:0;">Not submitted</p>`}
         </div>
         <div>
           <p class="muted" style="margin:0 0 4px; font-size:0.72rem; text-transform:uppercase;">${escapeHtml(w.defender?.name || 'Defender')}'s clip</p>
-          ${w.defender_video_url ? `<a href="${escapeHtml(w.defender_video_url)}" target="_blank" rel="noopener noreferrer" class="btn btn-ghost btn-sm">Watch</a>` : `<p class="muted" style="font-size:0.82rem; margin:0;">Not submitted</p>`}
+          ${w.defender_video_url ? `<a href="${safeUrl(w.defender_video_url)}" target="_blank" rel="noopener noreferrer" class="btn btn-ghost btn-sm">Watch</a>` : `<p class="muted" style="font-size:0.82rem; margin:0;">Not submitted</p>`}
         </div>
       </div>
       <div style="display:flex; gap:8px; flex-wrap:wrap;">

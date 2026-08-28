@@ -48,7 +48,8 @@ async function render() {
     .order('role', { ascending: true });
 
   if (error) {
-    document.getElementById('crew-content').innerHTML = `<p class="muted">Couldn't load crew members.</p>`;
+    document.getElementById('crew-content').innerHTML = errorStateHtml("Couldn't load crew members.", 'render()');
+    refreshIcons();
     logError(error);
     return;
   }
@@ -382,7 +383,8 @@ async function loadWars() {
 
   const list = document.getElementById('crew-wars-list');
   if (error) {
-    list.innerHTML = `<p class="muted">Couldn't load wars right now.</p>`;
+    list.innerHTML = errorStateHtml("Couldn't load wars right now.", 'loadWars()');
+    refreshIcons();
     logError(error);
     return;
   }
@@ -467,9 +469,9 @@ function renderWarCard(w, participants) {
         </div>
         <div style="margin-top:14px; padding-top:14px; border-top:1px solid var(--navy-light);">
           <p class="muted" style="margin:0 0 8px; font-size:0.72rem; text-transform:uppercase;"><i data-lucide="video" class="icon-sm icon-inline"></i>Video Proof</p>
-          ${myVideoUrl ? `<p style="margin:0 0 6px; font-size:0.85rem;">${escapeHtml(crew.name)}: <a href="${escapeHtml(myVideoUrl)}" target="_blank" rel="noopener noreferrer" style="color:var(--brass-bright);">watch</a></p>`
+          ${myVideoUrl ? `<p style="margin:0 0 6px; font-size:0.85rem;">${escapeHtml(crew.name)}: <a href="${safeUrl(myVideoUrl)}" target="_blank" rel="noopener noreferrer" style="color:var(--brass-bright);">watch</a></p>`
             : isLeader ? `<form data-war-video-form="${w.id}" style="display:flex; gap:8px; margin-bottom:6px;"><input type="url" placeholder="YouTube, Twitch, Streamable, etc." required style="margin:0;"><button type="submit" class="btn btn-ghost btn-sm" title="Add"><i data-lucide="plus" class="icon-sm"></i></button></form>` : ''}
-          ${theirVideoUrl ? `<p style="margin:0; font-size:0.85rem;">${opponent ? escapeHtml(opponent.name) : 'Opponent'}: <a href="${escapeHtml(theirVideoUrl)}" target="_blank" rel="noopener noreferrer" style="color:var(--brass-bright);">watch</a></p>` : `<p class="muted" style="margin:0; font-size:0.8rem;">${opponent ? escapeHtml(opponent.name) : 'Opponent'} hasn't submitted a clip.</p>`}
+          ${theirVideoUrl ? `<p style="margin:0; font-size:0.85rem;">${opponent ? escapeHtml(opponent.name) : 'Opponent'}: <a href="${safeUrl(theirVideoUrl)}" target="_blank" rel="noopener noreferrer" style="color:var(--brass-bright);">watch</a></p>` : `<p class="muted" style="margin:0; font-size:0.8rem;">${opponent ? escapeHtml(opponent.name) : 'Opponent'} hasn't submitted a clip.</p>`}
           ${hasEvidence
             ? `<p class="muted" style="margin:8px 0 0; font-size:0.78rem;"><i data-lucide="shield" class="icon-sm icon-inline"></i>A staff member will review the evidence and decide the winner.</p>`
             : `<p class="muted" style="margin:8px 0 0; font-size:0.78rem;"><i data-lucide="shield" class="icon-sm icon-inline"></i>Staff decides the outcome — a clip is needed from at least one side, or it's recorded as a tie.</p>`}

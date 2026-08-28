@@ -45,7 +45,8 @@ async function loadChallenges() {
   const { data, error } = await query;
 
   if (error) {
-    grid.innerHTML = `<p class="muted">Couldn't load quests right now.</p>`;
+    grid.innerHTML = errorStateHtml("Couldn't load quests right now.", 'loadChallenges()');
+    refreshIcons();
     logError(error);
     return;
   }

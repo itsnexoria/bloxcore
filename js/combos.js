@@ -167,7 +167,8 @@ async function loadCombos() {
   const list = document.getElementById('combo-list');
   const rows = await fetchCombosPage(0, COMBOS_PAGE_SIZE);
   if (rows === null) {
-    list.innerHTML = `<p class="muted">Couldn't load combos right now.</p>`;
+    list.innerHTML = errorStateHtml("Couldn't load combos right now.", 'loadCombos()');
+    refreshIcons();
     return;
   }
   allCombos = rows;
@@ -259,7 +260,7 @@ function renderCombos() {
           <span class="combo-vote-score" style="min-width:20px; text-align:center; font-weight:700; font-size:0.85rem; color:${c.score > 0 ? 'var(--gold-bright)' : c.score < 0 ? 'var(--blood-dim)' : 'var(--ash)'};">${c.score}</span>
           <button type="button" class="btn btn-ghost btn-sm combo-vote-btn ${c.myVote === -1 ? 'active-down' : ''}" data-vote-dir="-1" aria-label="Downvote"><i data-lucide="thumbs-down" class="icon-sm"></i></button>
         </div>
-        ${c.video_url ? `<a href="${escapeHtml(c.video_url)}" target="_blank" rel="noopener noreferrer" class="btn btn-primary btn-sm"><i data-lucide="play" class="icon-sm icon-inline"></i>Watch Clip</a>` : '<span></span>'}
+        ${c.video_url ? `<a href="${safeUrl(c.video_url)}" target="_blank" rel="noopener noreferrer" class="btn btn-primary btn-sm"><i data-lucide="play" class="icon-sm icon-inline"></i>Watch Clip</a>` : '<span></span>'}
         <div style="display:flex; gap:6px;">
           <button class="btn btn-ghost btn-sm" data-copy-combo="${c.id}" title="Copy link"><i data-lucide="link" class="icon-sm"></i></button>
           ${c.created_by === currentUserId ? `<button class="btn btn-ghost btn-sm" data-edit-combo="${c.id}" title="Edit"><i data-lucide="pencil" class="icon-sm"></i></button>` : ''}

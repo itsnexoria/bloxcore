@@ -58,7 +58,8 @@ async function loadEvents() {
   ]);
 
   if (error) {
-    container.innerHTML = `<p class="muted">Couldn't load events right now.</p>`;
+    container.innerHTML = errorStateHtml("Couldn't load events right now.", 'loadEvents()');
+    refreshIcons();
     logError(error);
     return;
   }
@@ -146,7 +147,7 @@ function renderEventCard(ev) {
         ${ev.participants.length ? `<div style="display:flex; align-items:center; margin:0 0 14px 8px;">${avatarStack}${extraCount}</div>` : ''}
 
         <div style="display:flex; gap:8px;">
-          <a href="${escapeHtml(ev.link)}" target="_blank" rel="noopener noreferrer" class="btn btn-ghost btn-sm" style="flex:1; min-width:0;"><i data-lucide="external-link" class="icon-sm icon-inline"></i>Open</a>
+          <a href="${safeUrl(ev.link)}" target="_blank" rel="noopener noreferrer" class="btn btn-ghost btn-sm" style="flex:1; min-width:0;"><i data-lucide="external-link" class="icon-sm icon-inline"></i>Open</a>
           <div style="flex:1; min-width:0;">${actionHtml}</div>
         </div>
       </div>

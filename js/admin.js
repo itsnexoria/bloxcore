@@ -121,7 +121,7 @@ function renderPendingCard(sub) {
       </div>`
     : '';
   const videoLink = sub.video_url
-    ? `<a href="${escapeHtml(sub.video_url)}" target="_blank" rel="noopener noreferrer" class="btn btn-ghost btn-sm" style="margin-bottom:14px; display:inline-block;"><i data-lucide="play" class="icon-sm"></i> Watch video proof</a>`
+    ? `<a href="${safeUrl(sub.video_url)}" target="_blank" rel="noopener noreferrer" class="btn btn-ghost btn-sm" style="margin-bottom:14px; display:inline-block;"><i data-lucide="play" class="icon-sm"></i> Watch video proof</a>`
     : '';
 
   return `

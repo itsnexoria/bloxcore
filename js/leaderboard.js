@@ -71,7 +71,8 @@ async function loadLeaderboard(page) {
     list.innerHTML = `<div class="skeleton" style="height:60px; margin:16px;"></div>`;
     const { data, error } = await sb.rpc('get_period_player_leaderboard', { period: activePeriod });
     if (error) {
-      list.innerHTML = `<p class="muted" style="padding:20px;">Couldn't load the leaderboard right now.</p>`;
+      list.innerHTML = errorStateHtml("Couldn't load the leaderboard right now.", 'loadLeaderboard(currentPage)');
+      refreshIcons();
       logError(error);
       return;
     }
@@ -116,7 +117,8 @@ async function loadLeaderboard(page) {
     .range(from, to);
 
   if (error) {
-    list.innerHTML = `<p class="muted" style="padding:20px;">Couldn't load the leaderboard right now.</p>`;
+    list.innerHTML = errorStateHtml("Couldn't load the leaderboard right now.", 'loadLeaderboard(currentPage)');
+    refreshIcons();
     logError(error);
     return;
   }
@@ -170,7 +172,8 @@ async function loadCrewLeaderboard() {
     updateSubtitle('Ranked by total crew XP.');
     const { data, error } = await sb.rpc('get_period_crew_leaderboard', { period: activePeriod });
     if (error) {
-      list.innerHTML = `<p class="muted" style="padding:20px;">Couldn't load the crew leaderboard right now.</p>`;
+      list.innerHTML = errorStateHtml("Couldn't load the crew leaderboard right now.", 'loadCrewLeaderboard()');
+      refreshIcons();
       logError(error);
       return;
     }
@@ -207,7 +210,8 @@ async function loadCrewLeaderboard() {
   const { data, error } = await sb.rpc('get_crew_leaderboard');
 
   if (error) {
-    list.innerHTML = `<p class="muted" style="padding:20px;">Couldn't load the crew leaderboard right now.</p>`;
+    list.innerHTML = errorStateHtml("Couldn't load the crew leaderboard right now.", 'loadCrewLeaderboard()');
+    refreshIcons();
     logError(error);
     return;
   }
@@ -254,7 +258,8 @@ async function loadPvpLeaderboard() {
   const { data, error } = await sb.rpc('get_pvp_leaderboard');
 
   if (error) {
-    list.innerHTML = `<p class="muted" style="padding:20px;">Couldn't load the PvP leaderboard right now.</p>`;
+    list.innerHTML = errorStateHtml("Couldn't load the PvP leaderboard right now.", 'loadPvpLeaderboard()');
+    refreshIcons();
     logError(error);
     return;
   }
@@ -293,7 +298,8 @@ async function loadCrewWarLeaderboard() {
   const { data, error } = await sb.rpc('get_crew_war_leaderboard');
 
   if (error) {
-    list.innerHTML = `<p class="muted" style="padding:20px;">Couldn't load the crew war leaderboard right now.</p>`;
+    list.innerHTML = errorStateHtml("Couldn't load the crew war leaderboard right now.", 'loadCrewWarLeaderboard()');
+    refreshIcons();
     logError(error);
     return;
   }

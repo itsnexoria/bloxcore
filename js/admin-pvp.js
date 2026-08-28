@@ -60,8 +60,8 @@ function renderPvpResultRow(r, proofs) {
 
   const proofLink = (p, label) => p
     ? (p.proof_url
-        ? `<a href="${p.proof_url}" target="_blank" rel="noopener noreferrer" title="${label} proof"><img src="${p.proof_url}" alt="" loading="lazy" style="width:32px; height:32px; object-fit:cover; border-radius:6px; border:1px solid var(--glass-border);"></a>`
-        : `<a href="${p.video_url}" target="_blank" rel="noopener noreferrer" class="tag tag-medium" style="font-size:0.7rem;">${label} video</a>`)
+        ? `<a href="${safeUrl(p.proof_url)}" target="_blank" rel="noopener noreferrer" title="${label} proof"><img src="${safeUrl(p.proof_url)}" alt="" loading="lazy" style="width:32px; height:32px; object-fit:cover; border-radius:6px; border:1px solid var(--glass-border);"></a>`
+        : `<a href="${safeUrl(p.video_url)}" target="_blank" rel="noopener noreferrer" class="tag tag-medium" style="font-size:0.7rem;">${label} video</a>`)
     : `<span class="tag" style="background:rgba(220,38,38,0.12); color:var(--blood-dim); font-size:0.7rem;">${label} missing</span>`;
 
   return `

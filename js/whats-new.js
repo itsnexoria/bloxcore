@@ -46,7 +46,8 @@ async function loadEntries() {
   const { data, error } = await sb.from('changelog_entries').select('*').order('created_at', { ascending: false }).range(0, ENTRIES_PAGE_SIZE - 1);
 
   if (error) {
-    list.innerHTML = `<p class="muted">Couldn't load updates right now.</p>`;
+    list.innerHTML = errorStateHtml("Couldn't load updates right now.", 'loadEntries()');
+    refreshIcons();
     logError(error);
     return;
   }
