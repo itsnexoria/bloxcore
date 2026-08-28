@@ -14,6 +14,10 @@ function wireSettingsTabs() {
   if (initial) activate(initial);
 }
 
+// Set in onReady below — lets the blocked-users error state's Retry button re-call the
+// loader with the right id.
+let settingsUserId = null;
+
 onReady(async () => {
   wireSettingsTabs();
   wirePushNotifToggle();
@@ -58,6 +62,7 @@ onReady(async () => {
   });
 
   const { user, profile } = await getCurrentProfile();
+  settingsUserId = user.id;
   if (!user) {
     document.getElementById('account-panel').innerHTML = `<p class="muted">Sign in to manage your account.</p>`;
     document.getElementById('hide-leaderboard-toggle').disabled = true;
@@ -214,7 +219,8 @@ onReady(async () => {
 function renderAccountPanel(profile) {
   const panel = document.getElementById('account-panel');
   if (!profile) {
-    panel.innerHTML = `<p class="muted">Couldn't load your account details.</p>`;
+    panel.innerHTML = errorStateHtml("Couldn't load your account details.");
+    refreshIcons();
     return;
   }
   const roleTag = profile.role === 'admin'
@@ -495,7 +501,7 @@ async function loadBlockedUsersList(userId) {
     .eq('blocker_id', userId)
     .order('created_at', { ascending: false });
 
-  if (error) { container.innerHTML = `<p class="muted">Couldn't load this right now.</p>`; return; }
+  if (error) { container.innerHTML = errorStateHtml("Couldn't load this right now.", 'loadBlockedUsersList(settingsUserId)'); refreshIcons(); return; }
   if (!data.length) { container.innerHTML = `<p class="muted" style="font-size:0.85rem;">You haven't blocked or muted anyone.</p>`; return; }
 
   container.innerHTML = data.map(row => `

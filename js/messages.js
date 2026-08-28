@@ -342,7 +342,7 @@ async function loadThreadMessages() {
     .order('created_at', { ascending: true })
     .limit(100);
 
-  if (error) { container.innerHTML = `<p class="muted">Couldn't load messages.</p>`; return; }
+  if (error) { container.innerHTML = errorStateHtml("Couldn't load messages.", 'loadThreadMessages()'); refreshIcons(); return; }
 
   container.innerHTML = data.length
     ? data.map(renderMessageBubble).join('')

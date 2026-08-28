@@ -509,7 +509,8 @@ async function loadNotifications() {
 
   const { data, error } = await sb.from('notifications').select('*').eq('user_id', _notifUserId).order('created_at', { ascending: false }).limit(20);
   if (error) {
-    dropdown.innerHTML = `<p class="muted" style="padding:14px; font-size:0.85rem;">Couldn't load notifications.</p>`;
+    dropdown.innerHTML = errorStateHtml("Couldn't load notifications.", 'loadNotifications()');
+    refreshIcons();
     return;
   }
 
