@@ -9,7 +9,8 @@ async function initAnalyticsTab() {
 
   const { data, error } = await sb.rpc('admin_get_analytics');
   if (error || !data) {
-    document.getElementById('analytics-stat-cards').innerHTML = `<p class="muted">Couldn't load analytics right now.</p>`;
+    document.getElementById('analytics-stat-cards').innerHTML = errorStateHtml("Couldn't load analytics right now.", 'initAnalyticsTab()');
+    refreshIcons();
     logError('admin_get_analytics failed:', error?.message);
     return;
   }

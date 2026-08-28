@@ -130,7 +130,8 @@ async function loadReports() {
   const data = await fetchReportsPage(0, REPORTS_PAGE_SIZE);
 
   if (data === null) {
-    list.innerHTML = `<p class="muted">Couldn't load reports right now.</p>`;
+    list.innerHTML = errorStateHtml("Couldn't load reports right now.", 'loadReports()');
+    refreshIcons();
     return;
   }
 

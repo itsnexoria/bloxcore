@@ -370,7 +370,7 @@ async function handleAddChatDomain(e) {
 async function loadDiscordWebhooks() {
   const { data, error } = await sb.from('discord_webhooks').select('channel, label, url, ping_role_id').order('label');
   const list = document.getElementById('discord-webhook-list');
-  if (error) { list.innerHTML = `<p class="muted" style="font-size:0.82rem;">Couldn't load webhooks.</p>`; return; }
+  if (error) { list.innerHTML = errorStateHtml("Couldn't load webhooks.", 'loadDiscordWebhooks()'); refreshIcons(); return; }
 
   list.innerHTML = (data || []).map(row => `
     <div class="webhook-row" data-webhook-channel="${escapeHtml(row.channel)}" style="flex-wrap:wrap;">

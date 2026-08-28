@@ -147,7 +147,8 @@ async function loadActiveUsers() {
 
   if (error) {
     statsEl.innerHTML = '';
-    listEl.innerHTML = `<p class="muted">Couldn't load user activity right now.</p>`;
+    listEl.innerHTML = errorStateHtml("Couldn't load user activity right now.", 'loadActiveUsers()');
+    refreshIcons();
     logError(error);
     return;
   }
@@ -228,7 +229,8 @@ async function loadUsers(query, page) {
   const { data, error, count } = await req;
 
   if (error) {
-    table.innerHTML = `<p class="muted">Couldn't load users right now.</p>`;
+    table.innerHTML = errorStateHtml("Couldn't load users right now.", 'loadUsers(currentQuery, usersPage)');
+    refreshIcons();
     document.getElementById('user-bulk-bar').style.display = 'none';
     logError(error);
     return;

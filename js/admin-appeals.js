@@ -45,7 +45,8 @@ async function loadAppeals() {
   const data = await fetchAppealsPage(0, APPEALS_PAGE_SIZE);
 
   if (data === null) {
-    list.innerHTML = `<p class="muted">Couldn't load appeals right now.</p>`;
+    list.innerHTML = errorStateHtml("Couldn't load appeals right now.", 'loadAppeals()');
+    refreshIcons();
     return;
   }
 

@@ -30,7 +30,7 @@ async function loadPvpResults() {
     .order('created_at', { ascending: false })
     .limit(60);
 
-  if (error) { container.innerHTML = `<p class="muted">Couldn't load results right now.</p>`; return; }
+  if (error) { container.innerHTML = errorStateHtml("Couldn't load results right now.", 'loadPvpResults()'); refreshIcons(); return; }
   if (!results.length) { container.innerHTML = `<div class="empty-state">No ${pvpResultsFilter} results.</div>`; return; }
 
   const { data: proofs } = await sb.from('pvp_result_proofs').select('result_id, user_id, proof_url, video_url');

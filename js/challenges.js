@@ -63,9 +63,12 @@ async function loadChallenges() {
     { key: 'none', label: 'Standing Bounties', hint: 'Always available' },
   ];
 
+  const PERIOD_UNIT_FOR_KEY = { daily: 'day', weekly: 'week', monthly: 'month' };
+
   grid.innerHTML = sections.map(section => {
     const items = data.filter(c => c.rotation === section.key);
     if (!items.length) return '';
+    const periodUnit = PERIOD_UNIT_FOR_KEY[section.key];
     return `
       <div class="bounty-section">
         <div class="flex-between" style="margin-bottom:16px;">
@@ -75,6 +78,7 @@ async function loadChallenges() {
           </span>
         </div>
         <div class="grid">${items.map(renderChallengeCard).join('')}</div>
+        ${periodUnit && currentUser ? renderPeriodCompletionFooter(items, periodUnit) : ''}
       </div>
     `;
   }).join('');
@@ -86,35 +90,49 @@ async function loadChallenges() {
   startResetCountdowns();
 }
 
-// Purely a "how many of today's daily quests have you cleared" readout — there's no
-// backend concept of a milestone/bonus reward for finishing all of them, so this only
-// ever shows real completion counts, not an invented bonus.
-function renderDailyCompletionFooter(dailyItems) {
-  const doneCount = dailyItems.filter(c => {
-    const completedAt = completionMap.get(c.id);
-    return completedAt && periodKey(new Date(completedAt), 'day') === periodKey(new Date(), 'day');
-  }).length;
-  const total = dailyItems.length;
-  const pct = total ? Math.round((doneCount / total) * 100) : 0;
+// A "how many of this period's bounties have you cleared" readout — there's no backend
+// concept of a milestone/bonus reward for finishing all of them, so this only ever shows
+// real completion counts, not an invented bonus. Works for daily, weekly, and monthly
+// rotations alike (periodKey() already supported all three units; this just needed to stop
+// being hardcoded to 'day').
+const PERIOD_FOOTER_COPY = {
+  day: { icon: 'skull', cadence: 'New bounties every day. Don\'t miss out!', noun: 'Bount' },
+  week: { icon: 'flame', cadence: 'New bounties every Monday. Don\'t miss out!', noun: 'Bount' },
+  month: { icon: 'crown', cadence: 'New bounties on the 1st. Don\'t miss out!', noun: 'Bount' },
+};
+// Beyond this many items, individual step-dots get too cramped to read (weekly/monthly
+// pools can run larger than daily's), so fall back to a plain "X of Y done" line instead.
+const PERIOD_FOOTER_STEP_DOT_LIMIT = 10;
 
-  const steps = dailyItems.map((_, i) => {
-    const n = i + 1;
-    const done = n <= doneCount;
-    return `
-      <div class="quest-progress-step-wrap">
-        <span class="quest-progress-step ${done ? 'done' : ''}">${done ? '<i data-lucide="check" style="width:13px;height:13px;"></i>' : n}</span>
-        <span class="quest-progress-step-label">${n} Bount${n === 1 ? 'y' : 'ies'}</span>
-      </div>
-    `;
-  }).join('');
+function renderPeriodCompletionFooter(items, period) {
+  const doneCount = items.filter(c => {
+    const completedAt = completionMap.get(c.id);
+    return completedAt && periodKey(new Date(completedAt), period) === periodKey(new Date(), period);
+  }).length;
+  const total = items.length;
+  const pct = total ? Math.round((doneCount / total) * 100) : 0;
+  const copy = PERIOD_FOOTER_COPY[period] || PERIOD_FOOTER_COPY.day;
+
+  const steps = total > PERIOD_FOOTER_STEP_DOT_LIMIT
+    ? `<p class="muted" style="margin:0; font-size:0.78rem; text-align:center;">${doneCount} of ${total} completed</p>`
+    : items.map((_, i) => {
+      const n = i + 1;
+      const done = n <= doneCount;
+      return `
+        <div class="quest-progress-step-wrap">
+          <span class="quest-progress-step ${done ? 'done' : ''}">${done ? '<i data-lucide="check" style="width:13px;height:13px;"></i>' : n}</span>
+          <span class="quest-progress-step-label">${n} ${copy.noun}${n === 1 ? 'y' : 'ies'}</span>
+        </div>
+      `;
+    }).join('');
 
   return `
     <div class="quest-daily-footer">
       <div style="display:flex; align-items:center; gap:14px; flex:1; min-width:220px;">
-        <span class="quest-daily-footer-icon"><i data-lucide="skull" class="icon-sm"></i></span>
+        <span class="quest-daily-footer-icon"><i data-lucide="${copy.icon}" class="icon-sm"></i></span>
         <div class="quest-daily-footer-text">
           <p>Complete bounties to earn XP and progress your legend.</p>
-          <p class="muted">New bounties every day. Don't miss out!</p>
+          <p class="muted">${copy.cadence}</p>
         </div>
       </div>
       <div class="quest-progress-wrap">

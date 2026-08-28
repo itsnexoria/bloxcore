@@ -77,7 +77,7 @@ async function handleCreateTemplate(e) {
 async function loadTournamentTemplates() {
   const container = document.getElementById('tournament-templates-list');
   const { data: templates, error } = await sb.from('tournament_templates').select('*').order('created_at', { ascending: false });
-  if (error) { container.innerHTML = `<p class="muted" style="font-size:0.82rem;">Couldn't load templates.</p>`; return; }
+  if (error) { container.innerHTML = errorStateHtml("Couldn't load templates.", 'loadTournamentTemplates()'); refreshIcons(); return; }
   if (!templates.length) { container.innerHTML = `<p class="muted" style="font-size:0.82rem;">No templates yet.</p>`; return; }
 
   const DAY_NAMES = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
@@ -151,7 +151,7 @@ async function loadTournamentsAdminList() {
     .select('id, name, description, match_type, bracket_size, status, starts_at, winner:profiles!tournaments_winner_id_fkey(username, display_name)')
     .order('created_at', { ascending: false });
 
-  if (error) { container.innerHTML = `<p class="muted">Couldn't load tournaments.</p>`; return; }
+  if (error) { container.innerHTML = errorStateHtml("Couldn't load tournaments.", 'loadTournamentsAdminList()'); refreshIcons(); return; }
   if (!tournaments.length) { container.innerHTML = `<div class="empty-state">No tournaments yet — create one to get started.</div>`; return; }
 
   const ids = tournaments.map(t => t.id);

@@ -71,7 +71,8 @@ async function loadGiveaways(page) {
   ]);
 
   if (error) {
-    table.innerHTML = `<p class="muted">Couldn't load giveaways right now.</p>`;
+    table.innerHTML = errorStateHtml("Couldn't load giveaways right now.", 'loadGiveaways(giveawaysPage)');
+    refreshIcons();
     document.getElementById('giveaway-bulk-bar').style.display = 'none';
     logError(error);
     return;

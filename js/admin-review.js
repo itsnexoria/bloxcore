@@ -84,7 +84,8 @@ async function loadPendingGiveaways() {
     .order('created_at', { ascending: true });
 
   if (error) {
-    list.innerHTML = `<p class="muted">Couldn't load pending giveaways right now.</p>`;
+    list.innerHTML = errorStateHtml("Couldn't load pending giveaways right now.", 'loadPendingGiveaways()');
+    refreshIcons();
     logError(error);
     return;
   }

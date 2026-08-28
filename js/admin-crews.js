@@ -63,7 +63,7 @@ async function loadCrewsTable() {
   if (search) query = query.or(`name.ilike.%${search}%,tag.ilike.%${search}%`);
   const { data, error } = await query;
 
-  if (error) { tbody.innerHTML = `<tr><td colspan="7" class="muted">Couldn't load crews.</td></tr>`; logError(error); return; }
+  if (error) { tbody.innerHTML = errorStateTableRow(7, "Couldn't load crews.", 'loadCrewsTable()'); refreshIcons(); logError(error); return; }
   if (!data.length) {
     tbody.innerHTML = '';
     document.getElementById('cw-crews-empty').style.display = 'block';
@@ -121,7 +121,7 @@ async function loadWarsTable() {
   if (status) query = query.eq('status', status);
   const { data, error } = await query;
 
-  if (error) { tbody.innerHTML = `<tr><td colspan="6" class="muted">Couldn't load wars.</td></tr>`; logError(error); return; }
+  if (error) { tbody.innerHTML = errorStateTableRow(6, "Couldn't load wars.", 'loadWarsTable()'); refreshIcons(); logError(error); return; }
 
   const filtered = search
     ? data.filter(w => (w.challenger?.name || '').toLowerCase().includes(search.toLowerCase()) || (w.defender?.name || '').toLowerCase().includes(search.toLowerCase()))
@@ -199,7 +199,7 @@ async function loadCwDisputes() {
     .eq('status', 'accepted')
     .order('created_at', { ascending: true });
 
-  if (error) { list.innerHTML = `<p class="muted">Couldn't load wars right now.</p>`; logError(error); return; }
+  if (error) { list.innerHTML = errorStateHtml("Couldn't load wars right now.", 'loadCwDisputes()'); refreshIcons(); logError(error); return; }
 
   list.innerHTML = data.length
     ? data.map(renderCwDisputeCard).join('')

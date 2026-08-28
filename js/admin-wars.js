@@ -24,7 +24,8 @@ async function loadDisputedWars() {
     .order('created_at', { ascending: true });
 
   if (error) {
-    list.innerHTML = `<p class="muted">Couldn't load wars right now.</p>`;
+    list.innerHTML = errorStateHtml("Couldn't load wars right now.", 'loadDisputedWars()');
+    refreshIcons();
     logError(error);
     return;
   }

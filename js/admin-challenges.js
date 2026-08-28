@@ -114,7 +114,8 @@ async function loadChallenges(page) {
     .range(from, to);
 
   if (error) {
-    table.innerHTML = `<p class="muted">Couldn't load quests right now.</p>`;
+    table.innerHTML = errorStateHtml("Couldn't load quests right now.", 'loadChallenges(challengesPage)');
+    refreshIcons();
     logError(error);
     return;
   }

@@ -59,7 +59,8 @@ async function loadPending() {
     .order('submitted_at', { ascending: true });
 
   if (error) {
-    list.innerHTML = `<p class="muted">Couldn't load submissions right now.</p>`;
+    list.innerHTML = errorStateHtml("Couldn't load submissions right now.", 'loadPending()');
+    refreshIcons();
     logError(error);
     return;
   }

@@ -45,7 +45,8 @@ async function loadTitles() {
   const { data, error } = await sb.from('titles').select('*').order('created_at', { ascending: false });
 
   if (error) {
-    list.innerHTML = `<p class="muted">Couldn't load titles right now.</p>`;
+    list.innerHTML = errorStateHtml("Couldn't load titles right now.", 'loadTitles()');
+    refreshIcons();
     logError(error);
     return;
   }

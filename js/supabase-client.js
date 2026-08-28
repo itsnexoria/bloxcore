@@ -85,6 +85,15 @@ function errorStateHtml(message, retryFn) {
   `;
 }
 
+// Same as errorStateHtml() but as a single <tr><td>, for tables where a <div> inside
+// <tbody> would be invalid markup (admin crew/war tables).
+function errorStateTableRow(colspan, message, retryFn) {
+  return `<tr><td colspan="${colspan}" class="muted" style="padding:20px; text-align:center;">
+    ${escapeHtml(message)}
+    ${retryFn ? ` <button type="button" class="btn btn-ghost btn-sm" onclick="${retryFn}"><i data-lucide="refresh-cw" class="icon-sm icon-inline"></i>Retry</button>` : ''}
+  </td></tr>`;
+}
+
 function escapeHtml(str) {
   const div = document.createElement('div');
   div.textContent = str ?? '';
