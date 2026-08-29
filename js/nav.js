@@ -318,12 +318,14 @@ async function populateAuthArea() {
   renderNavProfileAvatar(profile);
 
   const onAdminPage = window.location.pathname.startsWith('/admin/');
-  const adminLink = (role !== 'user' && !onAdminPage) ? `<a href="/admin/"><i data-lucide="shield" class="icon-sm icon-inline"></i>Admin</a>` : '';
+  const adminLink = (role !== 'user' && !onAdminPage) ? `<a href="/admin/" class="nav-auth-icon-btn" title="Admin" aria-label="Admin"><i data-lucide="shield" class="icon-sm"></i></a>` : '';
 
   slot.innerHTML = `
-    <a href="/dashboard/"><i data-lucide="user" class="icon-sm icon-inline"></i>My Profile</a>
-    ${adminLink}
-    <a href="/settings/"><i data-lucide="settings" class="icon-sm icon-inline"></i>Settings</a>
+    <div class="nav-auth-icons">
+      <a href="/dashboard/" class="nav-auth-icon-btn" title="My Profile" aria-label="My Profile"><i data-lucide="user" class="icon-sm"></i></a>
+      ${adminLink}
+      <a href="/settings/" class="nav-auth-icon-btn" title="Settings" aria-label="Settings"><i data-lucide="settings" class="icon-sm"></i></a>
+    </div>
     <button class="btn btn-ghost btn-sm" id="nav-sign-out"><i data-lucide="log-out" class="icon-sm icon-inline"></i>Sign Out</button>
   `;
   refreshIcons();

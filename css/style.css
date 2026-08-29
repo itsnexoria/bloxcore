@@ -414,12 +414,28 @@ section.section h2.center::after { margin-left: auto; margin-right: auto; }
   flex-shrink: 0;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 10px;
   padding: 14px 18px calc(16px + env(safe-area-inset-bottom));
   border-top: 1px solid var(--glass-border);
   background: rgb(0 0 0 / 0.16);
 }
 .nav-auth-slot .btn { width: 100%; }
+
+.nav-auth-icons { display: flex; gap: 8px; }
+.nav-auth-icon-btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 40px;
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-sm);
+  color: var(--ash);
+  transition: border-color 0.15s ease, color 0.15s ease, background 0.15s ease, transform 0.15s ease;
+}
+.nav-auth-icon-btn:hover { border-color: var(--brass); color: var(--brass-bright); background: rgb(var(--brass-rgb) / 0.08); transform: translateY(-1px); }
+.nav-auth-icon-btn.active { border-color: var(--brass); color: var(--brass-bright); background: rgb(var(--brass-rgb) / 0.14); }
 
 .nav-header-actions {
   display: flex;
