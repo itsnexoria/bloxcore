@@ -66,12 +66,21 @@
   </div>
 </nav>
 
-<section class="section">
-  <div class="container">
+<section class="section page-head">
+  <svg class="compass-mark" aria-hidden="true" style="width:220px; height:220px; opacity:0.08; top:-40px; right:-20px;" viewBox="0 0 100 100">
+    <circle cx="50" cy="50" r="46" fill="none" stroke="currentColor" stroke-width="0.6"/>
+    <circle cx="50" cy="50" r="34" fill="none" stroke="currentColor" stroke-width="0.4"/>
+    <path d="M50 12 L57 50 L50 88 L43 50 Z" fill="currentColor" opacity="0.85"/>
+    <path d="M12 50 L50 43 L88 50 L50 57 Z" fill="currentColor" opacity="0.4"/>
+  </svg>
+  <div class="container" style="position:relative; z-index:1;">
     <div class="flex-between">
-      <div>
-        <h1 style="font-size:1.8rem; margin-bottom:2px;">Sea Events</h1>
-        <p class="muted" style="margin:0;">Post a server or join one for Sea Beasts, Terror Sharks, Leviathan, Prehistoric Island and Mirage. Listings auto-expire after 1 hour.</p>
+      <div style="display:flex; align-items:center;">
+        <div class="page-head-icon"><i data-lucide="waves" class="icon-md"></i></div>
+        <div>
+          <h1 style="font-size:1.8rem; margin-bottom:2px;">Sea Events</h1>
+          <p class="muted" style="margin:0;">Post a server or join one for Sea Beasts, Terror Sharks, Leviathan, Prehistoric Island and Mirage. Listings auto-expire after 1 hour.</p>
+        </div>
       </div>
       <button type="button" class="btn btn-primary btn-sm" id="post-event-btn" style="display:none; flex-shrink:0;"><i data-lucide="plus" class="icon-sm icon-inline"></i>Post Event</button>
     </div>

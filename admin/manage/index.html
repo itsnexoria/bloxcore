@@ -58,6 +58,7 @@
       <button type="button" class="btn btn-sm" data-manage-tab="crews-wars" data-requires-role="admin">Crews &amp; Wars</button>
       <button type="button" class="btn btn-sm" data-manage-tab="users" data-requires-role="admin">Users</button>
       <button type="button" class="btn btn-sm" data-manage-tab="titles" data-requires-role="admin">Titles</button>
+      <button type="button" class="btn btn-sm" data-manage-tab="frames" data-requires-role="admin">Avatar Frames</button>
       <button type="button" class="btn btn-sm" data-manage-tab="analytics" data-requires-role="admin">Analytics</button>
       <button type="button" class="btn btn-sm" data-manage-tab="site" data-requires-role="admin">Site Controls</button>
     </div>
@@ -323,6 +324,38 @@
 
       <h3 style="font-size:1.1rem; margin-top:32px;">All Titles</h3>
       <div id="titles-list" style="margin-top:16px;">
+        <div class="skeleton" style="height:50px; margin-bottom:10px;"></div>
+      </div>
+    </div>
+
+    <!-- ================= Avatar Frames ================= -->
+    <div data-manage-panel="frames" style="display:none;">
+      <h2 style="font-size:1.2rem; margin-top:24px;">Avatar Frames</h2>
+      <p class="muted" style="margin-top:-4px;">Uploaded here, gated by level, shown everywhere an avatar renders. Upload a PNG/WEBP/GIF with a transparent center — it's overlaid over the user's pfp, so it needs to be bigger than a plain circle to actually read as a "frame".</p>
+
+      <div class="panel" style="margin-top:16px;">
+        <h3 style="font-size:1rem; margin-bottom:4px;" id="frame-form-heading">Upload a Frame</h3>
+        <form id="frame-form" style="display:flex; gap:12px; align-items:flex-end; flex-wrap:wrap;">
+          <div style="flex:1; min-width:160px;">
+            <label for="frame-name">Name</label>
+            <input type="text" id="frame-name" required maxlength="30" placeholder="e.g. Ember Ring">
+          </div>
+          <div style="min-width:120px;">
+            <label for="frame-min-level">Min. Level</label>
+            <input type="number" id="frame-min-level" min="0" max="999" value="0" required>
+          </div>
+          <div style="flex:1; min-width:200px;">
+            <label for="frame-image-file">Image</label>
+            <input type="file" id="frame-image-file" accept="image/png,image/webp,image/gif" required>
+          </div>
+          <img id="frame-image-preview" alt="" style="display:none; width:52px; height:52px; object-fit:contain; background:var(--navy); border-radius:8px; padding:4px; border:1px solid var(--glass-border);">
+          <button type="submit" class="btn btn-primary" id="frame-form-submit">Add Frame</button>
+          <button type="button" class="btn btn-ghost" id="frame-form-cancel" style="display:none;">Cancel</button>
+        </form>
+      </div>
+
+      <h3 style="font-size:1.1rem; margin-top:32px;">All Frames</h3>
+      <div id="frames-list" style="margin-top:16px;">
         <div class="skeleton" style="height:50px; margin-bottom:10px;"></div>
       </div>
     </div>
@@ -998,6 +1031,7 @@
 <script src="/js/admin-crews.js"></script>
 <script src="/js/admin-users.js"></script>
 <script src="/js/admin-titles.js"></script>
+<script src="/js/admin-frames.js"></script>
 <script src="/js/admin-analytics.js"></script>
 <script src="/js/admin-site.js"></script>
 </body>

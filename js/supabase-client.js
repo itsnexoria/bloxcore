@@ -292,28 +292,50 @@ async function loadReputationBadges(container, posters) {
 // Shared circular avatar renderer. Discord CDN avatar URLs can go stale when a user changes
 // their pfp (the old hash 404s), which otherwise shows the browser's broken-image icon —
 // onerror swaps it for an initials placeholder instead, site-wide, from one place.
-// Curated avatar frames, unlocked by level (enforced server-side too, in the
-// validate_avatar_frame trigger — keep minLevel here in sync with that function).
-const AVATAR_FRAME_PRESETS = [
-  { key: 'bronze', label: 'Bronze', minLevel: 10, ring: 'box-shadow:0 0 0 3px var(--ink), 0 0 0 5px #cd7f32, 0 4px 18px rgba(205,127,50,0.45);' },
-  { key: 'silver', label: 'Silver', minLevel: 30, ring: 'box-shadow:0 0 0 3px var(--ink), 0 0 0 5px #c0c0c0, 0 4px 18px rgba(192,192,192,0.4);' },
-  { key: 'gold', label: 'Gold', minLevel: 50, ring: 'box-shadow:0 0 0 3px var(--ink), 0 0 0 5px #fbbf24, 0 4px 20px rgba(251,191,36,0.55);' },
-  { key: 'emerald', label: 'Emerald', minLevel: 80, ring: 'box-shadow:0 0 0 3px var(--ink), 0 0 0 5px #34d399, 0 4px 22px rgba(52,211,153,0.55);' },
-  { key: 'diamond', label: 'Diamond', minLevel: 100, ring: 'box-shadow:0 0 0 3px var(--ink), 0 0 0 5px #38bdf8, 0 4px 24px rgba(56,189,248,0.6);' },
-  { key: 'prismatic', label: 'Prismatic', minLevel: 150, cls: 'avatar-frame-prismatic' },
-];
+// Admin-managed avatar frames (avatar_frames table) — replaces the old hardcoded
+// 6-preset CSS-ring system. Frames are images now, uploaded/gated by level in
+// /admin/manage/, so this fetches the catalog once per page load and caches it:
+// avatarHtml() needs synchronous access (it's called inline in dozens of template
+// literals throughout the site), and a small, rarely-changing table is safe to
+// front with a plain module-level cache rather than threading an async fetch
+// through every single caller.
+let _avatarFrames = {};
+let _avatarFramesList = [];
+const _avatarFramesLoaded = (async () => {
+  const { data } = await sb.from('avatar_frames').select('key, name, image_url, min_level').order('sort_order', { ascending: true });
+  _avatarFramesList = data || [];
+  _avatarFramesList.forEach(f => { _avatarFrames[f.key] = f; });
+  return _avatarFramesList;
+})();
+// For pickers (profile-edit) that want the full catalog, not just a sync lookup —
+// awaits the same fetch above rather than firing a second query.
+async function getAvatarFramesCatalog() {
+  return _avatarFramesLoaded;
+}
 
 function avatarHtml(profile, size, extraStyle = '', presence = null) {
   const name = displayNameFor(profile);
   const initial = escapeHtml((name[0] || '?').toUpperCase());
-  const framePreset = AVATAR_FRAME_PRESETS.find(f => f.key === profile?.avatar_frame);
-  const ring = framePreset?.ring || `box-shadow:0 0 0 3px var(--ink), 0 0 0 4px rgb(var(--brass-rgb) / 0.5), 0 4px 18px rgb(var(--shadow-rgb) / 0.4);`;
-  const frameClass = framePreset?.cls ? ` class="${framePreset.cls}"` : '';
-  const fallback = `<div${frameClass} style="width:${size}px;height:${size}px;border-radius:50%;background:linear-gradient(150deg, var(--navy-light), var(--navy));display:flex;align-items:center;justify-content:center;font-size:${Math.round(size * 0.4)}px;flex-shrink:0;color:var(--ash);font-family:var(--font-stamp);${ring}${presence ? '' : extraStyle}">${initial}</div>`;
-  const inner = (!profile?.avatar_url) ? fallback : (() => {
+  const frame = _avatarFrames[profile?.avatar_frame];
+  const ring = frame ? '' : `box-shadow:0 0 0 3px var(--ink), 0 0 0 4px rgb(var(--brass-rgb) / 0.5), 0 4px 18px rgb(var(--shadow-rgb) / 0.4);`;
+  // When a frame is equipped, extraStyle (stacking margins etc.) moves to the wrapper
+  // span below instead of the avatar element itself, since the frame overlay needs
+  // that wrapper anyway. Behavior for the unframed/no-presence case is unchanged.
+  const avatarExtra = (frame || presence) ? '' : extraStyle;
+  const wrapExtra = (frame && !presence) ? extraStyle : '';
+
+  const fallback = `<div style="width:${size}px;height:${size}px;border-radius:50%;background:linear-gradient(150deg, var(--navy-light), var(--navy));display:flex;align-items:center;justify-content:center;font-size:${Math.round(size * 0.4)}px;flex-shrink:0;color:var(--ash);font-family:var(--font-stamp);${ring}${avatarExtra}">${initial}</div>`;
+  const avatarInner = (!profile?.avatar_url) ? fallback : (() => {
     const escapedFallback = fallback.replace(/"/g, '&quot;');
-    return `<img${frameClass} src="${profile.avatar_url}" alt="" loading="lazy" style="width:${size}px;height:${size}px;border-radius:50%;object-fit:cover;flex-shrink:0;${ring}${presence ? '' : extraStyle}" onerror="this.outerHTML='${escapedFallback}';">`;
+    return `<img src="${profile.avatar_url}" alt="" loading="lazy" style="width:${size}px;height:${size}px;border-radius:50%;object-fit:cover;flex-shrink:0;${ring}${avatarExtra}" onerror="this.outerHTML='${escapedFallback}';">`;
   })();
+
+  // Image-based frame: an oversized decorative PNG centered over the avatar,
+  // Discord-style — needs a positioning wrapper since the frame art extends past
+  // the avatar's own circular box.
+  const inner = frame
+    ? `<span style="position:relative; display:inline-flex; width:${size}px; height:${size}px; flex-shrink:0; ${wrapExtra}">${avatarInner}<img src="${frame.image_url}" alt="" loading="lazy" style="position:absolute; top:50%; left:50%; width:${Math.round(size * 1.35)}px; height:${Math.round(size * 1.35)}px; transform:translate(-50%,-50%); pointer-events:none;"></span>`
+    : avatarInner;
 
   if (!presence) return inner;
 

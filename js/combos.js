@@ -220,7 +220,7 @@ function renderCombos() {
   list.innerHTML = items.map(c => {
     const poster = c.profiles || {};
     return `
-    <div class="panel combo-card" data-combo-id="${c.id}">
+    <div class="panel combo-card hover-lift-card" data-combo-id="${c.id}">
       <div class="flex-between" style="align-items:flex-start;">
         <a href="/player/?u=${encodeURIComponent(poster.username || '')}" style="display:flex; align-items:center; gap:10px; text-decoration:none; min-width:0;">
           ${avatarHtml(poster, 34)}

@@ -55,9 +55,18 @@
   </div>
 </nav>
 
-<section class="section">
-  <div class="container" style="max-width:800px;">
-    <h1 style="font-size:1.6rem;">Settings</h1>
+<section class="section page-head">
+  <svg class="compass-mark" aria-hidden="true" style="width:200px; height:200px; opacity:0.07; top:-36px; right:-16px;" viewBox="0 0 100 100">
+    <circle cx="50" cy="50" r="46" fill="none" stroke="currentColor" stroke-width="0.6"/>
+    <circle cx="50" cy="50" r="34" fill="none" stroke="currentColor" stroke-width="0.4"/>
+    <path d="M50 12 L57 50 L50 88 L43 50 Z" fill="currentColor" opacity="0.85"/>
+    <path d="M12 50 L50 43 L88 50 L50 57 Z" fill="currentColor" opacity="0.4"/>
+  </svg>
+  <div class="container" style="max-width:800px; position:relative; z-index:1;">
+    <div style="display:flex; align-items:center; margin-bottom:6px;">
+      <div class="page-head-icon"><i data-lucide="settings" class="icon-md"></i></div>
+      <h1 style="font-size:1.6rem; margin:0;">Settings</h1>
+    </div>
 
     <div class="settings-layout">
       <nav class="settings-nav" id="settings-nav" role="tablist" aria-label="Settings categories">

@@ -66,8 +66,18 @@
   </div>
 </nav>
 
-<section class="section" style="padding-top:20px; padding-bottom:24px;">
-  <div class="container" style="max-width:1400px;">
+<section class="section page-head" style="padding-top:20px; padding-bottom:24px;">
+  <svg class="compass-mark" aria-hidden="true" style="width:160px; height:160px; opacity:0.06; top:-30px; right:-10px;" viewBox="0 0 100 100">
+    <circle cx="50" cy="50" r="46" fill="none" stroke="currentColor" stroke-width="0.6"/>
+    <circle cx="50" cy="50" r="34" fill="none" stroke="currentColor" stroke-width="0.4"/>
+    <path d="M50 12 L57 50 L50 88 L43 50 Z" fill="currentColor" opacity="0.85"/>
+    <path d="M12 50 L50 43 L88 50 L50 57 Z" fill="currentColor" opacity="0.4"/>
+  </svg>
+  <div class="container" style="max-width:1400px; position:relative; z-index:1;">
+    <div style="display:flex; align-items:center; margin-bottom:16px;">
+      <div class="page-head-icon" style="width:36px; height:36px; margin-right:10px;"><i data-lucide="message-circle" class="icon-sm"></i></div>
+      <h1 style="font-size:1.3rem; margin:0;">Community Hub</h1>
+    </div>
     <div style="display:flex; gap:8px; margin:0 0 18px;" id="chat-hub-tabs">
       <button type="button" class="btn btn-primary btn-sm" data-hub-tab="live"><i data-lucide="message-circle" class="icon-sm icon-inline"></i>Live Chat</button>
       <button type="button" class="btn btn-ghost btn-sm" data-hub-tab="messages"><i data-lucide="mail" class="icon-sm icon-inline"></i>Messages</button>

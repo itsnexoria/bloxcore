@@ -122,7 +122,7 @@ function renderEventCard(ev) {
     : (currentUser ? `<button class="se-corner-btn" data-report-event="${ev.id}" title="Report"><i data-lucide="flag" class="icon-sm"></i></button>` : '');
 
   return `
-    <div class="panel se-card">
+    <div class="panel se-card hover-lift-card sea-event-card">
       <div class="se-banner" style="background-image:url('${type.icon || ''}');">
         <div class="se-banner-scrim"></div>
         <span class="se-type-pill">${type.icon ? `<img src="${type.icon}" alt="">` : `<i data-lucide="triangle-alert" class="icon-sm"></i>`}${type.label}</span>

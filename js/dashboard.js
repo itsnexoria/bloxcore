@@ -125,7 +125,7 @@ async function loadMyPvpMatches(userId) {
     return;
   }
   container.innerHTML = data.map(m => `
-    <a href="/pvp/" class="panel" style="display:block; text-decoration:none; color:inherit;">
+    <a href="/pvp/" class="panel hover-lift-card" style="display:block; text-decoration:none; color:inherit;">
       <div class="flex-between">
         <span style="font-size:0.95rem; font-weight:600;">${escapeHtml(m.match_type)}</span>
         <span class="muted" style="font-size:0.72rem;">${timeAgo(m.created_at)}</span>
@@ -156,7 +156,7 @@ async function loadMyTournaments(userId) {
 
   const TN_LABEL = { registration_open: 'Registration Open', in_progress: 'In Progress', completed: 'Completed' };
   container.innerHTML = regsWithTournament.map(r => `
-    <a href="/pvp/?tab=tournaments" class="panel" style="display:block; text-decoration:none; color:inherit;">
+    <a href="/pvp/?tab=tournaments" class="panel hover-lift-card" style="display:block; text-decoration:none; color:inherit;">
       <div class="flex-between">
         <span style="font-size:0.95rem; font-weight:600;">${escapeHtml(r.tournaments.name)}</span>
         <span class="tag tag-medium" style="font-size:0.68rem;">${TN_LABEL[r.tournaments.status]}</span>
@@ -181,7 +181,7 @@ async function loadMyServices(userId) {
     return;
   }
   container.innerHTML = data.map(s => `
-    <a href="/services/#${s.id}" class="panel" style="display:block; text-decoration:none; color:inherit;">
+    <a href="/services/#${s.id}" class="panel hover-lift-card" style="display:block; text-decoration:none; color:inherit;">
       <div class="flex-between">
         <span class="muted" style="font-size:0.72rem; text-transform:capitalize;">${escapeHtml(s.category)}</span>
         <span class="muted" style="font-size:0.72rem;">${timeAgo(s.created_at)}</span>
@@ -207,7 +207,7 @@ async function loadMySeaEvents(userId) {
     return;
   }
   container.innerHTML = data.map(e => `
-    <a href="/sea-events/" class="panel" style="display:block; text-decoration:none; color:inherit;">
+    <a href="/sea-events/" class="panel hover-lift-card" style="display:block; text-decoration:none; color:inherit;">
       <div class="flex-between">
         <span style="font-size:0.95rem; font-weight:600; text-transform:capitalize;">${escapeHtml((e.type || '').replace(/_/g, ' '))}</span>
         <span class="muted" style="font-size:0.72rem;">${timeAgo(e.created_at)}</span>
@@ -235,7 +235,7 @@ async function loadMyGiveaways(userId, role) {
     return;
   }
   container.innerHTML = data.map(g => `
-    <a href="/giveaways/" class="panel" style="display:block; text-decoration:none; color:inherit;">
+    <a href="/giveaways/" class="panel hover-lift-card" style="display:block; text-decoration:none; color:inherit;">
       <div class="flex-between">
         <h3 style="margin:0; font-size:0.95rem; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${escapeHtml(g.title)}</h3>
         <span class="muted" style="font-size:0.72rem;">${timeAgo(g.created_at)}</span>
@@ -276,7 +276,7 @@ async function loadMyTradeListings(userId, maxActiveTrades = 3) {
   };
 
   container.innerHTML = data.map(t => `
-    <a href="/trading/#${t.id}" class="panel" data-my-listing="${t.id}" style="display:block; text-decoration:none; color:inherit;">
+    <a href="/trading/#${t.id}" class="panel hover-lift-card" data-my-listing="${t.id}" style="display:block; text-decoration:none; color:inherit;">
       <div class="flex-between">
         <span class="muted" style="font-size:0.72rem;">${timeAgo(t.created_at)}</span>
         <button class="btn btn-ghost btn-sm" data-delete-my-listing="${t.id}" onclick="event.preventDefault();" aria-label="Delete listing"><i data-lucide="trash-2" class="icon-sm"></i></button>
@@ -317,7 +317,7 @@ async function loadMyCombos(userId, maxCombosPerUser = 10) {
   }
 
   container.innerHTML = data.map(c => `
-    <div class="panel" data-my-combo="${c.id}">
+    <div class="panel hover-lift-card" data-my-combo="${c.id}">
       <div class="flex-between">
         <a href="/combos/#${c.id}" style="color:inherit; text-decoration:none; flex:1; min-width:0;">
           <h3 style="margin:0; font-size:0.95rem; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${escapeHtml(c.title)}</h3>
@@ -447,7 +447,7 @@ function renderSubmissionCard(sub) {
   const statusClass = sub.status === 'approved' ? 'stamp-approved' : sub.status === 'rejected' ? 'stamp-rejected' : '';
   const statusColor = sub.status === 'approved' ? 'var(--sea)' : sub.status === 'rejected' ? 'var(--blood)' : 'var(--brass)';
   return `
-    <div class="panel" style="display:flex; gap:16px; align-items:flex-start;">
+    <div class="panel hover-lift-card" style="display:flex; gap:16px; align-items:flex-start;">
       <div class="stamp ${statusClass}" style="width:56px; height:56px; transform: rotate(-6deg);">
         <span class="stamp-label" style="font-size:0.52rem;">${sub.status.toUpperCase()}</span>
       </div>

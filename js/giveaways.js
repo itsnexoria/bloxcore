@@ -262,7 +262,7 @@ function renderActiveCard(g, entryCount) {
   }
 
   return `
-    <div class="panel">
+    <div class="panel hover-lift-card giveaway-card">
       ${g.image_url ? `<img src="${g.image_url}" alt="" loading="lazy" style="width:56px; height:56px; object-fit:contain; margin-bottom:12px;">` : ''}
       <h3 style="font-size:1.1rem; margin-bottom:4px;">${escapeHtml(g.title)}</h3>
       <p class="rank-title" style="font-size:1.1rem; margin:0 0 10px;">${escapeHtml(g.prize)}</p>

@@ -131,7 +131,7 @@ function renderMatchCard(m) {
     ? `<button class="se-corner-btn" data-delete-match="${m.id}" title="Delete match"><i data-lucide="x" class="icon-sm"></i></button>`
     : (currentUser ? `<button class="se-corner-btn" data-report-match="${m.id}" title="Report"><i data-lucide="flag" class="icon-sm"></i></button>` : '');
   return `
-    <div class="panel se-card">
+    <div class="panel se-card hover-lift-card pvp-match-card">
       <div class="se-banner" style="background:linear-gradient(135deg, rgba(220,38,38,0.25), rgba(8,8,12,0.65));">
         <div class="se-banner-scrim"></div>
         <span class="se-type-pill"><i data-lucide="swords" class="icon-sm"></i>${m.match_type}</span>

@@ -17,6 +17,7 @@ const MANAGE_TAB_INIT = {
   'crews-wars': () => initCrewsWarsTab(),
   users: () => initUsersTab(),
   titles: () => initTitlesTab(),
+  frames: () => initFramesTab(),
   analytics: () => initAnalyticsTab(),
   site: () => initSiteTab(),
 };
