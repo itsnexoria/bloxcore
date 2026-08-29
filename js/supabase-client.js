@@ -302,9 +302,18 @@ async function loadReputationBadges(container, posters) {
 let _avatarFrames = {};
 let _avatarFramesList = [];
 const _avatarFramesLoaded = (async () => {
-  const { data } = await sb.from('avatar_frames').select('key, name, image_url, min_level').order('sort_order', { ascending: true });
-  _avatarFramesList = data || [];
-  _avatarFramesList.forEach(f => { _avatarFrames[f.key] = f; });
+  try {
+    const { data, error } = await sb.from('avatar_frames').select('key, name, image_url, min_level').order('sort_order', { ascending: true });
+    if (error) throw error;
+    _avatarFramesList = data || [];
+    _avatarFramesList.forEach(f => { _avatarFrames[f.key] = f; });
+  } catch (e) {
+    // Network-level failure (not just a query error, which the branch above already
+    // handles) — never let this promise reject. A rejected promise here would be
+    // cached forever and break every future getAvatarFramesCatalog() caller on this
+    // page load, not just avatar frames, so fail soft: no frames render, nothing else breaks.
+    logError('Failed to load avatar frames catalog:', e);
+  }
   return _avatarFramesList;
 })();
 // For pickers (profile-edit) that want the full catalog, not just a sync lookup —

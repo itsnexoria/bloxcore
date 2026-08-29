@@ -40,11 +40,8 @@ let ownedTitleIds = new Set();
 let activeTitleId = '';
 let activeTitleColorOverride = '';
 let activeNameGradient = '';
-<<<<<<< HEAD
 let activeAvatarFrame = '';
 let framesCatalog = [];
-=======
->>>>>>> 55a4b5ec469a3883ed739807f46c0e737e1dd3d9
 let currentLevel = 0;
 let canUseRainbow = false;
 
@@ -142,7 +139,6 @@ function renderNameGradientPreview() {
 function wireNameGradientPickers() {
   document.getElementById('name_gradient_color1').addEventListener('input', renderNameGradientPreview);
   document.getElementById('name_gradient_color2').addEventListener('input', renderNameGradientPreview);
-<<<<<<< HEAD
 }
 
 // ---- Avatar frame picker ----
@@ -191,8 +187,6 @@ async function renderAvatarFrameSwatches() {
       renderAvatarFrameSwatches();
     });
   });
-=======
->>>>>>> 55a4b5ec469a3883ed739807f46c0e737e1dd3d9
 }
 
 function openTitleModal() {
@@ -259,7 +253,10 @@ async function populateForm(profile) {
   currentLevel = profile.level || 0;
   document.getElementById('display_name').value = profile.display_name || '';
   activeAvatarFrame = profile.avatar_frame || '';
-  await renderAvatarFrameSwatches();
+  // Fire-and-forget, not awaited: a failure here (bad data, slow network) must never
+  // block the rest of the form below from populating — this cosmetic picker isn't
+  // worth the whole page looking broken over.
+  renderAvatarFrameSwatches().catch(err => logError('Failed to render avatar frame picker:', err));
   activeNameGradient = profile.name_gradient || '';
   document.getElementById('name_gradient').value = activeNameGradient;
   const stops = parseNameGradient(activeNameGradient) || ['#ffffff', '#d99b4e'];
@@ -405,6 +402,7 @@ async function handleAvatarUpload(e) {
     if (updateError) throw updateError;
 
     renderAvatar(urlData.publicUrl);
+    renderAvatarFrameSwatches();
     showToast('Avatar updated.');
   } catch (err) {
     logError(err);
@@ -538,6 +536,7 @@ async function handleSave(e) {
   const payload = {
     display_name: document.getElementById('display_name').value.trim() || null,
     name_gradient: document.getElementById('name_gradient').value || null,
+    avatar_frame: activeAvatarFrame || null,
     active_title_id: document.getElementById('active_title').value || null,
     title_color_override: document.getElementById('title_color_override').value || null,
     bio: document.getElementById('bio').value.trim() || null,

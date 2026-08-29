@@ -2984,14 +2984,11 @@ html.compact-mode .grid { gap: 12px; }
 
 .crew-card::before { background: linear-gradient(90deg, var(--purple), rgb(var(--purple-rgb) / 0.4)); opacity: 1; }
 
-<<<<<<< HEAD
 .pvp-match-card::before { background: linear-gradient(90deg, var(--blood), var(--blood-dim)); opacity: 1; }
 .sea-event-card::before { background: linear-gradient(90deg, var(--sea), var(--blue)); opacity: 1; }
 .giveaway-card::before { background: linear-gradient(90deg, var(--purple), var(--gold-bright)); opacity: 1; }
 .combo-card::before { background: linear-gradient(90deg, #f97316, var(--gold-bright)); opacity: 1; }
 
-=======
->>>>>>> 55a4b5ec469a3883ed739807f46c0e737e1dd3d9
 /* Player profile stat tiles + bio + build items */
 .stat-card::before { background: linear-gradient(90deg, rgb(var(--sc-rgb, var(--brass-rgb))), rgb(var(--sc-rgb, var(--brass-rgb)) / 0.4)); opacity: 1; }
 .stat-card[data-tone="gold"] { --sc-rgb: var(--gold-rgb); }
