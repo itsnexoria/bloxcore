@@ -88,21 +88,33 @@
       <button type="button" class="nav-toggle" aria-label="Open menu" aria-expanded="false"><i data-lucide="menu" class="icon-md nav-toggle-icon-menu"></i><i data-lucide="x" class="icon-md nav-toggle-icon-close"></i></button>
       <div id="nav-profile-slot"></div>
     </div>
-    <ul class="nav-links">
-      <li><a href="/"><i data-lucide="home" class="icon-sm icon-inline"></i>Home</a></li>
-      <li><a href="/chat/"><i data-lucide="message-circle" class="icon-sm icon-inline"></i>Chat</a></li>
-      <li><a href="/sea-events/"><i data-lucide="waves" class="icon-sm icon-inline"></i>Sea Events</a></li>
-      <li><a href="/pvp/"><i data-lucide="crosshair" class="icon-sm icon-inline"></i>PvP</a></li>
-      <li><a href="/giveaways/"><i data-lucide="gift" class="icon-sm icon-inline"></i>Giveaways</a></li>
-      <li><a href="/challenges/"><i data-lucide="swords" class="icon-sm icon-inline"></i>Quests</a></li>
-      <li><a href="/leaderboard/"><i data-lucide="trophy" class="icon-sm icon-inline"></i>Leaderboard</a></li>
-      <li><a href="/crews/"><i data-lucide="users" class="icon-sm icon-inline"></i>Crews</a></li>
-      <li><a href="/trading/"><i data-lucide="repeat" class="icon-sm icon-inline"></i>Trading</a></li>
-      <li><a href="/services/"><i data-lucide="briefcase" class="icon-sm icon-inline"></i>Services</a></li>
-      <li><a href="/combos/"><i data-lucide="flame" class="icon-sm icon-inline"></i>Combos</a></li>
-      <li><a href="/whats-new/"><i data-lucide="sparkles" class="icon-sm icon-inline"></i>What's New</a></li>
-      <li id="nav-auth-slot"></li>
-    </ul>
+        <div class="nav-links">
+      <div class="nav-links-glow" aria-hidden="true"></div>
+      <div class="nav-drawer-header">
+        <span class="nav-drawer-title"><i data-lucide="compass" class="icon-sm"></i>Menu</span>
+        <button type="button" class="nav-drawer-close" aria-label="Close menu"><i data-lucide="x" class="icon-sm"></i></button>
+      </div>
+      <div class="nav-links-scroll">
+        <ul class="nav-link-list">
+          <li><a href="/" class="nav-link" style="--i:0"><span class="nav-link-icon" data-tone="gold"><i data-lucide="home"></i></span>Home</a></li>
+          <li><a href="/chat/" class="nav-link" style="--i:1"><span class="nav-link-icon" data-tone="blue"><i data-lucide="message-circle"></i></span>Chat</a></li>
+          <li class="nav-group-label" style="--i:2">Compete</li>
+          <li><a href="/pvp/" class="nav-link" style="--i:3"><span class="nav-link-icon" data-tone="blood"><i data-lucide="crosshair"></i></span>PvP</a></li>
+          <li><a href="/challenges/" class="nav-link" style="--i:4"><span class="nav-link-icon" data-tone="purple"><i data-lucide="swords"></i></span>Quests</a></li>
+          <li><a href="/combos/" class="nav-link" style="--i:5"><span class="nav-link-icon" data-tone="pink"><i data-lucide="flame"></i></span>Combos</a></li>
+          <li><a href="/leaderboard/" class="nav-link" style="--i:6"><span class="nav-link-icon" data-tone="gold"><i data-lucide="trophy"></i></span>Leaderboard</a></li>
+          <li class="nav-group-label" style="--i:7">Community</li>
+          <li><a href="/sea-events/" class="nav-link" style="--i:8"><span class="nav-link-icon" data-tone="sea"><i data-lucide="waves"></i></span>Sea Events</a></li>
+          <li><a href="/giveaways/" class="nav-link" style="--i:9"><span class="nav-link-icon" data-tone="purple"><i data-lucide="gift"></i></span>Giveaways</a></li>
+          <li><a href="/crews/" class="nav-link" style="--i:10"><span class="nav-link-icon" data-tone="blue"><i data-lucide="users"></i></span>Crews</a></li>
+          <li><a href="/trading/" class="nav-link" style="--i:11"><span class="nav-link-icon" data-tone="sea"><i data-lucide="repeat"></i></span>Trading</a></li>
+          <li><a href="/services/" class="nav-link" style="--i:12"><span class="nav-link-icon" data-tone="gold"><i data-lucide="briefcase"></i></span>Services</a></li>
+          <li class="nav-group-label" style="--i:13">More</li>
+          <li><a href="/whats-new/" class="nav-link" style="--i:14"><span class="nav-link-icon" data-tone="pink"><i data-lucide="sparkles"></i></span>What's New</a></li>
+        </ul>
+      </div>
+      <div id="nav-auth-slot" class="nav-auth-slot"></div>
+    </div>
   </div>
 </nav>
 
