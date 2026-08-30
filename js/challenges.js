@@ -22,7 +22,11 @@ onReady(async () => {
     pendingChallengeIds = new Set((pending || []).map(s => s.challenge_id));
   }
 
-  await loadChallenges();
+  try {
+    await loadChallenges();
+  } catch (e) {
+    logError('Failed to load challenges:', e);
+  }
   initDropzone();
 
   document.getElementById('difficulty-filter').addEventListener('change', loadChallenges);

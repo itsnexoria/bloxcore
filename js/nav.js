@@ -528,8 +528,10 @@ async function loadNotifications() {
     </div>
   `;
 
+  const footer = `<a href="/notifications/" class="notif-dropdown-footer">See all notifications</a>`;
+
   dropdown.innerHTML = header + permissionRow + (data.length
-    ? data.map(renderNotif).join('')
+    ? data.map(renderNotif).join('') + footer
     : `<p class="muted" style="padding:18px 14px; font-size:0.85rem; text-align:center;">You're all caught up.</p>`);
 
   refreshIcons();

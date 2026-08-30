@@ -437,6 +437,9 @@ section.section h2.center::after { margin-left: auto; margin-right: auto; }
 .nav-auth-icon-btn:hover { border-color: var(--brass); color: var(--brass-bright); background: rgb(var(--brass-rgb) / 0.08); transform: translateY(-1px); }
 .nav-auth-icon-btn.active { border-color: var(--brass); color: var(--brass-bright); background: rgb(var(--brass-rgb) / 0.14); }
 
+.notif-filter-btn { color: var(--ash); }
+.notif-filter-btn.active { border-color: var(--brass); color: var(--brass-bright); background: rgb(var(--brass-rgb) / 0.12); }
+
 .nav-header-actions {
   display: flex;
   align-items: center;
@@ -2056,6 +2059,8 @@ footer.site-footer::before {
 .notif-time { display: block; font-size: 0.72rem; color: var(--ash); margin-top: 3px; }
 .notif-actions { display: flex; gap: 6px; margin-top: 8px; flex-wrap: wrap; }
 .notif-actions .btn { padding: 5px 9px; font-size: 0.72rem; }
+.notif-dropdown-footer { display: block; text-align: center; padding: 10px; font-size: 0.78rem; color: var(--ash); text-decoration: none; border-top: 1px solid rgba(255,255,255,0.06); }
+.notif-dropdown-footer:hover { color: var(--brass-bright); background: rgba(255,255,255,0.03); }
 
 .site-banner {
   background: rgba(10,10,14,0.92);

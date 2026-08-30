@@ -29,8 +29,12 @@ onReady(async () => {
     myMembership = membership;
   }
 
-  await render();
-  await loadWars();
+  try {
+    await render();
+    await loadWars();
+  } catch (e) {
+    logError('Failed to load crew page:', e);
+  }
 
   document.getElementById('edit-crew-form').addEventListener('submit', handleEditCrew);
   document.getElementById('edit-crew-cancel').addEventListener('click', closeEditModal);

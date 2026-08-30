@@ -24,7 +24,11 @@ onReady(async () => {
 
   populateBountySelect('pirate_bounty');
   populateBountySelect('marine_bounty');
-  await populateTitleSelect(auth.user.id, auth.profile.active_title_id, auth.profile.title_color_override, auth.profile.role);
+  try {
+    await populateTitleSelect(auth.user.id, auth.profile.active_title_id, auth.profile.title_color_override, auth.profile.role);
+  } catch (e) {
+    logError('Failed to load title picker:', e);
+  }
   populateForm(auth.profile);
   wireBuildPickers();
   wireNameGradientPickers();

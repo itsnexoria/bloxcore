@@ -8,5 +8,6 @@ Disallow: /auth/
 Disallow: /messages/
 Disallow: /onboarding/
 Disallow: /appeal/
+Disallow: /notifications/
 
 Sitemap: https://blox.nexorealm.org/sitemap.xml

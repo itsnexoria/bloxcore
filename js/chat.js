@@ -29,7 +29,11 @@ onReady(async () => {
   document.getElementById('chat-compose').style.display = currentUser ? 'block' : 'none';
   document.getElementById('chat-signed-out').style.display = currentUser ? 'none' : 'block';
 
-  await loadHistory();
+  try {
+    await loadHistory();
+  } catch (e) {
+    logError('Failed to load chat history:', e);
+  }
   subscribeToChat();
 
   document.getElementById('chat-form').addEventListener('submit', handleSend);

@@ -702,7 +702,16 @@ let _siteSettingsCache = null;
 
 async function getSiteSettings() {
   if (_siteSettingsCache) return _siteSettingsCache;
-  const { data } = await sb.from('site_settings').select('key, value');
+  // A network-level failure here (not just a query error) must never reject — 5+ pages
+  // call this before wiring up their own event listeners, so a rejection would abort
+  // each of those pages' entire init sequence rather than just this one lookup. Fall
+  // back to defaults on failure; the page still works, just without custom site config.
+  let data = null;
+  try {
+    ({ data } = await sb.from('site_settings').select('key, value'));
+  } catch (e) {
+    logError('Failed to load site settings, using defaults:', e);
+  }
   const map = {};
   (data || []).forEach(row => { map[row.key] = row.value; });
   _siteSettingsCache = {
