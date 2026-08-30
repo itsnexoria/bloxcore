@@ -11,7 +11,9 @@ onReady(async () => {
 
   const settings = await getSiteSettings();
   document.getElementById('crew-name').minLength = settings.minCrewNameLength;
+  document.getElementById('crew-name').maxLength = settings.maxCrewNameLength;
   document.getElementById('crew-description').minLength = settings.minCrewDescriptionLength;
+  document.getElementById('crew-description').maxLength = settings.maxCrewDescriptionLength;
 
   document.getElementById('create-crew-btn').addEventListener('click', openModal);
   document.getElementById('crew-modal-cancel').addEventListener('click', closeModal);

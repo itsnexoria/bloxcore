@@ -17,6 +17,8 @@ onReady(async () => {
 
   const settings = await getSiteSettings();
   maxActiveServices = settings.maxActiveServices;
+  document.getElementById('service-title').maxLength = settings.maxServiceTitleLength;
+  document.getElementById('service-description').maxLength = settings.maxServiceDescriptionLength;
 
   allServiceItems = await fetchBfItemCatalog();
 

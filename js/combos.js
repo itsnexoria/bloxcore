@@ -17,7 +17,11 @@ onReady(async () => {
   getSiteSettings().then(settings => {
     const el = document.getElementById('combos-limit-blurb');
     if (el) el.textContent = `Community-written combo guides — up to ${settings.maxCombosPerUser} per player.`;
-  });
+
+    document.getElementById('combo-title').maxLength = settings.maxComboTitleLength;
+    document.getElementById('combo-description').maxLength = settings.maxComboDescriptionLength;
+    document.getElementById('combo-instructions').maxLength = settings.maxComboInstructionsLength;
+  }).catch(e => logError('Failed to apply combo length settings:', e));
 
   if (currentUserId) {
     document.getElementById('new-combo-btn').style.display = 'inline-flex';
@@ -340,6 +344,7 @@ async function handleCreateCombo(e) {
 
   const title = document.getElementById('combo-title').value.trim();
   const description = document.getElementById('combo-description').value.trim();
+  const instructions = document.getElementById('combo-instructions').value.trim();
   const settings = await getSiteSettings();
   if (title.length < settings.minComboTitleLength) {
     showToast(`Title must be at least ${settings.minComboTitleLength} characters.`, true);
@@ -349,13 +354,17 @@ async function handleCreateCombo(e) {
     showToast(`Description must be at least ${settings.minComboDescriptionLength} characters, or left blank.`, true);
     return;
   }
+  if (instructions && instructions.length < settings.minComboInstructionsLength) {
+    showToast(`Instructions must be at least ${settings.minComboInstructionsLength} characters, or left blank.`, true);
+    return;
+  }
 
   const { data: { user } } = await sb.auth.getUser();
   const payload = {
     title,
     difficulty: document.getElementById('combo-difficulty').value,
     description: description || null,
-    instructions: document.getElementById('combo-instructions').value.trim() || null,
+    instructions: instructions || null,
     video_url: document.getElementById('combo-video').value.trim() || null,
     steps,
   };

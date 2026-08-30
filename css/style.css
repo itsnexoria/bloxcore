@@ -752,7 +752,7 @@ section.section h2.center::after { margin-left: auto; margin-right: auto; }
 .crew-card-footer { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding-top: 12px; border-top: 1px solid var(--glass-border); }
 .crew-card-members { font-size: 0.78rem; display: flex; align-items: center; gap: 5px; }
 
-.site-jump-nav { display: flex; gap: 8px; flex-wrap: wrap; position: sticky; top: 66px; z-index: 5; background: var(--navy); padding: 10px 0; }
+.site-jump-nav { display: flex; gap: 8px; flex-wrap: wrap; position: sticky; top: 66px; z-index: 5; padding: 10px 0; }
 .site-jump-nav a { padding: 6px 12px; border-radius: 999px; background: rgba(255,255,255,0.03); border: 1px solid var(--glass-border); color: var(--ash); font-size: 0.78rem; text-decoration: none; transition: border-color 0.15s ease, color 0.15s ease; }
 .site-jump-nav a:hover { border-color: var(--brass); color: var(--bone); }
 .site-subtab-btn { padding: 6px 12px; border-radius: 999px; background: rgba(255,255,255,0.03); border: 1px solid var(--glass-border); color: var(--ash); font-size: 0.78rem; cursor: pointer; transition: border-color 0.15s ease, color 0.15s ease, background 0.15s ease; font-family: inherit; }
@@ -2059,6 +2059,19 @@ footer.site-footer::before {
 .notif-time { display: block; font-size: 0.72rem; color: var(--ash); margin-top: 3px; }
 .notif-actions { display: flex; gap: 6px; margin-top: 8px; flex-wrap: wrap; }
 .notif-actions .btn { padding: 5px 9px; font-size: 0.72rem; }
+.notif-action-icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  color: var(--ash);
+  transition: border-color 0.15s ease, color 0.15s ease, background 0.15s ease;
+}
+.notif-action-icon-btn:hover { border-color: var(--brass); color: var(--brass-bright); background: rgb(var(--brass-rgb) / 0.08); }
 .notif-dropdown-footer { display: block; text-align: center; padding: 10px; font-size: 0.78rem; color: var(--ash); text-decoration: none; border-top: 1px solid rgba(255,255,255,0.06); }
 .notif-dropdown-footer:hover { color: var(--brass-bright); background: rgba(255,255,255,0.03); }
 

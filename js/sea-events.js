@@ -30,6 +30,10 @@ onReady(async () => {
   });
   document.getElementById('post-event-form').addEventListener('submit', handlePostEvent);
 
+  getSiteSettings().then(settings => {
+    document.getElementById('se-notes').maxLength = settings.maxSeaEventNoteLength;
+  }).catch(e => logError('Failed to apply sea event length settings:', e));
+
   document.querySelectorAll('#se-category-tabs [data-filter]').forEach(btn => {
     btn.addEventListener('click', () => {
       currentFilter = btn.dataset.filter;

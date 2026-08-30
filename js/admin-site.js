@@ -56,6 +56,19 @@ async function loadSettingsForm() {
   document.getElementById('setting-min-combo-title').value = map.min_combo_title_length ?? 3;
   document.getElementById('setting-min-combo-description').value = map.min_combo_description_length ?? 10;
   document.getElementById('setting-min-sea-event-note').value = map.min_sea_event_note_length ?? 5;
+  document.getElementById('setting-min-giveaway-title').value = map.min_giveaway_title_length ?? 5;
+  document.getElementById('setting-min-giveaway-description').value = map.min_giveaway_description_length ?? 15;
+  document.getElementById('setting-min-combo-instructions').value = map.min_combo_instructions_length ?? 10;
+  document.getElementById('setting-max-crew-name').value = map.max_crew_name_length ?? 30;
+  document.getElementById('setting-max-crew-description').value = map.max_crew_description_length ?? 200;
+  document.getElementById('setting-max-service-title').value = map.max_service_title_length ?? 60;
+  document.getElementById('setting-max-service-description').value = map.max_service_description_length ?? 300;
+  document.getElementById('setting-max-combo-title').value = map.max_combo_title_length ?? 60;
+  document.getElementById('setting-max-combo-description').value = map.max_combo_description_length ?? 150;
+  document.getElementById('setting-max-combo-instructions').value = map.max_combo_instructions_length ?? 800;
+  document.getElementById('setting-max-sea-event-note').value = map.max_sea_event_note_length ?? 300;
+  document.getElementById('setting-max-giveaway-title').value = map.max_giveaway_title_length ?? 60;
+  document.getElementById('setting-max-giveaway-description').value = map.max_giveaway_description_length ?? 500;
   document.getElementById('setting-max-trades').value = map.max_active_trades ?? 3;
   document.getElementById('setting-max-services').value = map.max_active_services ?? 5;
   document.getElementById('setting-max-combos').value = map.max_combos_per_user ?? 10;
@@ -67,6 +80,7 @@ async function loadSettingsForm() {
   document.getElementById('setting-xp-giveaway-entry').value = map.xp_per_giveaway_entry ?? 2;
   document.getElementById('setting-xp-vouch').value = map.xp_per_vouch_given ?? 3;
   document.getElementById('setting-xp-pvp').value = map.xp_per_pvp_match_posted ?? 3;
+  document.getElementById('setting-xp-tournament-prediction').value = map.xp_per_correct_tournament_prediction ?? 10;
   document.getElementById('setting-trust-enabled').checked = map.trust_auto_approve_enabled ?? true;
   document.getElementById('setting-trust-min-approved').value = map.trust_min_approved ?? 10;
   document.getElementById('setting-trust-max-reject-rate').value = Math.round((map.trust_max_reject_rate ?? 0.1) * 100);
@@ -85,6 +99,19 @@ async function handleSaveSettings(e) {
     { key: 'min_combo_title_length', value: Number(document.getElementById('setting-min-combo-title').value) },
     { key: 'min_combo_description_length', value: Number(document.getElementById('setting-min-combo-description').value) },
     { key: 'min_sea_event_note_length', value: Number(document.getElementById('setting-min-sea-event-note').value) },
+    { key: 'min_giveaway_title_length', value: Number(document.getElementById('setting-min-giveaway-title').value) },
+    { key: 'min_giveaway_description_length', value: Number(document.getElementById('setting-min-giveaway-description').value) },
+    { key: 'min_combo_instructions_length', value: Number(document.getElementById('setting-min-combo-instructions').value) },
+    { key: 'max_crew_name_length', value: Number(document.getElementById('setting-max-crew-name').value) },
+    { key: 'max_crew_description_length', value: Number(document.getElementById('setting-max-crew-description').value) },
+    { key: 'max_service_title_length', value: Number(document.getElementById('setting-max-service-title').value) },
+    { key: 'max_service_description_length', value: Number(document.getElementById('setting-max-service-description').value) },
+    { key: 'max_combo_title_length', value: Number(document.getElementById('setting-max-combo-title').value) },
+    { key: 'max_combo_description_length', value: Number(document.getElementById('setting-max-combo-description').value) },
+    { key: 'max_combo_instructions_length', value: Number(document.getElementById('setting-max-combo-instructions').value) },
+    { key: 'max_sea_event_note_length', value: Number(document.getElementById('setting-max-sea-event-note').value) },
+    { key: 'max_giveaway_title_length', value: Number(document.getElementById('setting-max-giveaway-title').value) },
+    { key: 'max_giveaway_description_length', value: Number(document.getElementById('setting-max-giveaway-description').value) },
     { key: 'max_active_trades', value: Number(document.getElementById('setting-max-trades').value) },
     { key: 'max_active_services', value: Number(document.getElementById('setting-max-services').value) },
     { key: 'max_combos_per_user', value: Number(document.getElementById('setting-max-combos').value) },
@@ -96,6 +123,7 @@ async function handleSaveSettings(e) {
     { key: 'xp_per_giveaway_entry', value: Number(document.getElementById('setting-xp-giveaway-entry').value) },
     { key: 'xp_per_vouch_given', value: Number(document.getElementById('setting-xp-vouch').value) },
     { key: 'xp_per_pvp_match_posted', value: Number(document.getElementById('setting-xp-pvp').value) },
+    { key: 'xp_per_correct_tournament_prediction', value: Number(document.getElementById('setting-xp-tournament-prediction').value) },
     { key: 'trust_auto_approve_enabled', value: document.getElementById('setting-trust-enabled').checked },
     { key: 'trust_min_approved', value: Number(document.getElementById('setting-trust-min-approved').value) },
     { key: 'trust_max_reject_rate', value: Number(document.getElementById('setting-trust-max-reject-rate').value) / 100 },

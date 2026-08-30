@@ -40,6 +40,18 @@ onReady(async () => {
     });
     document.getElementById('giveaway-submit-form').addEventListener('submit', handleSubmitGiveaway);
 
+    try {
+      const settings = await getSiteSettings();
+      const titleEl = document.getElementById('gv-title');
+      const descEl = document.getElementById('gv-description');
+      titleEl.minLength = settings.minGiveawayTitleLength;
+      titleEl.maxLength = settings.maxGiveawayTitleLength;
+      descEl.minLength = settings.minGiveawayDescriptionLength;
+      descEl.maxLength = settings.maxGiveawayDescriptionLength;
+    } catch (e) {
+      logError('Failed to apply giveaway length settings:', e);
+    }
+
     document.getElementById('gv-proof-close').addEventListener('click', () => {
       document.getElementById('gv-proof-modal').classList.remove('open');
     });
@@ -120,11 +132,23 @@ async function handleSubmitGiveaway(e) {
   e.preventDefault();
   if (!selectedPrize) { showToast('Pick a prize first.', true); return; }
 
+  const title = document.getElementById('gv-title').value.trim();
+  const description = document.getElementById('gv-description').value.trim();
+  const settings = await getSiteSettings();
+  if (title.length < settings.minGiveawayTitleLength) {
+    showToast(`Title must be at least ${settings.minGiveawayTitleLength} characters.`, true);
+    return;
+  }
+  if (description.length < settings.minGiveawayDescriptionLength) {
+    showToast(`Description must be at least ${settings.minGiveawayDescriptionLength} characters.`, true);
+    return;
+  }
+
   const payload = {
-    title: document.getElementById('gv-title').value.trim(),
+    title,
     prize: selectedPrizeValueType === 'permanent' && selectedPrize.category === 'fruit' ? `${selectedPrize.name} (Permanent)` : selectedPrize.name,
     image_url: selectedPrize.icon_url,
-    description: document.getElementById('gv-description').value.trim(),
+    description,
     ends_at: new Date(document.getElementById('gv-ends').value).toISOString(),
     status: 'pending',
     created_by: currentUser.id,

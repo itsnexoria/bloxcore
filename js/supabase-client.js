@@ -518,6 +518,24 @@ const SOCIAL_ICONS = {
   kick: '<svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M4 3h5v5.5l4.5-5.5H19l-6 7 6.5 8.5h-5.8L9 12.5V18H4z"/></svg>',
 };
 
+// A notification's meta.actions row: Discord/Roblox profile links render as small
+// icon-only buttons (the platform is obvious from the glyph, no need for a long "HOST
+// DISCORD: username" text pill) — anything else (e.g. a link to someone's BloxCore
+// profile) keeps its text label, since there's no icon that would make sense there.
+// Shared between the header dropdown (nav.js) and the /notifications/ page.
+function renderNotifActions(n) {
+  if (!n.meta?.actions?.length) return '';
+  return `<span class="notif-actions">${n.meta.actions.map(a => {
+    const url = a.url || '';
+    const isDiscord = url.includes('discord.com/');
+    const isRoblox = url.includes('roblox.com/');
+    if (isDiscord || isRoblox) {
+      return `<a href="${safeUrl(url)}" target="_blank" rel="noopener noreferrer" class="notif-action-icon-btn" data-notif-action-id="${n.id}" title="${escapeHtml(a.label)}" aria-label="${escapeHtml(a.label)}">${isDiscord ? SOCIAL_ICONS.discord : SOCIAL_ICONS.roblox}</a>`;
+    }
+    return `<a href="${safeUrl(url)}" target="_blank" rel="noopener noreferrer" class="btn btn-ghost btn-sm" data-notif-action-id="${n.id}">${escapeHtml(a.label)}</a>`;
+  }).join('')}</span>`;
+}
+
 // Resolve the current session + profile row together. Returns { user, profile } or nulls.
 // Memoized per page load: nav.js and every page's own requireAuth() call both need this,
 // and were previously firing two separate profiles queries on every authenticated page —
@@ -731,6 +749,19 @@ async function getSiteSettings() {
     minComboTitleLength: map.min_combo_title_length ?? 3,
     minComboDescriptionLength: map.min_combo_description_length ?? 10,
     minSeaEventNoteLength: map.min_sea_event_note_length ?? 5,
+    minGiveawayTitleLength: map.min_giveaway_title_length ?? 5,
+    minGiveawayDescriptionLength: map.min_giveaway_description_length ?? 15,
+    minComboInstructionsLength: map.min_combo_instructions_length ?? 10,
+    maxCrewNameLength: map.max_crew_name_length ?? 30,
+    maxCrewDescriptionLength: map.max_crew_description_length ?? 200,
+    maxServiceTitleLength: map.max_service_title_length ?? 60,
+    maxServiceDescriptionLength: map.max_service_description_length ?? 300,
+    maxComboTitleLength: map.max_combo_title_length ?? 60,
+    maxComboDescriptionLength: map.max_combo_description_length ?? 150,
+    maxComboInstructionsLength: map.max_combo_instructions_length ?? 800,
+    maxSeaEventNoteLength: map.max_sea_event_note_length ?? 300,
+    maxGiveawayTitleLength: map.max_giveaway_title_length ?? 60,
+    maxGiveawayDescriptionLength: map.max_giveaway_description_length ?? 500,
   };
   return _siteSettingsCache;
 }

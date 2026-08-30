@@ -24,6 +24,16 @@ onReady(async () => {
   crew = data;
   document.title = `${crew.name} — BloxCore`;
 
+  try {
+    const settings = await getSiteSettings();
+    document.getElementById('edit-crew-name').minLength = settings.minCrewNameLength;
+    document.getElementById('edit-crew-name').maxLength = settings.maxCrewNameLength;
+    document.getElementById('edit-crew-description').minLength = settings.minCrewDescriptionLength;
+    document.getElementById('edit-crew-description').maxLength = settings.maxCrewDescriptionLength;
+  } catch (e) {
+    logError('Failed to apply crew length settings:', e);
+  }
+
   if (currentUser) {
     const { data: membership } = await sb.from('crew_members').select('crew_id').eq('user_id', currentUser.id).maybeSingle();
     myMembership = membership;
@@ -297,6 +307,22 @@ async function handleEditCrew(e) {
   errorEl.style.display = 'none';
   btn.disabled = true;
 
+  const newName = document.getElementById('edit-crew-name').value.trim();
+  const newDescription = document.getElementById('edit-crew-description').value.trim();
+  const settings = await getSiteSettings();
+  if (newName.length < settings.minCrewNameLength) {
+    errorEl.textContent = `Crew name must be at least ${settings.minCrewNameLength} characters.`;
+    errorEl.style.display = 'block';
+    btn.disabled = false;
+    return;
+  }
+  if (newDescription.length < settings.minCrewDescriptionLength) {
+    errorEl.textContent = `Crew description must be at least ${settings.minCrewDescriptionLength} characters.`;
+    errorEl.style.display = 'block';
+    btn.disabled = false;
+    return;
+  }
+
   let logo_url = crew.logo_url || null;
   if (pendingCrewLogoFile) {
     const ext = pendingCrewLogoFile.name.split('.').pop();
@@ -313,9 +339,9 @@ async function handleEditCrew(e) {
   }
 
   const updates = {
-    name: document.getElementById('edit-crew-name').value.trim(),
+    name: newName,
     tag: document.getElementById('edit-crew-tag').value.trim() || null,
-    description: document.getElementById('edit-crew-description').value.trim(),
+    description: newDescription,
     logo_url,
     roblox_username: document.getElementById('edit-crew-roblox').value.trim() || null,
     discord_invite: document.getElementById('edit-crew-discord').value.trim() || null,
