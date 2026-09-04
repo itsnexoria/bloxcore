@@ -4,19 +4,9 @@
 <meta charset="UTF-8">
 <script>(function(){try{var a=localStorage.getItem('bc_accent');if(a==='custom'){var c=JSON.parse(localStorage.getItem('bc_custom_theme')||'null');if(c){var s=document.documentElement.style;s.setProperty('--ink',c.ink);s.setProperty('--navy',c.navy);s.setProperty('--navy-light',c['navy-light']);s.setProperty('--brass',c.brass);s.setProperty('--brass-bright',c['brass-bright']);s.setProperty('--ink-glow',c.navy);var h=c.brass.replace('#','');s.setProperty('--brass-rgb',parseInt(h.substring(0,2),16)+' '+parseInt(h.substring(2,4),16)+' '+parseInt(h.substring(4,6),16));document.documentElement.setAttribute('data-accent','custom');}}else if(a){document.documentElement.setAttribute('data-accent',a);}if(localStorage.getItem('bc_reduce_motion')==='1')document.documentElement.classList.add('reduce-motion');if(localStorage.getItem('bc_compact_mode')==='1')document.documentElement.classList.add('compact-mode');}catch(e){}})();</script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Player Profile — BloxCore</title>
-<meta name="robots" id="meta-robots" content="index, follow">
-<meta name="description" id="meta-description" content="View a Blox Fruits player's rank, stats, and build on BloxCore.">
-<link rel="canonical" id="meta-canonical" href="https://blox.nexorealm.org/player/">
-<meta property="og:type" content="website">
-<meta property="og:site_name" content="BloxCore">
-<meta property="og:title" id="meta-og-title" content="Player Profile — BloxCore">
-<meta property="og:description" id="meta-og-description" content="View a Blox Fruits player's rank, stats, and build on BloxCore.">
-<meta property="og:image" content="https://blox.nexorealm.org/assets/logo.png">
-<meta name="twitter:card" content="summary">
-<meta name="twitter:title" id="meta-twitter-title" content="Player Profile — BloxCore">
-<meta name="twitter:description" id="meta-twitter-description" content="View a Blox Fruits player's rank, stats, and build on BloxCore.">
-<meta name="twitter:image" content="https://blox.nexorealm.org/assets/logo.png">
+<title>Status — BloxCore</title>
+<meta name="description" content="Live status of BloxCore's core services.">
+<link rel="canonical" href="https://blox.nexorealm.org/status/">
 <link rel="stylesheet" href="/css/style.css">
 <link rel="stylesheet" href="/css/animations.css">
 <link rel="icon" type="image/png" href="/assets/logo.png">
@@ -35,7 +25,7 @@
       <button type="button" class="nav-toggle" aria-label="Open menu" aria-expanded="false"><i data-lucide="menu" class="icon-md nav-toggle-icon-menu"></i><i data-lucide="x" class="icon-md nav-toggle-icon-close"></i></button>
       <div id="nav-profile-slot"></div>
     </div>
-        <div class="nav-links">
+    <div class="nav-links">
       <div class="nav-links-glow" aria-hidden="true"></div>
       <div class="nav-drawer-header">
         <span class="nav-drawer-title"><i data-lucide="compass" class="icon-sm"></i>Menu</span>
@@ -59,7 +49,7 @@
           <li class="nav-group-label" style="--i:13">More</li>
           <li><a href="/whats-new/" class="nav-link" style="--i:14"><span class="nav-link-icon" data-tone="pink"><i data-lucide="sparkles"></i></span>What's New</a></li>
           <li><a href="/notifications/" class="nav-link" style="--i:15"><span class="nav-link-icon" data-tone="blue"><i data-lucide="bell"></i></span>Notifications</a></li>
-          <li><a href="/status/" class="nav-link" style="--i:16"><span class="nav-link-icon" data-tone="sea"><i data-lucide="activity"></i></span>Status</a></li>
+          <li><a href="/status/" class="nav-link active" style="--i:16"><span class="nav-link-icon" data-tone="sea"><i data-lucide="activity"></i></span>Status</a></li>
         </ul>
       </div>
       <div id="nav-auth-slot" class="nav-auth-slot"></div>
@@ -67,12 +57,38 @@
   </div>
 </nav>
 
-<section class="section">
-  <div class="container" style="max-width:1040px;">
-    <div id="player-content">
-      <div class="skeleton" style="height:180px; margin-bottom:20px;"></div>
-      <div class="skeleton" style="height:100px;"></div>
+<section class="section page-head">
+  <svg class="compass-mark" aria-hidden="true" style="width:200px; height:200px; opacity:0.07; top:-36px; right:-16px;" viewBox="0 0 100 100">
+    <circle cx="50" cy="50" r="46" fill="none" stroke="currentColor" stroke-width="0.6"/>
+    <circle cx="50" cy="50" r="34" fill="none" stroke="currentColor" stroke-width="0.4"/>
+    <path d="M50 12 L57 50 L50 88 L43 50 Z" fill="currentColor" opacity="0.85"/>
+    <path d="M12 50 L50 43 L88 50 L50 57 Z" fill="currentColor" opacity="0.4"/>
+  </svg>
+  <div class="container" style="max-width:760px; position:relative; z-index:1;">
+    <div style="display:flex; align-items:center;">
+      <div class="page-head-icon"><i data-lucide="activity" class="icon-md"></i></div>
+      <div>
+        <h1 style="font-size:1.6rem; margin:0 0 2px;">Status</h1>
+        <p class="muted" style="margin:0;">Live checks of BloxCore's core services, run right now in your browser.</p>
+      </div>
     </div>
+
+    <div id="status-overall" class="panel" style="margin-top:20px; display:flex; align-items:center; gap:12px;">
+      <div class="skeleton" style="width:44px; height:44px; border-radius:50%;"></div>
+      <div style="flex:1;">
+        <div class="skeleton" style="width:180px; height:18px; margin-bottom:6px;"></div>
+        <div class="skeleton" style="width:120px; height:12px;"></div>
+      </div>
+    </div>
+
+    <div id="status-checks" style="margin-top:16px; display:flex; flex-direction:column; gap:10px;">
+      <div class="skeleton" style="height:56px;"></div>
+      <div class="skeleton" style="height:56px;"></div>
+      <div class="skeleton" style="height:56px;"></div>
+      <div class="skeleton" style="height:56px;"></div>
+    </div>
+
+    <p class="muted" style="font-size:0.78rem; margin-top:16px; text-align:center;">These are live pass/fail checks run when you load this page — not a historical uptime record. <button type="button" id="status-recheck-btn" class="btn btn-ghost btn-sm" style="margin-left:4px;"><i data-lucide="refresh-cw" class="icon-sm icon-inline"></i>Re-check now</button></p>
   </div>
 </section>
 
@@ -87,7 +103,6 @@
 <script src="/js/supabase-client.js"></script>
 <script src="/js/nav.js"></script>
 <script src="/js/search.js"></script>
-<script src="/js/build-options.js"></script>
-<script src="/js/player.js"></script>
+<script src="/js/status.js"></script>
 </body>
 </html>

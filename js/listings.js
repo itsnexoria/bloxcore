@@ -150,9 +150,10 @@ function isRobloxLink(url) {
 // their own id + Date.now(), same as before this was centralized) — this just wraps the
 // upload + getPublicUrl boilerplate that was identical in all three callers.
 async function uploadScreenshot(userId, file, key) {
-  const ext = file.name.split('.').pop();
+  const compressed = await compressImage(file, { maxDimension: 1920, quality: 0.85 });
+  const ext = compressed.name ? compressed.name.split('.').pop() : file.name.split('.').pop();
   const path = `${userId}/${key}.${ext}`;
-  const { error: uploadError } = await sb.storage.from('screenshots').upload(path, file);
+  const { error: uploadError } = await sb.storage.from('screenshots').upload(path, compressed);
   if (uploadError) throw uploadError;
   const { data } = sb.storage.from('screenshots').getPublicUrl(path);
   return data.publicUrl;

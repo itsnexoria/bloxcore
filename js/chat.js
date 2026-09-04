@@ -321,9 +321,10 @@ async function handleSend(e) {
 
   let image_url = null;
   if (pendingImageFile) {
-    const ext = pendingImageFile.name.split('.').pop();
+    const compressed = await compressImage(pendingImageFile, { maxDimension: 1600, quality: 0.82 });
+    const ext = compressed.name ? compressed.name.split('.').pop() : pendingImageFile.name.split('.').pop();
     const path = `${currentUser.id}/${Date.now()}.${ext}`;
-    const { error: uploadError } = await sb.storage.from('chat-media').upload(path, pendingImageFile);
+    const { error: uploadError } = await sb.storage.from('chat-media').upload(path, compressed);
     if (uploadError) {
       showToast(uploadError.message, true);
       sendBtn.disabled = false;

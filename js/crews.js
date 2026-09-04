@@ -178,9 +178,10 @@ async function handleCreate(e) {
   });
 
   if (!error && logoFile && crewId) {
-    const ext = logoFile.name.split('.').pop();
+    const compressed = await compressImage(logoFile, { maxDimension: 512, quality: 0.85 });
+    const ext = compressed.name ? compressed.name.split('.').pop() : logoFile.name.split('.').pop();
     const path = `crew-logos/${crewId}-${Date.now()}.${ext}`;
-    const { error: uploadError } = await sb.storage.from('avatars').upload(path, logoFile);
+    const { error: uploadError } = await sb.storage.from('avatars').upload(path, compressed);
     if (!uploadError) {
       const { data: urlData } = sb.storage.from('avatars').getPublicUrl(path);
       await sb.from('crews').update({ logo_url: urlData.publicUrl }).eq('id', crewId);

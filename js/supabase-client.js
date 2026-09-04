@@ -63,6 +63,11 @@ function showToast(message, isError = false) {
   const toast = document.createElement('div');
   toast.className = 'toast' + (isError ? ' error' : '');
   toast.textContent = message;
+  // Screen readers otherwise never announce a toast at all — role="alert" for errors
+  // (interrupts immediately, since it's often the only feedback a failed action gets)
+  // vs role="status" for success (announced politely, doesn't interrupt).
+  toast.setAttribute('role', isError ? 'alert' : 'status');
+  toast.setAttribute('aria-live', isError ? 'assertive' : 'polite');
   document.body.appendChild(toast);
   setTimeout(() => {
     toast.classList.add('leaving');
@@ -595,6 +600,41 @@ async function syncDiscordAvatar(user, profile) {
   if (!error) profile.avatar_url = discordAvatar;
 }
 
+// Downscales + recompresses an image file before upload — avatars/banners already get
+// this via the crop tool's own canvas export, but crew logos, chat images, and proof
+// screenshots (challenges/pvp/giveaways, via uploadScreenshot() below) previously
+// uploaded the raw file straight through, letting a full-res phone photo or screenshot
+// bloat storage and slow every page that has to load it back down. Falls back to the
+// original file untouched on any failure (unsupported type, canvas error, etc.) or if
+// the file is already small enough that compressing it wouldn't help — never blocks
+// an upload over this.
+async function compressImage(file, { maxDimension = 1600, quality = 0.85 } = {}) {
+  if (!file.type.startsWith('image/') || file.type === 'image/gif') return file;
+  if (file.size < 150 * 1024) return file;
+
+  try {
+    const bitmap = await createImageBitmap(file);
+    const scale = Math.min(1, maxDimension / Math.max(bitmap.width, bitmap.height));
+    if (scale >= 1) { bitmap.close?.(); return file; }
+
+    const canvas = document.createElement('canvas');
+    canvas.width = Math.round(bitmap.width * scale);
+    canvas.height = Math.round(bitmap.height * scale);
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+    bitmap.close?.();
+
+    const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/jpeg', quality));
+    if (!blob || blob.size >= file.size) return file;
+
+    const newName = file.name.replace(/\.[^.]+$/, '') + '.jpg';
+    return new File([blob], newName, { type: 'image/jpeg' });
+  } catch (e) {
+    logError('Image compression failed, uploading original:', e);
+    return file;
+  }
+}
+
 // Redirect helpers used by pages that require (or forbid) auth
 async function requireAuth() {
   const { user, profile } = await getCurrentProfile();
@@ -876,4 +916,47 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     }
   }).observe(document.body, { childList: true, subtree: true });
+});
+
+// ---- Focus management for [role="dialog"] modals ----------------------------------------
+// Modals across the site (15+ files) already carry correct role="dialog" aria-modal="true"
+// markup, but none of them ever moved focus into the dialog on open or restored it on
+// close — a keyboard or screen-reader user had no way to know a modal had opened, and
+// tabbing would silently continue through the page behind it. Centralized here (same
+// MutationObserver technique as the picker-tile fix above) rather than touching every
+// individual openXModal()/closeXModal() function across the codebase.
+function isDialogVisible(el) {
+  return getComputedStyle(el).display !== 'none';
+}
+
+let _lastFocusedBeforeDialog = null;
+
+function handleDialogOpened(dialog) {
+  _lastFocusedBeforeDialog = document.activeElement;
+  const focusable = dialog.querySelector('input, textarea, select, button, [href], [tabindex]:not([tabindex="-1"])');
+  if (focusable) {
+    focusable.focus();
+  } else {
+    if (!dialog.hasAttribute('tabindex')) dialog.setAttribute('tabindex', '-1');
+    dialog.focus();
+  }
+}
+
+function handleDialogClosed() {
+  if (_lastFocusedBeforeDialog && document.body.contains(_lastFocusedBeforeDialog)) {
+    _lastFocusedBeforeDialog.focus();
+  }
+  _lastFocusedBeforeDialog = null;
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  document.querySelectorAll('[role="dialog"]').forEach(dialog => {
+    let wasVisible = isDialogVisible(dialog);
+    new MutationObserver(() => {
+      const nowVisible = isDialogVisible(dialog);
+      if (nowVisible === wasVisible) return;
+      wasVisible = nowVisible;
+      if (nowVisible) handleDialogOpened(dialog); else handleDialogClosed();
+    }).observe(dialog, { attributes: true, attributeFilter: ['style', 'class'] });
+  });
 });

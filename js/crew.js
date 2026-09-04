@@ -325,9 +325,10 @@ async function handleEditCrew(e) {
 
   let logo_url = crew.logo_url || null;
   if (pendingCrewLogoFile) {
-    const ext = pendingCrewLogoFile.name.split('.').pop();
+    const compressed = await compressImage(pendingCrewLogoFile, { maxDimension: 512, quality: 0.85 });
+    const ext = compressed.name ? compressed.name.split('.').pop() : pendingCrewLogoFile.name.split('.').pop();
     const path = `crew-logos/${crew.id}-${Date.now()}.${ext}`;
-    const { error: uploadError } = await sb.storage.from('avatars').upload(path, pendingCrewLogoFile);
+    const { error: uploadError } = await sb.storage.from('avatars').upload(path, compressed);
     if (uploadError) {
       errorEl.textContent = uploadError.message;
       errorEl.style.display = 'block';
