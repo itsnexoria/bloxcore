@@ -31,6 +31,10 @@ onReady(async () => {
   }
   populateForm(auth.profile);
   wireBuildPickers();
+<<<<<<< HEAD
+  wireFramePicker();
+=======
+>>>>>>> b476036eb46ac85491948490f60ede856d0a8b52
   wireNameGradientPickers();
 
   document.getElementById('avatar-file').addEventListener('change', handleAvatarUpload);
@@ -148,6 +152,52 @@ function wireNameGradientPickers() {
 // ---- Avatar frame picker ----
 // Frames are admin-uploaded (see /admin/manage/#frames) rather than a hardcoded list —
 // getAvatarFramesCatalog() (supabase-client.js) fetches+caches the avatar_frames table
+<<<<<<< HEAD
+// once per page load, which this reuses instead of firing a second query. Uses the same
+// modal tile-grid pattern as the fruit/sword/etc. build pickers, rather than an inline
+// swatch row, for visual consistency across every picker on this page.
+function frameAvatarPreviewFor(frame) {
+  const avatarUrl = document.getElementById('avatar-preview').style.display !== 'none'
+    ? document.getElementById('avatar-preview').src
+    : '';
+  const style = `width:48px;height:48px;border-radius:50%;object-fit:cover;background:linear-gradient(150deg, var(--navy-light), var(--navy));box-shadow:0 0 0 3px var(--ink), 0 0 0 4px rgb(var(--brass-rgb) / 0.5);`;
+  const avatarEl = avatarUrl
+    ? `<img src="${avatarUrl}" alt="" style="${style}">`
+    : `<div style="${style}"></div>`;
+  if (!frame) return avatarEl;
+  return `<span style="position:relative; display:inline-flex; width:48px; height:48px;">${avatarEl}<img src="${frame.image_url}" alt="" style="position:absolute; top:50%; left:50%; width:65px; height:65px; transform:translate(-50%,-50%); pointer-events:none;"></span>`;
+}
+
+async function updateFramePickerButton() {
+  if (!framesCatalog.length) framesCatalog = await getAvatarFramesCatalog();
+  const current = framesCatalog.find(f => f.key === activeAvatarFrame);
+  const valueEl = document.getElementById('frame-picker-value');
+  valueEl.textContent = current ? current.name : 'None';
+  valueEl.classList.toggle('is-empty', !current);
+}
+
+function openFramePickerModal() {
+  renderFrameModalGrid();
+  document.getElementById('frame-picker-modal').classList.add('open');
+}
+
+function closeFramePickerModal() {
+  document.getElementById('frame-picker-modal').classList.remove('open');
+}
+
+function renderFrameModalGrid() {
+  const grid = document.getElementById('frame-modal-grid');
+  const options = [{ key: '', name: 'None', min_level: 0 }, ...framesCatalog];
+
+  grid.innerHTML = options.map(frame => {
+    const locked = currentLevel < frame.min_level;
+    const selected = (activeAvatarFrame || '') === frame.key;
+    return `
+      <div class="build-modal-tile ${selected ? 'selected' : ''} ${locked ? 'locked' : ''}" data-frame-key="${frame.key}" data-frame-min-level="${frame.min_level}" title="${escapeHtml(frame.name)}${locked ? ` — unlocks at level ${frame.min_level}` : ''}">
+        ${frameAvatarPreviewFor(frame.key ? frame : null)}
+        <span>${escapeHtml(frame.name)}</span>
+        ${locked ? '<span class="build-modal-tile-lock"><i data-lucide="lock" class="icon-sm"></i></span>' : ''}
+=======
 // once per page load, which this reuses instead of firing a second query.
 async function renderAvatarFrameSwatches() {
   if (!framesCatalog.length) framesCatalog = await getAvatarFramesCatalog();
@@ -175,11 +225,20 @@ async function renderAvatarFrameSwatches() {
           ${locked ? '<span class="frame-swatch-lock"><i data-lucide="lock" class="icon-sm"></i></span>' : ''}
         </button>
         <span class="frame-swatch-label">${escapeHtml(frame.name)}</span>
+>>>>>>> b476036eb46ac85491948490f60ede856d0a8b52
       </div>
     `;
   }).join('');
   refreshIcons();
 
+<<<<<<< HEAD
+  grid.querySelectorAll('[data-frame-key]').forEach(tile => {
+    if (tile.classList.contains('locked')) return;
+    tile.addEventListener('click', () => {
+      activeAvatarFrame = tile.dataset.frameKey || '';
+      updateFramePickerButton();
+      closeFramePickerModal();
+=======
   document.querySelectorAll('#avatar-frame-swatches [data-frame-key]').forEach(btn => {
     btn.addEventListener('click', () => {
       const minLevel = Number(btn.dataset.frameMinLevel);
@@ -189,6 +248,7 @@ async function renderAvatarFrameSwatches() {
       }
       activeAvatarFrame = btn.dataset.frameKey || '';
       renderAvatarFrameSwatches();
+>>>>>>> b476036eb46ac85491948490f60ede856d0a8b52
     });
   });
 }
@@ -260,7 +320,11 @@ async function populateForm(profile) {
   // Fire-and-forget, not awaited: a failure here (bad data, slow network) must never
   // block the rest of the form below from populating — this cosmetic picker isn't
   // worth the whole page looking broken over.
+<<<<<<< HEAD
+  updateFramePickerButton().catch(err => logError('Failed to render avatar frame picker:', err));
+=======
   renderAvatarFrameSwatches().catch(err => logError('Failed to render avatar frame picker:', err));
+>>>>>>> b476036eb46ac85491948490f60ede856d0a8b52
   activeNameGradient = profile.name_gradient || '';
   document.getElementById('name_gradient').value = activeNameGradient;
   const stops = parseNameGradient(activeNameGradient) || ['#ffffff', '#d99b4e'];
@@ -406,7 +470,7 @@ async function handleAvatarUpload(e) {
     if (updateError) throw updateError;
 
     renderAvatar(urlData.publicUrl);
-    renderAvatarFrameSwatches();
+    updateFramePickerButton();
     showToast('Avatar updated.');
   } catch (err) {
     logError(err);
@@ -431,7 +495,16 @@ function wireBuildPickers() {
     if (e.key === 'Escape') {
       closeBuildModal();
       closeTitleModal();
+      closeFramePickerModal();
     }
+  });
+}
+
+function wireFramePicker() {
+  document.getElementById('frame-picker-btn').addEventListener('click', openFramePickerModal);
+  document.getElementById('frame-modal-close').addEventListener('click', closeFramePickerModal);
+  document.getElementById('frame-picker-modal').addEventListener('click', (e) => {
+    if (e.target.id === 'frame-picker-modal') closeFramePickerModal();
   });
 }
 

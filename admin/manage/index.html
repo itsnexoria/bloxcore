@@ -62,6 +62,7 @@
       <button type="button" class="btn btn-sm" data-manage-tab="analytics" data-requires-role="admin">Analytics</button>
       <button type="button" class="btn btn-sm" data-manage-tab="site" data-requires-role="admin">Site Controls</button>
     </div>
+    <p class="muted" style="margin:16px 0 0; font-size:0.8rem;"><i data-lucide="shield" class="icon-sm icon-inline"></i>Day-to-day moderation (submissions, reports, ban appeals) lives on the <a href="/admin/" style="color:var(--brass-bright);">main Admin page</a> — this page is for configuring and managing the underlying data.</p>
 
     <!-- ================= Challenges ================= -->
     <div data-manage-panel="challenges" style="display:none;">
@@ -415,7 +416,7 @@
           <input type="text" id="cw-crews-search" placeholder="Search by crew name or tag…" style="flex:1; min-width:220px; margin:0;">
           <button type="button" class="btn btn-danger btn-sm" id="cw-crews-bulk-delete" disabled>Delete Selected (<span id="cw-crews-selected-count">0</span>)</button>
         </div>
-        <div class="panel panel-plain" style="margin-top:14px; padding:0; overflow:hidden;">
+        <div class="panel panel-plain" style="margin-top:14px; padding:0; overflow-x:auto;">
           <table class="admin-table">
             <thead><tr>
               <th style="width:36px;"><input type="checkbox" id="cw-crews-select-all"></th>
@@ -448,7 +449,7 @@
           </select>
           <button type="button" class="btn btn-danger btn-sm" id="cw-wars-bulk-delete" disabled>Delete Selected (<span id="cw-wars-selected-count">0</span>)</button>
         </div>
-        <div class="panel panel-plain" style="margin-top:14px; padding:0; overflow:hidden;">
+        <div class="panel panel-plain" style="margin-top:14px; padding:0; overflow-x:auto;">
           <table class="admin-table">
             <thead><tr>
               <th style="width:36px;"><input type="checkbox" id="cw-wars-select-all"></th>

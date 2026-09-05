@@ -250,6 +250,12 @@ function priceSummary(entries) {
   return { total, tiles };
 }
 
+const SERVICE_CATEGORY_META = {
+  raid: { label: 'Raid', icon: 'flame', tone: 'purple' },
+  trial: { label: 'Trial', icon: 'shield', tone: 'gold' },
+  dungeon: { label: 'Dungeon', icon: 'castle', tone: 'sea' },
+};
+
 function renderListing(s, participants) {
   const profile = s.profiles || {};
   const isOwner = currentUser && s.user_id === currentUser.id;
@@ -261,6 +267,7 @@ function renderListing(s, participants) {
   const robloxVerified = !!profile.roblox_verified;
   const robloxUserId = profile.roblox_user_id || null;
   const discord = profile.discord_username || null;
+  const catMeta = SERVICE_CATEGORY_META[s.category] || { label: s.category, icon: 'box', tone: 'gold' };
 
   return `
     <div class="panel services-card hover-lift-card" data-listing-id="${s.id}" data-category="${s.category}">
@@ -281,10 +288,16 @@ function renderListing(s, participants) {
         </div>
       </div>
 
-      <h3 style="margin:14px 0 4px; font-size:1rem;">${escapeHtml(s.title)}</h3>
-      ${s.description ? `<p class="muted" style="margin:0 0 10px; font-size:0.85rem; white-space:pre-wrap;">${escapeHtml(s.description)}</p>` : ''}
+      <div style="display:flex; align-items:center; gap:10px; margin-top:14px;">
+        <span class="icon-badge" data-tone="${catMeta.tone}" style="flex-shrink:0;"><i data-lucide="${catMeta.icon}" class="icon-sm"></i></span>
+        <div style="min-width:0;">
+          <p class="muted" style="margin:0; font-size:0.7rem; text-transform:uppercase; letter-spacing:0.05em;">${escapeHtml(catMeta.label)}</p>
+          <h3 style="margin:2px 0 0; font-size:1rem;">${escapeHtml(s.title)}</h3>
+        </div>
+      </div>
+      ${s.description ? `<p class="muted" style="margin:8px 0 0; font-size:0.85rem; white-space:pre-wrap;">${escapeHtml(s.description)}</p>` : ''}
 
-      <div class="trade-side-header" style="color:var(--gold-bright); margin-top:6px;">
+      <div class="trade-side-header" style="color:var(--gold-bright); margin-top:14px;">
         <i data-lucide="sparkles" class="icon-sm"></i>Price
         <span class="trade-side-total">${formatValue(price.total)}</span>
       </div>

@@ -18,6 +18,10 @@ const MANAGE_TAB_INIT = {
   users: () => initUsersTab(),
   titles: () => initTitlesTab(),
   frames: () => initFramesTab(),
+<<<<<<< HEAD
+  'game-items': () => initGameItemsTab(),
+=======
+>>>>>>> b476036eb46ac85491948490f60ede856d0a8b52
   analytics: () => initAnalyticsTab(),
   site: () => initSiteTab(),
 };

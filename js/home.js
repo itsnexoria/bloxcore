@@ -98,6 +98,7 @@ async function loadFeaturedChallenges() {
         <p class="quest-card-reward-label">Reward</p>
         <p class="quest-card-reward-value">+${c.xp_reward} XP</p>
         <p class="quest-card-meta-row"><span class="quest-card-meta-dot"></span>${c.difficulty}</p>
+        <p class="quest-card-meta-sub">${c.rotation !== 'none' ? `${c.rotation.charAt(0).toUpperCase()}${c.rotation.slice(1)} Quest` : c.repeatable ? `Repeatable${c.cooldown_hours > 0 ? ` · ${c.cooldown_hours}h cooldown` : ''}` : 'One-Time Quest'}</p>
         <a href="/challenges/" class="quest-card-claim-btn" style="text-decoration:none;">View Quest <i data-lucide="chevron-right" class="icon-sm"></i></a>
       </div>
     </div>

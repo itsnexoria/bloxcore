@@ -114,7 +114,9 @@ function renderMatchCard(m) {
   const urgent = pctLeft < 25;
 
   let actionHtml;
-  if (!currentUser) {
+  if (isHost) {
+    actionHtml = `<span class="tag tag-legendary" style="display:block; text-align:center; padding:8px;"><i data-lucide="crown" class="icon-sm icon-inline"></i>You're Hosting</span>`;
+  } else if (!currentUser) {
     actionHtml = `<a href="/auth/" class="btn btn-primary btn-block btn-sm">Sign in to Join</a>`;
   } else if (joined) {
     actionHtml = `<button class="btn btn-ghost btn-block btn-sm" data-leave-match="${m.id}">Leave</button>`;

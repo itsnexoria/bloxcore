@@ -49,7 +49,10 @@
           <li class="nav-group-label" style="--i:13">More</li>
           <li><a href="/whats-new/" class="nav-link" style="--i:14"><span class="nav-link-icon" data-tone="pink"><i data-lucide="sparkles"></i></span>What's New</a></li>
           <li><a href="/notifications/" class="nav-link" style="--i:15"><span class="nav-link-icon" data-tone="blue"><i data-lucide="bell"></i></span>Notifications</a></li>
+<<<<<<< HEAD
+=======
           <li><a href="/status/" class="nav-link" style="--i:16"><span class="nav-link-icon" data-tone="sea"><i data-lucide="activity"></i></span>Status</a></li>
+>>>>>>> b476036eb46ac85491948490f60ede856d0a8b52
         </ul>
       </div>
       <div id="nav-auth-slot" class="nav-auth-slot"></div>
@@ -85,7 +88,11 @@
       </div>
 
       <label>Avatar Frame</label>
-      <div id="avatar-frame-swatches" style="display:flex; gap:14px; flex-wrap:wrap; margin-bottom:16px;"></div>
+      <input type="hidden" id="avatar_frame">
+      <button type="button" class="build-picker-btn" id="frame-picker-btn" style="width:100%; flex-direction:row; align-items:center; justify-content:space-between; margin-bottom:16px;">
+        <span class="build-picker-label">Frame</span>
+        <span class="build-picker-value" data-empty="None" id="frame-picker-value">None</span>
+      </button>
 
       <form id="profile-form">
         <label for="display_name">Display Name</label>
@@ -205,6 +212,19 @@
     </div>
     <input type="text" id="build-modal-search" placeholder="Search…" aria-label="Search build options" style="margin-bottom:16px;">
     <div id="build-modal-grid" class="build-modal-grid"></div>
+  </div>
+</div>
+
+<!-- Avatar frame picker modal — same tile-grid pattern as the build picker above, but each
+     tile shows the frame overlaid on the user's own avatar, and locked tiles (below the
+     account's level) show a lock instead of being selectable -->
+<div id="frame-picker-modal" class="build-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="frame-picker-title">
+  <div class="panel build-modal">
+    <div class="flex-between" style="margin-bottom:14px;">
+      <h2 id="frame-picker-title" style="font-size:1.05rem; margin:0;">Choose an Avatar Frame</h2>
+      <button type="button" class="btn btn-ghost btn-sm" id="frame-modal-close" aria-label="Close"><i data-lucide="x" class="icon-md"></i></button>
+    </div>
+    <div id="frame-modal-grid" class="build-modal-grid"></div>
   </div>
 </div>
 

@@ -57,25 +57,64 @@
   </div>
 </nav>
 
-<section class="section auth-section">
-  <div class="container" style="max-width:440px; position:relative;">
-    <div aria-hidden="true" style="position:absolute; inset:-40px; background:radial-gradient(circle, rgb(var(--brass-rgb) / 0.18), transparent 70%); filter:blur(10px); animation: stampPulse 4s ease-in-out infinite; z-index:0;"></div>
+<section class="section auth-section" style="align-items:stretch; min-height:calc(100vh - 66px); min-height:calc(100dvh - 66px); padding:0;">
+  <div class="container" style="max-width:1100px; display:grid; grid-template-columns:1.05fr 0.95fr; gap:0; align-items:stretch; position:relative;">
 
-    <div class="poster auth-card" style="position:relative; z-index:1;">
-      <img src="/assets/logo.png" alt="BloxCore" style="width:64px; height:64px; margin:0 auto 14px; display:block; filter:drop-shadow(0 0 16px rgb(var(--brass-rgb) / 0.5));">
-      <p class="poster-eyebrow"><i data-lucide="star" class="icon-sm"></i> Welcome Aboard <i data-lucide="star" class="icon-sm"></i></p>
-      <h1 style="font-size:2rem; margin:2px 0 6px; background:linear-gradient(90deg, var(--brass-bright), var(--sea)); -webkit-background-clip:text; background-clip:text; color:transparent;">BloxCore</h1>
-      <p class="muted" style="margin:0 0 26px; font-size:0.92rem;">Every legend starts with a name on the board.</p>
+    <!-- Left: welcome / brand story -->
+    <div class="auth-hero-side" style="position:relative; padding:56px 44px; display:flex; flex-direction:column; justify-content:center; overflow:hidden;">
+      <svg class="compass-mark" aria-hidden="true" style="width:340px; height:340px; opacity:0.06; top:-60px; left:-60px;" viewBox="0 0 100 100">
+        <circle cx="50" cy="50" r="46" fill="none" stroke="currentColor" stroke-width="0.6"/>
+        <circle cx="50" cy="50" r="34" fill="none" stroke="currentColor" stroke-width="0.4"/>
+        <path d="M50 12 L57 50 L50 88 L43 50 Z" fill="currentColor" opacity="0.85"/>
+        <path d="M12 50 L50 43 L88 50 L50 57 Z" fill="currentColor" opacity="0.4"/>
+      </svg>
+      <div style="position:relative; z-index:1;">
+        <img src="/assets/logo.png" alt="BloxCore" style="width:52px; height:52px; margin-bottom:20px; filter:drop-shadow(0 0 16px rgb(var(--brass-rgb) / 0.5));">
+        <p class="poster-eyebrow" style="justify-content:flex-start;"><i data-lucide="star" class="icon-sm"></i> Welcome Aboard</p>
+        <h1 style="font-size:2.4rem; line-height:1.1; margin:6px 0 14px; background:linear-gradient(90deg, #fff, var(--brass-bright)); -webkit-background-clip:text; background-clip:text; color:transparent;">Every legend starts<br>with a name on the board.</h1>
+        <p class="muted" style="font-size:1rem; max-width:420px; margin:0 0 32px;">BloxCore is the #1 Blox Fruits community hub — quests, crews, trading, giveaways, and live chat, all in one place.</p>
 
-      <button id="discord-btn" class="btn btn-primary btn-block" style="background:#5865F2; box-shadow:0 2px 0 #3d47b3; color:#fff; font-size:1rem; padding:14px 22px;">
-        Continue with Discord
-      </button>
-      <p class="muted" style="font-size:0.78rem; margin:16px 0 0;">No separate BloxCore password to manage — sign in with Discord. You can connect your Roblox account afterward from Settings.</p>
-      <p class="muted" style="font-size:0.74rem; margin:8px 0 0;">By continuing, you agree to our <a href="/terms/">Terms of Service</a> and <a href="/privacy/">Privacy Policy</a>.</p>
-      <p class="field-error" id="signin-error" style="display:none; text-align:left;"></p>
+        <div style="display:flex; flex-direction:column; gap:16px;">
+          <div style="display:flex; align-items:center; gap:14px;">
+            <span class="icon-badge" data-tone="purple" style="flex-shrink:0;"><i data-lucide="swords" class="icon-sm"></i></span>
+            <div><p style="margin:0; font-weight:700; font-size:0.92rem;">Complete Quests</p><p class="muted" style="margin:2px 0 0; font-size:0.8rem;">Daily, weekly, and monthly bounties for real XP.</p></div>
+          </div>
+          <div style="display:flex; align-items:center; gap:14px;">
+            <span class="icon-badge" data-tone="blue" style="flex-shrink:0;"><i data-lucide="users" class="icon-sm"></i></span>
+            <div><p style="margin:0; font-weight:700; font-size:0.92rem;">Join a Crew</p><p class="muted" style="margin:2px 0 0; font-size:0.8rem;">Team up, declare wars, climb the crew leaderboard.</p></div>
+          </div>
+          <div style="display:flex; align-items:center; gap:14px;">
+            <span class="icon-badge" data-tone="sea" style="flex-shrink:0;"><i data-lucide="repeat" class="icon-sm"></i></span>
+            <div><p style="margin:0; font-weight:700; font-size:0.92rem;">Trade &amp; Grow</p><p class="muted" style="margin:2px 0 0; font-size:0.8rem;">Live values, giveaways, and a real trading board.</p></div>
+          </div>
+          <div style="display:flex; align-items:center; gap:14px;">
+            <span class="icon-badge" data-tone="gold" style="flex-shrink:0;"><i data-lucide="trophy" class="icon-sm"></i></span>
+            <div><p style="margin:0; font-weight:700; font-size:0.92rem;">Climb the Leaderboard</p><p class="muted" style="margin:2px 0 0; font-size:0.8rem;">Rank up, earn titles, become a Pirate King.</p></div>
+          </div>
+        </div>
+      </div>
+    </div>
 
-      <div style="margin-top:24px; padding-top:20px; border-top:1px solid var(--navy-light);">
-        <p class="muted" style="font-size:0.8rem; margin:0;" id="auth-pirate-count">Pirates are already making their name.</p>
+    <!-- Right: the actual sign-in card -->
+    <div style="display:flex; align-items:center; justify-content:center; padding:32px 24px; position:relative;">
+      <div aria-hidden="true" style="position:absolute; inset:-40px; background:radial-gradient(circle, rgb(var(--brass-rgb) / 0.18), transparent 70%); filter:blur(10px); animation: stampPulse 4s ease-in-out infinite; z-index:0;"></div>
+
+      <div class="poster auth-card" style="position:relative; z-index:1; max-width:400px; width:100%;">
+        <p class="poster-eyebrow"><i data-lucide="anchor" class="icon-sm"></i> Sign In <i data-lucide="anchor" class="icon-sm"></i></p>
+        <h2 style="font-size:1.4rem; margin:2px 0 6px;">Get Started</h2>
+        <p class="muted" style="margin:0 0 26px; font-size:0.92rem;">One click. No forms, no passwords to remember.</p>
+
+        <button id="discord-btn" class="btn btn-primary btn-block" style="background:#5865F2; box-shadow:0 2px 0 #3d47b3; color:#fff; font-size:1rem; padding:14px 22px;">
+          <i data-lucide="message-circle" class="icon-sm icon-inline"></i>Continue with Discord
+        </button>
+        <p class="muted" style="font-size:0.78rem; margin:16px 0 0;">No separate BloxCore password to manage — sign in with Discord. You can connect your Roblox account afterward from Settings.</p>
+        <p class="muted" style="font-size:0.74rem; margin:8px 0 0;">By continuing, you agree to our <a href="/terms/">Terms of Service</a> and <a href="/privacy/">Privacy Policy</a>.</p>
+        <p class="field-error" id="signin-error" style="display:none; text-align:left;"></p>
+
+        <div style="margin-top:24px; padding-top:20px; border-top:1px solid var(--navy-light); display:flex; align-items:center; gap:8px;">
+          <i data-lucide="users" class="icon-sm" style="color:var(--brass-bright); flex-shrink:0;"></i>
+          <p class="muted" style="font-size:0.8rem; margin:0;" id="auth-pirate-count">Pirates are already making their name.</p>
+        </div>
       </div>
     </div>
   </div>
