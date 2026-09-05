@@ -1,5 +1,25 @@
 // BloxCore — admin/site/index.html logic (admin only): broadcasts + XP events
 
+// Populates the maintenance-mode and page-block "which page" dropdowns from the
+// site_pages registry table instead of a hardcoded <option> list — adding a page to that
+// table (or flipping its maintenance_eligible/block_eligible flag) makes it available in
+// both places immediately, no HTML edit needed. This is what previously went stale (both
+// dropdowns were missing /notifications/, /status/, and even /pvp/, an existing page).
+async function loadSitePagesDropdowns() {
+  const { data, error } = await sb.from('site_pages').select('*').order('sort_order', { ascending: true });
+  if (error) { logError('Failed to load site pages registry:', error); return; }
+
+  const pages = data || [];
+  document.getElementById('maintenance-page').innerHTML = pages
+    .filter(p => p.maintenance_eligible)
+    .map(p => `<option value="${p.path}">${escapeHtml(p.label)}</option>`)
+    .join('');
+  document.getElementById('page-block-page').innerHTML = pages
+    .filter(p => p.block_eligible)
+    .map(p => `<option value="${p.path}">${escapeHtml(p.label)}</option>`)
+    .join('');
+}
+
 let _siteTabInit = false;
 
 async function initSiteTab() {
@@ -10,6 +30,7 @@ async function initSiteTab() {
     await loadBroadcasts();
     await loadEvents();
     await loadSettingsForm();
+    await loadSitePagesDropdowns();
     await loadMaintenanceList();
     await loadPageBlockList();
     await loadChatDomainList();

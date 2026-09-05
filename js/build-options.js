@@ -1,212 +1,45 @@
-// BloxCore — build option lists generated from assets/game/*, used by profile-edit.js and player.js
-const BUILD_OPTIONS = {
-  fruit: [
-    { value: "Rocket", icon: "/assets/game/Fruits/Rocket_Fruit.png", rarity: "common" },
-    { value: "Spin", icon: "/assets/game/Fruits/Spin_Fruit.png", rarity: "common" },
-    { value: "Blade", icon: "/assets/game/Fruits/Blade_Fruit.png", rarity: "common" },
-    { value: "Spring", icon: "/assets/game/Fruits/Spring_Fruit.png", rarity: "common" },
-    { value: "Bomb", icon: "/assets/game/Fruits/Bomb_Fruit.png", rarity: "common" },
-    { value: "Smoke", icon: "/assets/game/Fruits/Smoke_Fruit.png", rarity: "common" },
-    { value: "Spike", icon: "/assets/game/Fruits/Spike_Fruit.png", rarity: "common" },
-    { value: "Flame", icon: "/assets/game/Fruits/Flame_Fruit.png", rarity: "uncommon" },
-    { value: "Ice", icon: "/assets/game/Fruits/Ice_Fruit.png", rarity: "uncommon" },
-    { value: "Sand", icon: "/assets/game/Fruits/Sand_Fruit.png", rarity: "uncommon" },
-    { value: "Dark", icon: "/assets/game/Fruits/Dark_Fruit.png", rarity: "uncommon" },
-    { value: "Eagle", icon: "/assets/game/Fruits/Eagle_Fruit.png", rarity: "uncommon" },
-    { value: "Diamond", icon: "/assets/game/Fruits/Diamond_Fruit.png", rarity: "rare" },
-    { value: "Light", icon: "/assets/game/Fruits/Light_Fruit.png", rarity: "rare" },
-    { value: "Rubber", icon: "/assets/game/Fruits/Rubber_Fruit.png", rarity: "rare" },
-    { value: "Ghost", icon: "/assets/game/Fruits/Ghost_Fruit.png", rarity: "rare" },
-    { value: "Magma", icon: "/assets/game/Fruits/Magma_Fruit.png", rarity: "legendary" },
-    { value: "Quake", icon: "/assets/game/Fruits/Quake_Fruit.png", rarity: "legendary" },
-    { value: "Buddha", icon: "/assets/game/Fruits/Buddha_Fruit.png", rarity: "legendary" },
-    { value: "Love", icon: "/assets/game/Fruits/Love_Fruit.png", rarity: "legendary" },
-    { value: "Creation", icon: "/assets/game/Fruits/Creation_Fruit.png", rarity: "legendary" },
-    { value: "Spider", icon: "/assets/game/Fruits/Spider_Fruit.png", rarity: "legendary" },
-    { value: "Sound", icon: "/assets/game/Fruits/Sound_Fruit.png", rarity: "legendary" },
-    { value: "Phoenix", icon: "/assets/game/Fruits/Phoenix_Fruit.png", rarity: "legendary" },
-    { value: "Portal", icon: "/assets/game/Fruits/Portal_Fruit.png", rarity: "legendary" },
-    { value: "Lightning", icon: "/assets/game/Fruits/Lightning_Fruit.png", rarity: "legendary" },
-    { value: "Pain", icon: "/assets/game/Fruits/Pain_Fruit.png", rarity: "legendary" },
-    { value: "Blizzard", icon: "/assets/game/Fruits/Blizzard_Fruit.png", rarity: "legendary" },
-    { value: "Gravity", icon: "/assets/game/Fruits/Gravity_Fruit.png", rarity: "mythical" },
-    { value: "Mammoth", icon: "/assets/game/Fruits/Mammoth_Fruit.png", rarity: "mythical" },
-    { value: "T-Rex", icon: "/assets/game/Fruits/T-Rex_Fruit.png", rarity: "mythical" },
-    { value: "Dough", icon: "/assets/game/Fruits/Dough_Fruit.png", rarity: "mythical" },
-    { value: "Shadow", icon: "/assets/game/Fruits/Shadow_Fruit.png", rarity: "mythical" },
-    { value: "Venom", icon: "/assets/game/Fruits/Venom_Fruit.png", rarity: "mythical" },
-    { value: "Gas", icon: "/assets/game/Fruits/Gas_Fruit.png", rarity: "mythical" },
-    { value: "Spirit", icon: "/assets/game/Fruits/Spirit_Fruit.png", rarity: "mythical" },
-    { value: "Tiger", icon: "/assets/game/Fruits/Tiger_Fruit.png", rarity: "mythical" },
-    { value: "Yeti", icon: "/assets/game/Fruits/Yeti_Fruit.png", rarity: "mythical" },
-    { value: "Kitsune", icon: "/assets/game/Fruits/Kitsune_Fruit.png", rarity: "mythical" },
-    { value: "Control", icon: "/assets/game/Fruits/Control_Fruit.png", rarity: "mythical" },
-    { value: "East Dragon", icon: "/assets/game/Fruits/Dragon_Fruit.png", rarity: "mythical" },
-    { value: "West Dragon", icon: "/assets/game/Fruits/Dragon_Fruit.png", rarity: "mythical" }
-  ],
-  sword: [
-    { value: "Cutlass", icon: "/assets/game/Swords/Cutlass.png", rarity: "common" },
-    { value: "Dual Katana", icon: "/assets/game/Swords/Dual_Katana.png", rarity: "common" },
-    { value: "Katana", icon: "/assets/game/Swords/Katana.png", rarity: "common" },
-    { value: "Iron Mace", icon: "/assets/game/Swords/Iron_Mace.png", rarity: "uncommon" },
-    { value: "Shark Saw", icon: "/assets/game/Swords/Shark_Saw.png", rarity: "uncommon" },
-    { value: "Triple Katana", icon: "/assets/game/Swords/Triple_Katana.png", rarity: "uncommon" },
-    { value: "Twin Hooks", icon: "/assets/game/Swords/Twin_Hooks.png", rarity: "uncommon" },
-    { value: "Dragon Trident", icon: "/assets/game/Swords/Dragon_Trident.png", rarity: "rare" },
-    { value: "Dual-Headed Blade", icon: "/assets/game/Swords/Dual-Headed_Blade.png", rarity: "rare" },
-    { value: "Flail", icon: "/assets/game/Swords/Flail.png", rarity: "rare" },
-    { value: "Gravity Blade", icon: "/assets/game/Swords/Gravity_Blade.png", rarity: "rare" },
-    { value: "Longsword", icon: "/assets/game/Swords/Longsword.png", rarity: "rare" },
-    { value: "Pipe", icon: "/assets/game/Swords/Pipe.png", rarity: "rare" },
-    { value: "Soul Cane", icon: "/assets/game/Swords/Soul_Cane.png", rarity: "rare" },
-    { value: "Trident", icon: "/assets/game/Swords/Trident.png", rarity: "rare" },
-    { value: "Wardens Sword", icon: "/assets/game/Swords/Wardens_Sword.png", rarity: "legendary" },
-    { value: "Bisento", icon: "/assets/game/Swords/Bisento.png", rarity: "legendary" },
-    { value: "Buddy Sword", icon: "/assets/game/Swords/Buddy_Sword.png", rarity: "legendary" },
-    { value: "Canvander", icon: "/assets/game/Swords/Canvander.png", rarity: "legendary" },
-    { value: "Dark Dagger", icon: "/assets/game/Swords/Dark_Dagger.png", rarity: "legendary" },
-    { value: "Dragonheart", icon: "/assets/game/Swords/Dragonheart.png", rarity: "legendary" },
-    { value: "Fox Lamp", icon: "/assets/game/Swords/Fox_Lamp.png", rarity: "legendary" },
-    { value: "Koko", icon: "/assets/game/Swords/Koko.png", rarity: "legendary" },
-    { value: "Midnight Blade", icon: "/assets/game/Swords/Midnight_Blade.png", rarity: "legendary" },
-    { value: "Oroshi", icon: "/assets/game/Swords/Oroshi.png", rarity: "legendary" },
-    { value: "Pole 29", icon: "/assets/game/Swords/Pole_29.png", rarity: "legendary" },
-    { value: "Pole 2nd form", icon: "/assets/game/Swords/Pole_2nd_form.png", rarity: "legendary" },
-    { value: "Rengoku", icon: "/assets/game/Swords/Rengoku.png", rarity: "legendary" },
-    { value: "Saber", icon: "/assets/game/Swords/Saber.png", rarity: "legendary" },
-    { value: "Saishi", icon: "/assets/game/Swords/Saishi.png", rarity: "legendary" },
-    { value: "Shark Anchor", icon: "/assets/game/Swords/Shark_Anchor.png", rarity: "legendary" },
-    { value: "Shizu", icon: "/assets/game/Swords/Shizu.png", rarity: "legendary" },
-    { value: "Spikey Trident", icon: "/assets/game/Swords/Spikey_Trident.png", rarity: "legendary" },
-    { value: "Tushita", icon: "/assets/game/Swords/Tushita.png", rarity: "legendary" },
-    { value: "Yama", icon: "/assets/game/Swords/Yama.png", rarity: "legendary" },
-    { value: "Cursed Dual Katana", icon: "/assets/game/Swords/Cursed_Dual_Katana.png", rarity: "mythical" },
-    { value: "Dark Blade", icon: "/assets/game/Swords/Dark_Blade.png", rarity: "mythical" },
-    { value: "Hallow Scythe", icon: "/assets/game/Swords/Hallow_Scythe.png", rarity: "mythical" },
-    { value: "True Triple Katana", icon: "/assets/game/Swords/True_Triple_Katana.png", rarity: "mythical" },
-    { value: "Dog Blade", icon: "https://static.wikia.nocookie.net/roblox-blox-piece/images/c/c2/Dog_Blade.png/revision/latest?cb=20260801171339", rarity: "mythical" }
-  ],
-  gun: [
-    { value: "Slingshot", icon: "/assets/game/Guns/Slingshot.png", rarity: "common" },
-    { value: "Flintlock", icon: "/assets/game/Guns/Flintlock.png", rarity: "uncommon" },
-    { value: "Musket", icon: "/assets/game/Guns/Musket.png", rarity: "uncommon" },
-    { value: "Acidum Rifle", icon: "/assets/game/Guns/Acidum_Rifle.png", rarity: "rare" },
-    { value: "Bizarre Revolver", icon: "/assets/game/Guns/Bizarre_Revolver.png", rarity: "rare" },
-    { value: "Cannon", icon: "/assets/game/Guns/Cannon.png", rarity: "rare" },
-    { value: "Dual Flintlock", icon: "/assets/game/Guns/Dual_Flintlock.png", rarity: "rare" },
-    { value: "Magma Blaster", icon: "/assets/game/Guns/Magma_Blaster.png", rarity: "rare" },
-    { value: "Refined Slingshot", icon: "/assets/game/Guns/Refined_Slingshot.png", rarity: "legendary" },
-    { value: "Bazooka", icon: "/assets/game/Guns/Bazooka.png", rarity: "legendary" },
-    { value: "Dragonstorm", icon: "/assets/game/Guns/Dragonstorm.png", rarity: "legendary" },
-    { value: "Kabucha", icon: "/assets/game/Guns/Kabucha.png", rarity: "legendary" },
-    { value: "Venom Bow", icon: "/assets/game/Guns/Venom_Bow.png", rarity: "legendary" },
-    { value: "Skull Guitar", icon: "/assets/game/Guns/Skull_Guitar.png", rarity: "mythical" }
-  ],
-  melee: [
-    { value: "Combat", icon: "/assets/game/Melee/Combat.png", rarity: "common" },
-    { value: "Dark Step", icon: "/assets/game/Melee/Dark_Step.png", rarity: "common" },
-    { value: "Electric", icon: "/assets/game/Melee/Electric.png", rarity: "common" },
-    { value: "Water Kung Fu", icon: "/assets/game/Melee/Water_Kung_Fu.png", rarity: "common" },
-    { value: "Dragon Breath", icon: "/assets/game/Melee/Dragon_Breath.png", rarity: "rare" },
-    { value: "Superhuman", icon: "/assets/game/Melee/Superhuman.png", rarity: "rare" },
-    { value: "Death Step", icon: "/assets/game/Melee/Death_Step.png", rarity: "rare" },
-    { value: "Sharkman Karate", icon: "/assets/game/Melee/Sharkman_Karate.png", rarity: "rare" },
-    { value: "Electric Claw", icon: "/assets/game/Melee/Electric_Claw.png", rarity: "mythical" },
-    { value: "Dragon Talon", icon: "/assets/game/Melee/Dragon_Talon.png", rarity: "mythical" },
-    { value: "Godhuman", icon: "/assets/game/Melee/Godhuman.png", rarity: "mythical" },
-    { value: "Sanguine Art", icon: "/assets/game/Melee/Sanguine_Art.png", rarity: "mythical" }
-  ],
-  race: [
-    { value: "Angel", icon: "/assets/game/Races/Angel.png" },
-    { value: "Cyborg", icon: "/assets/game/Races/Cyborg.png" },
-    { value: "Draco", icon: "/assets/game/Races/Draco.png" },
-    { value: "Ghoul", icon: "/assets/game/Races/Ghoul.png" },
-    { value: "Human", icon: "/assets/game/Races/Human.png" },
-    { value: "Rabbit", icon: "/assets/game/Races/Rabbit.png" },
-    { value: "Shark", icon: "/assets/game/Races/Shark.png" }
-  ],
-  accessory: [
-    { value: "Headband blue", icon: "/assets/game/Accessory/Headband_blue.png", rarity: "common" },
-    { value: "Headband green", icon: "/assets/game/Accessory/Headband_green.png", rarity: "common" },
-    { value: "Headband orange", icon: "/assets/game/Accessory/Headband_orange.png", rarity: "common" },
-    { value: "Headband purple", icon: "/assets/game/Accessory/Headband_purple.png", rarity: "common" },
-    { value: "Headband red", icon: "/assets/game/Accessory/Headband_red.png", rarity: "common" },
-    { value: "Headband white", icon: "/assets/game/Accessory/Headband_white.png", rarity: "common" },
-    { value: "Headband yellow", icon: "/assets/game/Accessory/Headband_yellow.png", rarity: "common" },
-    { value: "Dojo Belt blue", icon: "/assets/game/Accessory/Dojo_Belt_blue.png", rarity: "uncommon" },
-    { value: "Dojo Belt green", icon: "/assets/game/Accessory/Dojo_Belt_green.png", rarity: "uncommon" },
-    { value: "Dojo Belt orange", icon: "/assets/game/Accessory/Dojo_Belt_orange.png", rarity: "uncommon" },
-    { value: "Dojo Belt purple", icon: "/assets/game/Accessory/Dojo_Belt_purple.png", rarity: "uncommon" },
-    { value: "Dojo Belt red", icon: "/assets/game/Accessory/Dojo_Belt_red.png", rarity: "uncommon" },
-    { value: "Dojo Belt white", icon: "/assets/game/Accessory/Dojo_Belt_white.png", rarity: "uncommon" },
-    { value: "Dojo Belt yellow", icon: "/assets/game/Accessory/Dojo_Belt_yellow.png", rarity: "uncommon" },
-    { value: "Headband black", icon: "/assets/game/Accessory/Headband_black.png", rarity: "uncommon" },
-    { value: "Pink Coat", icon: "/assets/game/Accessory/Pink_Coat.png", rarity: "uncommon" },
-    { value: "Bandanna black", icon: "/assets/game/Accessory/Bandanna_black.png", rarity: "rare" },
-    { value: "Bandanna green", icon: "/assets/game/Accessory/Bandanna_green.png", rarity: "rare" },
-    { value: "Bandanna red", icon: "/assets/game/Accessory/Bandanna_red.png", rarity: "rare" },
-    { value: "Bear Ears", icon: "/assets/game/Accessory/Bear_Ears.png", rarity: "rare" },
-    { value: "Black Cape", icon: "/assets/game/Accessory/Black_Cape.png", rarity: "rare" },
-    { value: "Black Spikey Coat", icon: "/assets/game/Accessory/Black_Spikey_Coat.png", rarity: "rare" },
-    { value: "Blue Spikey Coat", icon: "/assets/game/Accessory/Blue_Spikey_Coat.png", rarity: "rare" },
-    { value: "Choppa", icon: "/assets/game/Accessory/Choppa.png", rarity: "rare" },
-    { value: "Coat 29", icon: "/assets/game/Accessory/Coat_29.png", rarity: "rare" },
-    { value: "Cool Shades", icon: "/assets/game/Accessory/Cool_Shades.png", rarity: "rare" },
-    { value: "Dojo Belt 29", icon: "/assets/game/Accessory/Dojo_Belt_29.png", rarity: "rare" },
-    { value: "Elf Hat", icon: "/assets/game/Accessory/Elf_Hat.png", rarity: "rare" },
-    { value: "Ghoul Mask", icon: "/assets/game/Accessory/Ghoul_Mask.png", rarity: "rare" },
-    { value: "Golden Sunhat", icon: "/assets/game/Accessory/Golden_Sunhat.png", rarity: "rare" },
-    { value: "Hunter Cape black", icon: "/assets/game/Accessory/Hunter_Cape_black.png", rarity: "rare" },
-    { value: "Hunter Cape green", icon: "/assets/game/Accessory/Hunter_Cape_green.png", rarity: "rare" },
-    { value: "Hunter Cape red", icon: "/assets/game/Accessory/Hunter_Cape_red.png", rarity: "rare" },
-    { value: "Jaw Shield", icon: "/assets/game/Accessory/Jaw_Shield.png", rarity: "rare" },
-    { value: "Lei", icon: "/assets/game/Accessory/Lei.png", rarity: "rare" },
-    { value: "Marine Cap", icon: "/assets/game/Accessory/Marine_Cap.png", rarity: "rare" },
-    { value: "Pilot Helmet", icon: "/assets/game/Accessory/Pilot_Helmet.png", rarity: "rare" },
-    { value: "Pretty Helmet", icon: "/assets/game/Accessory/Pretty_Helmet.png", rarity: "rare" },
-    { value: "Red Spikey Coat", icon: "/assets/game/Accessory/Red_Spikey_Coat.png", rarity: "rare" },
-    { value: "Santa Hat", icon: "/assets/game/Accessory/Santa_Hat.png", rarity: "rare" },
-    { value: "Shark Tooth Necklace", icon: "/assets/game/Accessory/Shark_Tooth_Necklace.png", rarity: "legendary" },
-    { value: "Swordsman Hat", icon: "/assets/game/Accessory/Swordsman_Hat.png", rarity: "legendary" },
-    { value: "T-Rex Skull", icon: "/assets/game/Accessory/T-Rex_Skull.png", rarity: "legendary" },
-    { value: "Tomoe Ring", icon: "/assets/game/Accessory/Tomoe_Ring.png", rarity: "legendary" },
-    { value: "Top Hat", icon: "/assets/game/Accessory/Top_Hat.png", rarity: "legendary" },
-    { value: "Usoaps Hat", icon: "/assets/game/Accessory/Usoaps_Hat.png", rarity: "legendary" },
-    { value: "Warrior Helmet", icon: "/assets/game/Accessory/Warrior_Helmet.png", rarity: "legendary" },
-    { value: "Cupids Coat", icon: "/assets/game/Accessory/Cupids_Coat.png", rarity: "legendary" },
-    { value: "Dino Hood", icon: "/assets/game/Accessory/Dino_Hood.png", rarity: "legendary" },
-    { value: "Feathered Visage", icon: "/assets/game/Accessory/Feathered_Visage.png", rarity: "legendary" },
-    { value: "Heart Shades", icon: "/assets/game/Accessory/Heart_Shades.png", rarity: "legendary" },
-    { value: "Holy Crown", icon: "/assets/game/Accessory/Holy_Crown.png", rarity: "legendary" },
-    { value: "Kitsune Mask", icon: "/assets/game/Accessory/Kitsune_Mask.png", rarity: "legendary" },
-    { value: "Kitsune Ribbon", icon: "/assets/game/Accessory/Kitsune_Ribbon.png", rarity: "legendary" },
-    { value: "Leviathan Crown", icon: "/assets/game/Accessory/Leviathan_Crown.png", rarity: "legendary" },
-    { value: "Musketeer Hat", icon: "/assets/game/Accessory/Musketeer_Hat.png", rarity: "legendary" },
-    { value: "Pale Scarf", icon: "/assets/game/Accessory/Pale_Scarf.png", rarity: "legendary" },
-    { value: "Swan Glasses", icon: "/assets/game/Accessory/Swan_Glasses.png", rarity: "legendary" },
-    { value: "Terror Jaw", icon: "/assets/game/Accessory/Terror_Jaw.png", rarity: "legendary" },
-    { value: "Valkyrie Helm", icon: "/assets/game/Accessory/Valkyrie_Helm.png", rarity: "legendary" },
-    { value: "Zebra Cap", icon: "/assets/game/Accessory/Zebra_Cap.png", rarity: "legendary" },
-    { value: "Celestial Helmet", icon: "/assets/game/Accessory/Celestial_Helmet.png", rarity: "mythical" },
-    { value: "Coven Witch Hat", icon: "/assets/game/Accessory/Coven_Witch_Hat.png", rarity: "mythical" },
-    { value: "Cracked Egg Helmet", icon: "/assets/game/Accessory/Cracked_Egg_Helmet.png", rarity: "mythical" },
-    { value: "Cupids Top Hat", icon: "/assets/game/Accessory/Cupids_Top_Hat.png", rarity: "mythical" },
-    { value: "Dark Coat", icon: "/assets/game/Accessory/Dark_Coat.png", rarity: "mythical" },
-    { value: "Divine Cloak", icon: "/assets/game/Accessory/Divine_Cloak.png", rarity: "mythical" },
-    { value: "Easter Bunny Cape", icon: "/assets/game/Accessory/Easter_Bunny_Cape.png", rarity: "mythical" },
-    { value: "Frosty Helmet", icon: "/assets/game/Accessory/Frosty_Helmet.png", rarity: "mythical" },
-    { value: "Holiday Cloak", icon: "/assets/game/Accessory/Holiday_Cloak.png", rarity: "mythical" },
-    { value: "Leviathan Shield", icon: "/assets/game/Accessory/Leviathan_Shield.png", rarity: "mythical" },
-    { value: "Oni Helmet", icon: "/assets/game/Accessory/Oni_Helmet.png", rarity: "mythical" },
-    { value: "Party Hat", icon: "/assets/game/Accessory/Party_Hat.png", rarity: "mythical" },
-    { value: "Peppermint Helmet", icon: "/assets/game/Accessory/Peppermint_Helmet.png", rarity: "mythical" },
-    { value: "Pumpkin Mask", icon: "/assets/game/Accessory/Pumpkin_Mask.png", rarity: "mythical" },
-    { value: "Red Ribbon", icon: "/assets/game/Accessory/Red_Ribbon.png", rarity: "mythical" },
-    { value: "50b Party Hat", icon: "/assets/game/Accessory/50b_Party_Hat.png", rarity: "mythical" },
-    { value: "Romantic Bouquet", icon: "/assets/game/Accessory/Romantic_Bouquet.png", rarity: "mythical" },
-    { value: "Sanguine Cloak", icon: "/assets/game/Accessory/Sanguine_Cloak.png", rarity: "mythical" }
-  ],
-};
+// BloxCore — build option lists (fruits/swords/guns/fighting styles/races/accessories),
+// now sourced live from the bf_items table (admin-managed via /admin/manage/#game-items)
+// instead of a hardcoded object. BUILD_OPTIONS keeps the exact shape every existing
+// consumer already expects — {fruit: [...], sword: [...], melee: [...], ...}, each entry
+// {value, icon, rarity} — so nothing downstream needed to change except how the data gets
+// in here. "melee" is kept as the JS-facing key (not "fighting_style", bf_items' category
+// name for it) since profiles.build_melee and the picker UI already use that name
+// everywhere; renaming it would mean migrating stored profile data too, for no benefit.
+const BUILD_OPTIONS = { fruit: [], sword: [], gun: [], melee: [], race: [], accessory: [] };
+
+const CATEGORY_JS_KEY = { fruit: 'fruit', sword: 'sword', gun: 'gun', fighting_style: 'melee', race: 'race', accessory: 'accessory' };
+const RARITY_SORT = { common: 0, uncommon: 1, rare: 2, legendary: 3, mythical: 4 };
+
+// Other scripts call findBuildIcon()/read BUILD_OPTIONS from inside functions (never at
+// module-parse time), so by the time anything actually needs this data, onReady()'s own
+// await chain has given this plenty of time to resolve — see the resilience-pass notes
+// elsewhere for why nothing here throws even if the fetch itself fails.
+const _buildOptionsLoaded = (async () => {
+  try {
+    const { data, error } = await sb
+      .from('bf_items')
+      .select('name, category, rarity, icon_url')
+      .in('category', Object.keys(CATEGORY_JS_KEY));
+    if (error) throw error;
+
+    const byKey = { fruit: [], sword: [], gun: [], melee: [], race: [], accessory: [] };
+    (data || []).forEach(item => {
+      const jsKey = CATEGORY_JS_KEY[item.category];
+      if (!jsKey) return;
+      byKey[jsKey].push({ value: item.name, icon: item.icon_url, rarity: item.rarity ? item.rarity.toLowerCase() : undefined });
+    });
+    Object.keys(byKey).forEach(k => {
+      byKey[k].sort((a, b) => {
+        const rDiff = (RARITY_SORT[a.rarity] ?? 9) - (RARITY_SORT[b.rarity] ?? 9);
+        return rDiff !== 0 ? rDiff : a.value.localeCompare(b.value);
+      });
+      BUILD_OPTIONS[k] = byKey[k];
+    });
+  } catch (e) {
+    logError('Failed to load game item catalog:', e);
+  }
+})();
 
 // Shared by player.js and profile-edit.js (both already load this file for BUILD_OPTIONS
 // itself) to look up an option's icon path from its stored value.

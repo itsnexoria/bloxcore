@@ -686,26 +686,7 @@
           <p class="muted" style="font-size:0.85rem; margin-top:-8px;">Take a single page offline for everyone except admins.</p>
           <form id="maintenance-form">
             <label for="maintenance-page">Page</label>
-            <select id="maintenance-page" required>
-              <option value="/">Home</option>
-              <option value="/auth/">Sign In / Sign Up</option>
-              <option value="/onboarding/">Onboarding</option>
-              <option value="/dashboard/">Dashboard</option>
-              <option value="/chat/">Chat (Live Chat, Messages, Friends)</option>
-              <option value="/sea-events/">Sea Events</option>
-              <option value="/giveaways/">Giveaways</option>
-              <option value="/challenges/">Quests</option>
-              <option value="/leaderboard/">Leaderboard</option>
-              <option value="/crews/">Crews (incl. Crew Wars)</option>
-              <option value="/crew/">Individual Crew Pages</option>
-              <option value="/trading/">Trading</option>
-              <option value="/services/">Services</option>
-              <option value="/combos/">Combos</option>
-              <option value="/player/">Player Profiles</option>
-              <option value="/profile/">Edit Profile</option>
-              <option value="/whats-new/">What's New</option>
-              <option value="/settings/">Settings</option>
-            </select>
+            <select id="maintenance-page" required></select>
             <label for="maintenance-message">Message shown to visitors (optional)</label>
             <textarea id="maintenance-message" rows="2" maxlength="200" placeholder="This page is temporarily unavailable. Check back soon."></textarea>
             <button type="submit" class="btn btn-primary">Enable Maintenance</button>
@@ -722,16 +703,7 @@
             <label for="page-block-username">Username</label>
             <input type="text" id="page-block-username" placeholder="e.g. nxrealm08" required>
             <label for="page-block-page">Page</label>
-            <select id="page-block-page" required>
-              <option value="/chat/">Chat (Live Chat, Messages, Friends)</option>
-              <option value="/sea-events/">Sea Events</option>
-              <option value="/giveaways/">Giveaways</option>
-              <option value="/challenges/">Quests</option>
-              <option value="/crews/">Crews</option>
-              <option value="/trading/">Trading</option>
-              <option value="/services/">Services</option>
-              <option value="/combos/">Combos</option>
-            </select>
+            <select id="page-block-page" required></select>
             <label for="page-block-reason">Reason (optional, shown to the user)</label>
             <input type="text" id="page-block-reason" maxlength="150" placeholder="e.g. Repeated scam listings">
             <button type="submit" class="btn btn-primary">Block</button>

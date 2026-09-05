@@ -204,7 +204,13 @@ let prizeCategory = 'fruit';
 let selectedPrize = null;
 let selectedPrizeValueType = 'physical';
 const PRIZE_RARITY_ORDER = { common: 0, uncommon: 1, rare: 2, legendary: 3, mythical: 4, limited: 5 };
-const PRIZE_FRUIT_ORDER_MAP = new Map(BUILD_OPTIONS.fruit.map((f, i) => [f.value.toLowerCase(), i]));
+// BUILD_OPTIONS.fruit now loads asynchronously from the database (see build-options.js) —
+// this used to be a plain top-level Map built from a hardcoded array available instantly
+// at parse time, so it's now a function computed at actual use time instead, by which
+// point the fetch has long since resolved.
+function getPrizeFruitOrderMap() {
+  return new Map(BUILD_OPTIONS.fruit.map((f, i) => [f.value.toLowerCase(), i]));
+}
 
 async function openGiveawayModal() {
   document.getElementById('giveaway-error').style.display = 'none';
@@ -218,10 +224,11 @@ async function openGiveawayModal() {
 
   if (!prizeItems.length) {
     const { data: items } = await sb.from('bf_items').select('*').in('category', ['fruit', 'limited', 'gamepass']);
+    const prizeFruitOrderMap = getPrizeFruitOrderMap();
     prizeItems = (items || []).slice().sort((a, b) => {
       if (a.category === 'fruit' && b.category === 'fruit') {
-        const ai = PRIZE_FRUIT_ORDER_MAP.get(a.name.toLowerCase());
-        const bi = PRIZE_FRUIT_ORDER_MAP.get(b.name.toLowerCase());
+        const ai = prizeFruitOrderMap.get(a.name.toLowerCase());
+        const bi = prizeFruitOrderMap.get(b.name.toLowerCase());
         if (ai !== undefined && bi !== undefined) return ai - bi;
         if (ai !== undefined) return -1;
         if (bi !== undefined) return 1;
