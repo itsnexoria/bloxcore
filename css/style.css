@@ -2105,7 +2105,6 @@ footer.site-footer::before {
 }
 .notif-action-icon-btn:hover { border-color: var(--brass); color: var(--brass-bright); background: rgb(var(--brass-rgb) / 0.08); }
 
-<<<<<<< HEAD
 .gi-category-tab.active { border-color: var(--brass); color: var(--brass-bright); background: rgb(var(--brass-rgb) / 0.14); }
 
 .manage-tab-group { margin-bottom: 16px; }
@@ -2120,8 +2119,6 @@ footer.site-footer::before {
   margin-bottom: 8px;
 }
 
-=======
->>>>>>> b476036eb46ac85491948490f60ede856d0a8b52
 .install-banner {
   position: fixed;
   left: 12px;

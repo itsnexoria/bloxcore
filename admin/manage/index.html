@@ -50,17 +50,33 @@
       <p class="muted" style="margin:0;"><a href="/admin/" style="color:var(--brass-bright);"><i data-lucide="chevron-left" class="icon-sm"></i> Back to Admin</a></p>
     </div>
 
-    <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:20px;" id="manage-tabs">
-      <button type="button" class="btn btn-sm" data-manage-tab="challenges" data-requires-role="admin">Quests</button>
-      <button type="button" class="btn btn-sm" data-manage-tab="giveaways">Giveaways</button>
-      <button type="button" class="btn btn-sm" data-manage-tab="pvp">PvP Results</button>
-      <button type="button" class="btn btn-sm" data-manage-tab="tournaments">Tournaments</button>
-      <button type="button" class="btn btn-sm" data-manage-tab="crews-wars" data-requires-role="admin">Crews &amp; Wars</button>
-      <button type="button" class="btn btn-sm" data-manage-tab="users" data-requires-role="admin">Users</button>
-      <button type="button" class="btn btn-sm" data-manage-tab="titles" data-requires-role="admin">Titles</button>
-      <button type="button" class="btn btn-sm" data-manage-tab="frames" data-requires-role="admin">Avatar Frames</button>
-      <button type="button" class="btn btn-sm" data-manage-tab="analytics" data-requires-role="admin">Analytics</button>
-      <button type="button" class="btn btn-sm" data-manage-tab="site" data-requires-role="admin">Site Controls</button>
+    <div style="margin-top:20px;" id="manage-tabs">
+      <div class="manage-tab-group">
+        <span class="manage-tab-group-label">Content &amp; Events</span>
+        <div style="display:flex; gap:8px; flex-wrap:wrap;">
+          <button type="button" class="btn btn-sm" data-manage-tab="challenges" data-requires-role="admin">Quests</button>
+          <button type="button" class="btn btn-sm" data-manage-tab="giveaways">Giveaways</button>
+          <button type="button" class="btn btn-sm" data-manage-tab="pvp">PvP Results</button>
+          <button type="button" class="btn btn-sm" data-manage-tab="tournaments">Tournaments</button>
+          <button type="button" class="btn btn-sm" data-manage-tab="crews-wars" data-requires-role="admin">Crews &amp; Wars</button>
+        </div>
+      </div>
+      <div class="manage-tab-group">
+        <span class="manage-tab-group-label">Game Data</span>
+        <div style="display:flex; gap:8px; flex-wrap:wrap;">
+          <button type="button" class="btn btn-sm" data-manage-tab="game-items" data-requires-role="admin">Game Items</button>
+          <button type="button" class="btn btn-sm" data-manage-tab="titles" data-requires-role="admin">Titles</button>
+          <button type="button" class="btn btn-sm" data-manage-tab="frames" data-requires-role="admin">Avatar Frames</button>
+        </div>
+      </div>
+      <div class="manage-tab-group">
+        <span class="manage-tab-group-label">Community &amp; System</span>
+        <div style="display:flex; gap:8px; flex-wrap:wrap;">
+          <button type="button" class="btn btn-sm" data-manage-tab="users" data-requires-role="admin">Users</button>
+          <button type="button" class="btn btn-sm" data-manage-tab="analytics" data-requires-role="admin">Analytics</button>
+          <button type="button" class="btn btn-sm" data-manage-tab="site" data-requires-role="admin">Site Controls</button>
+        </div>
+      </div>
     </div>
     <p class="muted" style="margin:16px 0 0; font-size:0.8rem;"><i data-lucide="shield" class="icon-sm icon-inline"></i>Day-to-day moderation (submissions, reports, ban appeals) lives on the <a href="/admin/" style="color:var(--brass-bright);">main Admin page</a> — this page is for configuring and managing the underlying data.</p>
 
@@ -358,6 +374,164 @@
       <h3 style="font-size:1.1rem; margin-top:32px;">All Frames</h3>
       <div id="frames-list" style="margin-top:16px;">
         <div class="skeleton" style="height:50px; margin-bottom:10px;"></div>
+      </div>
+    </div>
+
+    <!-- ================= Game Items ================= -->
+    <div data-manage-panel="game-items" style="display:none;">
+      <div class="flex-between" style="margin-top:24px; flex-wrap:wrap; gap:12px;">
+        <div>
+          <h2 style="font-size:1.2rem; margin:0;">Game Items</h2>
+          <p class="muted" style="margin:4px 0 0;">Fruits, swords, guns, fighting styles, races, accessories — one catalog. Add a whole new category any time, no code changes needed.</p>
+        </div>
+        <div style="display:flex; gap:8px; flex-wrap:wrap;">
+          <button type="button" class="btn btn-ghost btn-sm" id="gi-add-category-btn"><i data-lucide="folder-plus" class="icon-sm icon-inline"></i>New Category</button>
+          <button type="button" class="btn btn-ghost btn-sm" id="gi-bulk-import-btn"><i data-lucide="upload" class="icon-sm icon-inline"></i>Bulk Import</button>
+          <button type="button" class="btn btn-primary btn-sm" id="gi-add-item-btn"><i data-lucide="plus" class="icon-sm icon-inline"></i>Add Item</button>
+        </div>
+      </div>
+
+      <div id="gi-category-tabs" style="display:flex; gap:8px; flex-wrap:wrap; margin-top:20px;"></div>
+
+      <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:14px;">
+        <input type="text" id="gi-search" placeholder="Search items…" style="flex:1; min-width:180px;">
+        <select id="gi-rarity-filter" style="max-width:160px;">
+          <option value="">All Rarities</option>
+          <option value="Common">Common</option>
+          <option value="Uncommon">Uncommon</option>
+          <option value="Rare">Rare</option>
+          <option value="Legendary">Legendary</option>
+          <option value="Mythical">Mythical</option>
+        </select>
+      </div>
+
+      <div id="gi-bulk-bar" style="display:none; align-items:center; gap:10px; margin-top:14px; padding:10px 14px; background:rgb(var(--brass-rgb) / 0.08); border:1px solid rgb(var(--brass-rgb) / 0.3); border-radius:var(--radius-sm); flex-wrap:wrap;">
+        <span id="gi-bulk-count" class="muted" style="font-size:0.82rem;"></span>
+        <select id="gi-bulk-category-select" style="max-width:180px;"></select>
+        <button type="button" class="btn btn-ghost btn-sm" id="gi-bulk-recategorize-btn">Move to Category</button>
+        <button type="button" class="btn btn-danger btn-sm" id="gi-bulk-delete-btn">Delete Selected</button>
+        <button type="button" class="btn btn-ghost btn-sm" id="gi-bulk-clear-btn" style="margin-left:auto;">Clear Selection</button>
+      </div>
+
+      <div id="gi-items-grid" style="margin-top:18px; display:grid; grid-template-columns:repeat(auto-fill, minmax(220px, 1fr)); gap:14px;">
+        <div class="skeleton" style="height:120px;"></div>
+        <div class="skeleton" style="height:120px;"></div>
+        <div class="skeleton" style="height:120px;"></div>
+        <div class="skeleton" style="height:120px;"></div>
+      </div>
+    </div>
+
+    <!-- Add/Edit Item Modal -->
+    <div id="gi-item-modal" class="build-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="gi-item-modal-title">
+      <div class="build-modal panel">
+        <div class="flex-between">
+          <h3 id="gi-item-modal-title" style="margin:0;">Add Item</h3>
+          <button type="button" class="btn btn-ghost btn-sm" id="gi-item-modal-close"><i data-lucide="x" class="icon-sm"></i></button>
+        </div>
+        <form id="gi-item-form" style="margin-top:16px; display:flex; flex-direction:column; gap:14px;">
+          <div>
+            <label for="gi-item-name">Name</label>
+            <input type="text" id="gi-item-name" required maxlength="60">
+          </div>
+          <div class="two-col-grid">
+            <div>
+              <label for="gi-item-category">Category</label>
+              <select id="gi-item-category" required></select>
+            </div>
+            <div>
+              <label for="gi-item-rarity">Rarity</label>
+              <select id="gi-item-rarity">
+                <option value="">None</option>
+                <option value="Common">Common</option>
+                <option value="Uncommon">Uncommon</option>
+                <option value="Rare">Rare</option>
+                <option value="Legendary">Legendary</option>
+                <option value="Mythical">Mythical</option>
+              </select>
+            </div>
+          </div>
+          <div id="gi-item-trade-fields" class="two-col-grid" style="display:none;">
+            <div>
+              <label for="gi-item-regular-value">Regular Value</label>
+              <input type="number" id="gi-item-regular-value" min="0">
+            </div>
+            <div>
+              <label for="gi-item-permanent-value">Permanent Value</label>
+              <input type="number" id="gi-item-permanent-value" min="0">
+            </div>
+            <div>
+              <label for="gi-item-demand">Demand (1–5)</label>
+              <input type="number" id="gi-item-demand" min="1" max="5">
+            </div>
+            <div>
+              <label for="gi-item-trend">Trend</label>
+              <select id="gi-item-trend">
+                <option value="">None</option>
+                <option value="up">Rising</option>
+                <option value="down">Falling</option>
+                <option value="stable">Stable</option>
+              </select>
+            </div>
+          </div>
+          <div>
+            <label for="gi-item-image-url">Image URL</label>
+            <input type="text" id="gi-item-image-url" placeholder="https://... or upload below">
+          </div>
+          <div>
+            <label for="gi-item-image-file">Or Upload Image</label>
+            <input type="file" id="gi-item-image-file" accept="image/png,image/webp,image/jpeg,image/gif">
+          </div>
+          <img id="gi-item-image-preview" alt="" style="display:none; width:64px; height:64px; object-fit:contain; background:var(--navy); border-radius:8px; padding:6px; border:1px solid var(--glass-border);">
+          <div class="flex-between">
+            <button type="button" class="btn btn-ghost" id="gi-item-form-cancel">Cancel</button>
+            <button type="submit" class="btn btn-primary" id="gi-item-form-submit">Add Item</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Bulk Import Modal -->
+    <div id="gi-bulk-import-modal" class="build-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="gi-bulk-import-title">
+      <div class="build-modal panel">
+        <div class="flex-between">
+          <h3 id="gi-bulk-import-title" style="margin:0;">Bulk Import</h3>
+          <button type="button" class="btn btn-ghost btn-sm" id="gi-bulk-import-close"><i data-lucide="x" class="icon-sm"></i></button>
+        </div>
+        <p class="muted" style="font-size:0.82rem;">Paste JSON (an array of objects) or CSV with a header row. Recognized columns: name, category, rarity, regular_value, permanent_value, demand, trend, icon_url.</p>
+        <textarea id="gi-bulk-import-text" rows="10" placeholder='[{"name":"Example","category":"sword","rarity":"Rare"}]' style="font-family:var(--font-mono); font-size:0.8rem;"></textarea>
+        <div class="flex-between" style="margin-top:12px;">
+          <span id="gi-bulk-import-status" class="muted" style="font-size:0.8rem;"></span>
+          <button type="button" class="btn btn-primary" id="gi-bulk-import-submit">Import</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Add Category Modal -->
+    <div id="gi-category-modal" class="build-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="gi-category-modal-title">
+      <div class="build-modal panel">
+        <div class="flex-between">
+          <h3 id="gi-category-modal-title" style="margin:0;">New Category</h3>
+          <button type="button" class="btn btn-ghost btn-sm" id="gi-category-modal-close"><i data-lucide="x" class="icon-sm"></i></button>
+        </div>
+        <form id="gi-category-form" style="margin-top:16px; display:flex; flex-direction:column; gap:14px;">
+          <div>
+            <label for="gi-category-label">Label</label>
+            <input type="text" id="gi-category-label" required maxlength="30" placeholder="e.g. Accessories">
+          </div>
+          <div>
+            <label for="gi-category-icon">Icon</label>
+            <input type="text" id="gi-category-icon" placeholder="lucide icon name, e.g. shirt" value="box">
+            <p class="muted" style="font-size:0.74rem; margin:4px 0 0;">Any icon name from lucide.dev/icons.</p>
+          </div>
+          <label style="display:flex; align-items:center; gap:8px; font-weight:400;">
+            <input type="checkbox" id="gi-category-tradeable" style="width:auto;">
+            Tradeable (shows value/demand/trend fields for items in this category)
+          </label>
+          <div class="flex-between">
+            <button type="button" class="btn btn-ghost" id="gi-category-form-cancel">Cancel</button>
+            <button type="submit" class="btn btn-primary">Create Category</button>
+          </div>
+        </form>
       </div>
     </div>
 
@@ -1069,6 +1243,7 @@
 <script src="/js/admin-users.js"></script>
 <script src="/js/admin-titles.js"></script>
 <script src="/js/admin-frames.js"></script>
+<script src="/js/admin-game-items.js"></script>
 <script src="/js/admin-analytics.js"></script>
 <script src="/js/admin-site.js"></script>
 </body>
