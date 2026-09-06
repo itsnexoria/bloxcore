@@ -6,6 +6,12 @@ let allMatches = [];
 let myJoinedIds = new Set();
 
 const MATCH_SLOTS = { '1v1': 2, '2v2': 4, '3v3': 6, '4v4': 8 };
+const PVP_TYPE_BANNER = {
+  '1v1': '/assets/game/pvp/1vs1.png',
+  '2v2': '/assets/game/pvp/2vs2.png',
+  '3v3': '/assets/game/pvp/3vs3.png',
+  '4v4': '/assets/game/pvp/4vs4.png',
+};
 
 onReady(async () => {
   const { data: { session } } = await sb.auth.getSession();
@@ -134,7 +140,7 @@ function renderMatchCard(m) {
     : (currentUser ? `<button class="se-corner-btn" data-report-match="${m.id}" title="Report"><i data-lucide="flag" class="icon-sm"></i></button>` : '');
   return `
     <div class="panel se-card hover-lift-card pvp-match-card">
-      <div class="se-banner" style="background:linear-gradient(135deg, rgba(220,38,38,0.25), rgba(8,8,12,0.65));">
+      <div class="se-banner" style="background-image:linear-gradient(135deg, rgba(220,38,38,0.35), rgba(8,8,12,0.75)), url('${PVP_TYPE_BANNER[m.match_type] || ''}'); background-size:cover; background-position:center;">
         <div class="se-banner-scrim"></div>
         <span class="se-type-pill"><i data-lucide="swords" class="icon-sm"></i>${m.match_type}</span>
         ${cornerBtn}

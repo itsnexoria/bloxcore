@@ -9,6 +9,26 @@ const MAX_SCREENSHOT_MB = 8;
 const ALLOWED_IMAGE_TYPES = ['image/png', 'image/jpeg', 'image/webp', 'image/gif'];
 let selectedFiles = [];
 
+const DIFFICULTY_BANNER = {
+  easy: '/assets/game/quests/easy-banner.jpg',
+  medium: '/assets/game/quests/medium-banner.jpg',
+  hard: '/assets/game/quests/hard-banner.jpg',
+  legendary: '/assets/game/quests/legendary-banner.jpg',
+};
+
+function updateDifficultyBanner() {
+  const difficulty = document.getElementById('difficulty-filter').value;
+  const banner = document.getElementById('difficulty-banner');
+  const src = DIFFICULTY_BANNER[difficulty];
+  if (src) {
+    banner.src = src;
+    banner.alt = `${difficulty.charAt(0).toUpperCase()}${difficulty.slice(1)} quests`;
+    banner.style.display = 'block';
+  } else {
+    banner.style.display = 'none';
+  }
+}
+
 onReady(async () => {
   const { data: { session } } = await sb.auth.getSession();
   currentUser = session?.user ?? null;
@@ -27,9 +47,13 @@ onReady(async () => {
   } catch (e) {
     logError('Failed to load challenges:', e);
   }
+  updateDifficultyBanner();
   initDropzone();
 
-  document.getElementById('difficulty-filter').addEventListener('change', loadChallenges);
+  document.getElementById('difficulty-filter').addEventListener('change', () => {
+    updateDifficultyBanner();
+    loadChallenges();
+  });
   document.getElementById('modal-cancel').addEventListener('click', closeModal);
   document.getElementById('submit-form').addEventListener('submit', handleSubmit);
 });
@@ -175,6 +199,13 @@ function questIconFor(c) {
   return 'target';
 }
 
+const QUEST_DIFFICULTY_BADGE = {
+  easy: '/assets/game/quests/easy.png',
+  medium: '/assets/game/quests/medium.png',
+  hard: '/assets/game/quests/hard.png',
+  legendary: '/assets/game/quests/legendary.png',
+};
+
 function renderChallengeCard(c) {
   const completedAt = completionMap.get(c.id);
   const isPending = pendingChallengeIds.has(c.id);
@@ -216,7 +247,7 @@ function renderChallengeCard(c) {
       <div class="quest-card-hero">
         <i data-lucide="${questIconFor(c)}" class="quest-card-hero-icon"></i>
         <span class="quest-card-wanted-pill"><i data-lucide="star" style="width:10px;height:10px;"></i> WANTED <i data-lucide="star" style="width:10px;height:10px;"></i></span>
-        <span class="quest-card-badge"><i data-lucide="${questIconFor(c)}" class="icon-md"></i></span>
+        <span class="quest-card-badge quest-card-badge-img">${QUEST_DIFFICULTY_BADGE[c.difficulty] ? `<img src="${QUEST_DIFFICULTY_BADGE[c.difficulty]}" alt="${escapeHtml(c.difficulty)}">` : `<i data-lucide="${questIconFor(c)}" class="icon-md"></i>`}</span>
       </div>
       <div class="quest-card-body">
         <h3 class="quest-card-title">${escapeHtml(c.title)}</h3>

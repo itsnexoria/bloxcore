@@ -251,9 +251,9 @@ function priceSummary(entries) {
 }
 
 const SERVICE_CATEGORY_META = {
-  raid: { label: 'Raid', icon: 'flame', tone: 'purple' },
-  trial: { label: 'Trial', icon: 'shield', tone: 'gold' },
-  dungeon: { label: 'Dungeon', icon: 'castle', tone: 'sea' },
+  raid: { label: 'Raid', image: '/assets/game/services/raids.png', tone: 'purple' },
+  trial: { label: 'Trial', image: '/assets/game/services/trials.png', tone: 'gold' },
+  dungeon: { label: 'Dungeon', image: '/assets/game/services/dungeons.png', tone: 'sea' },
 };
 
 function renderListing(s, participants) {
@@ -267,7 +267,7 @@ function renderListing(s, participants) {
   const robloxVerified = !!profile.roblox_verified;
   const robloxUserId = profile.roblox_user_id || null;
   const discord = profile.discord_username || null;
-  const catMeta = SERVICE_CATEGORY_META[s.category] || { label: s.category, icon: 'box', tone: 'gold' };
+  const catMeta = SERVICE_CATEGORY_META[s.category] || { label: s.category, image: null, tone: 'gold' };
 
   return `
     <div class="panel services-card hover-lift-card" data-listing-id="${s.id}" data-category="${s.category}">
@@ -289,7 +289,9 @@ function renderListing(s, participants) {
       </div>
 
       <div style="display:flex; align-items:center; gap:10px; margin-top:14px;">
-        <span class="icon-badge" data-tone="${catMeta.tone}" style="flex-shrink:0;"><i data-lucide="${catMeta.icon}" class="icon-sm"></i></span>
+        ${catMeta.image
+          ? `<img src="${catMeta.image}" alt="" style="width:44px; height:44px; object-fit:contain; flex-shrink:0;">`
+          : `<span class="icon-badge" data-tone="${catMeta.tone}" style="flex-shrink:0;"><i data-lucide="box" class="icon-sm"></i></span>`}
         <div style="min-width:0;">
           <p class="muted" style="margin:0; font-size:0.7rem; text-transform:uppercase; letter-spacing:0.05em;">${escapeHtml(catMeta.label)}</p>
           <h3 style="margin:2px 0 0; font-size:1rem;">${escapeHtml(s.title)}</h3>
@@ -346,10 +348,16 @@ function renderDungeonListing(s, profile, isOwner, participants) {
         <div style="display:flex; gap:8px;">${joinAction}</div>
       </div>
 
-      <h3 style="margin:14px 0 4px; font-size:1rem;">${escapeHtml(s.title)}</h3>
-      ${s.description ? `<p class="muted" style="margin:0 0 10px; font-size:0.85rem; white-space:pre-wrap;">${escapeHtml(s.description)}</p>` : ''}
+      <div style="display:flex; align-items:center; gap:10px; margin-top:14px;">
+        <img src="${SERVICE_CATEGORY_META.dungeon.image}" alt="" style="width:44px; height:44px; object-fit:contain; flex-shrink:0;">
+        <div style="min-width:0;">
+          <p class="muted" style="margin:0; font-size:0.7rem; text-transform:uppercase; letter-spacing:0.05em;">Dungeon</p>
+          <h3 style="margin:2px 0 0; font-size:1rem;">${escapeHtml(s.title)}</h3>
+        </div>
+      </div>
+      ${s.description ? `<p class="muted" style="margin:8px 0 0; font-size:0.85rem; white-space:pre-wrap;">${escapeHtml(s.description)}</p>` : ''}
 
-      <div style="display:flex; align-items:center; gap:10px; margin-top:6px;">
+      <div style="display:flex; align-items:center; gap:10px; margin-top:10px;">
         <span class="tag tag-${DUNGEON_MODE_COLORS[s.mode] || 'medium'}" style="text-transform:capitalize;">${escapeHtml(s.mode)}</span>
         <span class="muted" style="font-size:0.82rem;"><i data-lucide="users" class="icon-sm icon-inline"></i>${joinedCount}/${s.max_players} joined</span>
       </div>

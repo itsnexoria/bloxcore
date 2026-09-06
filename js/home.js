@@ -62,6 +62,13 @@ const QUEST_ICON_RULES = [
   { icon: 'users', words: ['crew', 'team'] },
   { icon: 'gift', words: ['giveaway'] },
 ];
+const QUEST_DIFFICULTY_BADGE = {
+  easy: '/assets/game/quests/easy.png',
+  medium: '/assets/game/quests/medium.png',
+  hard: '/assets/game/quests/hard.png',
+  legendary: '/assets/game/quests/legendary.png',
+};
+
 function questIconFor(c) {
   const text = `${c.title} ${c.description}`.toLowerCase();
   for (const rule of QUEST_ICON_RULES) {
@@ -89,7 +96,7 @@ async function loadFeaturedChallenges() {
       <div class="quest-card-hero">
         <i data-lucide="${questIconFor(c)}" class="quest-card-hero-icon"></i>
         <span class="quest-card-wanted-pill"><i data-lucide="star" style="width:10px;height:10px;"></i> WANTED <i data-lucide="star" style="width:10px;height:10px;"></i></span>
-        <span class="quest-card-badge"><i data-lucide="${questIconFor(c)}" class="icon-md"></i></span>
+        <span class="quest-card-badge quest-card-badge-img">${QUEST_DIFFICULTY_BADGE[c.difficulty] ? `<img src="${QUEST_DIFFICULTY_BADGE[c.difficulty]}" alt="${escapeHtml(c.difficulty)}">` : `<i data-lucide="${questIconFor(c)}" class="icon-md"></i>`}</span>
       </div>
       <div class="quest-card-body">
         <h3 class="quest-card-title">${escapeHtml(c.title)}</h3>

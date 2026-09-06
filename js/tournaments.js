@@ -102,11 +102,14 @@ function renderTournamentCard(t, count) {
   }
 
   return `
-    <div class="panel" data-view-tournament="${t.id}" style="cursor:pointer;">
+    <div class="panel hover-lift-card" data-view-tournament="${t.id}" style="cursor:pointer;">
       <div class="flex-between" style="align-items:flex-start;">
-        <div>
-          <p style="margin:0; font-weight:700;">${escapeHtml(t.name)}</p>
-          <p class="muted" style="margin:4px 0 0; font-size:0.8rem;">${escapeHtml(t.match_type)} · ${initCapWord(t.elimination_type)} Elim · ${t.team_based ? 'Crews' : 'Players'} · ${count}/${t.bracket_size}</p>
+        <div style="display:flex; align-items:center; gap:12px;">
+          <img src="/assets/game/pvp/tournament.png" alt="" style="width:44px; height:44px; object-fit:contain; flex-shrink:0;">
+          <div>
+            <p style="margin:0; font-weight:700;">${escapeHtml(t.name)}</p>
+            <p class="muted" style="margin:4px 0 0; font-size:0.8rem;">${escapeHtml(t.match_type)} · ${initCapWord(t.elimination_type)} Elim · ${t.team_based ? 'Crews' : 'Players'} · ${count}/${t.bracket_size}</p>
+          </div>
         </div>
         <span class="tag ${TOURNAMENT_STATUS_COLOR[t.status]}">${TOURNAMENT_STATUS_LABEL[t.status]}</span>
       </div>
