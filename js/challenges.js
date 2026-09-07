@@ -9,8 +9,6 @@ const MAX_SCREENSHOT_MB = 8;
 const ALLOWED_IMAGE_TYPES = ['image/png', 'image/jpeg', 'image/webp', 'image/gif'];
 let selectedFiles = [];
 
-let currentDifficulty = '';
-
 onReady(async () => {
   const { data: { session } } = await sb.auth.getSession();
   currentUser = session?.user ?? null;
@@ -31,20 +29,14 @@ onReady(async () => {
   }
   initDropzone();
 
-  document.querySelectorAll('.difficulty-banner-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      currentDifficulty = btn.dataset.difficulty;
-      document.querySelectorAll('.difficulty-banner-btn').forEach(b => b.classList.toggle('active', b === btn));
-      loadChallenges();
-    });
-  });
+  document.getElementById('difficulty-filter').addEventListener('change', loadChallenges);
   document.getElementById('modal-cancel').addEventListener('click', closeModal);
   document.getElementById('submit-form').addEventListener('submit', handleSubmit);
 });
 
 async function loadChallenges() {
   const grid = document.getElementById('challenges-grid');
-  const difficulty = currentDifficulty;
+  const difficulty = document.getElementById('difficulty-filter').value;
 
   let query = sb
     .from('challenges')

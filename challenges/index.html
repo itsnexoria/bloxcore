@@ -85,12 +85,14 @@
       <h1 style="font-size:1.8rem; margin:0;">The Bounty Board</h1>
     </div>
 
-    <div id="difficulty-banner-row" style="display:flex; gap:10px; margin-top:20px; flex-wrap:wrap;">
-      <button type="button" class="difficulty-banner-btn active" data-difficulty="">All</button>
-      <button type="button" class="difficulty-banner-btn" data-difficulty="easy"><img src="/assets/game/quests/easy-banner.jpg" alt="Easy quests"></button>
-      <button type="button" class="difficulty-banner-btn" data-difficulty="medium"><img src="/assets/game/quests/medium-banner.jpg" alt="Medium quests"></button>
-      <button type="button" class="difficulty-banner-btn" data-difficulty="hard"><img src="/assets/game/quests/hard-banner.jpg" alt="Hard quests"></button>
-      <button type="button" class="difficulty-banner-btn" data-difficulty="legendary"><img src="/assets/game/quests/legendary-banner.jpg" alt="Legendary quests"></button>
+    <div style="display:flex; gap:10px; margin-top:20px;">
+      <select id="difficulty-filter">
+        <option value="">All Difficulties</option>
+        <option value="easy">Easy</option>
+        <option value="medium">Medium</option>
+        <option value="hard">Hard</option>
+        <option value="legendary">Legendary</option>
+      </select>
     </div>
 
     <div id="challenges-grid" style="margin-top:24px; display:flex; flex-direction:column; gap:40px;">
