@@ -40,9 +40,17 @@ function showHeroChallenge(c) {
   document.getElementById('hero-poster-title').textContent = c.title;
   document.getElementById('hero-poster-body').textContent = c.description;
   document.getElementById('hero-poster-reward').textContent = `+${c.xp_reward} XP`;
+  document.getElementById('hero-poster').dataset.difficulty = c.difficulty;
   const tag = document.getElementById('hero-poster-tag');
-  tag.className = `tag tag-${c.difficulty}`;
   tag.textContent = c.difficulty;
+
+  const icon = questIconFor(c);
+  document.getElementById('hero-poster-icon-wrap').innerHTML = `<i data-lucide="${icon}" class="quest-card-hero-icon"></i>`;
+  const badge = document.getElementById('hero-poster-badge');
+  badge.innerHTML = QUEST_DIFFICULTY_BADGE[c.difficulty]
+    ? `<img src="${QUEST_DIFFICULTY_BADGE[c.difficulty]}" alt="${escapeHtml(c.difficulty)}">`
+    : `<i data-lucide="${icon}" class="icon-md"></i>`;
+  refreshIcons();
 }
 
 async function loadActivity() {

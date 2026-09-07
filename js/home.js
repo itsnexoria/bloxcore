@@ -79,19 +79,20 @@ function questIconFor(c) {
 
 async function loadFeaturedChallenges() {
   const el = document.getElementById('featured-challenges');
-  const { data, error } = await sb
-    .from('challenges')
-    .select('title, description, difficulty, xp_reward')
-    .eq('active', true)
-    .order('created_at', { ascending: false })
-    .limit(3);
+  try {
+    const { data, error } = await sb
+      .from('challenges')
+      .select('title, description, difficulty, xp_reward, rotation, repeatable, cooldown_hours')
+      .eq('active', true)
+      .order('created_at', { ascending: false })
+      .limit(3);
 
-  if (error || !data?.length) {
-    el.innerHTML = `<p class="muted" style="grid-column:1/-1;">No quests live right now — check back soon.</p>`;
-    return;
-  }
+    if (error || !data?.length) {
+      el.innerHTML = `<p class="muted" style="grid-column:1/-1;">No quests live right now — check back soon.</p>`;
+      return;
+    }
 
-  el.innerHTML = data.map(c => `
+    el.innerHTML = data.map(c => `
     <div class="quest-card" data-difficulty="${c.difficulty}">
       <div class="quest-card-hero">
         <i data-lucide="${questIconFor(c)}" class="quest-card-hero-icon"></i>
@@ -110,7 +111,11 @@ async function loadFeaturedChallenges() {
       </div>
     </div>
   `).join('');
-  refreshIcons();
+    refreshIcons();
+  } catch (e) {
+    logError('Failed to load featured challenges:', e);
+    el.innerHTML = `<p class="muted" style="grid-column:1/-1;">Couldn't load quests right now.</p>`;
+  }
 }
 
 async function loadTopPirates() {

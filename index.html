@@ -153,12 +153,20 @@
     </div>
     <div style="position:relative; justify-self:center;">
       <div aria-hidden="true" data-parallax="0.05" style="position:absolute; inset:-30px; background:radial-gradient(circle, rgb(var(--brass-rgb) / 0.22), transparent 70%); filter:blur(6px); animation: stampPulse 4s ease-in-out infinite;"></div>
-      <div class="poster" id="hero-poster" style="max-width:320px; transition: opacity 0.4s ease, transform 0.15s ease-out; position:relative;">
-        <p class="poster-eyebrow"><i data-lucide="star" class="icon-sm"></i> WANTED <i data-lucide="star" class="icon-sm"></i></p>
-        <p class="poster-title" id="hero-poster-title">First Blood</p>
-        <p class="poster-body" id="hero-poster-body">Defeat your first Marine grunt and screenshot the kill feed.</p>
-        <p class="poster-reward" id="hero-poster-reward">+15 XP</p>
-        <div class="center" style="margin-top:10px;"><span class="tag" id="hero-poster-tag">Easy</span></div>
+      <div class="quest-card" id="hero-poster" style="max-width:320px; transition: opacity 0.4s ease, transform 0.15s ease-out; position:relative;">
+        <div class="quest-card-hero">
+          <span id="hero-poster-icon-wrap"><i data-lucide="target" class="quest-card-hero-icon"></i></span>
+          <span class="quest-card-wanted-pill"><i data-lucide="star" style="width:10px;height:10px;"></i> WANTED <i data-lucide="star" style="width:10px;height:10px;"></i></span>
+          <span class="quest-card-badge quest-card-badge-img" id="hero-poster-badge"></span>
+        </div>
+        <div class="quest-card-body">
+          <h3 class="quest-card-title" id="hero-poster-title">First Blood</h3>
+          <p class="quest-card-desc" id="hero-poster-body">Defeat your first Marine grunt and screenshot the kill feed.</p>
+          <div class="quest-card-divider"></div>
+          <p class="quest-card-reward-label">Reward</p>
+          <p class="quest-card-reward-value" id="hero-poster-reward">+15 XP</p>
+          <p class="quest-card-meta-row"><span class="quest-card-meta-dot"></span><span id="hero-poster-tag">Easy</span></p>
+        </div>
       </div>
     </div>
   </div>

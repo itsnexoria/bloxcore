@@ -80,23 +80,18 @@
     <path d="M12 50 L50 43 L88 50 L50 57 Z" fill="currentColor" opacity="0.4"/>
   </svg>
   <div class="container" style="position:relative; z-index:1;">
-    <div class="flex-between">
-      <div style="display:flex; align-items:center;">
-        <div class="page-head-icon"><i data-lucide="swords" class="icon-md"></i></div>
-        <h1 style="font-size:1.8rem; margin:0;">The Bounty Board</h1>
-      </div>
-      <div style="display:flex; gap:10px;">
-        <select id="difficulty-filter">
-          <option value="">All Difficulties</option>
-          <option value="easy">Easy</option>
-          <option value="medium">Medium</option>
-          <option value="hard">Hard</option>
-          <option value="legendary">Legendary</option>
-        </select>
-      </div>
+    <div style="display:flex; align-items:center;">
+      <div class="page-head-icon"><i data-lucide="swords" class="icon-md"></i></div>
+      <h1 style="font-size:1.8rem; margin:0;">The Bounty Board</h1>
     </div>
 
-    <img id="difficulty-banner" alt="" style="display:none; width:100%; max-width:900px; margin:20px auto 0; border-radius:var(--radius-sm); box-shadow:0 8px 24px rgb(var(--shadow-rgb) / 0.4);">
+    <div id="difficulty-banner-row" style="display:flex; gap:10px; margin-top:20px; flex-wrap:wrap;">
+      <button type="button" class="difficulty-banner-btn active" data-difficulty="">All</button>
+      <button type="button" class="difficulty-banner-btn" data-difficulty="easy"><img src="/assets/game/quests/easy-banner.jpg" alt="Easy quests"></button>
+      <button type="button" class="difficulty-banner-btn" data-difficulty="medium"><img src="/assets/game/quests/medium-banner.jpg" alt="Medium quests"></button>
+      <button type="button" class="difficulty-banner-btn" data-difficulty="hard"><img src="/assets/game/quests/hard-banner.jpg" alt="Hard quests"></button>
+      <button type="button" class="difficulty-banner-btn" data-difficulty="legendary"><img src="/assets/game/quests/legendary-banner.jpg" alt="Legendary quests"></button>
+    </div>
 
     <div id="challenges-grid" style="margin-top:24px; display:flex; flex-direction:column; gap:40px;">
       <div class="grid">

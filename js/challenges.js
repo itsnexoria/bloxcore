@@ -9,25 +9,7 @@ const MAX_SCREENSHOT_MB = 8;
 const ALLOWED_IMAGE_TYPES = ['image/png', 'image/jpeg', 'image/webp', 'image/gif'];
 let selectedFiles = [];
 
-const DIFFICULTY_BANNER = {
-  easy: '/assets/game/quests/easy-banner.jpg',
-  medium: '/assets/game/quests/medium-banner.jpg',
-  hard: '/assets/game/quests/hard-banner.jpg',
-  legendary: '/assets/game/quests/legendary-banner.jpg',
-};
-
-function updateDifficultyBanner() {
-  const difficulty = document.getElementById('difficulty-filter').value;
-  const banner = document.getElementById('difficulty-banner');
-  const src = DIFFICULTY_BANNER[difficulty];
-  if (src) {
-    banner.src = src;
-    banner.alt = `${difficulty.charAt(0).toUpperCase()}${difficulty.slice(1)} quests`;
-    banner.style.display = 'block';
-  } else {
-    banner.style.display = 'none';
-  }
-}
+let currentDifficulty = '';
 
 onReady(async () => {
   const { data: { session } } = await sb.auth.getSession();
@@ -47,12 +29,14 @@ onReady(async () => {
   } catch (e) {
     logError('Failed to load challenges:', e);
   }
-  updateDifficultyBanner();
   initDropzone();
 
-  document.getElementById('difficulty-filter').addEventListener('change', () => {
-    updateDifficultyBanner();
-    loadChallenges();
+  document.querySelectorAll('.difficulty-banner-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      currentDifficulty = btn.dataset.difficulty;
+      document.querySelectorAll('.difficulty-banner-btn').forEach(b => b.classList.toggle('active', b === btn));
+      loadChallenges();
+    });
   });
   document.getElementById('modal-cancel').addEventListener('click', closeModal);
   document.getElementById('submit-form').addEventListener('submit', handleSubmit);
@@ -60,7 +44,7 @@ onReady(async () => {
 
 async function loadChallenges() {
   const grid = document.getElementById('challenges-grid');
-  const difficulty = document.getElementById('difficulty-filter').value;
+  const difficulty = currentDifficulty;
 
   let query = sb
     .from('challenges')

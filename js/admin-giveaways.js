@@ -105,6 +105,9 @@ async function loadGiveaways(page) {
   document.querySelectorAll('[data-pick-winner]').forEach(btn => {
     btn.addEventListener('click', () => pickWinner(btn.dataset.pickWinner, btn));
   });
+  document.querySelectorAll('[data-reroll-winner]').forEach(btn => {
+    btn.addEventListener('click', () => rerollWinner(btn.dataset.rerollWinner, btn));
+  });
   document.querySelectorAll('[data-delete-giveaway]').forEach(btn => {
     btn.addEventListener('click', () => deleteGiveaway(btn.dataset.deleteGiveaway, btn.dataset.title));
   });
@@ -193,6 +196,7 @@ function renderGiveawayRow(g, entryCount, isLast) {
           <button class="btn btn-ghost btn-sm" data-reject-giveaway="${g.id}">Reject</button>
         ` : ''}
         ${g.status === 'active' ? `<button class="btn btn-primary btn-sm" data-pick-winner="${g.id}">Pick Winner</button>` : ''}
+        ${g.status === 'ended' && g.winner_user_id ? `<button class="btn btn-ghost btn-sm" data-reroll-winner="${g.id}" title="Pick a different winner — use if the current winner never claimed"><i data-lucide="refresh-cw" class="icon-sm icon-inline"></i>Reroll</button>` : ''}
         <button class="btn btn-danger btn-sm" data-delete-giveaway="${g.id}" data-title="${escapeHtml(g.title)}" title="Delete"><i data-lucide="trash-2" class="icon-sm"></i></button>
       </div>
     </div>
@@ -370,6 +374,27 @@ async function pickWinner(id, btn) {
   }
 
   showToast('Winner picked!');
+  await loadGiveaways(giveawaysPage);
+}
+
+async function rerollWinner(id, btn) {
+  const confirmed = window.confirm("Pick a different winner? Use this if the current winner never claimed their prize — they won't be notified of losing the prize, but the new winner will be.");
+  if (!confirmed) return;
+
+  btn.disabled = true;
+  btn.innerHTML = 'Rerolling…';
+
+  const { error } = await sb.rpc('reroll_giveaway_winner', { p_giveaway_id: id });
+
+  if (error) {
+    showToast(error.message, true);
+    btn.disabled = false;
+    btn.innerHTML = '<i data-lucide="refresh-cw" class="icon-sm icon-inline"></i>Reroll';
+    refreshIcons();
+    return;
+  }
+
+  showToast('New winner picked!');
   await loadGiveaways(giveawaysPage);
 }
 

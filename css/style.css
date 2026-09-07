@@ -2107,6 +2107,35 @@ footer.site-footer::before {
 
 .gi-category-tab.active { border-color: var(--brass); color: var(--brass-bright); background: rgb(var(--brass-rgb) / 0.14); }
 
+.difficulty-banner-btn {
+  padding: 0;
+  border: 2px solid var(--glass-border);
+  border-radius: var(--radius-sm);
+  background: var(--navy);
+  cursor: pointer;
+  overflow: hidden;
+  height: 56px;
+  transition: border-color 0.15s ease, transform 0.15s ease;
+  flex: 1 1 160px;
+  min-width: 120px;
+}
+.difficulty-banner-btn:not([data-difficulty=""]) { padding: 0; }
+.difficulty-banner-btn[data-difficulty=""] {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--ash);
+  font-weight: 700;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  flex: 0 0 90px;
+}
+.difficulty-banner-btn img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.difficulty-banner-btn:hover { border-color: var(--brass); transform: translateY(-2px); }
+.difficulty-banner-btn.active { border-color: var(--brass-bright); box-shadow: 0 0 0 1px var(--brass-bright), 0 4px 14px rgb(var(--brass-rgb) / 0.3); }
+.difficulty-banner-btn.active[data-difficulty=""] { color: var(--brass-bright); background: rgb(var(--brass-rgb) / 0.12); }
+
 .manage-tab-group { margin-bottom: 16px; }
 .manage-tab-group-label {
   display: block;
