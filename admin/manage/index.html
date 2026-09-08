@@ -7,6 +7,7 @@
 <title>Manage — BloxCore Admin</title>
 <meta name="robots" content="noindex, nofollow">
 <meta name="description" content="BloxCore site management.">
+<meta name="keywords" content="Roblox, Blox Fruits, BloxCore, Nexoria, Nexus, trading, perms, fruits, One Piece game, anime game, PvP, crews, best Roblox game, bounty hunting, giveaways, leaderboard, sea events, combos, quests">
 <link rel="stylesheet" href="/css/style.css">
 <link rel="stylesheet" href="/css/animations.css">
 <link rel="icon" type="image/png" href="/assets/logo.png">
@@ -35,7 +36,9 @@
         <ul class="nav-link-list">
           <li><a href="/admin/" class="nav-link" style="--i:0"><span class="nav-link-icon" data-tone="gold"><i data-lucide="shield"></i></span>Admin</a></li>
           <li><a href="/admin/manage/" class="nav-link active" style="--i:1"><span class="nav-link-icon" data-tone="blue"><i data-lucide="sliders-horizontal"></i></span>Manage</a></li>
-          <li><a href="/" class="nav-link" style="--i:2"><span class="nav-link-icon" data-tone="sea"><i data-lucide="external-link"></i></span>View Site</a></li>
+          <li data-requires-role="admin"><a href="/admin/manage/#game-items" class="nav-link" style="--i:2"><span class="nav-link-icon" data-tone="gold"><i data-lucide="package"></i></span>Game Items</a></li>
+          <li data-requires-role="admin"><a href="/admin/manage/#users" class="nav-link" style="--i:3"><span class="nav-link-icon" data-tone="purple"><i data-lucide="users"></i></span>Users</a></li>
+          <li><a href="/" class="nav-link" style="--i:4"><span class="nav-link-icon" data-tone="sea"><i data-lucide="external-link"></i></span>View Site</a></li>
         </ul>
       </div>
       <div id="nav-auth-slot" class="nav-auth-slot"></div>
@@ -50,35 +53,32 @@
       <p class="muted" style="margin:0;"><a href="/admin/" style="color:var(--brass-bright);"><i data-lucide="chevron-left" class="icon-sm"></i> Back to Admin</a></p>
     </div>
 
-    <div style="margin-top:20px;" id="manage-tabs">
-      <div class="manage-tab-group">
-        <span class="manage-tab-group-label">Content &amp; Events</span>
-        <div style="display:flex; gap:8px; flex-wrap:wrap;">
-          <button type="button" class="btn btn-sm" data-manage-tab="challenges" data-requires-role="admin">Quests</button>
-          <button type="button" class="btn btn-sm" data-manage-tab="giveaways">Giveaways</button>
-          <button type="button" class="btn btn-sm" data-manage-tab="pvp">PvP Results</button>
-          <button type="button" class="btn btn-sm" data-manage-tab="tournaments">Tournaments</button>
-          <button type="button" class="btn btn-sm" data-manage-tab="crews-wars" data-requires-role="admin">Crews &amp; Wars</button>
+    <div class="admin-manage-layout">
+      <nav class="admin-manage-sidebar" id="manage-tabs" aria-label="Manage sections">
+        <div class="manage-tab-group">
+          <span class="manage-tab-group-label">Content &amp; Events</span>
+          <button type="button" class="admin-sidebar-link" data-manage-tab="challenges" data-requires-role="admin"><i data-lucide="scroll-text" class="icon-sm"></i>Quests</button>
+          <button type="button" class="admin-sidebar-link" data-manage-tab="giveaways"><i data-lucide="gift" class="icon-sm"></i>Giveaways</button>
+          <button type="button" class="admin-sidebar-link" data-manage-tab="pvp"><i data-lucide="crosshair" class="icon-sm"></i>PvP Results</button>
+          <button type="button" class="admin-sidebar-link" data-manage-tab="tournaments"><i data-lucide="trophy" class="icon-sm"></i>Tournaments</button>
+          <button type="button" class="admin-sidebar-link" data-manage-tab="crews-wars" data-requires-role="admin"><i data-lucide="swords" class="icon-sm"></i>Crews &amp; Wars</button>
         </div>
-      </div>
-      <div class="manage-tab-group">
-        <span class="manage-tab-group-label">Game Data</span>
-        <div style="display:flex; gap:8px; flex-wrap:wrap;">
-          <button type="button" class="btn btn-sm" data-manage-tab="game-items" data-requires-role="admin">Game Items</button>
-          <button type="button" class="btn btn-sm" data-manage-tab="titles" data-requires-role="admin">Titles</button>
-          <button type="button" class="btn btn-sm" data-manage-tab="frames" data-requires-role="admin">Avatar Frames</button>
+        <div class="manage-tab-group">
+          <span class="manage-tab-group-label">Game Data</span>
+          <button type="button" class="admin-sidebar-link" data-manage-tab="game-items" data-requires-role="admin"><i data-lucide="package" class="icon-sm"></i>Game Items</button>
+          <button type="button" class="admin-sidebar-link" data-manage-tab="titles" data-requires-role="admin"><i data-lucide="award" class="icon-sm"></i>Titles</button>
+          <button type="button" class="admin-sidebar-link" data-manage-tab="frames" data-requires-role="admin"><i data-lucide="circle" class="icon-sm"></i>Avatar Frames</button>
         </div>
-      </div>
-      <div class="manage-tab-group">
-        <span class="manage-tab-group-label">Community &amp; System</span>
-        <div style="display:flex; gap:8px; flex-wrap:wrap;">
-          <button type="button" class="btn btn-sm" data-manage-tab="users" data-requires-role="admin">Users</button>
-          <button type="button" class="btn btn-sm" data-manage-tab="analytics" data-requires-role="admin">Analytics</button>
-          <button type="button" class="btn btn-sm" data-manage-tab="site" data-requires-role="admin">Site Controls</button>
+        <div class="manage-tab-group">
+          <span class="manage-tab-group-label">Community &amp; System</span>
+          <button type="button" class="admin-sidebar-link" data-manage-tab="users" data-requires-role="admin"><i data-lucide="users" class="icon-sm"></i>Users</button>
+          <button type="button" class="admin-sidebar-link" data-manage-tab="analytics" data-requires-role="admin"><i data-lucide="bar-chart-2" class="icon-sm"></i>Analytics</button>
+          <button type="button" class="admin-sidebar-link" data-manage-tab="site" data-requires-role="admin"><i data-lucide="settings" class="icon-sm"></i>Site Controls</button>
         </div>
-      </div>
-    </div>
-    <p class="muted" style="margin:16px 0 0; font-size:0.8rem;"><i data-lucide="shield" class="icon-sm icon-inline"></i>Day-to-day moderation (submissions, reports, ban appeals) lives on the <a href="/admin/" style="color:var(--brass-bright);">main Admin page</a> — this page is for configuring and managing the underlying data.</p>
+        <p class="muted" style="margin:16px 4px 0; font-size:0.74rem;"><i data-lucide="shield" class="icon-sm icon-inline"></i>Day-to-day moderation lives on the <a href="/admin/" style="color:var(--brass-bright);">main Admin page</a>.</p>
+      </nav>
+
+      <div class="admin-manage-content">
 
     <!-- ================= Challenges ================= -->
     <div data-manage-panel="challenges" style="display:none;">
@@ -967,6 +967,9 @@
           </form>
           <div id="event-list" style="margin-top:18px; display:flex; flex-direction:column; gap:10px;"></div>
         </div>
+      </div>
+    </div>
+
       </div>
     </div>
 

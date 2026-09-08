@@ -46,7 +46,7 @@ onReady(async () => {
     // work); everything else here is admin-only, same as the button-hiding above.
     if (!MANAGE_TAB_INIT[name] || (!isAdmin && name !== 'giveaways' && name !== 'pvp' && name !== 'tournaments')) name = 'giveaways';
     tabButtons.forEach(btn => {
-      btn.className = `btn btn-sm ${btn.dataset.manageTab === name ? 'btn-primary' : 'btn-ghost'}`;
+      btn.classList.toggle('active', btn.dataset.manageTab === name);
     });
     panels.forEach(panel => {
       panel.style.display = panel.dataset.managePanel === name ? '' : 'none';

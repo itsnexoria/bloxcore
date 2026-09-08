@@ -7,6 +7,7 @@
 <title>Review Board — BloxCore Admin</title>
 <meta name="robots" content="noindex, nofollow">
 <meta name="description" content="BloxCore staff review board.">
+<meta name="keywords" content="Roblox, Blox Fruits, BloxCore, Nexoria, Nexus, trading, perms, fruits, One Piece game, anime game, PvP, crews, best Roblox game, bounty hunting, giveaways, leaderboard, sea events, combos, quests">
 <link rel="stylesheet" href="/css/style.css">
 <link rel="stylesheet" href="/css/animations.css">
 <link rel="icon" type="image/png" href="/assets/logo.png">
@@ -35,7 +36,9 @@
         <ul class="nav-link-list">
           <li><a href="/admin/" class="nav-link active" style="--i:0"><span class="nav-link-icon" data-tone="gold"><i data-lucide="shield"></i></span>Admin</a></li>
           <li><a href="/admin/manage/" class="nav-link" style="--i:1"><span class="nav-link-icon" data-tone="blue"><i data-lucide="sliders-horizontal"></i></span>Manage</a></li>
-          <li><a href="/" class="nav-link" style="--i:2"><span class="nav-link-icon" data-tone="sea"><i data-lucide="external-link"></i></span>View Site</a></li>
+          <li data-requires-role="admin"><a href="/admin/manage/#game-items" class="nav-link" style="--i:2"><span class="nav-link-icon" data-tone="gold"><i data-lucide="package"></i></span>Game Items</a></li>
+          <li data-requires-role="admin"><a href="/admin/manage/#users" class="nav-link" style="--i:3"><span class="nav-link-icon" data-tone="purple"><i data-lucide="users"></i></span>Users</a></li>
+          <li><a href="/" class="nav-link" style="--i:4"><span class="nav-link-icon" data-tone="sea"><i data-lucide="external-link"></i></span>View Site</a></li>
         </ul>
       </div>
       <div id="nav-auth-slot" class="nav-auth-slot"></div>
