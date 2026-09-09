@@ -145,7 +145,35 @@ async function loadGiveaways(page) {
       loadGiveaways(giveawaysPage);
     });
   });
+  document.querySelectorAll('[data-upload-proof]').forEach(input => {
+    input.addEventListener('change', () => handleUploadProof(input));
+  });
   refreshIcons();
+}
+
+async function handleUploadProof(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const giveawayId = input.dataset.uploadProof;
+  const label = input.closest('label');
+  const originalText = label.textContent.trim();
+  label.style.pointerEvents = 'none';
+  label.style.opacity = '0.6';
+
+  try {
+    const { user } = await getCurrentProfile();
+    const compressed = await compressImage(file, { maxDimension: 1200, quality: 0.85 });
+    const proofUrl = await uploadScreenshot(user.id, compressed, `giveaway-${giveawayId}-${Date.now()}`);
+    const { error } = await sb.rpc('submit_giveaway_proof', { p_giveaway_id: giveawayId, p_proof_url: proofUrl });
+    if (error) throw error;
+    showToast('Proof uploaded.');
+    loadGiveaways(giveawaysPage);
+  } catch (err) {
+    logError(err);
+    showToast(err.message || 'Could not upload proof.', true);
+    label.style.pointerEvents = '';
+    label.style.opacity = '';
+  }
 }
 
 function renderGiveawaysPager(total) {
@@ -197,6 +225,12 @@ function renderGiveawayRow(g, entryCount, isLast) {
         ` : ''}
         ${g.status === 'active' ? `<button class="btn btn-primary btn-sm" data-pick-winner="${g.id}">Pick Winner</button>` : ''}
         ${g.status === 'ended' && g.winner_user_id ? `<button class="btn btn-ghost btn-sm" data-reroll-winner="${g.id}" title="Pick a different winner — use if the current winner never claimed"><i data-lucide="refresh-cw" class="icon-sm icon-inline"></i>Reroll</button>` : ''}
+        ${g.status === 'ended' && (!g.proof_status || g.proof_status === 'rejected') ? `
+          <label class="btn btn-ghost btn-sm" style="cursor:pointer;">
+            <i data-lucide="camera" class="icon-sm icon-inline"></i>${g.proof_status === 'rejected' ? 'Re-upload Proof' : 'Upload Proof'}
+            <input type="file" accept="image/*" data-upload-proof="${g.id}" style="display:none;">
+          </label>
+        ` : ''}
         <button class="btn btn-danger btn-sm" data-delete-giveaway="${g.id}" data-title="${escapeHtml(g.title)}" title="Delete"><i data-lucide="trash-2" class="icon-sm"></i></button>
       </div>
     </div>

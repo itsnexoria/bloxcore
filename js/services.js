@@ -273,31 +273,29 @@ function renderListing(s, participants) {
     <div class="panel services-card hover-lift-card" data-listing-id="${s.id}" data-category="${s.category}">
       <div class="flex-between">
         <div style="display:flex; align-items:center; gap:10px;">
-          ${avatarHtml(profile, 30)}
+          ${avatarHtml(profile, 34)}
           <div>
             <a href="/player/?u=${encodeURIComponent(profile.username || '')}" style="color:var(--bone); font-weight:700; text-decoration:none; font-size:0.9rem;">${escapeHtml(displayNameFor(profile))}</a> ${titleBadge(profile)} <span data-rep-for="${s.user_id}"></span>
             <p class="muted" style="margin:0; font-size:0.75rem;">${timeAgo(s.created_at)} · expires in ${hoursLeft(s.expires_at)}</p>
             <span data-new-account-for="${s.user_id}"></span>
           </div>
         </div>
-        <div style="display:flex; gap:8px;">
+        <div style="display:flex; gap:6px;">
           ${isOwner
-            ? `<button class="btn btn-ghost btn-sm" data-close-listing="${s.id}" aria-label="Mark closed"><i data-lucide="check" class="icon-sm"></i></button>
-               <button class="btn btn-ghost btn-sm" data-delete-listing="${s.id}" aria-label="Delete listing"><i data-lucide="x" class="icon-sm"></i></button>`
-            : (currentUser ? `<button class="btn btn-ghost btn-sm" data-report-listing="${s.id}" title="Report" aria-label="Report listing"><i data-lucide="flag" class="icon-sm"></i></button>` : '')}
+            ? `<button class="services-card-icon-btn" data-close-listing="${s.id}" aria-label="Mark closed" title="Mark closed"><i data-lucide="check" class="icon-sm"></i></button>
+               <button class="services-card-icon-btn" data-delete-listing="${s.id}" aria-label="Delete listing" title="Delete"><i data-lucide="x" class="icon-sm"></i></button>`
+            : (currentUser ? `<button class="services-card-icon-btn" data-report-listing="${s.id}" title="Report" aria-label="Report listing"><i data-lucide="flag" class="icon-sm"></i></button>` : '')}
         </div>
       </div>
 
-      <div style="display:flex; align-items:center; gap:10px; margin-top:14px;">
-        ${catMeta.image
-          ? `<img src="${catMeta.image}" alt="" style="width:44px; height:44px; object-fit:contain; flex-shrink:0;">`
-          : `<span class="icon-badge" data-tone="${catMeta.tone}" style="flex-shrink:0;"><i data-lucide="box" class="icon-sm"></i></span>`}
+      <div class="services-card-cat-row">
+        <span class="services-card-cat-icon">${catMeta.image ? `<img src="${catMeta.image}" alt="">` : `<i data-lucide="box" class="icon-md"></i>`}</span>
         <div style="min-width:0;">
-          <p class="muted" style="margin:0; font-size:0.7rem; text-transform:uppercase; letter-spacing:0.05em;">${escapeHtml(catMeta.label)}</p>
-          <h3 style="margin:2px 0 0; font-size:1rem;">${escapeHtml(s.title)}</h3>
+          <p class="services-card-cat-label">${escapeHtml(catMeta.label)}</p>
+          <h3 class="services-card-title">${escapeHtml(s.title)}</h3>
         </div>
       </div>
-      ${s.description ? `<p class="muted" style="margin:8px 0 0; font-size:0.85rem; white-space:pre-wrap;">${escapeHtml(s.description)}</p>` : ''}
+      ${s.description ? `<p class="muted" style="margin:10px 0 0; font-size:0.85rem; white-space:pre-wrap;">${escapeHtml(s.description)}</p>` : ''}
 
       <div class="trade-side-header" style="color:var(--gold-bright); margin-top:14px;">
         <i data-lucide="sparkles" class="icon-sm"></i>Price
@@ -326,8 +324,8 @@ function renderDungeonListing(s, profile, isOwner, participants) {
   const joinAction = !currentUser
     ? ''
     : isOwner
-    ? `<button class="btn btn-ghost btn-sm" data-close-listing="${s.id}" aria-label="Mark closed"><i data-lucide="check" class="icon-sm"></i></button>
-       <button class="btn btn-ghost btn-sm" data-delete-listing="${s.id}" aria-label="Delete listing"><i data-lucide="x" class="icon-sm"></i></button>`
+    ? `<button class="services-card-icon-btn" data-close-listing="${s.id}" aria-label="Mark closed"><i data-lucide="check" class="icon-sm"></i></button>
+       <button class="services-card-icon-btn" data-delete-listing="${s.id}" aria-label="Delete listing"><i data-lucide="x" class="icon-sm"></i></button>`
     : hasJoined
     ? `<button class="btn btn-ghost btn-sm" data-leave-dungeon="${s.id}">Leave</button>`
     : isFull
@@ -348,11 +346,11 @@ function renderDungeonListing(s, profile, isOwner, participants) {
         <div style="display:flex; gap:8px;">${joinAction}</div>
       </div>
 
-      <div style="display:flex; align-items:center; gap:10px; margin-top:14px;">
-        <img src="${SERVICE_CATEGORY_META.dungeon.image}" alt="" style="width:44px; height:44px; object-fit:contain; flex-shrink:0;">
+      <div class="services-card-cat-row">
+        <span class="services-card-cat-icon"><img src="${SERVICE_CATEGORY_META.dungeon.image}" alt=""></span>
         <div style="min-width:0;">
-          <p class="muted" style="margin:0; font-size:0.7rem; text-transform:uppercase; letter-spacing:0.05em;">Dungeon</p>
-          <h3 style="margin:2px 0 0; font-size:1rem;">${escapeHtml(s.title)}</h3>
+          <p class="services-card-cat-label">Dungeon</p>
+          <h3 class="services-card-title">${escapeHtml(s.title)}</h3>
         </div>
       </div>
       ${s.description ? `<p class="muted" style="margin:8px 0 0; font-size:0.85rem; white-space:pre-wrap;">${escapeHtml(s.description)}</p>` : ''}

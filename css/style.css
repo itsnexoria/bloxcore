@@ -2659,7 +2659,6 @@ html.compact-mode .grid { gap: 12px; }
   position: relative;
   z-index: 2;
   padding: 0 30px 26px;
-  margin-top: -76px;
   display: flex;
   align-items: flex-end;
   gap: 22px;
@@ -2668,6 +2667,7 @@ html.compact-mode .grid { gap: 12px; }
   position: relative;
   flex-shrink: 0;
   z-index: 2;
+  margin-top: -76px;
 }
 .profile-hero-level-pill {
   position: absolute;
@@ -2727,7 +2727,8 @@ html.compact-mode .grid { gap: 12px; }
   .profile-hero-banner-wrap { min-height: 260px; padding: 80px 18px 26px; }
   .profile-hero-overlay-info { padding-left: 0; margin-bottom: 4px; }
   .profile-hero-name { font-size: 1.5rem; }
-  .profile-hero-body { padding: 0 18px 20px; margin-top: -48px; gap: 14px; }
+  .profile-hero-body { padding: 0 18px 20px; gap: 14px; }
+  .profile-hero-avatar-wrap { margin-top: -48px; }
 }
 @media (max-width: 480px) {
   .profile-hero-body { flex-wrap: wrap; }
@@ -3144,6 +3145,43 @@ html.compact-mode .grid { gap: 12px; }
 .services-card[data-category="raid"] { --sc-rgb: var(--purple-rgb); }
 .services-card[data-category="trial"] { --sc-rgb: 249 115 22; }
 .services-card[data-category="dungeon"] { --sc-rgb: 52 211 153; }
+
+.services-card-cat-row { display: flex; align-items: center; gap: 12px; margin-top: 16px; }
+.services-card-cat-icon {
+  flex-shrink: 0;
+  width: 52px;
+  height: 52px;
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgb(var(--sc-rgb, var(--brass-rgb)) / 0.12);
+  box-shadow: inset 0 0 0 1px rgb(var(--sc-rgb, var(--brass-rgb)) / 0.3);
+}
+.services-card-cat-icon img { width: 38px; height: 38px; object-fit: contain; }
+.services-card-cat-label {
+  margin: 0;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: rgb(var(--sc-rgb, var(--brass-rgb)));
+}
+.services-card-title { margin: 2px 0 0; font-size: 1.05rem; }
+.services-card-icon-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-sm);
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  color: var(--ash);
+  cursor: pointer;
+  transition: border-color 0.15s ease, color 0.15s ease, background 0.15s ease;
+}
+.services-card-icon-btn:hover { border-color: var(--brass); color: var(--brass-bright); background: rgb(var(--brass-rgb) / 0.08); }
 
 .crew-card::before { background: linear-gradient(90deg, var(--purple), rgb(var(--purple-rgb) / 0.4)); opacity: 1; }
 
