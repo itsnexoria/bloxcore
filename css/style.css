@@ -3183,6 +3183,37 @@ html.compact-mode .grid { gap: 12px; }
 }
 .services-card-icon-btn:hover { border-color: var(--brass); color: var(--brass-bright); background: rgb(var(--brass-rgb) / 0.08); }
 
+/* v2 rework: hero band + floating poster avatar, matching the site's quest-card
+   visual language instead of running its own flat top-row layout. */
+.services-card { padding: 0; overflow: hidden; }
+.services-card::before { z-index: 2; }
+.services-card-hero {
+  position: relative;
+  height: 88px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(155deg, rgb(var(--sc-rgb) / 0.5), var(--navy) 100%);
+}
+.services-card-hero-icon { width: 40px; height: 40px; object-fit: contain; opacity: 0.9; filter: drop-shadow(0 4px 10px rgb(var(--shadow-rgb) / 0.5)); }
+.services-card-hero-pill {
+  position: absolute; top: 10px; left: 14px;
+  display: flex; align-items: center; gap: 5px;
+  padding: 3px 10px; border-radius: 999px;
+  background: rgba(5,6,10,0.55); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+  border: 1px solid rgb(var(--sc-rgb) / 0.5); color: rgb(var(--sc-rgb));
+  font-family: var(--font-mono); font-size: 0.66rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em;
+}
+.services-card-hero-actions { position: absolute; top: 8px; right: 10px; display: flex; gap: 6px; }
+.services-card-hero-badge {
+  position: absolute; bottom: -22px; left: 20px;
+  border-radius: 50%; box-shadow: 0 0 0 3px var(--navy), 0 6px 16px rgb(var(--shadow-rgb) / 0.5);
+}
+.services-card-body { padding: 30px 20px 18px; }
+.services-card-title-row { margin-left: 58px; min-height: 26px; }
+.services-card-poster-name { color: var(--bone); font-weight: 700; text-decoration: none; font-size: 0.88rem; }
+.services-card-poster-meta { margin: 1px 0 0; font-size: 0.72rem; }
+
 .crew-card::before { background: linear-gradient(90deg, var(--purple), rgb(var(--purple-rgb) / 0.4)); opacity: 1; }
 
 .pvp-match-card::before { background: linear-gradient(90deg, var(--blood), var(--blood-dim)); opacity: 1; }
@@ -3326,3 +3357,31 @@ html.compact-mode .grid { gap: 12px; }
   margin-right: 12px;
   flex-shrink: 0;
 }
+
+/* ------------------------------ Feed page ------------------------------ */
+.feed-post-card { animation: fadeInUp 0.35s ease both; }
+.feed-action-btn {
+  display: flex; align-items: center; gap: 6px;
+  background: none; border: none; cursor: pointer;
+  color: var(--ash); font-size: 0.82rem; font-family: var(--font-mono);
+  padding: 4px 6px; border-radius: var(--radius-sm, 8px);
+  transition: color 0.15s ease, background 0.15s ease;
+}
+.feed-action-btn:hover:not(:disabled) { color: var(--bone); background: var(--glass-bg); }
+.feed-action-btn:disabled { cursor: default; opacity: 0.6; }
+.feed-action-btn.is-active { color: #f43f5e; }
+.feed-action-btn.is-active i { fill: #f43f5e; }
+
+/* ------------------------------ Homepage weekly spotlight ------------------------------ */
+.spotlight-panel { position: relative; padding: 22px 24px; }
+.spotlight-kicker {
+  display: flex; align-items: center; gap: 6px;
+  font-family: var(--font-mono); font-size: 0.72rem; text-transform: uppercase;
+  letter-spacing: 0.08em; color: var(--brass-bright);
+}
+.spotlight-view { animation: fadeInUp 0.35s ease both; }
+#spotlight-slot.is-fading { opacity: 0; transition: opacity 0.25s ease; }
+#spotlight-slot { opacity: 1; transition: opacity 0.25s ease; }
+.spotlight-dots { position: absolute; top: 18px; right: 20px; display: flex; gap: 6px; }
+.spotlight-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--navy-light); transition: background 0.2s ease; }
+.spotlight-dot.is-active { background: var(--brass-bright); }

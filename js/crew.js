@@ -143,10 +143,20 @@ async function render() {
     <div class="panel" style="margin-top:20px; padding:0;">
       ${members.map((m, i) => renderMemberRow(m, i === members.length - 1, isLeader)).join('')}
     </div>
+
+    <div class="panel" style="margin-top:20px;">
+      <h3 style="font-size:1rem; margin:0 0 4px;"><i data-lucide="trending-up" class="icon-sm icon-inline"></i>This Week</h3>
+      <p class="muted" style="margin:0 0 14px; font-size:0.8rem;">XP earned and bounties completed by each member in the trailing 7 days.</p>
+      <div id="crew-weekly-stats">
+        <div class="skeleton" style="height:44px;"></div>
+        <div class="skeleton" style="height:44px; margin-top:8px;"></div>
+      </div>
+    </div>
   `;
   document.getElementById('war-call-btn').style.display = isLeader ? 'inline-flex' : 'none';
   document.getElementById('crew-wars-section').style.display = 'block';
   refreshIcons();
+  loadCrewWeeklyStats();
 
   document.getElementById('leave-crew-btn')?.addEventListener('click', () => handleLeave(currentUser.id));
   document.getElementById('delete-crew-btn')?.addEventListener('click', handleDelete);
@@ -158,6 +168,30 @@ async function render() {
   document.querySelectorAll('[data-kick]').forEach(btn => {
     btn.addEventListener('click', () => handleLeave(btn.dataset.kick));
   });
+}
+
+async function loadCrewWeeklyStats() {
+  const el = document.getElementById('crew-weekly-stats');
+  const { data, error } = await sb.rpc('get_crew_member_weekly_stats', { p_crew_id: crew.id });
+
+  if (error || !data?.length) {
+    el.innerHTML = `<p class="muted" style="margin:0;">No activity from this crew in the last 7 days yet.</p>`;
+    return;
+  }
+
+  const maxXp = Math.max(...data.map(m => Number(m.weekly_xp)), 1);
+  el.innerHTML = data.map((m, i) => `
+    <div style="display:flex; align-items:center; gap:12px; padding:8px 0; ${i === data.length - 1 ? '' : 'border-bottom:1px solid var(--navy-light);'}">
+      <span style="font-family:var(--font-mono); color:var(--ash); width:20px; flex-shrink:0;">#${i + 1}</span>
+      ${avatarHtml(m, 28)}
+      <a href="/player/?u=${encodeURIComponent(m.username || '')}" style="color:var(--bone); font-weight:600; text-decoration:none; font-size:0.85rem; flex-shrink:0;">${escapeHtml(displayNameFor(m))}</a>
+      <div style="flex:1; height:6px; border-radius:999px; background:var(--navy-light); overflow:hidden; min-width:40px;">
+        <div style="height:100%; width:${Math.max(4, (Number(m.weekly_xp) / maxXp) * 100)}%; background:linear-gradient(90deg, var(--brass), var(--brass-bright)); border-radius:999px;"></div>
+      </div>
+      <span style="font-family:var(--font-mono); color:var(--brass-bright); font-size:0.82rem; white-space:nowrap;">${Number(m.weekly_xp).toLocaleString()} XP</span>
+      <span class="muted" style="font-size:0.75rem; white-space:nowrap;">${m.weekly_completions} done</span>
+    </div>
+  `).join('');
 }
 
 function renderMemberRow(m, isLast, isLeader) {

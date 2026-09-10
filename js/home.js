@@ -6,6 +6,7 @@ onReady(async () => {
   loadStats();
   loadFeaturedChallenges();
   loadTopPirates();
+  loadWeeklySpotlight();
   document.getElementById('home-tab-players')?.addEventListener('click', () => switchHomeTab('players'));
   document.getElementById('home-tab-crews')?.addEventListener('click', () => switchHomeTab('crews'));
   document.getElementById('home-tab-wars')?.addEventListener('click', () => switchHomeTab('wars'));
@@ -210,4 +211,78 @@ async function loadTopCrews() {
   `;
   }).join('');
   refreshIcons();
+}
+
+// Homepage spotlight — auto-rotates between this week's top XP-earning player and
+// top XP-earning crew every few seconds. Both come from a single RPC call so the
+// widget never fires two separate round-trips.
+async function loadWeeklySpotlight() {
+  const el = document.getElementById('weekly-spotlight');
+  const { data, error } = await sb.rpc('get_weekly_spotlight');
+  const row = data?.[0];
+
+  if (error || !row || (!row.player_id && !row.crew_id)) {
+    el.innerHTML = `<p class="muted" style="margin:0; padding:10px 0;">Spotlight kicks in once someone earns XP this week — could be you.</p>`;
+    return;
+  }
+
+  const playerProfile = row.player_id ? {
+    username: row.player_username, display_name: row.player_display_name,
+    avatar_url: row.player_avatar_url, avatar_frame: row.player_avatar_frame,
+    title_color_override: row.player_title_color_override,
+    titles: row.player_title_name ? { name: row.player_title_name, color: row.player_title_color } : null,
+  } : null;
+
+  const views = [];
+  if (playerProfile) {
+    views.push(`
+      <div class="spotlight-view">
+        <span class="spotlight-kicker"><i data-lucide="star" class="icon-sm icon-inline"></i>Player of the Week</span>
+        <div style="display:flex; align-items:center; gap:14px; margin-top:8px;">
+          ${avatarHtml(playerProfile, 46)}
+          <div style="min-width:0;">
+            <a href="/player/?u=${encodeURIComponent(row.player_username || '')}" style="color:var(--bone); font-weight:700; text-decoration:none; font-size:1.05rem;">${escapeHtml(displayNameFor(playerProfile))}</a> ${titleBadge(playerProfile)}
+            <p class="muted" style="margin:2px 0 0; font-family:var(--font-mono); color:var(--brass-bright);">+${Number(row.player_weekly_xp).toLocaleString()} XP this week</p>
+          </div>
+        </div>
+      </div>
+    `);
+  }
+  if (row.crew_id) {
+    views.push(`
+      <div class="spotlight-view">
+        <span class="spotlight-kicker"><i data-lucide="users" class="icon-sm icon-inline"></i>Crew of the Week</span>
+        <div style="display:flex; align-items:center; gap:14px; margin-top:8px;">
+          ${row.crew_logo_url
+            ? `<img src="${row.crew_logo_url}" alt="" style="width:46px; height:46px; border-radius:10px; object-fit:cover; flex-shrink:0;" onerror="this.style.visibility='hidden';">`
+            : `<div style="width:46px; height:46px; border-radius:10px; background:var(--navy-light); display:flex; align-items:center; justify-content:center; color:var(--ash); flex-shrink:0;">${escapeHtml((row.crew_name[0] || '?').toUpperCase())}</div>`}
+          <div style="min-width:0;">
+            <a href="/crew/?name=${encodeURIComponent(row.crew_name)}" style="color:var(--bone); font-weight:700; text-decoration:none; font-size:1.05rem;">${row.crew_tag ? `[${escapeHtml(row.crew_tag)}] ` : ''}${escapeHtml(row.crew_name)}</a>
+            <p class="muted" style="margin:2px 0 0; font-family:var(--font-mono); color:var(--brass-bright);">+${Number(row.crew_weekly_xp).toLocaleString()} XP this week · ${row.crew_member_count} members</p>
+          </div>
+        </div>
+      </div>
+    `);
+  }
+
+  if (!views.length) { el.innerHTML = ''; return; }
+
+  el.innerHTML = `<div class="spotlight-dots">${views.map((_, i) => `<span class="spotlight-dot${i === 0 ? ' is-active' : ''}"></span>`).join('')}</div><div id="spotlight-slot">${views[0]}</div>`;
+  refreshIcons();
+
+  if (views.length > 1) {
+    let idx = 0;
+    setInterval(() => {
+      idx = (idx + 1) % views.length;
+      const slot = document.getElementById('spotlight-slot');
+      if (!slot) return;
+      slot.classList.add('is-fading');
+      setTimeout(() => {
+        slot.innerHTML = views[idx];
+        slot.classList.remove('is-fading');
+        refreshIcons();
+        document.querySelectorAll('.spotlight-dot').forEach((d, i) => d.classList.toggle('is-active', i === idx));
+      }, 250);
+    }, 6000);
+  }
 }

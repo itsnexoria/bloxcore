@@ -24,6 +24,7 @@ onReady(async () => {
 
   try {
     await loadChallenges();
+    if (currentUser) await loadSuggestedChallenges();
   } catch (e) {
     logError('Failed to load challenges:', e);
   }
@@ -443,4 +444,62 @@ function startResetCountdowns() {
   if (resetCountdownTimer) clearInterval(resetCountdownTimer);
   tickResetCountdowns();
   resetCountdownTimer = setInterval(tickResetCountdowns, 1000);
+}
+
+// Suggested For You — finds the difficulty tier the player has completed the smallest
+// share of (their biggest "gap"), then surfaces a few not-yet-done quests from it. Keeps
+// people out of the "I only ever do Easy" rut without hiding anything, since the full
+// board is still right below.
+const DIFFICULTY_ORDER = ['easy', 'medium', 'hard', 'legendary'];
+
+async function loadSuggestedChallenges() {
+  const { data, error } = await sb
+    .from('challenges')
+    .select('*')
+    .eq('active', true)
+    .or('rotation.eq.none,currently_featured.eq.true');
+  if (error || !data?.length) return;
+
+  const now = Date.now();
+  const isAvailable = (c) => {
+    const completedAt = completionMap.get(c.id);
+    if (!completedAt) return true;
+    if (!c.repeatable) return false;
+    return now - new Date(completedAt).getTime() >= (c.cooldown_hours || 0) * 3600 * 1000;
+  };
+
+  const byDifficulty = {};
+  DIFFICULTY_ORDER.forEach(d => { byDifficulty[d] = { total: 0, done: 0, available: [] }; });
+  data.forEach(c => {
+    const bucket = byDifficulty[c.difficulty];
+    if (!bucket) return;
+    bucket.total += 1;
+    if (completionMap.has(c.id)) bucket.done += 1;
+    if (isAvailable(c)) bucket.available.push(c);
+  });
+
+  // Rank difficulties by completion ratio ascending (biggest gap first); skip any tier
+  // with nothing currently available to suggest.
+  const ranked = DIFFICULTY_ORDER
+    .map(d => ({ difficulty: d, ratio: byDifficulty[d].total ? byDifficulty[d].done / byDifficulty[d].total : 1, ...byDifficulty[d] }))
+    .filter(d => d.available.length > 0)
+    .sort((a, b) => a.ratio - b.ratio);
+
+  if (!ranked.length) return;
+  const pick = ranked[0];
+  const suggestions = pick.available.sort((a, b) => b.xp_reward - a.xp_reward).slice(0, 3);
+  if (!suggestions.length) return;
+
+  const wrap = document.getElementById('suggested-challenges-wrap');
+  const hintEl = document.getElementById('suggested-challenges-hint');
+  const label = pick.difficulty.charAt(0).toUpperCase() + pick.difficulty.slice(1);
+  hintEl.textContent = pick.done === 0
+    ? `You haven't cleared any ${label} bounties yet — here's where to start.`
+    : `You've completed the smallest share of ${label} bounties — worth a look.`;
+  document.getElementById('suggested-challenges-grid').innerHTML = suggestions.map(renderChallengeCard).join('');
+  wrap.style.display = 'block';
+  document.querySelectorAll('#suggested-challenges-grid [data-claim-id]').forEach(btn => {
+    btn.addEventListener('click', () => openModal(btn.dataset.claimId, btn.dataset.claimTitle));
+  });
+  refreshIcons();
 }

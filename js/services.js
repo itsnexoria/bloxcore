@@ -271,42 +271,39 @@ function renderListing(s, participants) {
 
   return `
     <div class="panel services-card hover-lift-card" data-listing-id="${s.id}" data-category="${s.category}">
-      <div class="flex-between">
-        <div style="display:flex; align-items:center; gap:10px;">
-          ${avatarHtml(profile, 34)}
-          <div>
-            <a href="/player/?u=${encodeURIComponent(profile.username || '')}" style="color:var(--bone); font-weight:700; text-decoration:none; font-size:0.9rem;">${escapeHtml(displayNameFor(profile))}</a> ${titleBadge(profile)} <span data-rep-for="${s.user_id}"></span>
-            <p class="muted" style="margin:0; font-size:0.75rem;">${timeAgo(s.created_at)} · expires in ${hoursLeft(s.expires_at)}</p>
-            <span data-new-account-for="${s.user_id}"></span>
-          </div>
-        </div>
-        <div style="display:flex; gap:6px;">
+      <div class="services-card-hero">
+        <span class="services-card-hero-pill">${catMeta.image ? `<img src="${catMeta.image}" alt="" style="width:14px; height:14px; object-fit:contain;">` : ''}${escapeHtml(catMeta.label)}</span>
+        <div class="services-card-hero-actions">
           ${isOwner
             ? `<button class="services-card-icon-btn" data-close-listing="${s.id}" aria-label="Mark closed" title="Mark closed"><i data-lucide="check" class="icon-sm"></i></button>
                <button class="services-card-icon-btn" data-delete-listing="${s.id}" aria-label="Delete listing" title="Delete"><i data-lucide="x" class="icon-sm"></i></button>`
             : (currentUser ? `<button class="services-card-icon-btn" data-report-listing="${s.id}" title="Report" aria-label="Report listing"><i data-lucide="flag" class="icon-sm"></i></button>` : '')}
         </div>
+        ${catMeta.image ? `<img src="${catMeta.image}" alt="" class="services-card-hero-icon">` : `<i data-lucide="box" class="icon-lg"></i>`}
+        <span class="services-card-hero-badge">${avatarHtml(profile, 44)}</span>
       </div>
 
-      <div class="services-card-cat-row">
-        <span class="services-card-cat-icon">${catMeta.image ? `<img src="${catMeta.image}" alt="">` : `<i data-lucide="box" class="icon-md"></i>`}</span>
-        <div style="min-width:0;">
-          <p class="services-card-cat-label">${escapeHtml(catMeta.label)}</p>
-          <h3 class="services-card-title">${escapeHtml(s.title)}</h3>
+      <div class="services-card-body">
+        <div class="services-card-title-row">
+          <a href="/player/?u=${encodeURIComponent(profile.username || '')}" class="services-card-poster-name">${escapeHtml(displayNameFor(profile))}</a> ${titleBadge(profile)} <span data-rep-for="${s.user_id}"></span>
+          <p class="muted services-card-poster-meta">${timeAgo(s.created_at)} · expires in ${hoursLeft(s.expires_at)}</p>
+          <span data-new-account-for="${s.user_id}"></span>
         </div>
-      </div>
-      ${s.description ? `<p class="muted" style="margin:10px 0 0; font-size:0.85rem; white-space:pre-wrap;">${escapeHtml(s.description)}</p>` : ''}
 
-      <div class="trade-side-header" style="color:var(--gold-bright); margin-top:14px;">
-        <i data-lucide="sparkles" class="icon-sm"></i>Price
-        <span class="trade-side-total">${formatValue(price.total)}</span>
-      </div>
-      <div class="trade-item-grid">${price.tiles}</div>
+        <h3 class="services-card-title" style="margin-top:14px;">${escapeHtml(s.title)}</h3>
+        ${s.description ? `<p class="muted" style="margin:6px 0 0; font-size:0.85rem; white-space:pre-wrap;">${escapeHtml(s.description)}</p>` : ''}
 
-      <div style="display:flex; gap:16px; flex-wrap:wrap; font-size:0.82rem; margin-top:14px; padding-top:12px; border-top:1px solid var(--glass-border);">
-        ${roblox ? `<div><span class="muted"><i data-lucide="gamepad-2" class="icon-sm icon-inline"></i>Roblox${robloxVerified ? '' : ' (unverified)'}</span><br>${robloxUserId ? `<a href="https://www.roblox.com/users/${robloxUserId}/profile" target="_blank" rel="noopener noreferrer" style="color:var(--bone); font-weight:700;">${escapeHtml(roblox)}</a>` : `<strong>${escapeHtml(roblox)}</strong>`}</div>` : ''}
-        ${discord ? `<div><span class="muted"><i data-lucide="message-circle" class="icon-sm icon-inline"></i>Discord</span><br><strong>${escapeHtml(discord)}</strong></div>` : ''}
-        ${!roblox && !discord ? `<span class="muted">No contact on file — see their profile.</span>` : ''}
+        <div class="trade-side-header" style="color:var(--gold-bright); margin-top:14px;">
+          <i data-lucide="sparkles" class="icon-sm"></i>Price
+          <span class="trade-side-total">${formatValue(price.total)}</span>
+        </div>
+        <div class="trade-item-grid">${price.tiles}</div>
+
+        <div style="display:flex; gap:16px; flex-wrap:wrap; font-size:0.82rem; margin-top:14px; padding-top:12px; border-top:1px solid var(--glass-border);">
+          ${roblox ? `<div><span class="muted"><i data-lucide="gamepad-2" class="icon-sm icon-inline"></i>Roblox${robloxVerified ? '' : ' (unverified)'}</span><br>${robloxUserId ? `<a href="https://www.roblox.com/users/${robloxUserId}/profile" target="_blank" rel="noopener noreferrer" style="color:var(--bone); font-weight:700;">${escapeHtml(roblox)}</a>` : `<strong>${escapeHtml(roblox)}</strong>`}</div>` : ''}
+          ${discord ? `<div><span class="muted"><i data-lucide="message-circle" class="icon-sm icon-inline"></i>Discord</span><br><strong>${escapeHtml(discord)}</strong></div>` : ''}
+          ${!roblox && !discord ? `<span class="muted">No contact on file — see their profile.</span>` : ''}
+        </div>
       </div>
     </div>
   `;
@@ -334,38 +331,38 @@ function renderDungeonListing(s, profile, isOwner, participants) {
 
   return `
     <div class="panel services-card hover-lift-card" data-listing-id="${s.id}" data-category="dungeon">
-      <div class="flex-between">
-        <div style="display:flex; align-items:center; gap:10px;">
-          ${avatarHtml(profile, 30)}
-          <div>
-            <a href="/player/?u=${encodeURIComponent(profile.username || '')}" style="color:var(--bone); font-weight:700; text-decoration:none; font-size:0.9rem;">${escapeHtml(displayNameFor(profile))}</a> ${titleBadge(profile)}
-            <p class="muted" style="margin:0; font-size:0.75rem;">${timeAgo(s.created_at)} · Host · expires in ${hoursLeft(s.expires_at)}</p>
-            <span data-new-account-for="${s.user_id}"></span>
-          </div>
-        </div>
-        <div style="display:flex; gap:8px;">${joinAction}</div>
+      <div class="services-card-hero">
+        <span class="services-card-hero-pill"><img src="${SERVICE_CATEGORY_META.dungeon.image}" alt="" style="width:14px; height:14px; object-fit:contain;">Dungeon</span>
+        <div class="services-card-hero-actions">${isOwner ? joinAction : ''}</div>
+        <img src="${SERVICE_CATEGORY_META.dungeon.image}" alt="" class="services-card-hero-icon">
+        <span class="services-card-hero-badge">${avatarHtml(profile, 44, 'border:2px solid var(--brass);')}</span>
       </div>
 
-      <div class="services-card-cat-row">
-        <span class="services-card-cat-icon"><img src="${SERVICE_CATEGORY_META.dungeon.image}" alt=""></span>
-        <div style="min-width:0;">
-          <p class="services-card-cat-label">Dungeon</p>
+      <div class="services-card-body">
+        <div class="services-card-title-row">
+          <a href="/player/?u=${encodeURIComponent(profile.username || '')}" class="services-card-poster-name">${escapeHtml(displayNameFor(profile))}</a> ${titleBadge(profile)}
+          <p class="muted services-card-poster-meta">${timeAgo(s.created_at)} · Host · expires in ${hoursLeft(s.expires_at)}</p>
+          <span data-new-account-for="${s.user_id}"></span>
+        </div>
+
+        <div class="flex-between" style="margin-top:14px; align-items:flex-start;">
           <h3 class="services-card-title">${escapeHtml(s.title)}</h3>
+          ${!isOwner ? `<div>${joinAction}</div>` : ''}
         </div>
-      </div>
-      ${s.description ? `<p class="muted" style="margin:8px 0 0; font-size:0.85rem; white-space:pre-wrap;">${escapeHtml(s.description)}</p>` : ''}
+        ${s.description ? `<p class="muted" style="margin:6px 0 0; font-size:0.85rem; white-space:pre-wrap;">${escapeHtml(s.description)}</p>` : ''}
 
-      <div style="display:flex; align-items:center; gap:10px; margin-top:10px;">
-        <span class="tag tag-${DUNGEON_MODE_COLORS[s.mode] || 'medium'}" style="text-transform:capitalize;">${escapeHtml(s.mode)}</span>
-        <span class="muted" style="font-size:0.82rem;"><i data-lucide="users" class="icon-sm icon-inline"></i>${joinedCount}/${s.max_players} joined</span>
-      </div>
+        <div style="display:flex; align-items:center; gap:10px; margin-top:10px;">
+          <span class="tag tag-${DUNGEON_MODE_COLORS[s.mode] || 'medium'}" style="text-transform:capitalize;">${escapeHtml(s.mode)}</span>
+          <span class="muted" style="font-size:0.82rem;"><i data-lucide="users" class="icon-sm icon-inline"></i>${joinedCount}/${s.max_players} joined</span>
+        </div>
 
-      <div style="display:flex; gap:6px; margin-top:12px; padding-top:12px; border-top:1px solid var(--glass-border); flex-wrap:wrap;">
-        ${roster.map(r => `
-          <a href="/player/?u=${encodeURIComponent(r.username || '')}" title="${escapeHtml(displayNameFor(r))}${r.isHost ? ' (Host)' : ''}" style="text-decoration:none;">
-            ${avatarHtml(r, 26, r.isHost ? 'border:2px solid var(--brass);' : '')}
-          </a>
-        `).join('')}
+        <div style="display:flex; gap:6px; margin-top:12px; padding-top:12px; border-top:1px solid var(--glass-border); flex-wrap:wrap;">
+          ${roster.map(r => `
+            <a href="/player/?u=${encodeURIComponent(r.username || '')}" title="${escapeHtml(displayNameFor(r))}${r.isHost ? ' (Host)' : ''}" style="text-decoration:none;">
+              ${avatarHtml(r, 26, r.isHost ? 'border:2px solid var(--brass);' : '')}
+            </a>
+          `).join('')}
+        </div>
       </div>
     </div>
   `;

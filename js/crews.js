@@ -18,7 +18,64 @@ onReady(async () => {
   document.getElementById('create-crew-btn').addEventListener('click', openModal);
   document.getElementById('crew-modal-cancel').addEventListener('click', closeModal);
   document.getElementById('crew-form').addEventListener('submit', handleCreate);
+
+  document.querySelectorAll('#crews-page-tabs [data-page-tab]').forEach(btn => {
+    btn.addEventListener('click', () => switchPageTab(btn.dataset.pageTab));
+  });
 });
+
+// Top-level Crews / Crew Wars / Weekly Leaderboard tabs. Crew Wars and Weekly
+// Leaderboard are both loaded lazily the first time their tab is opened.
+let pageTab = 'crews';
+let _weeklyLoaded = false;
+
+function switchPageTab(tab) {
+  if (tab === pageTab) return;
+  pageTab = tab;
+  document.querySelectorAll('#crews-page-tabs [data-page-tab]').forEach(btn => {
+    btn.className = `btn btn-sm ${btn.dataset.pageTab === tab ? 'btn-primary' : 'btn-ghost'}`;
+  });
+  document.getElementById('crews-page-tab-crews').style.display = tab === 'crews' ? '' : 'none';
+  document.getElementById('crews-page-tab-wars').style.display = tab === 'wars' ? '' : 'none';
+  document.getElementById('crews-page-tab-weekly').style.display = tab === 'weekly' ? '' : 'none';
+
+  if (tab === 'wars') initCrewWarsHub();
+  if (tab === 'weekly' && !_weeklyLoaded) { _weeklyLoaded = true; loadWeeklyCrewLeaderboard(); }
+}
+
+async function loadWeeklyCrewLeaderboard() {
+  const el = document.getElementById('weekly-crew-leaderboard');
+  const { data, error } = await sb.rpc('get_crew_weekly_leaderboard');
+
+  if (error || !data?.length) {
+    el.innerHTML = `<p class="muted" style="padding:20px; margin:0;">No crew activity in the last 7 days yet.</p>`;
+    return;
+  }
+
+  el.innerHTML = data.map((c, i) => {
+    const rank = i + 1;
+    const podium = rank <= 3;
+    return `
+    <div class="flex-between${podium ? ' lb-row-podium' : ''}" ${podium ? `data-rank="${rank}"` : ''} style="padding:12px 20px; ${i === data.length - 1 || podium ? '' : 'border-bottom:1px solid var(--navy-light);'}">
+      <div style="display:flex; align-items:center; gap:14px;">
+        <span class="${podium ? 'lb-podium-rank' : ''}" style="font-family:var(--font-mono); color:var(--ash); width:22px;">${podium ? `<i data-lucide="${rank === 1 ? 'crown' : 'medal'}" class="icon-sm"></i>` : `#${rank}`}</span>
+        ${c.logo_url
+          ? `<img src="${c.logo_url}" alt="" loading="lazy" style="width:32px; height:32px; border-radius:8px; object-fit:cover; flex-shrink:0;" onerror="this.style.visibility='hidden';">`
+          : `<div style="width:32px; height:32px; border-radius:8px; background:var(--navy-light); display:flex; align-items:center; justify-content:center; font-size:0.8rem; flex-shrink:0; color:var(--ash);">${escapeHtml((c.name[0] || '?').toUpperCase())}</div>`}
+        <div>
+          <a href="/crew/?name=${encodeURIComponent(c.name)}" style="color:var(--bone); font-weight:700; text-decoration:none;">${c.tag ? `[${escapeHtml(c.tag)}] ` : ''}${escapeHtml(c.name)}</a>
+          <p class="muted" style="margin:0; font-size:0.72rem;">${c.member_count} member${c.member_count === 1 ? '' : 's'}</p>
+        </div>
+      </div>
+      <div style="text-align:right;">
+        <p style="margin:0; font-family:var(--font-mono); color:var(--brass-bright);">${Number(c.weekly_xp).toLocaleString()} XP</p>
+        <p class="muted" style="margin:0; font-size:0.72rem;">${c.weekly_completions} bounties</p>
+      </div>
+    </div>
+  `;
+  }).join('');
+  refreshIcons();
+}
 
 // Every player can only ever be in one crew at a time (the DB enforces this with a unique
 // constraint), so hide the confusing "you're already in a crew" error at submit time —

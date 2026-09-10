@@ -4,18 +4,20 @@
 <meta charset="UTF-8">
 <script>(function(){try{var a=localStorage.getItem('bc_accent');if(a==='custom'){var c=JSON.parse(localStorage.getItem('bc_custom_theme')||'null');if(c){var s=document.documentElement.style;s.setProperty('--ink',c.ink);s.setProperty('--navy',c.navy);s.setProperty('--navy-light',c['navy-light']);s.setProperty('--brass',c.brass);s.setProperty('--brass-bright',c['brass-bright']);s.setProperty('--ink-glow',c.navy);var h=c.brass.replace('#','');s.setProperty('--brass-rgb',parseInt(h.substring(0,2),16)+' '+parseInt(h.substring(2,4),16)+' '+parseInt(h.substring(4,6),16));document.documentElement.setAttribute('data-accent','custom');}}else if(a){document.documentElement.setAttribute('data-accent',a);}if(localStorage.getItem('bc_reduce_motion')==='1')document.documentElement.classList.add('reduce-motion');if(localStorage.getItem('bc_compact_mode')==='1')document.documentElement.classList.add('compact-mode');}catch(e){}})();</script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Crew — BloxCore</title>
+<title>Feed — BloxCore</title>
 <meta name="robots" content="index, follow">
-<meta name="description" content="View a Blox Fruits crew's roster, stats, and how to join on BloxCore.">
+<meta name="description" content="The BloxCore community feed — post updates, screenshots and wins, and comment on what other pirates are up to.">
 <meta name="keywords" content="Roblox, Blox Fruits, BloxCore, Nexoria, Nexus, trading, perms, fruits, One Piece game, anime game, PvP, crews, best Roblox game, bounty hunting, giveaways, leaderboard, sea events, combos, quests">
+<link rel="canonical" href="https://blox.nexorealm.org/feed/">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="BloxCore">
-<meta property="og:title" content="Crew — BloxCore">
-<meta property="og:description" content="View a Blox Fruits crew's roster, stats, and how to join on BloxCore.">
+<meta property="og:title" content="Feed — BloxCore">
+<meta property="og:description" content="The BloxCore community feed — post updates, screenshots and wins, and comment on what other pirates are up to.">
 <meta property="og:image" content="https://blox.nexorealm.org/assets/og-banner.jpg">
+<meta property="og:url" content="https://blox.nexorealm.org/feed/">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="Crew — BloxCore">
-<meta name="twitter:description" content="View a Blox Fruits crew's roster, stats, and how to join on BloxCore.">
+<meta name="twitter:title" content="Feed — BloxCore">
+<meta name="twitter:description" content="The BloxCore community feed — post updates, screenshots and wins, and comment on what other pirates are up to.">
 <meta name="twitter:image" content="https://blox.nexorealm.org/assets/og-banner.jpg">
 <link rel="stylesheet" href="/css/style.css">
 <link rel="stylesheet" href="/css/animations.css">
@@ -35,7 +37,7 @@
       <button type="button" class="nav-toggle" aria-label="Open menu" aria-expanded="false"><i data-lucide="menu" class="icon-md nav-toggle-icon-menu"></i><i data-lucide="x" class="icon-md nav-toggle-icon-close"></i></button>
       <div id="nav-profile-slot"></div>
     </div>
-        <div class="nav-links">
+    <div class="nav-links">
       <div class="nav-links-glow" aria-hidden="true"></div>
       <div class="nav-drawer-header">
         <span class="nav-drawer-title"><i data-lucide="compass" class="icon-sm"></i>Menu</span>
@@ -45,7 +47,7 @@
         <ul class="nav-link-list">
           <li><a href="/" class="nav-link" style="--i:0"><span class="nav-link-icon" data-tone="gold"><i data-lucide="home"></i></span>Home</a></li>
           <li><a href="/chat/" class="nav-link" style="--i:1"><span class="nav-link-icon" data-tone="blue"><i data-lucide="message-circle"></i></span>Chat</a></li>
-          <li><a href="/feed/" class="nav-link" style="--i:2"><span class="nav-link-icon" data-tone="pink"><i data-lucide="rss"></i></span>Feed</a></li>
+          <li><a href="/feed/" class="nav-link active" style="--i:2"><span class="nav-link-icon" data-tone="pink"><i data-lucide="rss"></i></span>Feed</a></li>
           <li class="nav-group-label" style="--i:3">Compete</li>
           <li><a href="/pvp/" class="nav-link" style="--i:4"><span class="nav-link-icon" data-tone="blood"><i data-lucide="crosshair"></i></span>PvP</a></li>
           <li><a href="/challenges/" class="nav-link" style="--i:5"><span class="nav-link-icon" data-tone="purple"><i data-lucide="swords"></i></span>Quests</a></li>
@@ -67,80 +69,67 @@
   </div>
 </nav>
 
+<main>
 <section class="section">
-  <div class="container" style="max-width:720px;">
-    <p class="muted" style="margin:0 0 12px;"><a href="/crews/" style="color:var(--brass-bright);"><i data-lucide="chevron-left" class="icon-sm"></i> All Crews</a></p>
-    <div id="crew-content">
-      <div class="skeleton" style="height:160px; margin-bottom:20px;"></div>
-      <div class="skeleton" style="height:200px;"></div>
+  <div class="container" style="max-width:640px;">
+    <div class="flex-between">
+      <div style="display:flex; align-items:center;">
+        <div class="page-head-icon"><i data-lucide="rss" class="icon-md"></i></div>
+        <div>
+          <h1 style="font-size:1.8rem; margin-bottom:2px;">Feed</h1>
+          <p class="muted" style="margin:0;">What the crew's up to right now.</p>
+        </div>
+      </div>
     </div>
 
-    <div id="crew-wars-section" style="display:none; margin-top:20px;">
-      <div class="flex-between" style="margin:24px 0 10px;">
-        <h2 style="font-size:1.05rem; margin:0;"><i data-lucide="swords" class="icon-sm icon-inline"></i>Crew Wars</h2>
-        <button type="button" class="btn btn-danger btn-sm" id="war-call-btn" style="display:none;"><i data-lucide="flame" class="icon-sm icon-inline"></i>War Call</button>
-      </div>
-      <div id="crew-wars-list"></div>
+    <div id="feed-signed-out" class="panel" style="display:none; margin-top:20px; text-align:center;">
+      <p class="muted" style="margin:0;"><a href="/auth/">Sign in</a> to post to the feed, like, and comment.</p>
     </div>
+
+    <div id="feed-compose" class="panel hover-lift-card" style="margin-top:20px; display:none;">
+      <div style="display:flex; gap:12px;">
+        <div id="feed-compose-avatar"></div>
+        <div style="flex:1; min-width:0;">
+          <textarea id="feed-post-input" rows="2" maxlength="280" placeholder="Share a win, a screenshot, or what you're grinding today…" style="resize:vertical;"></textarea>
+          <div id="feed-image-preview" style="display:none; margin:10px 0; position:relative; width:fit-content;">
+            <img id="feed-image-preview-img" src="" alt="" style="max-height:180px; border-radius:var(--radius-sm,8px); border:1px solid var(--glass-border);">
+            <button type="button" id="feed-image-remove-btn" class="btn btn-ghost btn-sm" style="position:absolute; top:-8px; right:-8px; padding:4px; border-radius:50%; background:var(--ink);" aria-label="Remove image"><i data-lucide="x" class="icon-sm"></i></button>
+          </div>
+          <div class="flex-between" style="margin-top:8px;">
+            <div>
+              <input type="file" id="feed-image-input" accept="image/png,image/jpeg,image/gif,image/webp" style="display:none;">
+              <button type="button" class="btn btn-ghost btn-sm" id="feed-attach-btn" title="Attach image" aria-label="Attach image"><i data-lucide="image" class="icon-sm"></i></button>
+            </div>
+            <div style="display:flex; align-items:center; gap:12px;">
+              <span class="muted" id="feed-char-count" style="font-size:0.75rem; font-family:var(--font-mono);">280</span>
+              <button type="button" class="btn btn-primary btn-sm" id="feed-post-btn">Post</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="feed-list" style="margin-top:20px; display:flex; flex-direction:column; gap:14px;">
+      <div class="skeleton" style="height:120px;"></div>
+      <div class="skeleton" style="height:120px;"></div>
+      <div class="skeleton" style="height:120px;"></div>
+    </div>
+    <p id="feed-empty" class="muted" style="display:none; text-align:center; padding:40px 0;">No posts yet — be the first to share something.</p>
+    <div id="feed-load-more-wrap"></div>
   </div>
 </section>
+</main>
 
-<!-- War call modal (leader only) -->
-<div id="war-call-modal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="war-call-title" style="display:none; position:fixed; inset:0; background:rgba(6,15,26,0.85); z-index:200; align-items:center; justify-content:center; padding:20px; overflow-y:auto;">
-  <div class="panel" style="max-width:460px; width:100%; margin:20px 0;">
-    <h2 id="war-call-title" style="font-size:1.1rem;">Call Out a Crew</h2>
-    <p class="muted" style="margin:0 0 14px; font-size:0.85rem;">Challenge another crew to a war. They'll need to accept before it goes live.</p>
-    <form id="war-call-form">
-      <label for="war-call-target">Opposing Crew</label>
-      <div style="position:relative;">
-        <input type="text" id="war-call-target" placeholder="Search a crew…" autocomplete="off" required>
-        <div id="war-call-suggestions" class="autocomplete-list"></div>
-      </div>
-      <input type="hidden" id="war-call-target-id" required>
-
-      <label for="war-call-message">Message (optional)</label>
-      <textarea id="war-call-message" rows="3" maxlength="300" placeholder="Terms, time, server — up to you two to sort out."></textarea>
-
-      <p class="field-error" id="war-call-error" style="display:none;"></p>
-      <div style="display:flex; gap:10px;">
-        <button type="button" class="btn btn-ghost" id="war-call-cancel">Cancel</button>
-        <button type="submit" class="btn btn-danger btn-block">Send War Call</button>
-      </div>
-    </form>
-  </div>
-</div>
-
-<!-- Edit crew modal (leader only) -->
-<div id="edit-crew-modal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="edit-crew-title" style="display:none; position:fixed; inset:0; background:rgba(6,15,26,0.85); z-index:200; align-items:center; justify-content:center; padding:20px; overflow-y:auto;">
-  <div class="panel" style="max-width:460px; width:100%; margin:20px 0;">
-    <h2 id="edit-crew-title" style="font-size:1.1rem;">Edit Crew</h2>
-    <form id="edit-crew-form">
-      <label for="edit-crew-name">Name</label>
-      <input type="text" id="edit-crew-name" required>
-
-      <label for="edit-crew-tag">Tag (optional)</label>
-      <input type="text" id="edit-crew-tag" maxlength="5" placeholder="e.g. BXC">
-
-      <label for="edit-crew-logo-file">Crew Icon (optional)</label>
-      <input type="file" id="edit-crew-logo-file" accept="image/png,image/jpeg,image/webp,image/gif">
-      <div id="edit-crew-logo-preview" style="display:none; margin-top:8px;">
-        <img id="edit-crew-logo-preview-img" src="" alt="" style="width:64px; height:64px; border-radius:var(--radius-sm); object-fit:cover; border:1px solid var(--glass-border);">
-      </div>
-
-      <label for="edit-crew-description">Description</label>
-      <textarea id="edit-crew-description" rows="3" required></textarea>
-
-      <label for="edit-crew-roblox">Roblox Username (optional)</label>
-      <input type="text" id="edit-crew-roblox" maxlength="20">
-
-      <label for="edit-crew-discord">Discord Invite (optional)</label>
-      <input type="url" id="edit-crew-discord" maxlength="100" placeholder="https://discord.gg/…">
-
-      <p class="field-error" id="edit-crew-error" style="display:none;"></p>
-      <div style="display:flex; gap:10px;">
-        <button type="button" class="btn btn-ghost" id="edit-crew-cancel">Cancel</button>
-        <button type="submit" class="btn btn-primary btn-block">Save Changes</button>
-      </div>
+<div id="feed-comments-modal" class="build-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="feed-comments-modal-title">
+  <div class="panel build-modal" style="max-width:520px;">
+    <div class="flex-between" style="margin-bottom:14px;">
+      <h3 id="feed-comments-modal-title" style="font-size:1.05rem; margin:0;">Comments</h3>
+      <button type="button" class="btn btn-ghost btn-sm" id="feed-comments-modal-close" aria-label="Close"><i data-lucide="x" class="icon-md"></i></button>
+    </div>
+    <div id="feed-comments-list" style="max-height:340px; overflow-y:auto; display:flex; flex-direction:column; gap:12px;"></div>
+    <form id="feed-comment-form" style="display:flex; gap:10px; margin-top:14px; align-items:flex-end;">
+      <input type="text" id="feed-comment-input" maxlength="280" placeholder="Write a comment…" style="margin:0; flex:1;" autocomplete="off">
+      <button type="submit" class="btn btn-primary btn-sm">Reply</button>
     </form>
   </div>
 </div>
@@ -156,6 +145,7 @@
 <script src="/js/supabase-client.js"></script>
 <script src="/js/nav.js"></script>
 <script src="/js/search.js"></script>
-<script src="/js/crew.js"></script>
+<script src="/js/listings.js"></script>
+<script src="/js/feed.js"></script>
 </body>
 </html>

@@ -47,20 +47,21 @@
         <ul class="nav-link-list">
           <li><a href="/" class="nav-link" style="--i:0"><span class="nav-link-icon" data-tone="gold"><i data-lucide="home"></i></span>Home</a></li>
           <li><a href="/chat/" class="nav-link" style="--i:1"><span class="nav-link-icon" data-tone="blue"><i data-lucide="message-circle"></i></span>Chat</a></li>
-          <li class="nav-group-label" style="--i:2">Compete</li>
-          <li><a href="/pvp/" class="nav-link" style="--i:3"><span class="nav-link-icon" data-tone="blood"><i data-lucide="crosshair"></i></span>PvP</a></li>
-          <li><a href="/challenges/" class="nav-link" style="--i:4"><span class="nav-link-icon" data-tone="purple"><i data-lucide="swords"></i></span>Quests</a></li>
-          <li><a href="/combos/" class="nav-link" style="--i:5"><span class="nav-link-icon" data-tone="pink"><i data-lucide="flame"></i></span>Combos</a></li>
-          <li><a href="/leaderboard/" class="nav-link" style="--i:6"><span class="nav-link-icon" data-tone="gold"><i data-lucide="trophy"></i></span>Leaderboard</a></li>
-          <li class="nav-group-label" style="--i:7">Community</li>
-          <li><a href="/sea-events/" class="nav-link" style="--i:8"><span class="nav-link-icon" data-tone="sea"><i data-lucide="waves"></i></span>Sea Events</a></li>
-          <li><a href="/giveaways/" class="nav-link" style="--i:9"><span class="nav-link-icon" data-tone="purple"><i data-lucide="gift"></i></span>Giveaways</a></li>
-          <li><a href="/crews/" class="nav-link" style="--i:10"><span class="nav-link-icon" data-tone="blue"><i data-lucide="users"></i></span>Crews</a></li>
-          <li><a href="/trading/" class="nav-link" style="--i:11"><span class="nav-link-icon" data-tone="sea"><i data-lucide="repeat"></i></span>Trading</a></li>
-          <li><a href="/services/" class="nav-link" style="--i:12"><span class="nav-link-icon" data-tone="gold"><i data-lucide="briefcase"></i></span>Services</a></li>
-          <li class="nav-group-label" style="--i:13">More</li>
-          <li><a href="/whats-new/" class="nav-link" style="--i:14"><span class="nav-link-icon" data-tone="pink"><i data-lucide="sparkles"></i></span>What's New</a></li>
-          <li><a href="/notifications/" class="nav-link" style="--i:15"><span class="nav-link-icon" data-tone="blue"><i data-lucide="bell"></i></span>Notifications</a></li>
+          <li><a href="/feed/" class="nav-link" style="--i:2"><span class="nav-link-icon" data-tone="pink"><i data-lucide="rss"></i></span>Feed</a></li>
+          <li class="nav-group-label" style="--i:3">Compete</li>
+          <li><a href="/pvp/" class="nav-link" style="--i:4"><span class="nav-link-icon" data-tone="blood"><i data-lucide="crosshair"></i></span>PvP</a></li>
+          <li><a href="/challenges/" class="nav-link" style="--i:5"><span class="nav-link-icon" data-tone="purple"><i data-lucide="swords"></i></span>Quests</a></li>
+          <li><a href="/combos/" class="nav-link" style="--i:6"><span class="nav-link-icon" data-tone="pink"><i data-lucide="flame"></i></span>Combos</a></li>
+          <li><a href="/leaderboard/" class="nav-link" style="--i:7"><span class="nav-link-icon" data-tone="gold"><i data-lucide="trophy"></i></span>Leaderboard</a></li>
+          <li class="nav-group-label" style="--i:8">Community</li>
+          <li><a href="/sea-events/" class="nav-link" style="--i:9"><span class="nav-link-icon" data-tone="sea"><i data-lucide="waves"></i></span>Sea Events</a></li>
+          <li><a href="/giveaways/" class="nav-link" style="--i:10"><span class="nav-link-icon" data-tone="purple"><i data-lucide="gift"></i></span>Giveaways</a></li>
+          <li><a href="/crews/" class="nav-link" style="--i:11"><span class="nav-link-icon" data-tone="blue"><i data-lucide="users"></i></span>Crews</a></li>
+          <li><a href="/trading/" class="nav-link" style="--i:12"><span class="nav-link-icon" data-tone="sea"><i data-lucide="repeat"></i></span>Trading</a></li>
+          <li><a href="/services/" class="nav-link" style="--i:13"><span class="nav-link-icon" data-tone="gold"><i data-lucide="briefcase"></i></span>Services</a></li>
+          <li class="nav-group-label" style="--i:14">More</li>
+          <li><a href="/whats-new/" class="nav-link" style="--i:15"><span class="nav-link-icon" data-tone="pink"><i data-lucide="sparkles"></i></span>What's New</a></li>
+          <li><a href="/notifications/" class="nav-link" style="--i:16"><span class="nav-link-icon" data-tone="blue"><i data-lucide="bell"></i></span>Notifications</a></li>
         </ul>
       </div>
       <div id="nav-auth-slot" class="nav-auth-slot"></div>
@@ -88,6 +89,7 @@
     <div style="display:flex; gap:8px; margin-top:24px;" id="crews-page-tabs">
       <button type="button" class="btn btn-sm btn-primary" data-page-tab="crews"><i data-lucide="users" class="icon-sm icon-inline"></i>All Crews</button>
       <button type="button" class="btn btn-sm btn-ghost" data-page-tab="wars"><i data-lucide="swords" class="icon-sm icon-inline"></i>Crew Wars</button>
+      <button type="button" class="btn btn-sm btn-ghost" data-page-tab="weekly"><i data-lucide="trending-up" class="icon-sm icon-inline"></i>Weekly Leaderboard</button>
     </div>
 
     <div id="crews-page-tab-crews" style="margin-top:20px;">
@@ -119,6 +121,13 @@
 
       <div id="war-tab-leaderboard" style="margin-top:20px; display:none;">
         <div id="war-leaderboard-list" class="panel"></div>
+      </div>
+    </div>
+
+    <div id="crews-page-tab-weekly" style="margin-top:20px; display:none;">
+      <p class="muted" style="margin-top:-4px;">Which crews are grinding hardest this week — XP earned and bounties completed in the trailing 7 days. Resets continuously, so a quiet week won't hurt you long-term.</p>
+      <div id="weekly-crew-leaderboard" class="panel" style="margin-top:16px;">
+        <div class="skeleton" style="height:50px; margin:14px;"></div>
       </div>
     </div>
   </div>
