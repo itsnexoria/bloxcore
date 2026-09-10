@@ -33,7 +33,6 @@ async function initSiteTab() {
     await loadSitePagesDropdowns();
     await loadMaintenanceList();
     await loadPageBlockList();
-    await loadChatDomainList();
     await loadDiscordWebhooks();
 
     document.getElementById('broadcast-form').addEventListener('submit', handleCreateBroadcast);
@@ -41,7 +40,6 @@ async function initSiteTab() {
     document.getElementById('settings-form').addEventListener('submit', handleSaveSettings);
     document.getElementById('maintenance-form').addEventListener('submit', handleEnableMaintenance);
     document.getElementById('page-block-form').addEventListener('submit', handleAddPageBlock);
-    document.getElementById('chat-domain-form').addEventListener('submit', handleAddChatDomain);
 
     document.querySelectorAll('.site-subtab-btn').forEach(btn => {
       btn.addEventListener('click', () => activateSiteSubtab(btn.dataset.siteSubtab));
@@ -67,9 +65,6 @@ async function loadSettingsForm() {
   const map = {};
   (data || []).forEach(row => { map[row.key] = row.value; });
 
-  document.getElementById('setting-chat-cooldown').value = map.chat_cooldown_seconds ?? 10;
-  document.getElementById('setting-chat-length').value = map.max_chat_message_length ?? 500;
-  document.getElementById('setting-min-chat-length').value = map.min_chat_message_length ?? 2;
   document.getElementById('setting-min-crew-name').value = map.min_crew_name_length ?? 3;
   document.getElementById('setting-min-crew-description').value = map.min_crew_description_length ?? 15;
   document.getElementById('setting-min-service-title').value = map.min_service_title_length ?? 5;
@@ -97,7 +92,6 @@ async function loadSettingsForm() {
   document.getElementById('setting-xp-sea-event').value = map.xp_per_sea_event ?? 5;
   document.getElementById('setting-xp-service').value = map.xp_per_service_listing ?? 5;
   document.getElementById('setting-xp-trade').value = map.xp_per_trade_listing ?? 5;
-  document.getElementById('setting-xp-chat').value = map.xp_per_chat_message ?? 1;
   document.getElementById('setting-xp-giveaway-entry').value = map.xp_per_giveaway_entry ?? 2;
   document.getElementById('setting-xp-vouch').value = map.xp_per_vouch_given ?? 3;
   document.getElementById('setting-xp-pvp').value = map.xp_per_pvp_match_posted ?? 3;
@@ -110,9 +104,6 @@ async function loadSettingsForm() {
 async function handleSaveSettings(e) {
   e.preventDefault();
   const updates = [
-    { key: 'chat_cooldown_seconds', value: Number(document.getElementById('setting-chat-cooldown').value) },
-    { key: 'max_chat_message_length', value: Number(document.getElementById('setting-chat-length').value) },
-    { key: 'min_chat_message_length', value: Number(document.getElementById('setting-min-chat-length').value) },
     { key: 'min_crew_name_length', value: Number(document.getElementById('setting-min-crew-name').value) },
     { key: 'min_crew_description_length', value: Number(document.getElementById('setting-min-crew-description').value) },
     { key: 'min_service_title_length', value: Number(document.getElementById('setting-min-service-title').value) },
@@ -140,7 +131,6 @@ async function handleSaveSettings(e) {
     { key: 'xp_per_sea_event', value: Number(document.getElementById('setting-xp-sea-event').value) },
     { key: 'xp_per_service_listing', value: Number(document.getElementById('setting-xp-service').value) },
     { key: 'xp_per_trade_listing', value: Number(document.getElementById('setting-xp-trade').value) },
-    { key: 'xp_per_chat_message', value: Number(document.getElementById('setting-xp-chat').value) },
     { key: 'xp_per_giveaway_entry', value: Number(document.getElementById('setting-xp-giveaway-entry').value) },
     { key: 'xp_per_vouch_given', value: Number(document.getElementById('setting-xp-vouch').value) },
     { key: 'xp_per_pvp_match_posted', value: Number(document.getElementById('setting-xp-pvp').value) },
@@ -279,7 +269,7 @@ async function handleCreateEvent(e) {
 
 const PAGE_LABELS = {
   '/': 'Home', '/auth/': 'Sign In / Sign Up', '/onboarding/': 'Onboarding', '/dashboard/': 'Dashboard',
-  '/chat/': 'Chat (Live Chat, Messages, Friends)', '/sea-events/': 'Sea Events',
+  '/friends/': 'Friends (Messages, Friends)', '/sea-events/': 'Sea Events',
   '/giveaways/': 'Giveaways', '/challenges/': 'Challenges', '/leaderboard/': 'Leaderboard',
   '/crews/': 'Crews (incl. Crew Wars)', '/crew/': 'Individual Crew Pages', '/trading/': 'Trading',
   '/services/': 'Services', '/combos/': 'Combos',
@@ -375,44 +365,9 @@ async function handleAddPageBlock(e) {
 }
 
 // ---- Chat link allowlist ----
+// Removed along with Live Chat — the chat_allowed_domains table, the /chat/ page, and
+// this admin panel were only ever used to moderate links inside global chat messages.
 
-async function loadChatDomainList() {
-  const { data } = await sb.from('chat_allowed_domains').select('domain').order('domain');
-  const list = document.getElementById('chat-domain-list');
-  if (!data || !data.length) { list.innerHTML = `<p class="muted" style="font-size:0.82rem;">No domains allowed yet — all links are blocked.</p>`; return; }
-
-  list.innerHTML = data.map(row => `
-    <div class="flex-between" style="padding:8px 10px; background:var(--glass-bg); border-radius:var(--radius-sm, 8px);">
-      <span style="font-size:0.85rem; font-family:var(--font-mono);">${escapeHtml(row.domain)}</span>
-      <button type="button" class="btn btn-ghost btn-sm" data-remove-domain="${escapeHtml(row.domain)}">Remove</button>
-    </div>
-  `).join('');
-
-  list.querySelectorAll('[data-remove-domain]').forEach(btn => {
-    btn.addEventListener('click', async () => {
-      const { error } = await sb.from('chat_allowed_domains').delete().eq('domain', btn.dataset.removeDomain);
-      if (error) { showToast(error.message, true); return; }
-      showToast('Domain removed.');
-      loadChatDomainList();
-    });
-  });
-}
-
-async function handleAddChatDomain(e) {
-  e.preventDefault();
-  const input = document.getElementById('chat-domain-input');
-  let domain = input.value.trim().toLowerCase();
-  domain = domain.replace(/^https?:\/\//, '').replace(/^www\./, '').split('/')[0];
-  if (!domain) return;
-
-  const { data: { session } } = await sb.auth.getSession();
-  const { error } = await sb.from('chat_allowed_domains').upsert({ domain, added_by: session.user.id }, { onConflict: 'domain' });
-  if (error) { showToast(error.message, true); return; }
-
-  showToast(`${domain} is now allowed in chat.`);
-  input.value = '';
-  loadChatDomainList();
-}
 
 // --- Discord Webhooks -----------------------------------------------------
 

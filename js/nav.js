@@ -433,7 +433,7 @@ async function initMessagesBadge(userId) {
   if (!slot) return;
 
   slot.innerHTML = `
-    <a href="/chat/?tab=messages" class="btn btn-ghost btn-sm" aria-label="Messages" style="position:relative; padding:9px 10px;">
+    <a href="/friends/?tab=messages" class="btn btn-ghost btn-sm" aria-label="Messages" style="position:relative; padding:9px 10px;">
       <i data-lucide="mail" class="icon-sm"></i>
       <span id="messages-badge" style="display:none; position:absolute; top:2px; right:2px; background:var(--blood-dim); color:#fff; font-size:0.65rem; line-height:1; border-radius:999px; padding:3px 5px; font-weight:700;"></span>
     </a>

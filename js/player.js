@@ -53,6 +53,7 @@ async function loadPlayer() {
   loadPlayerLikesTotal(profile.id);
   loadPlayerVouches(profile.id, viewerId, isOwnProfile);
   loadPlayerPvpHistory(profile.id);
+  if (profile.pinned_feed_post_id) loadPlayerPinnedPost(profile.id);
 }
 
 function setNoindex() {
@@ -64,7 +65,7 @@ function setNoindex() {
 
 function setProfileMeta(p) {
   const name = displayNameFor(p);
-  const url = `https://blox.nexorealm.org/player/?u=${encodeURIComponent(p.username)}`;
+  const url = `https://bloxcores.com/player/?u=${encodeURIComponent(p.username)}`;
   const desc = `${name} — Level ${p.level ?? 1} Blox Fruits pirate on BloxCore. See their rank, XP, bounty, and build.`;
   document.getElementById('meta-canonical')?.setAttribute('href', url);
   document.getElementById('meta-description')?.setAttribute('content', desc);
@@ -115,7 +116,7 @@ function renderSocialActions(p, viewerId, isFollowing, friendship) {
   if (!friendship) {
     friendBtnHtml = `<button type="button" class="btn btn-ghost btn-sm" id="friend-action-btn" data-action="request"><i data-lucide="user-plus" class="icon-sm icon-inline"></i>Add Friend</button>`;
   } else if (friendship.status === 'accepted') {
-    friendBtnHtml = `<a href="/chat/?tab=messages&u=${encodeURIComponent(p.username)}" class="btn btn-ghost btn-sm"><i data-lucide="mail" class="icon-sm icon-inline"></i>Message</a>`;
+    friendBtnHtml = `<a href="/friends/?tab=messages&u=${encodeURIComponent(p.username)}" class="btn btn-ghost btn-sm"><i data-lucide="mail" class="icon-sm icon-inline"></i>Message</a>`;
   } else if (friendship.requester_id === viewerId) {
     friendBtnHtml = `<button type="button" class="btn btn-ghost btn-sm" disabled><i data-lucide="clock" class="icon-sm icon-inline"></i>Requested</button>`;
   } else {
@@ -288,6 +289,11 @@ function renderProfile(p, crew, isOwnProfile) {
         </div>
       </div>
     ` : ''}
+
+    <div id="player-pinned-post-section" style="display:none; margin-top:20px;">
+      <p class="muted" style="margin:0 0 10px; font-size:0.8rem; text-transform:uppercase; letter-spacing:0.05em;"><i data-lucide="pin" class="icon-sm icon-inline"></i>Pinned Post</p>
+      <div id="player-pinned-post"></div>
+    </div>
 
     <div id="player-achievements-section" style="display:none; margin-top:20px;">
       <p class="muted" style="margin:0 0 10px; font-size:0.8rem; text-transform:uppercase; letter-spacing:0.05em;"><i data-lucide="award" class="icon-sm icon-inline"></i>Achievements</p>
@@ -746,5 +752,30 @@ async function loadPlayerPvpHistory(userId) {
       </div>
     `;
   }).join('');
+  refreshIcons();
+}
+
+// A lightweight, read-only render of the pinned post — no like/comment actions here,
+// those live on /feed/ itself. This is just a preview so visitors know it's there.
+async function loadPlayerPinnedPost(userId) {
+  const section = document.getElementById('player-pinned-post-section');
+  const container = document.getElementById('player-pinned-post');
+
+  const { data, error } = await sb.rpc('get_pinned_feed_post', { p_user_id: userId });
+  const p = data?.[0];
+  if (error || !p) return;
+
+  container.innerHTML = `
+    <a href="/feed/#post-${p.id}" class="panel hover-lift-card" style="display:block; text-decoration:none; color:inherit;">
+      <p style="margin:0; white-space:pre-wrap; font-size:0.92rem; color:var(--bone);">${escapeHtml(p.content)}</p>
+      ${p.image_url ? `<img src="${p.image_url}" alt="" loading="lazy" style="max-width:100%; border-radius:var(--radius-sm,8px); margin-top:10px; border:1px solid var(--glass-border);">` : ''}
+      <div style="display:flex; gap:16px; margin-top:12px; padding-top:10px; border-top:1px solid var(--glass-border); font-size:0.8rem; color:var(--ash);">
+        <span><i data-lucide="heart" class="icon-sm icon-inline"></i>${p.like_count}</span>
+        <span><i data-lucide="message-square" class="icon-sm icon-inline"></i>${p.comment_count}</span>
+        <span style="margin-left:auto;">${timeAgo(p.created_at)}</span>
+      </div>
+    </a>
+  `;
+  section.style.display = 'block';
   refreshIcons();
 }

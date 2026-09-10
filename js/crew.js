@@ -199,8 +199,17 @@ async function handleJoinRequestSubmit(e) {
   const errEl = document.getElementById('join-request-error');
   errEl.style.display = 'none';
   const message = document.getElementById('join-request-message').value.trim();
+  const playtime = document.getElementById('join-request-playtime').value.trim();
+  const build = document.getElementById('join-request-build').value.trim();
+  const region = document.getElementById('join-request-region').value.trim();
 
-  const { error } = await sb.rpc('request_to_join_crew', { p_crew_id: crew.id, p_message: message || null });
+  const { error } = await sb.rpc('request_to_join_crew', {
+    p_crew_id: crew.id,
+    p_message: message || null,
+    p_playtime: playtime || null,
+    p_build: build || null,
+    p_region: region || null,
+  });
   if (error) { errEl.textContent = error.message; errEl.style.display = 'block'; return; }
 
   closeJoinRequestModal();
@@ -225,13 +234,28 @@ async function loadJoinRequests() {
     return;
   }
 
-  list.innerHTML = data.map(r => `
-    <div class="flex-between" style="padding:8px 0; border-bottom:1px solid var(--navy-light);">
-      <div style="display:flex; align-items:center; gap:10px; min-width:0;">
+  const regions = [...new Set(data.map(r => r.region).filter(Boolean))];
+  const filterHtml = regions.length > 1 ? `
+    <div style="margin-bottom:10px;">
+      <select id="join-requests-region-filter" style="margin:0; font-size:0.8rem; width:auto;">
+        <option value="">All regions</option>
+        ${regions.map(r => `<option value="${escapeHtml(r)}">${escapeHtml(r)}</option>`).join('')}
+      </select>
+    </div>` : '';
+
+  const renderRows = (filterRegion) => (filterRegion ? data.filter(r => r.region === filterRegion) : data).map(r => `
+    <div class="flex-between" style="padding:10px 0; border-bottom:1px solid var(--navy-light); align-items:flex-start;">
+      <div style="display:flex; align-items:flex-start; gap:10px; min-width:0;">
         ${avatarHtml(r, 30)}
         <div style="min-width:0;">
           <a href="/player/?u=${encodeURIComponent(r.username || '')}" style="color:var(--bone); font-weight:600; text-decoration:none; font-size:0.85rem;">${escapeHtml(displayNameFor(r))}</a>
-          <p class="muted" style="margin:0; font-size:0.72rem;">Lv.${r.level} · ${timeAgo(r.created_at)}${r.message ? ` — "${escapeHtml(r.message)}"` : ''}</p>
+          <p class="muted" style="margin:0; font-size:0.72rem;">Lv.${r.level} · ${timeAgo(r.created_at)}</p>
+          <div style="display:flex; gap:6px; flex-wrap:wrap; margin-top:4px;">
+            ${r.playtime ? `<span class="tag tag-medium" style="font-size:0.65rem;"><i data-lucide="clock" class="icon-sm icon-inline"></i>${escapeHtml(r.playtime)}</span>` : ''}
+            ${r.build ? `<span class="tag tag-medium" style="font-size:0.65rem;"><i data-lucide="sword" class="icon-sm icon-inline"></i>${escapeHtml(r.build)}</span>` : ''}
+            ${r.region ? `<span class="tag tag-medium" style="font-size:0.65rem;"><i data-lucide="map-pin" class="icon-sm icon-inline"></i>${escapeHtml(r.region)}</span>` : ''}
+          </div>
+          ${r.message ? `<p class="muted" style="margin:6px 0 0; font-size:0.78rem; font-style:italic;">"${escapeHtml(r.message)}"</p>` : ''}
         </div>
       </div>
       <div style="display:flex; gap:6px; flex-shrink:0;">
@@ -240,13 +264,23 @@ async function loadJoinRequests() {
       </div>
     </div>
   `).join('');
-  refreshIcons();
 
-  list.querySelectorAll('[data-approve-request]').forEach(btn => {
-    btn.addEventListener('click', () => handleRespondToRequest(btn.dataset.approveRequest, true));
-  });
-  list.querySelectorAll('[data-decline-request]').forEach(btn => {
-    btn.addEventListener('click', () => handleRespondToRequest(btn.dataset.declineRequest, false));
+  const wireRowActions = () => {
+    list.querySelectorAll('[data-approve-request]').forEach(btn => {
+      btn.addEventListener('click', () => handleRespondToRequest(btn.dataset.approveRequest, true));
+    });
+    list.querySelectorAll('[data-decline-request]').forEach(btn => {
+      btn.addEventListener('click', () => handleRespondToRequest(btn.dataset.declineRequest, false));
+    });
+    refreshIcons();
+  };
+
+  list.innerHTML = filterHtml + `<div id="join-requests-rows">${renderRows(null)}</div>`;
+  wireRowActions();
+
+  document.getElementById('join-requests-region-filter')?.addEventListener('change', (e) => {
+    document.getElementById('join-requests-rows').innerHTML = renderRows(e.target.value || null);
+    wireRowActions();
   });
 }
 

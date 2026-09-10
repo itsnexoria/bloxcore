@@ -12,7 +12,7 @@ const NOTIF_FILTER_TYPES = {
   rank: ['rank_up', 'title_earned', 'title_awarded', 'achievement_earned'],
   social: ['new_follower', 'friend_request_received', 'friend_request_accepted', 'chat_mention', 'chat_reply', 'new_message', 'feed_comment'],
   crews: ['crew_war_called', 'crew_war_accepted', 'crew_war_declined', 'crew_war_resolved', 'crew_join_request', 'crew_join_response'],
-  events: ['new_giveaway', 'giveaway_win', 'giveaway_winner_picked', 'new_sea_event', 'sea_event_joined', 'submission_approved'],
+  events: ['new_giveaway', 'giveaway_win', 'giveaway_winner_picked', 'new_sea_event', 'sea_event_joined', 'submission_approved', 'watchlist_match', 'weekly_recap'],
   tournaments: ['tournament_cancelled', 'tournament_champion', 'tournament_match_result', 'tournament_prediction_correct', 'tournament_prize_won'],
 };
 
@@ -24,6 +24,7 @@ const NOTIF_TYPE_ICON = {
   crew_join_request: 'user-plus', crew_join_response: 'users',
   new_giveaway: 'gift', giveaway_win: 'party-popper', giveaway_winner_picked: 'party-popper',
   new_sea_event: 'waves', sea_event_joined: 'waves', submission_approved: 'check-circle',
+  watchlist_match: 'eye', weekly_recap: 'calendar-check',
   tournament_cancelled: 'circle-x', tournament_champion: 'trophy', tournament_match_result: 'swords',
   tournament_prediction_correct: 'target', tournament_prize_won: 'gift',
 };

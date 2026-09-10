@@ -29,7 +29,7 @@ const STEPS = [
   {
     icon: 'gift',
     title: 'Giveaways & Chat',
-    body: `Enter community giveaways for fruits and limiteds, and jump into live chat to talk with everyone else online right now.`,
+    body: `Enter community giveaways for fruits and limiteds, and check the live feed to see what everyone else is up to right now.`,
   },
 ];
 

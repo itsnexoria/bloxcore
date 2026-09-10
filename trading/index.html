@@ -8,17 +8,17 @@
 <meta name="robots" content="index, follow">
 <meta name="description" content="Post what you're offering and looking for, and browse live trade listings from the BloxCore community.">
 <meta name="keywords" content="Roblox, Blox Fruits, BloxCore, Nexoria, Nexus, trading, perms, fruits, One Piece game, anime game, PvP, crews, best Roblox game, bounty hunting, giveaways, leaderboard, sea events, combos, quests">
-<link rel="canonical" href="https://blox.nexorealm.org/trading/">
+<link rel="canonical" href="https://bloxcores.com/trading/">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="BloxCore">
 <meta property="og:title" content="Trading — BloxCore">
 <meta property="og:description" content="Post what you're offering and looking for, and browse live trade listings from the BloxCore community.">
-<meta property="og:image" content="https://blox.nexorealm.org/assets/og-banner.jpg">
-<meta property="og:url" content="https://blox.nexorealm.org/trading/">
+<meta property="og:image" content="https://bloxcores.com/assets/og-banner.jpg">
+<meta property="og:url" content="https://bloxcores.com/trading/">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Trading — BloxCore">
 <meta name="twitter:description" content="Post what you're offering and looking for, and browse live trade listings from the BloxCore community.">
-<meta name="twitter:image" content="https://blox.nexorealm.org/assets/og-banner.jpg">
+<meta name="twitter:image" content="https://bloxcores.com/assets/og-banner.jpg">
 <link rel="stylesheet" href="/css/style.css">
 <link rel="stylesheet" href="/css/animations.css">
 <link rel="icon" type="image/png" href="/assets/logo.png">
@@ -46,7 +46,7 @@
       <div class="nav-links-scroll">
         <ul class="nav-link-list">
           <li><a href="/" class="nav-link" style="--i:0"><span class="nav-link-icon" data-tone="gold"><i data-lucide="home"></i></span>Home</a></li>
-          <li><a href="/chat/" class="nav-link" style="--i:1"><span class="nav-link-icon" data-tone="blue"><i data-lucide="message-circle"></i></span>Chat</a></li>
+          <li><a href="/friends/" class="nav-link" style="--i:1"><span class="nav-link-icon" data-tone="blue"><i data-lucide="heart-handshake"></i></span>Friends</a></li>
           <li><a href="/feed/" class="nav-link" style="--i:2"><span class="nav-link-icon" data-tone="pink"><i data-lucide="rss"></i></span>Feed</a></li>
           <li class="nav-group-label" style="--i:3">Compete</li>
           <li><a href="/pvp/" class="nav-link" style="--i:4"><span class="nav-link-icon" data-tone="blood"><i data-lucide="crosshair"></i></span>PvP</a></li>
@@ -76,7 +76,10 @@
         <h1 style="font-size:1.8rem; margin-bottom:2px;">Trading</h1>
         <p class="muted" style="margin:0;">Trade at your own risk, BloxCore doesn't verify or guarantee any trade. Listings auto-delete after 24 hours.</p>
       </div>
-      <button type="button" class="btn btn-primary btn-sm" id="new-listing-btn" style="display:none; flex-shrink:0;"><i data-lucide="plus" class="icon-sm icon-inline"></i>New Listing</button>
+      <div style="display:flex; gap:8px; flex-shrink:0;">
+        <button type="button" class="btn btn-ghost btn-sm" id="watchlist-btn" style="display:none;"><i data-lucide="eye" class="icon-sm icon-inline"></i>Watchlist</button>
+        <button type="button" class="btn btn-primary btn-sm" id="new-listing-btn" style="display:none;"><i data-lucide="plus" class="icon-sm icon-inline"></i>New Listing</button>
+      </div>
     </div>
 
     <div id="trade-signed-out" class="panel panel-plain center" style="margin-top:24px; display:none;">
@@ -115,6 +118,8 @@
       </div>
     </div>
 
+    <div id="trade-fair-value" style="display:none; margin-top:14px; padding:10px 14px; border-radius:var(--radius-sm,8px); background:var(--navy-light); text-align:center; font-size:0.85rem;"></div>
+
     <div class="trade-compose-extra">
       <label for="trade-note">Note (optional)</label>
       <textarea id="trade-note" rows="2" maxlength="200" placeholder="Roblox username to reach you, extra detail, etc." style="resize:vertical; min-height:60px;"></textarea>
@@ -149,8 +154,25 @@
   </div>
 </div>
 
+<div id="watchlist-modal" class="build-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="watchlist-title">
+  <div class="panel build-modal">
+    <div class="flex-between" style="margin-bottom:4px;">
+      <h2 id="watchlist-title" style="font-size:1.05rem; margin:0;">Item Watchlist</h2>
+      <button type="button" class="btn btn-ghost btn-sm" id="watchlist-close" aria-label="Close"><i data-lucide="x" class="icon-md"></i></button>
+    </div>
+    <p class="muted" style="margin:0 0 14px; font-size:0.8rem;">Tap an item to watch it — you'll get a notification the moment a new listing offers or requests it.</p>
+    <div style="display:flex; gap:8px; margin-bottom:14px;" id="watchlist-category-tabs">
+      <button type="button" class="btn btn-primary btn-sm" data-category="fruit">Fruits</button>
+      <button type="button" class="btn btn-ghost btn-sm" data-category="limited">Limiteds</button>
+      <button type="button" class="btn btn-ghost btn-sm" data-category="gamepass">Gamepasses</button>
+    </div>
+    <input type="text" id="watchlist-search" placeholder="Search…" aria-label="Search items" style="margin-bottom:16px;">
+    <div id="watchlist-grid" class="build-modal-grid"></div>
+  </div>
+</div>
+
 <footer class="site-footer">
-  <div class="container">BloxCore is the #1 Blox Fruits community — your ultimate hub for trading, bounty hunting, crews, combos, sea events, giveaways, leaderboards, live chat, and so much more! Item values are community-maintained and may not reflect current in-game trading. <a href="/terms/" style="color:inherit; text-decoration:underline;">Terms</a> · <a href="/privacy/" style="color:inherit; text-decoration:underline;">Privacy</a></div>
+  <div class="container">BloxCore is the #1 Blox Fruits community — your ultimate hub for trading, bounty hunting, crews, combos, sea events, giveaways, leaderboards, a live feed, and so much more! Item values are community-maintained and may not reflect current in-game trading. <a href="/terms/" style="color:inherit; text-decoration:underline;">Terms</a> · <a href="/privacy/" style="color:inherit; text-decoration:underline;">Privacy</a></div>
 </footer>
 
 <script src="https://unpkg.com/lucide@1.34.0"></script>

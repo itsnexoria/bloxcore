@@ -3359,6 +3359,18 @@ html.compact-mode .grid { gap: 12px; }
 }
 
 /* ------------------------------ Feed page ------------------------------ */
+.feed-layout { display:grid; grid-template-columns: minmax(0,1fr) 300px; gap:24px; align-items:start; }
+.feed-main { min-width:0; }
+.feed-sidebar { display:flex; flex-direction:column; gap:16px; position:sticky; top:84px; }
+.feed-sidebar-card h3 { font-size:0.85rem; margin:0 0 12px; text-transform:uppercase; letter-spacing:0.04em; color:var(--ash); display:flex; align-items:center; gap:6px; }
+.feed-sidebar-trending-row, .feed-sidebar-suggestion-row { display:flex; align-items:center; gap:10px; padding:7px 0; }
+.feed-sidebar-trending-row + .feed-sidebar-trending-row, .feed-sidebar-suggestion-row + .feed-sidebar-suggestion-row { border-top:1px solid var(--navy-light); }
+.feed-pulse-number { font-family:var(--font-mono); color:var(--brass-bright); font-weight:700; }
+@media (max-width: 860px) {
+  .feed-layout { grid-template-columns: 1fr; }
+  .feed-sidebar { position:static; flex-direction:row; overflow-x:auto; gap:12px; }
+  .feed-sidebar-card { min-width:240px; flex-shrink:0; }
+}
 .feed-post-card { animation: fadeInUp 0.35s ease both; }
 .feed-action-btn {
   display: flex; align-items: center; gap: 6px;
@@ -3371,6 +3383,9 @@ html.compact-mode .grid { gap: 12px; }
 .feed-action-btn:disabled { cursor: default; opacity: 0.6; }
 .feed-action-btn.is-active { color: #f43f5e; }
 .feed-action-btn.is-active i { fill: #f43f5e; }
+.feed-comments-panel { margin-top:12px; padding-top:12px; border-top:1px solid var(--glass-border); animation: fadeInUp 0.25s ease both; }
+.feed-comment-row { display:flex; gap:10px; padding:8px 0; }
+.feed-comment-row + .feed-comment-row { border-top:1px solid var(--navy-light); }
 
 /* ------------------------------ Homepage weekly spotlight ------------------------------ */
 .spotlight-panel { position: relative; padding: 22px 24px; }

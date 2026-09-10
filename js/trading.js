@@ -9,6 +9,8 @@ let offeringEntries = []; // [{ id, valueType: 'physical' | 'permanent' }]
 let requestingEntries = [];
 
 let maxActiveTrades = 3;
+let myWatchlist = new Set(); // item ids
+let watchlistCategory = 'fruit';
 
 onReady(async () => {
   const { user } = await getCurrentProfile();
@@ -20,6 +22,8 @@ onReady(async () => {
   if (currentUser) {
     document.getElementById('new-listing-btn').style.display = 'inline-flex';
     document.getElementById('new-listing-btn').addEventListener('click', openComposeModal);
+    document.getElementById('watchlist-btn').style.display = 'inline-flex';
+    document.getElementById('watchlist-btn').addEventListener('click', openWatchlistModal);
   } else {
     document.getElementById('trade-signed-out').style.display = 'block';
   }
@@ -45,8 +49,74 @@ onReady(async () => {
   });
   document.getElementById('item-picker-search').addEventListener('input', renderItemPickerGrid);
 
+  document.getElementById('watchlist-close').addEventListener('click', () => {
+    document.getElementById('watchlist-modal').classList.remove('open');
+  });
+  document.querySelectorAll('#watchlist-category-tabs [data-category]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      watchlistCategory = btn.dataset.category;
+      document.querySelectorAll('#watchlist-category-tabs [data-category]').forEach(b => {
+        b.className = `btn btn-sm ${b.dataset.category === watchlistCategory ? 'btn-primary' : 'btn-ghost'}`;
+      });
+      renderWatchlistGrid();
+    });
+  });
+  document.getElementById('watchlist-search').addEventListener('input', renderWatchlistGrid);
+
   await loadListings();
 });
+
+// --- Watchlist -----------------------------------------------------------
+
+async function openWatchlistModal() {
+  const { data } = await sb.from('item_watchlist').select('item_id').eq('user_id', currentUser.id);
+  myWatchlist = new Set((data || []).map(r => r.item_id));
+  watchlistCategory = 'fruit';
+  document.querySelectorAll('#watchlist-category-tabs [data-category]').forEach(b => {
+    b.className = `btn btn-sm ${b.dataset.category === 'fruit' ? 'btn-primary' : 'btn-ghost'}`;
+  });
+  document.getElementById('watchlist-search').value = '';
+  renderWatchlistGrid();
+  document.getElementById('watchlist-modal').classList.add('open');
+}
+
+function renderWatchlistGrid() {
+  const query = document.getElementById('watchlist-search').value.trim().toLowerCase();
+  const items = allTradeItems.filter(i => i.category === watchlistCategory && i.name.toLowerCase().includes(query));
+  const grid = document.getElementById('watchlist-grid');
+
+  grid.innerHTML = items.length
+    ? items.map(item => {
+        const isWatched = myWatchlist.has(item.id);
+        const rarity = (item.rarity || '').toLowerCase();
+        return `
+          <div class="build-modal-tile" data-rarity="${rarity}" data-watch-item="${item.id}" style="padding:8px; position:relative; ${isWatched ? 'box-shadow:0 0 0 2px var(--brass-bright);' : ''}">
+            ${isWatched ? `<i data-lucide="eye" class="icon-sm" style="position:absolute; top:4px; right:4px; color:var(--brass-bright);"></i>` : ''}
+            ${item.icon_url ? `<img src="${item.icon_url}" alt="" loading="lazy" onerror="this.style.display='none';">` : `<i data-lucide="sparkles" class="icon-lg"></i>`}
+            <span style="font-size:0.72rem;">${escapeHtml(item.name)}</span>
+          </div>
+        `;
+      }).join('')
+    : `<p class="muted" style="grid-column:1/-1;">No items found${query ? ' matching your search' : ''}.</p>`;
+
+  grid.querySelectorAll('[data-watch-item]').forEach(tile => {
+    tile.addEventListener('click', () => toggleWatchItem(Number(tile.dataset.watchItem)));
+  });
+  refreshIcons();
+}
+
+async function toggleWatchItem(itemId) {
+  if (myWatchlist.has(itemId)) {
+    const { error } = await sb.from('item_watchlist').delete().eq('user_id', currentUser.id).eq('item_id', itemId);
+    if (error) { showToast(error.message, true); return; }
+    myWatchlist.delete(itemId);
+  } else {
+    const { error } = await sb.from('item_watchlist').insert({ user_id: currentUser.id, item_id: itemId });
+    if (error) { showToast(error.message, true); return; }
+    myWatchlist.add(itemId);
+  }
+  renderWatchlistGrid();
+}
 
 function itemById(id) {
   return allTradeItems.find(i => i.id === id);
@@ -95,6 +165,32 @@ function renderSlotList(side) {
       renderSlotList(side);
     });
   });
+  refreshIcons();
+  updateFairValueIndicator();
+}
+
+// Live "is this a fair trade" readout — pure client-side math against the bf_items
+// catalog already loaded for the picker, so it updates instantly as items are added,
+// removed, or toggled physical/permanent. Not a recommendation, just a value comparison;
+// demand/trend aren't priced in since those are judgment calls, not hard numbers.
+function updateFairValueIndicator() {
+  const el = document.getElementById('trade-fair-value');
+  if (!offeringEntries.length || !requestingEntries.length) { el.style.display = 'none'; return; }
+
+  const offerTotal = offeringEntries.reduce((sum, e) => sum + (valueFor(itemById(e.id), e.valueType) || 0), 0);
+  const requestTotal = requestingEntries.reduce((sum, e) => sum + (valueFor(itemById(e.id), e.valueType) || 0), 0);
+  if (!offerTotal || !requestTotal) { el.style.display = 'none'; return; }
+
+  const diffPct = Math.round(((requestTotal - offerTotal) / offerTotal) * 100);
+  el.style.display = 'block';
+
+  if (Math.abs(diffPct) <= 8) {
+    el.innerHTML = `<i data-lucide="scale" class="icon-sm icon-inline" style="color:var(--gold-bright);"></i>Roughly fair — ${formatValue(offerTotal)} for ${formatValue(requestTotal)}`;
+  } else if (diffPct > 0) {
+    el.innerHTML = `<i data-lucide="trending-up" class="icon-sm icon-inline" style="color:#34d399;"></i>You're asking for ${diffPct}% more value than you're offering (${formatValue(offerTotal)} → ${formatValue(requestTotal)})`;
+  } else {
+    el.innerHTML = `<i data-lucide="trending-down" class="icon-sm icon-inline" style="color:#f87171;"></i>You're offering ${Math.abs(diffPct)}% more value than you're requesting (${formatValue(offerTotal)} → ${formatValue(requestTotal)})`;
+  }
   refreshIcons();
 }
 
@@ -275,7 +371,7 @@ function renderListing(t) {
       </div>
 
       <div class="trade-card-footer">
-        <a href="/chat/" class="btn btn-ghost btn-sm"><i data-lucide="message-circle" class="icon-sm icon-inline"></i>Chat</a>
+        <a href="/friends/?tab=messages&u=${encodeURIComponent(profile.username || '')}" class="btn btn-ghost btn-sm"><i data-lucide="mail" class="icon-sm icon-inline"></i>Message</a>
         <a href="/player/?u=${encodeURIComponent(profile.username || '')}" class="btn btn-primary btn-sm"><i data-lucide="repeat" class="icon-sm icon-inline"></i>Trade</a>
       </div>
     </div>

@@ -10,4 +10,4 @@ Disallow: /onboarding/
 Disallow: /appeal/
 Disallow: /notifications/
 
-Sitemap: https://blox.nexorealm.org/sitemap.xml
+Sitemap: https://bloxcores.com/sitemap.xml

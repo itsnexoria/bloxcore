@@ -8,17 +8,17 @@
 <meta name="robots" content="index, follow">
 <meta name="description" content="The BloxCore community feed — post updates, screenshots and wins, and comment on what other pirates are up to.">
 <meta name="keywords" content="Roblox, Blox Fruits, BloxCore, Nexoria, Nexus, trading, perms, fruits, One Piece game, anime game, PvP, crews, best Roblox game, bounty hunting, giveaways, leaderboard, sea events, combos, quests">
-<link rel="canonical" href="https://blox.nexorealm.org/feed/">
+<link rel="canonical" href="https://bloxcores.com/feed/">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="BloxCore">
 <meta property="og:title" content="Feed — BloxCore">
 <meta property="og:description" content="The BloxCore community feed — post updates, screenshots and wins, and comment on what other pirates are up to.">
-<meta property="og:image" content="https://blox.nexorealm.org/assets/og-banner.jpg">
-<meta property="og:url" content="https://blox.nexorealm.org/feed/">
+<meta property="og:image" content="https://bloxcores.com/assets/og-banner.jpg">
+<meta property="og:url" content="https://bloxcores.com/feed/">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Feed — BloxCore">
 <meta name="twitter:description" content="The BloxCore community feed — post updates, screenshots and wins, and comment on what other pirates are up to.">
-<meta name="twitter:image" content="https://blox.nexorealm.org/assets/og-banner.jpg">
+<meta name="twitter:image" content="https://bloxcores.com/assets/og-banner.jpg">
 <link rel="stylesheet" href="/css/style.css">
 <link rel="stylesheet" href="/css/animations.css">
 <link rel="icon" type="image/png" href="/assets/logo.png">
@@ -46,7 +46,7 @@
       <div class="nav-links-scroll">
         <ul class="nav-link-list">
           <li><a href="/" class="nav-link" style="--i:0"><span class="nav-link-icon" data-tone="gold"><i data-lucide="home"></i></span>Home</a></li>
-          <li><a href="/chat/" class="nav-link" style="--i:1"><span class="nav-link-icon" data-tone="blue"><i data-lucide="message-circle"></i></span>Chat</a></li>
+          <li><a href="/friends/" class="nav-link" style="--i:1"><span class="nav-link-icon" data-tone="blue"><i data-lucide="heart-handshake"></i></span>Friends</a></li>
           <li><a href="/feed/" class="nav-link active" style="--i:2"><span class="nav-link-icon" data-tone="pink"><i data-lucide="rss"></i></span>Feed</a></li>
           <li class="nav-group-label" style="--i:3">Compete</li>
           <li><a href="/pvp/" class="nav-link" style="--i:4"><span class="nav-link-icon" data-tone="blood"><i data-lucide="crosshair"></i></span>PvP</a></li>
@@ -71,7 +71,7 @@
 
 <main>
 <section class="section">
-  <div class="container" style="max-width:640px;">
+  <div class="container" style="max-width:1080px;">
     <div class="flex-between">
       <div style="display:flex; align-items:center;">
         <div class="page-head-icon"><i data-lucide="rss" class="icon-md"></i></div>
@@ -82,65 +82,85 @@
       </div>
     </div>
 
-    <div id="feed-signed-out" class="panel" style="display:none; margin-top:20px; text-align:center;">
-      <p class="muted" style="margin:0;"><a href="/auth/">Sign in</a> to post to the feed, like, and comment.</p>
-    </div>
+    <div class="feed-layout" style="margin-top:20px;">
+      <div class="feed-main">
+        <div id="feed-signed-out" class="panel" style="display:none; text-align:center;">
+          <p class="muted" style="margin:0;"><a href="/auth/">Sign in</a> to post to the feed, like, and comment.</p>
+        </div>
 
-    <div id="feed-compose" class="panel hover-lift-card" style="margin-top:20px; display:none;">
-      <div style="display:flex; gap:12px;">
-        <div id="feed-compose-avatar"></div>
-        <div style="flex:1; min-width:0;">
-          <textarea id="feed-post-input" rows="2" maxlength="280" placeholder="Share a win, a screenshot, or what you're grinding today…" style="resize:vertical;"></textarea>
-          <div id="feed-image-preview" style="display:none; margin:10px 0; position:relative; width:fit-content;">
-            <img id="feed-image-preview-img" src="" alt="" style="max-height:180px; border-radius:var(--radius-sm,8px); border:1px solid var(--glass-border);">
-            <button type="button" id="feed-image-remove-btn" class="btn btn-ghost btn-sm" style="position:absolute; top:-8px; right:-8px; padding:4px; border-radius:50%; background:var(--ink);" aria-label="Remove image"><i data-lucide="x" class="icon-sm"></i></button>
-          </div>
-          <div class="flex-between" style="margin-top:8px;">
-            <div>
-              <input type="file" id="feed-image-input" accept="image/png,image/jpeg,image/gif,image/webp" style="display:none;">
-              <button type="button" class="btn btn-ghost btn-sm" id="feed-attach-btn" title="Attach image" aria-label="Attach image"><i data-lucide="image" class="icon-sm"></i></button>
-            </div>
-            <div style="display:flex; align-items:center; gap:12px;">
-              <span class="muted" id="feed-char-count" style="font-size:0.75rem; font-family:var(--font-mono);">280</span>
-              <button type="button" class="btn btn-primary btn-sm" id="feed-post-btn">Post</button>
+        <div id="feed-compose" class="panel hover-lift-card" style="display:none;">
+          <div style="display:flex; gap:12px;">
+            <div id="feed-compose-avatar"></div>
+            <div style="flex:1; min-width:0;">
+              <textarea id="feed-post-input" rows="2" maxlength="280" placeholder="Share a win, a screenshot, or what you're grinding today…" style="resize:vertical;"></textarea>
+              <div id="feed-image-preview" style="display:none; margin:10px 0; position:relative; width:fit-content;">
+                <img id="feed-image-preview-img" src="" alt="" style="max-height:180px; border-radius:var(--radius-sm,8px); border:1px solid var(--glass-border);">
+                <button type="button" id="feed-image-remove-btn" class="btn btn-ghost btn-sm" style="position:absolute; top:-8px; right:-8px; padding:4px; border-radius:50%; background:var(--ink);" aria-label="Remove image"><i data-lucide="x" class="icon-sm"></i></button>
+              </div>
+              <div class="flex-between" style="margin-top:8px;">
+                <div>
+                  <input type="file" id="feed-image-input" accept="image/png,image/jpeg,image/gif,image/webp" style="display:none;">
+                  <button type="button" class="btn btn-ghost btn-sm" id="feed-attach-btn" title="Attach image" aria-label="Attach image"><i data-lucide="image" class="icon-sm"></i></button>
+                </div>
+                <div style="display:flex; align-items:center; gap:10px;">
+                  <svg id="feed-char-ring" width="22" height="22" viewBox="0 0 22 22" style="flex-shrink:0;">
+                    <circle cx="11" cy="11" r="9" fill="none" stroke="var(--navy-light)" stroke-width="2.5"></circle>
+                    <circle id="feed-char-ring-progress" cx="11" cy="11" r="9" fill="none" stroke="var(--brass-bright)" stroke-width="2.5" stroke-dasharray="56.5" stroke-dashoffset="56.5" stroke-linecap="round" transform="rotate(-90 11 11)"></circle>
+                  </svg>
+                  <button type="button" class="btn btn-primary btn-sm" id="feed-post-btn">Post</button>
+                </div>
+              </div>
             </div>
           </div>
         </div>
+
+        <div id="feed-tabs" style="display:flex; gap:8px; margin-top:20px;">
+          <button type="button" class="btn btn-sm btn-primary" data-feed-tab="latest">Latest</button>
+          <button type="button" class="btn btn-sm btn-ghost" data-feed-tab="trending"><i data-lucide="flame" class="icon-sm icon-inline"></i>Trending</button>
+          <button type="button" class="btn btn-sm btn-ghost" data-feed-tab="following" id="feed-tab-following"><i data-lucide="user-check" class="icon-sm icon-inline"></i>Following</button>
+        </div>
+
+        <div id="feed-list" style="margin-top:20px; display:flex; flex-direction:column; gap:14px;">
+          <div class="skeleton" style="height:120px;"></div>
+          <div class="skeleton" style="height:120px;"></div>
+          <div class="skeleton" style="height:120px;"></div>
+        </div>
+        <p id="feed-empty" class="muted" style="display:none; text-align:center; padding:40px 0;">No posts yet — be the first to share something.</p>
+        <div id="feed-load-more-wrap"></div>
       </div>
-    </div>
 
-    <div id="feed-tabs" style="display:flex; gap:8px; margin-top:20px;">
-      <button type="button" class="btn btn-sm btn-primary" data-feed-tab="latest">Latest</button>
-      <button type="button" class="btn btn-sm btn-ghost" data-feed-tab="trending"><i data-lucide="flame" class="icon-sm icon-inline"></i>Trending</button>
-    </div>
+      <aside class="feed-sidebar">
+        <div class="panel feed-sidebar-card">
+          <h3><i data-lucide="activity" class="icon-sm icon-inline"></i>Pulse</h3>
+          <div id="feed-pulse-stats">
+            <div class="skeleton" style="height:16px; margin-bottom:8px;"></div>
+            <div class="skeleton" style="height:16px;"></div>
+          </div>
+        </div>
 
-    <div id="feed-list" style="margin-top:24px; display:flex; flex-direction:column; gap:14px;">
-      <div class="skeleton" style="height:120px;"></div>
-      <div class="skeleton" style="height:120px;"></div>
-      <div class="skeleton" style="height:120px;"></div>
+        <div class="panel feed-sidebar-card">
+          <h3><i data-lucide="flame" class="icon-sm icon-inline"></i>Trending Now</h3>
+          <div id="feed-sidebar-trending">
+            <div class="skeleton" style="height:36px; margin-bottom:8px;"></div>
+            <div class="skeleton" style="height:36px;"></div>
+          </div>
+        </div>
+
+        <div class="panel feed-sidebar-card" id="feed-sidebar-suggestions-card" style="display:none;">
+          <h3><i data-lucide="user-plus" class="icon-sm icon-inline"></i>Who to Follow</h3>
+          <div id="feed-sidebar-suggestions">
+            <div class="skeleton" style="height:40px; margin-bottom:8px;"></div>
+            <div class="skeleton" style="height:40px;"></div>
+          </div>
+        </div>
+      </aside>
     </div>
-    <p id="feed-empty" class="muted" style="display:none; text-align:center; padding:40px 0;">No posts yet — be the first to share something.</p>
-    <div id="feed-load-more-wrap"></div>
   </div>
 </section>
 </main>
 
-<div id="feed-comments-modal" class="build-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="feed-comments-modal-title">
-  <div class="panel build-modal" style="max-width:520px;">
-    <div class="flex-between" style="margin-bottom:14px;">
-      <h3 id="feed-comments-modal-title" style="font-size:1.05rem; margin:0;">Comments</h3>
-      <button type="button" class="btn btn-ghost btn-sm" id="feed-comments-modal-close" aria-label="Close"><i data-lucide="x" class="icon-md"></i></button>
-    </div>
-    <div id="feed-comments-list" style="max-height:340px; overflow-y:auto; display:flex; flex-direction:column; gap:12px;"></div>
-    <form id="feed-comment-form" style="display:flex; gap:10px; margin-top:14px; align-items:flex-end;">
-      <input type="text" id="feed-comment-input" maxlength="280" placeholder="Write a comment…" style="margin:0; flex:1;" autocomplete="off">
-      <button type="submit" class="btn btn-primary btn-sm">Reply</button>
-    </form>
-  </div>
-</div>
-
 <footer class="site-footer">
-  <div class="container">BloxCore is the #1 Blox Fruits community — your ultimate hub for trading, bounty hunting, crews, combos, sea events, giveaways, leaderboards, live chat, and so much more! <a href="/terms/" style="color:inherit; text-decoration:underline;">Terms</a> · <a href="/privacy/" style="color:inherit; text-decoration:underline;">Privacy</a></div>
+  <div class="container">BloxCore is the #1 Blox Fruits community — your ultimate hub for trading, bounty hunting, crews, combos, sea events, giveaways, leaderboards, a live feed, and so much more! <a href="/terms/" style="color:inherit; text-decoration:underline;">Terms</a> · <a href="/privacy/" style="color:inherit; text-decoration:underline;">Privacy</a></div>
 </footer>
 
 <script src="https://unpkg.com/lucide@1.34.0"></script>
