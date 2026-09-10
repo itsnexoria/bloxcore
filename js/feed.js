@@ -31,8 +31,24 @@ onReady(async () => {
   });
   document.getElementById('feed-comment-form').addEventListener('submit', handleAddComment);
 
+  document.querySelectorAll('#feed-tabs [data-feed-tab]').forEach(btn => {
+    btn.addEventListener('click', () => switchFeedTab(btn.dataset.feedTab));
+  });
+
   await loadFeed();
 });
+
+let feedTab = 'latest';
+
+function switchFeedTab(tab) {
+  if (tab === feedTab) return;
+  feedTab = tab;
+  document.querySelectorAll('#feed-tabs [data-feed-tab]').forEach(btn => {
+    btn.className = `btn btn-sm ${btn.dataset.feedTab === tab ? 'btn-primary' : 'btn-ghost'}`;
+  });
+  refreshIcons();
+  loadFeed();
+}
 
 function updateCharCount() {
   const input = document.getElementById('feed-post-input');
@@ -100,10 +116,15 @@ async function loadFeed() {
   const container = document.getElementById('feed-list');
   const empty = document.getElementById('feed-empty');
   empty.style.display = 'none';
+  container.innerHTML = `<div class="skeleton" style="height:120px;"></div><div class="skeleton" style="height:120px;"></div>`;
 
   const data = await fetchFeedPage(0, FEED_PAGE_SIZE);
-  if (data === null) { container.innerHTML = ''; empty.style.display = 'block'; return; }
-  if (!data.length) { container.innerHTML = ''; empty.style.display = 'block'; return; }
+  if (data === null || !data.length) {
+    container.innerHTML = '';
+    empty.textContent = feedTab === 'trending' ? 'Nothing trending in the last 24 hours yet.' : 'No posts yet — be the first to share something.';
+    empty.style.display = 'block';
+    return;
+  }
 
   container.innerHTML = data.map(renderPost).join('');
   wirePostActions(container);
@@ -128,7 +149,7 @@ async function loadFeed() {
 }
 
 async function fetchFeedPage(offset, pageSize) {
-  const { data, error } = await sb.rpc('get_feed_page', { p_limit: pageSize, p_offset: offset });
+  const { data, error } = await sb.rpc('get_feed_page', { p_limit: pageSize, p_offset: offset, p_trending: feedTab === 'trending' });
   if (error) { logError('Failed to load feed', error); return null; }
   return data;
 }

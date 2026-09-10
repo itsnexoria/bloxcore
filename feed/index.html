@@ -109,7 +109,12 @@
       </div>
     </div>
 
-    <div id="feed-list" style="margin-top:20px; display:flex; flex-direction:column; gap:14px;">
+    <div id="feed-tabs" style="display:flex; gap:8px; margin-top:20px;">
+      <button type="button" class="btn btn-sm btn-primary" data-feed-tab="latest">Latest</button>
+      <button type="button" class="btn btn-sm btn-ghost" data-feed-tab="trending"><i data-lucide="flame" class="icon-sm icon-inline"></i>Trending</button>
+    </div>
+
+    <div id="feed-list" style="margin-top:24px; display:flex; flex-direction:column; gap:14px;">
       <div class="skeleton" style="height:120px;"></div>
       <div class="skeleton" style="height:120px;"></div>
       <div class="skeleton" style="height:120px;"></div>

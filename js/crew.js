@@ -51,6 +51,8 @@ onReady(async () => {
   document.getElementById('war-call-btn').addEventListener('click', openWarCallModal);
   document.getElementById('war-call-cancel').addEventListener('click', closeWarCallModal);
   document.getElementById('war-call-form').addEventListener('submit', handleWarCall);
+  document.getElementById('join-request-form').addEventListener('submit', handleJoinRequestSubmit);
+  document.getElementById('join-request-cancel').addEventListener('click', closeJoinRequestModal);
   wireWarCallAutocomplete();
 });
 
@@ -74,16 +76,21 @@ async function render() {
   const isMember = myMembership && myMembership.crew_id === crew.id;
 
   let actionHtml;
+  let myPendingRequest = null;
   if (!currentUser) {
     actionHtml = '';
   } else if (isLeader) {
     actionHtml = `<div style="display:flex; gap:10px;"><button class="btn btn-ghost" id="edit-crew-btn">Edit Crew</button><button class="btn btn-danger" id="delete-crew-btn">Delete Crew</button></div>`;
   } else if (isMember) {
     actionHtml = `<button class="btn btn-ghost" id="leave-crew-btn">Leave Crew</button>`;
+  } else if (myMembership) {
+    actionHtml = `<p class="muted" style="margin:0; font-size:0.85rem; text-align:right;">You're already in a crew.</p>`;
   } else {
-    // Crews are leader-invite only now — no self-serve join. The Roblox/Discord
-    // contact buttons rendered above this are the actual path to reach the leader.
-    actionHtml = `<p class="muted" style="margin:0; font-size:0.85rem; text-align:right;">Ask the crew leader to add you.</p>`;
+    const { data: reqData } = await sb.from('crew_join_requests').select('id').eq('crew_id', crew.id).eq('user_id', currentUser.id).eq('status', 'pending').maybeSingle();
+    myPendingRequest = reqData;
+    actionHtml = myPendingRequest
+      ? `<div style="display:flex; align-items:center; gap:10px;"><span class="muted" style="font-size:0.85rem;"><i data-lucide="clock" class="icon-sm icon-inline"></i>Request pending</span><button class="btn btn-ghost btn-sm" id="cancel-join-request-btn">Cancel</button></div>`
+      : `<button class="btn btn-primary btn-sm" id="request-join-btn">Request to Join</button>`;
   }
 
   const bountyHtml = `
@@ -128,6 +135,10 @@ async function render() {
     </div>
 
     ${isLeader ? `
+    <div class="panel" style="margin-top:20px;" id="join-requests-panel">
+      <h3 style="font-size:1rem; margin-bottom:10px;"><i data-lucide="user-plus" class="icon-sm icon-inline"></i>Pending Requests</h3>
+      <div id="join-requests-list"><div class="skeleton" style="height:40px;"></div></div>
+    </div>
     <div class="panel" style="margin-top:20px;">
       <h3 style="font-size:1rem; margin-bottom:10px;">Add a Member</h3>
       <form id="add-member-form" style="display:flex; gap:10px; align-items:flex-start; position:relative;">
@@ -164,10 +175,86 @@ async function render() {
   document.getElementById('edit-crew-btn')?.addEventListener('click', openEditModal);
   document.getElementById('edit-crew-logo-file')?.addEventListener('change', handleCrewLogoSelect);
   document.getElementById('add-member-form')?.addEventListener('submit', handleAddMember);
+  document.getElementById('request-join-btn')?.addEventListener('click', openJoinRequestModal);
+  document.getElementById('cancel-join-request-btn')?.addEventListener('click', () => handleCancelJoinRequest(myPendingRequest?.id));
   wireAddMemberAutocomplete(members);
   document.querySelectorAll('[data-kick]').forEach(btn => {
     btn.addEventListener('click', () => handleLeave(btn.dataset.kick));
   });
+  if (isLeader) loadJoinRequests();
+}
+
+function openJoinRequestModal() {
+  document.getElementById('join-request-error').style.display = 'none';
+  document.getElementById('join-request-form').reset();
+  document.getElementById('join-request-modal').style.display = 'flex';
+}
+
+function closeJoinRequestModal() {
+  document.getElementById('join-request-modal').style.display = 'none';
+}
+
+async function handleJoinRequestSubmit(e) {
+  e.preventDefault();
+  const errEl = document.getElementById('join-request-error');
+  errEl.style.display = 'none';
+  const message = document.getElementById('join-request-message').value.trim();
+
+  const { error } = await sb.rpc('request_to_join_crew', { p_crew_id: crew.id, p_message: message || null });
+  if (error) { errEl.textContent = error.message; errEl.style.display = 'block'; return; }
+
+  closeJoinRequestModal();
+  showToast('Request sent!');
+  render();
+}
+
+async function handleCancelJoinRequest(requestId) {
+  if (!requestId) return;
+  const { error } = await sb.from('crew_join_requests').delete().eq('id', requestId);
+  if (error) { showToast(error.message, true); return; }
+  render();
+}
+
+async function loadJoinRequests() {
+  const list = document.getElementById('join-requests-list');
+  if (!list) return;
+  const { data, error } = await sb.rpc('get_crew_join_requests', { p_crew_id: crew.id });
+
+  if (error || !data?.length) {
+    list.innerHTML = `<p class="muted" style="margin:0; font-size:0.85rem;">No pending requests right now.</p>`;
+    return;
+  }
+
+  list.innerHTML = data.map(r => `
+    <div class="flex-between" style="padding:8px 0; border-bottom:1px solid var(--navy-light);">
+      <div style="display:flex; align-items:center; gap:10px; min-width:0;">
+        ${avatarHtml(r, 30)}
+        <div style="min-width:0;">
+          <a href="/player/?u=${encodeURIComponent(r.username || '')}" style="color:var(--bone); font-weight:600; text-decoration:none; font-size:0.85rem;">${escapeHtml(displayNameFor(r))}</a>
+          <p class="muted" style="margin:0; font-size:0.72rem;">Lv.${r.level} · ${timeAgo(r.created_at)}${r.message ? ` — "${escapeHtml(r.message)}"` : ''}</p>
+        </div>
+      </div>
+      <div style="display:flex; gap:6px; flex-shrink:0;">
+        <button class="services-card-icon-btn" data-approve-request="${r.id}" title="Approve" aria-label="Approve"><i data-lucide="check" class="icon-sm"></i></button>
+        <button class="services-card-icon-btn" data-decline-request="${r.id}" title="Decline" aria-label="Decline"><i data-lucide="x" class="icon-sm"></i></button>
+      </div>
+    </div>
+  `).join('');
+  refreshIcons();
+
+  list.querySelectorAll('[data-approve-request]').forEach(btn => {
+    btn.addEventListener('click', () => handleRespondToRequest(btn.dataset.approveRequest, true));
+  });
+  list.querySelectorAll('[data-decline-request]').forEach(btn => {
+    btn.addEventListener('click', () => handleRespondToRequest(btn.dataset.declineRequest, false));
+  });
+}
+
+async function handleRespondToRequest(requestId, approve) {
+  const { error } = await sb.rpc('respond_to_crew_join_request', { p_request_id: requestId, p_approve: approve });
+  if (error) { showToast(error.message, true); return; }
+  showToast(approve ? 'Member added!' : 'Request declined.');
+  render();
 }
 
 async function loadCrewWeeklyStats() {

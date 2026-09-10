@@ -316,6 +316,7 @@ async function populateAuthArea() {
   initNotifications(user.id);
   initMessagesBadge(user.id);
   renderNavProfileAvatar(profile);
+  claimDailyLoginIfNeeded();
 
   const onAdminPage = window.location.pathname.startsWith('/admin/');
   const adminLink = (role !== 'user' && !onAdminPage) ? `<a href="/admin/" class="nav-auth-icon-btn" title="Admin" aria-label="Admin"><i data-lucide="shield" class="icon-sm"></i></a>` : '';

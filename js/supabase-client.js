@@ -960,3 +960,25 @@ document.addEventListener('DOMContentLoaded', () => {
     }).observe(dialog, { attributes: true, attributeFilter: ['style', 'class'] });
   });
 });
+
+// Daily login streak — claims once per UTC calendar day. Guarded client-side with
+// localStorage first so a logged-in user browsing multiple pages in one day doesn't
+// fire the RPC on every single page load; the RPC itself is also safely idempotent
+// same-day if the guard ever gets out of sync (new device, cleared storage, etc.).
+async function claimDailyLoginIfNeeded() {
+  try {
+    const todayUtc = new Date().toISOString().slice(0, 10);
+    if (localStorage.getItem('bc_login_streak_date') === todayUtc) return;
+
+    const { data, error } = await sb.rpc('claim_daily_login');
+    if (error) { logError('claim_daily_login failed:', error); return; }
+    localStorage.setItem('bc_login_streak_date', todayUtc);
+
+    const row = data?.[0];
+    if (row && !row.already_claimed && row.xp_awarded > 0) {
+      showToast(`Day ${row.streak} login streak — +${row.xp_awarded} XP!`);
+    }
+  } catch (e) {
+    logError('claimDailyLoginIfNeeded failed:', e);
+  }
+}

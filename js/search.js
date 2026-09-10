@@ -113,9 +113,9 @@ async function runSiteSearch(query) {
   const like = `%${query.replace(/[%_]/g, '\\$&')}%`;
   const nowIso = new Date().toISOString();
 
-  let players, crews, challenges, combos, services, giveaways, seaEvents, pvpMatches, matchedItems, tradeListings, tournaments;
+  let players, crews, challenges, combos, services, giveaways, seaEvents, pvpMatches, matchedItems, tradeListings, tournaments, feedPosts;
   try {
-    [players, crews, challenges, combos, services, giveaways, seaEvents, pvpMatches, matchedItems, tournaments] = await Promise.all([
+    [players, crews, challenges, combos, services, giveaways, seaEvents, pvpMatches, matchedItems, tournaments, feedPosts] = await Promise.all([
       sb.from('profiles').select('username, display_name, avatar_url, avatar_frame').eq('profile_visibility', 'public').or(`username.ilike.${like},display_name.ilike.${like}`).limit(SEARCH_RESULTS_PER_GROUP),
       sb.from('crews').select('id, name, tag, logo_url').or(`name.ilike.${like},tag.ilike.${like}`).limit(SEARCH_RESULTS_PER_GROUP),
       sb.from('challenges').select('id, title, difficulty').eq('active', true).ilike('title', like).limit(SEARCH_RESULTS_PER_GROUP),
@@ -126,6 +126,7 @@ async function runSiteSearch(query) {
       sb.from('pvp_matches').select('id, match_type, notes').gt('expires_at', nowIso).or(`match_type.ilike.${like},notes.ilike.${like}`).limit(SEARCH_RESULTS_PER_GROUP),
       sb.from('bf_items').select('id, name').ilike('name', like).limit(SEARCH_RESULTS_PER_GROUP),
       sb.from('tournaments').select('id, name, status').neq('status', 'cancelled').ilike('name', like).limit(SEARCH_RESULTS_PER_GROUP),
+      sb.from('feed_posts').select('id, content').ilike('content', like).order('created_at', { ascending: false }).limit(SEARCH_RESULTS_PER_GROUP),
     ]);
 
     // Trading listings store items as jsonb id arrays, not a searchable title — so a fruit-name
@@ -197,6 +198,10 @@ async function runSiteSearch(query) {
     { label: 'Trading', icon: 'repeat', items: (tradeListings || []).map(t => ({
         href: `/trading/#${t.id}`,
         html: `<i data-lucide="repeat" class="icon-sm" style="color:var(--brass-bright); flex-shrink:0;"></i><span style="margin-left:10px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${escapeHtml(t.label)}</span>`,
+      })) },
+    { label: 'Feed', icon: 'rss', items: (feedPosts.data || []).map(p => ({
+        href: `/feed/#post-${p.id}`,
+        html: `<i data-lucide="rss" class="icon-sm" style="color:var(--pink,#ec4899); flex-shrink:0;"></i><span style="margin-left:10px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${escapeHtml(p.content.length > 60 ? p.content.slice(0, 60) + '…' : p.content)}</span>`,
       })) },
   ].filter(g => g.items.length);
 

@@ -86,6 +86,23 @@
 </section>
 
 <!-- War call modal (leader only) -->
+<!-- Request to join crew modal -->
+<div id="join-request-modal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="join-request-title" style="display:none; position:fixed; inset:0; background:rgba(6,15,26,0.85); z-index:200; align-items:center; justify-content:center; padding:20px; overflow-y:auto;">
+  <div class="panel" style="max-width:420px; width:100%; margin:20px 0;">
+    <h2 id="join-request-title" style="font-size:1.1rem;">Request to Join</h2>
+    <p class="muted" style="margin:0 0 14px; font-size:0.85rem;">The crew leader will see this request and can approve or decline it.</p>
+    <form id="join-request-form">
+      <label for="join-request-message">Message (optional)</label>
+      <textarea id="join-request-message" rows="3" maxlength="300" placeholder="Why you'd be a good fit, your build, playtime…"></textarea>
+      <p class="field-error" id="join-request-error" style="display:none;"></p>
+      <div style="display:flex; gap:10px;">
+        <button type="button" class="btn btn-ghost" id="join-request-cancel">Cancel</button>
+        <button type="submit" class="btn btn-primary btn-block">Send Request</button>
+      </div>
+    </form>
+  </div>
+</div>
+
 <div id="war-call-modal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="war-call-title" style="display:none; position:fixed; inset:0; background:rgba(6,15,26,0.85); z-index:200; align-items:center; justify-content:center; padding:20px; overflow-y:auto;">
   <div class="panel" style="max-width:460px; width:100%; margin:20px 0;">
     <h2 id="war-call-title" style="font-size:1.1rem;">Call Out a Crew</h2>
