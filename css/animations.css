@@ -10,9 +10,17 @@
    ========================================================================== */
 
 /* ---------------------------- Page transition ---------------------------- */
+/* opacity-only — no transform here. A translateY was tried in an earlier version, but
+   any element with a finished CSS animation that ever touched `transform` keeps acting
+   as a containing block for `position: fixed` descendants in some browsers, even once
+   the animation settles on `transform: none` via fill-mode. Since body carries this
+   animation permanently (the `page-ready` class is never removed), that silently
+   broke every fixed-position modal on the site — they'd center against body's full
+   scrollable height instead of the viewport, showing up scrolled off-screen below the
+   fold. Keeping this fade to opacity-only avoids the whole class of bug. */
 html.page-ready body { animation: pageFadeIn .45s ease both; }
 body.page-leaving { animation: pageFadeOut .25s ease both; }
-@keyframes pageFadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+@keyframes pageFadeIn { from { opacity: 0; } to { opacity: 1; } }
 @keyframes pageFadeOut { from { opacity: 1; } to { opacity: 0; } }
 
 /* ------------------------------ Scroll reveal ----------------------------- */
