@@ -187,9 +187,10 @@ function renderFriendsManagementList() {
 
   list.innerHTML = friends.map(f => `
     <div class="friend-row" data-manage-friend-id="${f.profile.id}" style="cursor:default;">
-      ${avatarHtml(f.profile, 38)}
+      ${avatarHtml(f.profile, 38, '', presenceStatus(f.profile.last_active_at))}
       <div style="min-width:0; flex:1;">
         <div class="friend-row-name">${escapeHtml(displayNameFor(f.profile))}</div>
+        <div class="friend-row-preview">${escapeHtml(lastSeenLabel(f.profile.last_active_at))}</div>
       </div>
       <button type="button" class="btn btn-ghost btn-sm" data-message-friend="${f.profile.id}" title="Message"><i data-lucide="mail" class="icon-sm"></i></button>
       <button type="button" class="btn btn-ghost btn-sm" data-remove-friend="${f.friendshipId}" title="Remove friend"><i data-lucide="user-minus" class="icon-sm"></i></button>

@@ -376,6 +376,36 @@
   <div class="container">BloxCore is the #1 Blox Fruits community — your ultimate hub for trading, bounty hunting, crews, combos, sea events, giveaways, leaderboards, a live feed, and so much more! <a href="/terms/" style="color:inherit; text-decoration:underline;">Terms</a> · <a href="/privacy/" style="color:inherit; text-decoration:underline;">Privacy</a></div>
 </footer>
 
+<div id="roblox-bio-verify-modal" class="build-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="roblox-bio-verify-title">
+  <div class="panel build-modal" style="max-width:440px;">
+    <div class="flex-between" style="margin-bottom:14px;">
+      <h3 id="roblox-bio-verify-title" style="font-size:1.05rem; margin:0;">Verify Roblox with a Bio Code</h3>
+      <button type="button" class="btn btn-ghost btn-sm" id="roblox-bio-verify-close" aria-label="Close"><i data-lucide="x" class="icon-md"></i></button>
+    </div>
+
+    <div id="roblox-bio-step-username">
+      <p class="muted" style="margin:0 0 14px; font-size:0.85rem;">Temporary fallback while our normal Roblox connect is being updated. Enter your Roblox username to get a one-time code.</p>
+      <form id="roblox-bio-username-form">
+        <label for="roblox-bio-username-input">Roblox Username</label>
+        <input type="text" id="roblox-bio-username-input" placeholder="e.g. Builderman" required>
+        <p class="field-error" id="roblox-bio-username-error" style="display:none;"></p>
+        <button type="submit" class="btn btn-primary btn-block" id="roblox-bio-start-btn">Get Code</button>
+      </form>
+    </div>
+
+    <div id="roblox-bio-step-code" style="display:none;">
+      <p class="muted" style="margin:0 0 10px; font-size:0.85rem;">Copy this code, paste it anywhere in your Roblox profile's "About" / bio, save it, then come back and tap Check.</p>
+      <div class="flex-between" style="padding:12px 14px; background:var(--navy-light); border-radius:var(--radius-sm,8px); margin-bottom:14px;">
+        <code id="roblox-bio-code-display" style="font-size:1.05rem; font-weight:700; color:var(--brass-bright);"></code>
+        <button type="button" class="btn btn-ghost btn-sm" id="roblox-bio-copy-btn"><i data-lucide="copy" class="icon-sm icon-inline"></i>Copy</button>
+      </div>
+      <p class="field-error" id="roblox-bio-check-error" style="display:none;"></p>
+      <button type="button" class="btn btn-primary btn-block" id="roblox-bio-check-btn">I've Saved It — Check Now</button>
+      <p class="muted" style="margin:10px 0 0; font-size:0.75rem;">Code expires in 15 minutes. You can remove it from your bio once verified.</p>
+    </div>
+  </div>
+</div>
+
 <script src="https://unpkg.com/lucide@1.34.0"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.112.4"></script>
 <script src="/js/animations.js"></script>

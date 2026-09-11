@@ -94,7 +94,13 @@ async function loadSocialActions(p, viewerId, isOwnProfile) {
     sb.from('follows').select('followed_id', { count: 'exact', head: true }).eq('follower_id', p.id),
   ]);
   const countsEl = document.getElementById('follow-counts');
-  if (countsEl) countsEl.innerHTML = `<span class="profile-hero-sep">·</span> ${followerCount || 0} Followers · ${followingCount || 0} Following`;
+
+  let mutualHtml = '';
+  if (viewerId && !isOwnProfile) {
+    const { data: mutualCount } = await sb.rpc('get_mutual_friends_count', { p_profile_id: p.id });
+    if (mutualCount > 0) mutualHtml = `<span class="profile-hero-sep">·</span> ${mutualCount} Mutual Friend${mutualCount === 1 ? '' : 's'}`;
+  }
+  if (countsEl) countsEl.innerHTML = `<span class="profile-hero-sep">·</span> ${followerCount || 0} Followers · ${followingCount || 0} Following ${mutualHtml}`;
 
   const actionsEl = document.getElementById('social-actions');
   if (!actionsEl || isOwnProfile || !viewerId) return;

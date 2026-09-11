@@ -39,8 +39,65 @@ onReady(async () => {
   if (currentUser) loadSidebarSuggestions();
   else document.getElementById('feed-sidebar-suggestions-card').style.display = 'none';
 
+  if (currentUser) await loadPendingRepostFromUrl();
+
   await loadFeed();
 });
+
+let pendingRepost = null; // { type: 'trade_listing'|'crew_war', id }
+
+async function loadPendingRepostFromUrl() {
+  const params = new URLSearchParams(window.location.search);
+  const tradeId = params.get('repost_trade');
+  const warId = params.get('repost_war');
+  if (!tradeId && !warId) return;
+
+  const preview = document.getElementById('feed-repost-preview');
+  preview.style.display = 'block';
+  preview.innerHTML = `<div class="skeleton" style="height:70px;"></div>`;
+  let embedHtml = '';
+
+  if (tradeId) {
+    const { data: listing } = await sb.from('trade_listings').select('*, profiles(username, display_name, avatar_url, avatar_frame)').eq('id', tradeId).maybeSingle();
+    if (!listing) { preview.style.display = 'none'; return; }
+    pendingRepost = { type: 'trade_listing', id: tradeId };
+    const adapted = {
+      repost_trade_listing_id: listing.id,
+      rt_offering_item_ids: listing.offering_item_ids, rt_requesting_item_ids: listing.requesting_item_ids,
+      rt_active: listing.active, rt_username: listing.profiles?.username, rt_display_name: listing.profiles?.display_name,
+      rt_avatar_url: listing.profiles?.avatar_url, rt_avatar_frame: listing.profiles?.avatar_frame,
+    };
+    await hydrateRepostItemCache([adapted]);
+    embedHtml = buildTradeEmbedHtml(adapted);
+  } else if (warId) {
+    const { data: war } = await sb.from('crew_wars').select('*, challenger:challenger_crew_id(id, name, tag, logo_url), defender:defender_crew_id(id, name, tag, logo_url)').eq('id', warId).maybeSingle();
+    if (!war) { preview.style.display = 'none'; return; }
+    pendingRepost = { type: 'crew_war', id: warId };
+    const adapted = {
+      cw_status: war.status, cw_winner_crew_id: war.winner_crew_id,
+      cw_challenger_id: war.challenger?.id, cw_challenger_name: war.challenger?.name, cw_challenger_tag: war.challenger?.tag, cw_challenger_logo: war.challenger?.logo_url,
+      cw_defender_id: war.defender?.id, cw_defender_name: war.defender?.name, cw_defender_tag: war.defender?.tag, cw_defender_logo: war.defender?.logo_url,
+    };
+    embedHtml = buildWarEmbedHtml(adapted);
+  }
+
+  preview.innerHTML = `
+    <div style="position:relative;">
+      <button type="button" id="feed-repost-remove-btn" class="btn btn-ghost btn-sm" style="position:absolute; top:8px; right:8px; z-index:1;" aria-label="Remove"><i data-lucide="x" class="icon-sm"></i></button>
+      ${embedHtml}
+    </div>
+  `;
+  document.getElementById('feed-repost-remove-btn').addEventListener('click', () => {
+    pendingRepost = null;
+    preview.style.display = 'none';
+    preview.innerHTML = '';
+    const url = new URL(window.location.href);
+    url.searchParams.delete('repost_trade');
+    url.searchParams.delete('repost_war');
+    window.history.replaceState({}, '', url);
+  });
+  refreshIcons();
+}
 
 let feedTab = 'latest';
 
@@ -90,7 +147,7 @@ async function handlePost() {
 
   const input = document.getElementById('feed-post-input');
   const content = input.value.trim();
-  if (!content && !pendingImageFile) return;
+  if (!content && !pendingImageFile && !pendingRepost) return;
   if (content.length > 280) { showToast('Posts are capped at 280 characters.', true); return; }
 
   const btn = document.getElementById('feed-post-btn');
@@ -109,8 +166,10 @@ async function handlePost() {
 
   const { error } = await sb.from('feed_posts').insert({
     user_id: auth.user.id,
-    content: content || '📷',
+    content: content || (pendingRepost ? '' : '📷'),
     image_url,
+    repost_trade_listing_id: pendingRepost?.type === 'trade_listing' ? pendingRepost.id : null,
+    repost_crew_war_id: pendingRepost?.type === 'crew_war' ? pendingRepost.id : null,
   });
   btn.disabled = false;
   if (error) { showToast(error.message, true); return; }
@@ -118,6 +177,15 @@ async function handlePost() {
   input.value = '';
   updateCharCount();
   clearImageSelection();
+  if (pendingRepost) {
+    pendingRepost = null;
+    document.getElementById('feed-repost-preview').style.display = 'none';
+    document.getElementById('feed-repost-preview').innerHTML = '';
+    const url = new URL(window.location.href);
+    url.searchParams.delete('repost_trade');
+    url.searchParams.delete('repost_war');
+    window.history.replaceState({}, '', url);
+  }
   showToast('Posted!');
   loadFeed();
   loadPulseStats();
@@ -241,10 +309,95 @@ async function loadFeed() {
   }
 }
 
+let feedItemsCache = new Map(); // bf_items rows, keyed by id — shared across repost embeds
+
 async function fetchFeedPage(offset, pageSize) {
   const { data, error } = await sb.rpc('get_feed_page', { p_limit: pageSize, p_offset: offset, p_trending: feedTab === 'trending', p_following: feedTab === 'following' });
   if (error) { logError('Failed to load feed', error); return null; }
+  await hydrateRepostItemCache(data);
   return data;
+}
+
+async function hydrateRepostItemCache(rows) {
+  const ids = new Set();
+  (rows || []).forEach(p => {
+    if (!p.repost_trade_listing_id) return;
+    (p.rt_offering_item_ids || []).forEach(e => { if (!feedItemsCache.has(e.id)) ids.add(e.id); });
+    (p.rt_requesting_item_ids || []).forEach(e => { if (!feedItemsCache.has(e.id)) ids.add(e.id); });
+  });
+  if (!ids.size) return;
+  const { data: items } = await sb.from('bf_items').select('*').in('id', [...ids]);
+  (items || []).forEach(item => feedItemsCache.set(item.id, item));
+}
+
+function summarizeRepostSide(entries) {
+  let total = 0;
+  const tiles = (entries || []).map(e => {
+    const item = feedItemsCache.get(e.id);
+    if (!item) return '';
+    total += valueFor(item, e.valueType) || 0;
+    return valueTileHtml(item, e.valueType, { editable: false });
+  }).join('');
+  return { total, tiles };
+}
+
+function feedFairBadge(offerTotal, requestTotal) {
+  if (!offerTotal || !requestTotal) return '';
+  const diffPct = Math.round(((requestTotal - offerTotal) / offerTotal) * 100);
+  if (Math.abs(diffPct) <= 8) return `<span class="tag tag-easy" style="font-size:0.65rem;"><i data-lucide="scale" class="icon-sm icon-inline"></i>Roughly Fair</span>`;
+  if (diffPct > 0) return `<span class="tag tag-hard" style="font-size:0.65rem;"><i data-lucide="trending-up" class="icon-sm icon-inline"></i>Requesting +${diffPct}%</span>`;
+  return `<span class="tag tag-medium" style="font-size:0.65rem;"><i data-lucide="trending-down" class="icon-sm icon-inline"></i>Offering +${Math.abs(diffPct)}%</span>`;
+}
+
+function buildTradeEmbedHtml(p) {
+  const offer = summarizeRepostSide(p.rt_offering_item_ids);
+  const request = summarizeRepostSide(p.rt_requesting_item_ids);
+  const profile = { username: p.rt_username, display_name: p.rt_display_name, avatar_url: p.rt_avatar_url, avatar_frame: p.rt_avatar_frame };
+  return `
+    <a href="/trading/#${p.repost_trade_listing_id}" class="panel feed-repost-embed" style="display:block; text-decoration:none; color:inherit;">
+      <div style="display:flex; align-items:center; gap:8px;">
+        ${avatarHtml(profile, 24)}
+        <span style="font-size:0.78rem; color:var(--bone); font-weight:700;">${escapeHtml(displayNameFor(profile))}</span>
+        <span class="muted" style="font-size:0.7rem;">trade listing</span>
+        ${!p.rt_active ? `<span class="tag tag-medium" style="font-size:0.62rem;">Closed</span>` : ''}
+      </div>
+      <div class="trade-columns-wrap" style="margin-top:8px;">
+        <div class="trade-columns">
+          <div><div class="trade-side-header" style="color:var(--sea); font-size:0.72rem;">Offering <span class="trade-side-total">${formatValue(offer.total)}</span></div><div class="trade-item-grid">${offer.tiles}</div></div>
+          <div class="trade-arrow"><i data-lucide="arrow-right" class="icon-sm"></i></div>
+          <div><div class="trade-side-header" style="color:var(--gold-bright); font-size:0.72rem;">Requesting <span class="trade-side-total">${formatValue(request.total)}</span></div><div class="trade-item-grid">${request.tiles}</div></div>
+        </div>
+      </div>
+      <div style="margin-top:8px;">${feedFairBadge(offer.total, request.total)}</div>
+    </a>
+  `;
+}
+
+function crewChipMini(crew) {
+  if (!crew || !crew.name) return `<span class="muted" style="font-size:0.8rem;">Unknown crew</span>`;
+  return `
+    ${crew.logo_url ? `<img src="${crew.logo_url}" alt="" style="width:32px; height:32px; border-radius:8px; object-fit:cover;">` : `<div style="width:32px; height:32px; border-radius:8px; background:var(--navy-light); display:flex; align-items:center; justify-content:center; color:var(--ash); margin:0 auto;">${escapeHtml((crew.name[0] || '?').toUpperCase())}</div>`}
+    <p style="margin:4px 0 0; font-size:0.76rem; color:var(--bone);">${crew.tag ? `[${escapeHtml(crew.tag)}] ` : ''}${escapeHtml(crew.name)}</p>
+  `;
+}
+
+function buildWarEmbedHtml(p) {
+  const challenger = { id: p.cw_challenger_id, name: p.cw_challenger_name, tag: p.cw_challenger_tag, logo_url: p.cw_challenger_logo };
+  const defender = { id: p.cw_defender_id, name: p.cw_defender_name, tag: p.cw_defender_tag, logo_url: p.cw_defender_logo };
+  const winnerName = p.cw_status === 'completed' && p.cw_winner_crew_id
+    ? (p.cw_winner_crew_id === challenger.id ? challenger.name : defender.name)
+    : null;
+  return `
+    <div class="panel feed-repost-embed">
+      <p class="muted" style="margin:0 0 10px; font-size:0.7rem; text-transform:uppercase; letter-spacing:0.04em;">Crew War Result</p>
+      <div style="display:flex; align-items:center; justify-content:center; gap:16px; text-align:center;">
+        <div style="flex:1;">${crewChipMini(challenger)}</div>
+        <span class="muted" style="font-size:0.75rem; font-family:var(--font-mono);">VS</span>
+        <div style="flex:1;">${crewChipMini(defender)}</div>
+      </div>
+      ${winnerName ? `<p style="text-align:center; margin:10px 0 0; color:var(--gold-bright); font-weight:700; font-size:0.82rem;"><i data-lucide="trophy" class="icon-sm icon-inline"></i>${escapeHtml(winnerName)} won</p>` : ''}
+    </div>
+  `;
 }
 
 function renderPost(p) {
@@ -275,6 +428,8 @@ function renderPost(p) {
       ${isPinned ? `<p class="muted" style="margin:10px 0 0; font-size:0.72rem;"><i data-lucide="pin" class="icon-sm icon-inline"></i>Pinned to profile</p>` : ''}
       <p style="margin:12px 0 0; white-space:pre-wrap; font-size:0.94rem;">${escapeHtml(p.content)}</p>
       ${p.image_url ? `<a href="${p.image_url}" target="_blank" rel="noopener noreferrer"><img src="${p.image_url}" alt="" loading="lazy" style="max-width:100%; border-radius:var(--radius-sm,8px); margin-top:12px; border:1px solid var(--glass-border);"></a>` : ''}
+      ${p.repost_trade_listing_id ? `<div style="margin-top:12px;">${buildTradeEmbedHtml(p)}</div>` : ''}
+      ${p.repost_crew_war_id ? `<div style="margin-top:12px;">${buildWarEmbedHtml(p)}</div>` : ''}
       <div style="display:flex; align-items:center; gap:18px; margin-top:14px; padding-top:12px; border-top:1px solid var(--glass-border);">
         <button class="feed-action-btn ${p.liked_by_me ? 'is-active' : ''}" data-like-post="${p.id}" ${!currentUser ? 'disabled' : ''}>
           <i data-lucide="heart" class="icon-sm"></i><span data-like-count>${p.like_count}</span>

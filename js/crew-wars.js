@@ -48,6 +48,10 @@ async function loadActiveWars() {
 
   list.innerHTML = data.map(renderHubWarCard).join('');
   refreshIcons();
+
+  list.querySelectorAll('[data-repost-war]').forEach(btn => {
+    btn.addEventListener('click', () => { window.location.href = `/feed/?repost_war=${btn.dataset.repostWar}`; });
+  });
 }
 
 async function loadWarHistory() {
@@ -67,6 +71,10 @@ async function loadWarHistory() {
 
   list.innerHTML = data.map(renderHubWarCard).join('');
   refreshIcons();
+
+  list.querySelectorAll('[data-repost-war]').forEach(btn => {
+    btn.addEventListener('click', () => { window.location.href = `/feed/?repost_war=${btn.dataset.repostWar}`; });
+  });
 }
 
 async function loadWarLeaderboard() {
@@ -123,7 +131,10 @@ function renderHubWarCard(w) {
       ${w.message ? `<p class="muted war-card-message">"${escapeHtml(w.message)}"</p>` : ''}
       <div class="flex-between war-card-footer">
         <span class="muted" style="font-size:0.75rem; display:flex; align-items:center; gap:5px;"><i data-lucide="clock" class="icon-sm"></i>${timeAgo(w.created_at)}</span>
-        ${winnerName ? `<span class="war-card-winner" style="color:${winnerName === 'Tie' ? 'var(--ash)' : 'var(--gold-bright)'};"><i data-lucide="${winnerName === 'Tie' ? 'minus' : 'trophy'}" class="icon-sm icon-inline"></i>${escapeHtml(winnerName)}${winnerName !== 'Tie' ? ' won' : ''}</span>` : ''}
+        <div style="display:flex; align-items:center; gap:12px;">
+          ${w.status === 'completed' ? `<button type="button" class="btn btn-ghost btn-sm" data-repost-war="${w.id}" title="Share to Feed" aria-label="Share to Feed"><i data-lucide="share-2" class="icon-sm"></i></button>` : ''}
+          ${winnerName ? `<span class="war-card-winner" style="color:${winnerName === 'Tie' ? 'var(--ash)' : 'var(--gold-bright)'};"><i data-lucide="${winnerName === 'Tie' ? 'minus' : 'trophy'}" class="icon-sm icon-inline"></i>${escapeHtml(winnerName)}${winnerName !== 'Tie' ? ' won' : ''}</span>` : ''}
+        </div>
       </div>
     </div>
   `;

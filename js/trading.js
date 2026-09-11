@@ -173,6 +173,17 @@ function renderSlotList(side) {
 // catalog already loaded for the picker, so it updates instantly as items are added,
 // removed, or toggled physical/permanent. Not a recommendation, just a value comparison;
 // demand/trend aren't priced in since those are judgment calls, not hard numbers.
+function fairValueBadgeHtml(offerTotal, requestTotal) {
+  if (!offerTotal || !requestTotal) return '';
+  const diffPct = Math.round(((requestTotal - offerTotal) / offerTotal) * 100);
+  if (Math.abs(diffPct) <= 8) {
+    return `<span class="tag tag-easy"><i data-lucide="scale" class="icon-sm icon-inline"></i>Roughly Fair</span>`;
+  } else if (diffPct > 0) {
+    return `<span class="tag tag-hard"><i data-lucide="trending-up" class="icon-sm icon-inline"></i>Requesting +${diffPct}%</span>`;
+  }
+  return `<span class="tag tag-medium"><i data-lucide="trending-down" class="icon-sm icon-inline"></i>Offering +${Math.abs(diffPct)}%</span>`;
+}
+
 function updateFairValueIndicator() {
   const el = document.getElementById('trade-fair-value');
   if (!offeringEntries.length || !requestingEntries.length) { el.style.display = 'none'; return; }
@@ -349,6 +360,7 @@ function renderListing(t) {
       </div>
 
       ${t.note ? `<p class="muted" style="margin:12px 0 0; font-size:0.85rem;">${escapeHtml(t.note)}</p>` : ''}
+      ${fairValueBadgeHtml(offer.total, request.total) ? `<div style="margin-top:10px;">${fairValueBadgeHtml(offer.total, request.total)}</div>` : ''}
 
       <div class="trade-columns-wrap">
         <div class="trade-columns">
@@ -372,6 +384,7 @@ function renderListing(t) {
 
       <div class="trade-card-footer">
         <a href="/friends/?tab=messages&u=${encodeURIComponent(profile.username || '')}" class="btn btn-ghost btn-sm"><i data-lucide="mail" class="icon-sm icon-inline"></i>Message</a>
+        <button type="button" class="btn btn-ghost btn-sm" data-repost-trade="${t.id}" title="Share to Feed" aria-label="Share to Feed"><i data-lucide="share-2" class="icon-sm icon-inline"></i></button>
         <a href="/player/?u=${encodeURIComponent(profile.username || '')}" class="btn btn-primary btn-sm"><i data-lucide="repeat" class="icon-sm icon-inline"></i>Trade</a>
       </div>
     </div>
@@ -398,5 +411,8 @@ function wireListingActions(root) {
   });
   root.querySelectorAll('[data-report-listing]').forEach(btn => {
     btn.addEventListener('click', () => reportContent('trade_listing', btn.dataset.reportListing));
+  });
+  root.querySelectorAll('[data-repost-trade]').forEach(btn => {
+    btn.addEventListener('click', () => { window.location.href = `/feed/?repost_trade=${btn.dataset.repostTrade}`; });
   });
 }

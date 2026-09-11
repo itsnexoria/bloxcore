@@ -87,6 +87,14 @@ onReady(async () => {
   setupReferralPanel(profile.username, user.id);
   loadBlockedUsersList(user.id);
 
+  document.getElementById('roblox-bio-verify-close')?.addEventListener('click', closeRobloxBioVerifyModal);
+  document.getElementById('roblox-bio-username-form')?.addEventListener('submit', handleRobloxBioStart);
+  document.getElementById('roblox-bio-check-btn')?.addEventListener('click', handleRobloxBioCheck);
+  document.getElementById('roblox-bio-copy-btn')?.addEventListener('click', () => {
+    navigator.clipboard.writeText(robloxBioVerifyState?.code || '');
+    showToast('Code copied!');
+  });
+
   const hideToggle = document.getElementById('hide-leaderboard-toggle');
   hideToggle.checked = !!profile?.hide_from_leaderboard;
   hideToggle.addEventListener('change', async () => {
@@ -400,15 +408,18 @@ async function renderConnectionsPanel(user, profile) {
     }
   }
 
-  const buildRow = (label, iconName, connected, name, onConnect) => {
+  const buildRow = (label, iconName, connected, name, onConnect, extraHtml = '') => {
     const id = `connect-${label.toLowerCase()}-btn`;
     return {
       html: `
-        <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap;">
-          <span style="display:flex; align-items:center; gap:8px; font-size:0.9rem; font-weight:600;"><i data-lucide="${iconName}" class="icon-sm"></i>${label}</span>
-          ${connected
-            ? `<span class="tag tag-easy"><i data-lucide="check" class="icon-sm icon-inline"></i>Connected${name ? ` as ${escapeHtml(name)}` : ''}</span>`
-            : `<button type="button" class="btn btn-primary btn-sm" id="${id}"><i data-lucide="link" class="icon-sm icon-inline"></i>Connect ${label}</button>`}
+        <div>
+          <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap;">
+            <span style="display:flex; align-items:center; gap:8px; font-size:0.9rem; font-weight:600;"><i data-lucide="${iconName}" class="icon-sm"></i>${label}</span>
+            ${connected
+              ? `<span class="tag tag-easy"><i data-lucide="check" class="icon-sm icon-inline"></i>Connected${name ? ` as ${escapeHtml(name)}` : ''}</span>`
+              : `<button type="button" class="btn btn-primary btn-sm" id="${id}"><i data-lucide="link" class="icon-sm icon-inline"></i>Connect ${label}</button>`}
+          </div>
+          ${!connected ? extraHtml : ''}
         </div>
       `,
       id,
@@ -423,13 +434,84 @@ async function renderConnectionsPanel(user, profile) {
   });
   const robloxRow = buildRow('Roblox', 'gamepad-2', hasRobloxIdentity || !!profile?.roblox_verified, profile?.roblox_username, () => {
     startRobloxOAuthConnect(window.location.origin + '/settings/#account');
-  });
+  }, `<button type="button" style="margin-top:6px; font-size:0.78rem; background:none; border:none; padding:0; color:var(--ash); text-decoration:underline; cursor:pointer;" id="roblox-bio-verify-open">Having trouble? Verify with a bio code instead</button>`);
 
   list.innerHTML = discordRow.html + robloxRow.html;
   refreshIcons();
 
   if (!discordRow.connected) document.getElementById(discordRow.id).addEventListener('click', discordRow.onConnect);
-  if (!robloxRow.connected) document.getElementById(robloxRow.id).addEventListener('click', robloxRow.onConnect);
+  if (!robloxRow.connected) {
+    document.getElementById(robloxRow.id).addEventListener('click', robloxRow.onConnect);
+    document.getElementById('roblox-bio-verify-open')?.addEventListener('click', openRobloxBioVerifyModal);
+  }
+}
+
+// --- Roblox bio-code verification (temporary fallback while the OAuth app's
+// credentials are being renewed on Roblox's side) ---------------------------
+
+let robloxBioVerifyState = null; // { code, username, expiresAt }
+
+function openRobloxBioVerifyModal() {
+  document.getElementById('roblox-bio-step-username').style.display = 'block';
+  document.getElementById('roblox-bio-step-code').style.display = 'none';
+  document.getElementById('roblox-bio-username-input').value = '';
+  document.getElementById('roblox-bio-username-error').style.display = 'none';
+  document.getElementById('roblox-bio-check-error').style.display = 'none';
+  document.getElementById('roblox-bio-verify-modal').classList.add('open');
+}
+
+function closeRobloxBioVerifyModal() {
+  document.getElementById('roblox-bio-verify-modal').classList.remove('open');
+}
+
+async function handleRobloxBioStart(e) {
+  e.preventDefault();
+  const errEl = document.getElementById('roblox-bio-username-error');
+  errEl.style.display = 'none';
+  const username = document.getElementById('roblox-bio-username-input').value.trim();
+  if (!username) return;
+
+  const btn = document.getElementById('roblox-bio-start-btn');
+  btn.disabled = true;
+  const { data: { session } } = await sb.auth.getSession();
+  const res = await fetch(`${SUPABASE_URL}/functions/v1/roblox-bio-verify`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session.access_token}` },
+    body: JSON.stringify({ action: 'start', username }),
+  });
+  const body = await res.json();
+  btn.disabled = false;
+
+  if (!res.ok || body.error) { errEl.textContent = body.error || 'Something went wrong.'; errEl.style.display = 'block'; return; }
+
+  robloxBioVerifyState = body;
+  document.getElementById('roblox-bio-code-display').textContent = body.code;
+  document.getElementById('roblox-bio-step-username').style.display = 'none';
+  document.getElementById('roblox-bio-step-code').style.display = 'block';
+}
+
+async function handleRobloxBioCheck() {
+  const errEl = document.getElementById('roblox-bio-check-error');
+  errEl.style.display = 'none';
+  const btn = document.getElementById('roblox-bio-check-btn');
+  btn.disabled = true;
+
+  const { data: { session } } = await sb.auth.getSession();
+  const res = await fetch(`${SUPABASE_URL}/functions/v1/roblox-bio-verify`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session.access_token}` },
+    body: JSON.stringify({ action: 'check' }),
+  });
+  const body = await res.json();
+  btn.disabled = false;
+
+  if (!res.ok || body.error) { errEl.textContent = body.error || 'Something went wrong.'; errEl.style.display = 'block'; return; }
+  if (!body.verified) { errEl.textContent = body.message || "Code not found yet — make sure you saved it on Roblox."; errEl.style.display = 'block'; return; }
+
+  showToast(`Roblox verified as ${body.username}!`);
+  closeRobloxBioVerifyModal();
+  const { user, profile } = await getCurrentProfile();
+  renderConnectionsPanel(user, profile);
 }
 
 async function setupReferralPanel(username, userId) {
