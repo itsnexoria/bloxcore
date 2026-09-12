@@ -93,7 +93,13 @@
             <div id="feed-compose-avatar"></div>
             <div style="flex:1; min-width:0;">
               <div id="feed-repost-preview" style="display:none; margin-bottom:10px; position:relative;"></div>
-              <textarea id="feed-post-input" rows="2" maxlength="280" placeholder="Share a win, a screenshot, or what you're grinding today…" style="resize:vertical;"></textarea>
+              <textarea id="feed-post-input" rows="2" maxlength="280" placeholder="Share a win, a screenshot, or what you're grinding today… (#tags work too)" style="resize:vertical;"></textarea>
+              <div id="feed-compose-visibility" style="display:none; margin-top:8px;">
+                <select id="feed-post-visibility" style="margin:0; width:auto; font-size:0.78rem; padding:5px 10px;">
+                  <option value="public">🌐 Public Feed</option>
+                  <option value="crew">🛡️ My Crew Only</option>
+                </select>
+              </div>
               <div id="feed-image-preview" style="display:none; margin:10px 0; position:relative; width:fit-content;">
                 <img id="feed-image-preview-img" src="" alt="" style="max-height:180px; border-radius:var(--radius-sm,8px); border:1px solid var(--glass-border);">
                 <button type="button" id="feed-image-remove-btn" class="btn btn-ghost btn-sm" style="position:absolute; top:-8px; right:-8px; padding:4px; border-radius:50%; background:var(--ink);" aria-label="Remove image"><i data-lucide="x" class="icon-sm"></i></button>
@@ -115,10 +121,17 @@
           </div>
         </div>
 
-        <div id="feed-tabs" style="display:flex; gap:8px; margin-top:20px;">
+        <div id="feed-tabs" style="display:flex; gap:8px; margin-top:20px; flex-wrap:wrap;">
           <button type="button" class="btn btn-sm btn-primary" data-feed-tab="latest">Latest</button>
           <button type="button" class="btn btn-sm btn-ghost" data-feed-tab="trending"><i data-lucide="flame" class="icon-sm icon-inline"></i>Trending</button>
           <button type="button" class="btn btn-sm btn-ghost" data-feed-tab="following" id="feed-tab-following"><i data-lucide="user-check" class="icon-sm icon-inline"></i>Following</button>
+          <button type="button" class="btn btn-sm btn-ghost" data-feed-tab="crew" id="feed-tab-crew" style="display:none;"><i data-lucide="shield" class="icon-sm icon-inline"></i>My Crew</button>
+          <button type="button" class="btn btn-sm btn-ghost" data-feed-tab="saved" id="feed-tab-saved" style="display:none;"><i data-lucide="bookmark" class="icon-sm icon-inline"></i>Saved</button>
+        </div>
+
+        <div id="feed-tag-banner" style="display:none; margin-top:14px; align-items:center; gap:8px; font-size:0.85rem;">
+          <span class="muted">Showing posts tagged</span> <span id="feed-tag-banner-text" style="color:var(--brass-bright); font-weight:700;"></span>
+          <button type="button" id="feed-tag-clear-btn" class="btn btn-ghost btn-sm" style="padding:2px 8px; font-size:0.72rem;">Clear</button>
         </div>
 
         <div id="feed-list" style="margin-top:20px; display:flex; flex-direction:column; gap:14px;">

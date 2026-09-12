@@ -1,5 +1,5 @@
-// BloxCore — chat/index.html Messages + Friends tabs logic (loaded alongside chat.js, which
-// declares the shared currentUser/currentProfile globals used here)
+// BloxCore — friends/index.html Messages + Friends tabs logic (currentUser/currentProfile
+// are set here directly; friends-hub.js only controls which tab panel is visible)
 
 let friends = []; // [{ friendshipId, profile, lastMessage, lastMessageAt, unread }]
 let incomingRequests = []; // [{ friendshipId, profile }]
@@ -8,6 +8,9 @@ let friendIds = new Set();
 let activeFriendId = null;
 let activeFriendshipId = null;
 let dmChannel = null;
+let typingChannel = null;
+let typingTimeout = null;
+let typingBroadcastThrottle = null;
 let searchDebounce = null;
 
 onReady(async () => {
@@ -37,6 +40,11 @@ onReady(async () => {
   });
   document.getElementById('thread-mute-btn').addEventListener('click', toggleMute);
   document.getElementById('thread-block-btn').addEventListener('click', toggleBlock);
+  document.getElementById('thread-report-btn')?.addEventListener('click', () => {
+    document.getElementById('thread-more-menu').style.display = 'none';
+    if (activeFriendId) reportContent('profile', activeFriendId);
+  });
+  document.getElementById('thread-input').addEventListener('input', broadcastTyping);
   document.querySelectorAll('[data-goto-friends-tab]').forEach(btn => {
     btn.addEventListener('click', () => switchHubTab('friends'));
   });
@@ -277,13 +285,44 @@ function openThread(profile, friendshipId) {
     ${avatarHtml(profile, 32, '', presenceStatus(profile.last_active_at))}
     <div style="min-width:0;">
       <a href="/player/?u=${encodeURIComponent(profile.username)}" style="color:var(--bone); font-weight:700; text-decoration:none; font-size:0.92rem; display:block;">${escapeHtml(displayNameFor(profile))}</a>
-      <span class="muted" style="font-size:0.72rem;">${escapeHtml(lastSeenLabel(profile.last_active_at))}</span>
+      <span class="muted" id="thread-presence-label" style="font-size:0.72rem;">${escapeHtml(lastSeenLabel(profile.last_active_at))}</span>
     </div>
   `;
   renderFriendsList();
   refreshIcons();
   loadThreadMessages();
   loadThreadBlockMuteState();
+  subscribeToTyping(profile.id);
+}
+
+// Ephemeral typing signal over Supabase Realtime Broadcast — no DB writes, nothing to
+// clean up or retain. Channel name is the two user ids sorted so both sides join the same one.
+function typingChannelName(otherId) {
+  return `dm-typing:${[currentUser.id, otherId].sort().join(':')}`;
+}
+
+function subscribeToTyping(otherId) {
+  if (typingChannel) sb.removeChannel(typingChannel);
+  const label = document.getElementById('thread-presence-label');
+  const originalLabel = label.textContent;
+
+  typingChannel = sb
+    .channel(typingChannelName(otherId))
+    .on('broadcast', { event: 'typing' }, (payload) => {
+      if (payload.payload.from !== currentUser.id) {
+        label.textContent = 'Typing…';
+        clearTimeout(typingTimeout);
+        typingTimeout = setTimeout(() => { label.textContent = originalLabel; }, 3000);
+      }
+    })
+    .subscribe();
+}
+
+function broadcastTyping() {
+  if (!typingChannel || !activeFriendId) return;
+  if (typingBroadcastThrottle) return;
+  typingChannel.send({ type: 'broadcast', event: 'typing', payload: { from: currentUser.id } });
+  typingBroadcastThrottle = setTimeout(() => { typingBroadcastThrottle = null; }, 2000);
 }
 
 async function loadThreadBlockMuteState() {
@@ -330,6 +369,7 @@ async function toggleBlock() {
 
 function closeThread() {
   document.getElementById('messages-app').classList.remove('thread-active');
+  if (typingChannel) { sb.removeChannel(typingChannel); typingChannel = null; }
 }
 
 async function loadThreadMessages() {

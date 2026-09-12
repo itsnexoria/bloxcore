@@ -4,6 +4,8 @@ let currentUser = null;
 let currentProfile = null;
 let pendingImageFile = null;
 let followingIds = new Set();
+let myCrewId = null;
+let feedTag = null;
 
 const FEED_PAGE_SIZE = 20;
 const CHAR_RING_CIRCUMFERENCE = 2 * Math.PI * 9; // r=9, matches the SVG in feed/index.html
@@ -16,8 +18,18 @@ onReady(async () => {
   if (currentUser) {
     document.getElementById('feed-compose').style.display = 'block';
     document.getElementById('feed-compose-avatar').innerHTML = avatarHtml(currentProfile, 44);
-    const { data } = await sb.from('follows').select('followed_id').eq('follower_id', currentUser.id);
-    followingIds = new Set((data || []).map(r => r.followed_id));
+    document.getElementById('feed-tab-saved').style.display = 'inline-flex';
+
+    const [{ data: followData }, { data: membership }] = await Promise.all([
+      sb.from('follows').select('followed_id').eq('follower_id', currentUser.id),
+      sb.from('crew_members').select('crew_id').eq('user_id', currentUser.id).maybeSingle(),
+    ]);
+    followingIds = new Set((followData || []).map(r => r.followed_id));
+    if (membership) {
+      myCrewId = membership.crew_id;
+      document.getElementById('feed-tab-crew').style.display = 'inline-flex';
+      document.getElementById('feed-compose-visibility').style.display = 'block';
+    }
   } else {
     document.getElementById('feed-signed-out').style.display = 'block';
     document.getElementById('feed-tab-following').disabled = true;
@@ -33,6 +45,7 @@ onReady(async () => {
   document.querySelectorAll('#feed-tabs [data-feed-tab]').forEach(btn => {
     btn.addEventListener('click', () => switchFeedTab(btn.dataset.feedTab));
   });
+  document.getElementById('feed-tag-clear-btn').addEventListener('click', clearTagFilter);
 
   loadPulseStats();
   loadSidebarTrending();
@@ -40,6 +53,9 @@ onReady(async () => {
   else document.getElementById('feed-sidebar-suggestions-card').style.display = 'none';
 
   if (currentUser) await loadPendingRepostFromUrl();
+
+  const urlTag = new URLSearchParams(window.location.search).get('tag');
+  if (urlTag) applyTagFilter(urlTag, false);
 
   await loadFeed();
 });
@@ -104,11 +120,37 @@ let feedTab = 'latest';
 function switchFeedTab(tab) {
   if (tab === feedTab || (tab === 'following' && !currentUser)) return;
   feedTab = tab;
+  if (feedTag) clearTagFilter(false);
   document.querySelectorAll('#feed-tabs [data-feed-tab]').forEach(btn => {
     btn.className = `btn btn-sm ${btn.dataset.feedTab === tab ? 'btn-primary' : 'btn-ghost'}`;
   });
   refreshIcons();
   loadFeed();
+}
+
+function applyTagFilter(tag, shouldLoad = true) {
+  feedTag = tag.toLowerCase();
+  document.getElementById('feed-tag-banner').style.display = 'flex';
+  document.getElementById('feed-tag-banner-text').textContent = `#${feedTag}`;
+  document.querySelectorAll('#feed-tabs [data-feed-tab]').forEach(btn => { btn.className = 'btn btn-sm btn-ghost'; });
+  const url = new URL(window.location.href);
+  url.searchParams.set('tag', feedTag);
+  window.history.replaceState({}, '', url);
+  if (shouldLoad) loadFeed();
+}
+
+function clearTagFilter(shouldLoad = true) {
+  feedTag = null;
+  document.getElementById('feed-tag-banner').style.display = 'none';
+  const url = new URL(window.location.href);
+  url.searchParams.delete('tag');
+  window.history.replaceState({}, '', url);
+  if (shouldLoad) {
+    document.querySelectorAll('#feed-tabs [data-feed-tab]').forEach(btn => {
+      btn.className = `btn btn-sm ${btn.dataset.feedTab === feedTab ? 'btn-primary' : 'btn-ghost'}`;
+    });
+    loadFeed();
+  }
 }
 
 // --- Composer -------------------------------------------------------------
@@ -170,6 +212,8 @@ async function handlePost() {
     image_url,
     repost_trade_listing_id: pendingRepost?.type === 'trade_listing' ? pendingRepost.id : null,
     repost_crew_war_id: pendingRepost?.type === 'crew_war' ? pendingRepost.id : null,
+    visibility: myCrewId && document.getElementById('feed-post-visibility').value === 'crew' ? 'crew' : 'public',
+    crew_id: myCrewId && document.getElementById('feed-post-visibility').value === 'crew' ? myCrewId : null,
   });
   btn.disabled = false;
   if (error) { showToast(error.message, true); return; }
@@ -278,10 +322,16 @@ async function loadFeed() {
   const data = await fetchFeedPage(0, FEED_PAGE_SIZE);
   if (data === null || !data.length) {
     container.innerHTML = '';
-    empty.textContent = feedTab === 'trending'
+    empty.textContent = feedTag
+      ? `No posts tagged #${feedTag} yet.`
+      : feedTab === 'trending'
       ? 'Nothing trending in the last 24 hours yet.'
       : feedTab === 'following'
       ? "No posts yet from people you follow — go follow some pirates."
+      : feedTab === 'saved'
+      ? "You haven't saved any posts yet — tap the bookmark icon on a post to save it."
+      : feedTab === 'crew'
+      ? "No crew-only posts yet — start the conversation."
       : 'No posts yet — be the first to share something.';
     empty.style.display = 'block';
     return;
@@ -312,7 +362,14 @@ async function loadFeed() {
 let feedItemsCache = new Map(); // bf_items rows, keyed by id — shared across repost embeds
 
 async function fetchFeedPage(offset, pageSize) {
-  const { data, error } = await sb.rpc('get_feed_page', { p_limit: pageSize, p_offset: offset, p_trending: feedTab === 'trending', p_following: feedTab === 'following' });
+  const { data, error } = await sb.rpc('get_feed_page', {
+    p_limit: pageSize, p_offset: offset,
+    p_trending: !feedTag && feedTab === 'trending',
+    p_following: !feedTag && feedTab === 'following',
+    p_tag: feedTag,
+    p_bookmarked_only: !feedTag && feedTab === 'saved',
+    p_crew_only: !feedTag && feedTab === 'crew',
+  });
   if (error) { logError('Failed to load feed', error); return null; }
   await hydrateRepostItemCache(data);
   return data;
@@ -400,6 +457,12 @@ function buildWarEmbedHtml(p) {
   `;
 }
 
+function linkifyHashtags(content) {
+  return escapeHtml(content).replace(/(^|[\s])#([a-zA-Z][a-zA-Z0-9_]{1,30})/g, (match, pre, tag) =>
+    `${pre}<a href="/feed/?tag=${encodeURIComponent(tag.toLowerCase())}" data-hashtag-link="${escapeHtml(tag.toLowerCase())}" style="color:var(--brass-bright); text-decoration:none;">#${escapeHtml(tag)}</a>`
+  );
+}
+
 function renderPost(p) {
   const profile = {
     username: p.username, display_name: p.display_name, avatar_url: p.avatar_url, avatar_frame: p.avatar_frame,
@@ -415,7 +478,7 @@ function renderPost(p) {
           ${avatarHtml(profile, 38)}
           <div>
             <a href="/player/?u=${encodeURIComponent(p.username || '')}" style="color:var(--bone); font-weight:700; text-decoration:none; font-size:0.92rem;">${escapeHtml(displayNameFor(profile))}</a> ${titleBadge(profile)}
-            <p class="muted" style="margin:0; font-size:0.75rem;">${timeAgo(p.created_at)}</p>
+            <p class="muted" style="margin:0; font-size:0.75rem;">${timeAgo(p.created_at)}${p.visibility === 'crew' ? ` · <span style="color:var(--sea);"><i data-lucide="shield" class="icon-sm icon-inline"></i>${escapeHtml(p.crew_name || 'Crew')} only</span>` : ''}</p>
           </div>
         </div>
         <div style="display:flex; gap:4px;">
@@ -426,7 +489,7 @@ function renderPost(p) {
         </div>
       </div>
       ${isPinned ? `<p class="muted" style="margin:10px 0 0; font-size:0.72rem;"><i data-lucide="pin" class="icon-sm icon-inline"></i>Pinned to profile</p>` : ''}
-      <p style="margin:12px 0 0; white-space:pre-wrap; font-size:0.94rem;">${escapeHtml(p.content)}</p>
+      <p style="margin:12px 0 0; white-space:pre-wrap; font-size:0.94rem;">${linkifyHashtags(p.content)}</p>
       ${p.image_url ? `<a href="${p.image_url}" target="_blank" rel="noopener noreferrer"><img src="${p.image_url}" alt="" loading="lazy" style="max-width:100%; border-radius:var(--radius-sm,8px); margin-top:12px; border:1px solid var(--glass-border);"></a>` : ''}
       ${p.repost_trade_listing_id ? `<div style="margin-top:12px;">${buildTradeEmbedHtml(p)}</div>` : ''}
       ${p.repost_crew_war_id ? `<div style="margin-top:12px;">${buildWarEmbedHtml(p)}</div>` : ''}
@@ -436,6 +499,9 @@ function renderPost(p) {
         </button>
         <button class="feed-action-btn" data-toggle-comments="${p.id}">
           <i data-lucide="message-square" class="icon-sm"></i><span data-comment-count>${p.comment_count}</span>
+        </button>
+        <button class="feed-action-btn ${p.bookmarked_by_me ? 'is-active' : ''}" data-bookmark-post="${p.id}" ${!currentUser ? 'disabled' : ''} style="margin-left:auto;" title="${p.bookmarked_by_me ? 'Remove from saved' : 'Save privately'}">
+          <i data-lucide="bookmark" class="icon-sm"></i>
         </button>
       </div>
       <div class="feed-comments-panel" data-comments-panel="${p.id}" style="display:none;"></div>
@@ -462,6 +528,9 @@ function wirePostActions(root) {
   });
   root.querySelectorAll('[data-like-post]').forEach(btn => {
     btn.addEventListener('click', () => toggleLike(btn));
+  });
+  root.querySelectorAll('[data-bookmark-post]').forEach(btn => {
+    btn.addEventListener('click', () => toggleBookmark(btn));
   });
   root.querySelectorAll('[data-toggle-comments]').forEach(btn => {
     btn.addEventListener('click', () => toggleCommentsPanel(btn.dataset.toggleComments));
@@ -497,6 +566,27 @@ async function toggleLike(btn) {
     countEl.textContent = Number(countEl.textContent) + (wasActive ? 1 : -1);
     showToast(error.message, true);
   }
+}
+
+async function toggleBookmark(btn) {
+  const auth = await requireAuth();
+  if (!auth) return;
+  const postId = btn.dataset.bookmarkPost;
+  const wasActive = btn.classList.contains('is-active');
+
+  btn.classList.toggle('is-active', !wasActive);
+
+  const { error } = wasActive
+    ? await sb.from('feed_bookmarks').delete().eq('post_id', postId).eq('user_id', auth.user.id)
+    : await sb.from('feed_bookmarks').insert({ post_id: postId, user_id: auth.user.id });
+
+  if (error) {
+    btn.classList.toggle('is-active', wasActive);
+    showToast(error.message, true);
+    return;
+  }
+  showToast(wasActive ? 'Removed from saved.' : 'Saved!');
+  if (feedTab === 'saved' && wasActive) btn.closest('[data-post-id]')?.remove();
 }
 
 // --- Inline comments (expand under the post, no modal) ----------------------

@@ -74,6 +74,7 @@ async function render() {
 
   const isLeader = currentUser && crew.leader_id === currentUser.id;
   const isMember = myMembership && myMembership.crew_id === crew.id;
+  const isOfficer = currentUser && members.some(m => m.user_id === currentUser.id && m.role === 'officer');
 
   let actionHtml;
   let myPendingRequest = null;
@@ -134,11 +135,12 @@ async function render() {
       </div>
     </div>
 
-    ${isLeader ? `
+    ${isLeader || isOfficer ? `
     <div class="panel" style="margin-top:20px;" id="join-requests-panel">
       <h3 style="font-size:1rem; margin-bottom:10px;"><i data-lucide="user-plus" class="icon-sm icon-inline"></i>Pending Requests</h3>
       <div id="join-requests-list"><div class="skeleton" style="height:40px;"></div></div>
-    </div>
+    </div>` : ''}
+    ${isLeader ? `
     <div class="panel" style="margin-top:20px;">
       <h3 style="font-size:1rem; margin-bottom:10px;">Add a Member</h3>
       <form id="add-member-form" style="display:flex; gap:10px; align-items:flex-start; position:relative;">
@@ -152,7 +154,7 @@ async function render() {
     </div>` : ''}
 
     <div class="panel" style="margin-top:20px; padding:0;">
-      ${members.map((m, i) => renderMemberRow(m, i === members.length - 1, isLeader)).join('')}
+      ${members.map((m, i) => renderMemberRow(m, i === members.length - 1, isLeader, isOfficer)).join('')}
     </div>
 
     <div class="panel" style="margin-top:20px;">
@@ -181,7 +183,20 @@ async function render() {
   document.querySelectorAll('[data-kick]').forEach(btn => {
     btn.addEventListener('click', () => handleLeave(btn.dataset.kick));
   });
-  if (isLeader) loadJoinRequests();
+  document.querySelectorAll('[data-promote]').forEach(btn => {
+    btn.addEventListener('click', () => handleSetMemberRole(btn.dataset.promote, 'officer'));
+  });
+  document.querySelectorAll('[data-demote]').forEach(btn => {
+    btn.addEventListener('click', () => handleSetMemberRole(btn.dataset.demote, 'member'));
+  });
+  if (isLeader || isOfficer) loadJoinRequests();
+}
+
+async function handleSetMemberRole(userId, role) {
+  const { error } = await sb.rpc('set_crew_member_role', { p_crew_id: crew.id, p_user_id: userId, p_role: role });
+  if (error) { showToast(error.message, true); return; }
+  showToast(role === 'officer' ? 'Promoted to Officer!' : 'Demoted to Member.');
+  render();
 }
 
 function openJoinRequestModal() {
@@ -315,18 +330,23 @@ async function loadCrewWeeklyStats() {
   `).join('');
 }
 
-function renderMemberRow(m, isLast, isLeader) {
+function renderMemberRow(m, isLast, isLeader, isOfficer) {
   const p = m.profiles;
-  const canKick = isLeader && m.role !== 'leader';
+  const canKick = (isLeader && m.role !== 'leader') || (isOfficer && m.role === 'member');
+  const canPromote = isLeader && m.role === 'member';
+  const canDemote = isLeader && m.role === 'officer';
   return `
     <div class="flex-between" style="padding:12px 20px; ${isLast ? '' : 'border-bottom:1px solid var(--navy-light);'}">
       <div>
         <a href="/player/?u=${encodeURIComponent(p.username)}" style="color:var(--bone); font-weight:700; text-decoration:none;">${escapeHtml(displayNameFor(p))}</a>
         ${titleBadge(p)}
         ${m.role === 'leader' ? `<span class="muted" style="font-size:0.78rem; margin-left:6px;"><i data-lucide="star" class="icon-sm"></i> Leader</span>` : ''}
+        ${m.role === 'officer' ? `<span class="muted" style="font-size:0.78rem; margin-left:6px; color:var(--sea);"><i data-lucide="shield" class="icon-sm"></i> Officer</span>` : ''}
       </div>
       <div style="display:flex; align-items:center; gap:12px;">
         <span class="muted" style="font-size:0.82rem; font-family:var(--font-mono);">Lv. ${p.level}</span>
+        ${canPromote ? `<button class="btn btn-ghost btn-sm" data-promote="${m.user_id}" title="Promote to Officer"><i data-lucide="shield-plus" class="icon-sm icon-inline"></i>Promote</button>` : ''}
+        ${canDemote ? `<button class="btn btn-ghost btn-sm" data-demote="${m.user_id}" title="Demote to Member"><i data-lucide="shield-minus" class="icon-sm icon-inline"></i>Demote</button>` : ''}
         ${canKick ? `<button class="btn btn-danger btn-sm" data-kick="${m.user_id}">Remove</button>` : ''}
       </div>
     </div>

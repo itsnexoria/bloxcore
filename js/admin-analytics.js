@@ -16,11 +16,45 @@ async function initAnalyticsTab() {
   }
 
   renderStatCards(data);
+  renderEngagementWow(data.engagement_wow || {});
   renderSignupsChart(data.signups_by_day || []);
   renderActivityBreakdown(data.activity_by_type || []);
   renderQueueHealth(data.submissions_health || {});
   renderPvpHealth(data.pvp_health || {});
   refreshIcons();
+}
+
+function renderEngagementWow(wow) {
+  const el = document.getElementById('analytics-engagement-wow');
+  if (!el) return;
+
+  const rows = [
+    { label: 'Feed Posts', key: 'feed_posts', icon: 'rss' },
+    { label: 'Trades Completed', key: 'trades_completed', icon: 'repeat' },
+    { label: 'Bounties Completed', key: 'bounties_completed', icon: 'swords' },
+    { label: 'New Signups', key: 'new_signups', icon: 'user-plus' },
+  ];
+
+  el.innerHTML = rows.map(r => {
+    const stat = wow[r.key] || { this_week: 0, last_week: 0 };
+    const thisWeek = stat.this_week || 0;
+    const lastWeek = stat.last_week || 0;
+    const pct = lastWeek === 0 ? (thisWeek > 0 ? 100 : 0) : Math.round(((thisWeek - lastWeek) / lastWeek) * 100);
+    const isUp = pct > 0;
+    const isFlat = pct === 0;
+    const color = isFlat ? 'var(--ash)' : isUp ? '#34d399' : '#f87171';
+    const arrow = isFlat ? 'minus' : isUp ? 'trending-up' : 'trending-down';
+    return `
+      <div class="panel" style="padding:14px 16px;">
+        <p class="muted" style="margin:0 0 6px; font-size:0.72rem; text-transform:uppercase; letter-spacing:0.05em; display:flex; align-items:center; gap:6px;"><i data-lucide="${r.icon}" class="icon-sm"></i>${r.label}</p>
+        <div class="flex-between" style="align-items:flex-end;">
+          <p style="margin:0; font-family:var(--font-stamp); font-size:1.4rem; color:var(--brass-bright);">${thisWeek.toLocaleString()}</p>
+          <span style="color:${color}; font-size:0.78rem; font-family:var(--font-mono); display:flex; align-items:center; gap:3px;"><i data-lucide="${arrow}" class="icon-sm"></i>${isFlat ? '±0%' : `${isUp ? '+' : ''}${pct}%`}</span>
+        </div>
+        <p class="muted" style="margin:4px 0 0; font-size:0.7rem;">vs ${lastWeek.toLocaleString()} last week</p>
+      </div>
+    `;
+  }).join('');
 }
 
 function renderStatCards(d) {
@@ -30,7 +64,7 @@ function renderStatCards(d) {
     { label: 'New (7d)', value: d.new_users_7d, icon: 'user-plus' },
     { label: 'Active Trades', value: d.active_trades, icon: 'repeat' },
     { label: 'Active Services', value: d.active_services, icon: 'hammer' },
-    { label: 'Chat Msgs (30d)', value: d.chat_messages_30d, icon: 'message-circle' },
+    { label: 'Feed Posts (30d)', value: d.feed_posts_30d, icon: 'rss' },
   ];
   document.getElementById('analytics-stat-cards').innerHTML = cards.map(c => `
     <div class="panel" style="padding:14px 16px;">

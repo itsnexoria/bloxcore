@@ -53,6 +53,7 @@ async function loadPlayer() {
   loadPlayerLikesTotal(profile.id);
   loadPlayerVouches(profile.id, viewerId, isOwnProfile);
   loadPlayerPvpHistory(profile.id);
+  loadPlayerTradeHistory(profile.id);
   if (profile.pinned_feed_post_id) loadPlayerPinnedPost(profile.id);
 }
 
@@ -285,6 +286,11 @@ function renderProfile(p, crew, isOwnProfile) {
     <div id="player-pvp-history-section" style="display:none; margin-top:20px;">
       <p class="muted" style="margin:0 0 10px; font-size:0.8rem; text-transform:uppercase; letter-spacing:0.05em;"><i data-lucide="crosshair" class="icon-sm icon-inline"></i>Combat Record</p>
       <div id="player-pvp-history-list" style="display:flex; flex-direction:column; gap:6px;"></div>
+    </div>
+
+    <div id="player-trade-history-section" style="display:none; margin-top:20px;">
+      <p class="muted" style="margin:0 0 10px; font-size:0.8rem; text-transform:uppercase; letter-spacing:0.05em;"><i data-lucide="repeat" class="icon-sm icon-inline"></i>Trade History</p>
+      <div id="player-trade-history-list" style="display:flex; flex-direction:column; gap:6px;"></div>
     </div>
 
     ${buildFields.length ? `
@@ -784,4 +790,40 @@ async function loadPlayerPinnedPost(userId) {
   `;
   section.style.display = 'block';
   refreshIcons();
+}
+
+// Trade History — sourced from trade_history, a permanent log written whenever a
+// listing gets marked completed (separate from trade_listings itself, which expires
+// and gets purged by a cron job regardless of completion status).
+async function loadPlayerTradeHistory(profileId) {
+  const section = document.getElementById('player-trade-history-section');
+  const list = document.getElementById('player-trade-history-list');
+
+  const { data: rows, error } = await sb.from('trade_history')
+    .select('id, offering_item_ids, requesting_item_ids, completed_at')
+    .eq('user_id', profileId)
+    .order('completed_at', { ascending: false })
+    .limit(10);
+  if (error || !rows || !rows.length) return;
+
+  const ids = new Set();
+  rows.forEach(r => {
+    (r.offering_item_ids || []).forEach(e => ids.add(e.id));
+    (r.requesting_item_ids || []).forEach(e => ids.add(e.id));
+  });
+  const { data: items } = await sb.from('bf_items').select('id, name, icon_url, regular_value, permanent_value').in('id', [...ids]);
+  const byId = new Map((items || []).map(i => [i.id, i]));
+
+  const sideLabel = (entries) => (entries || []).map(e => {
+    const item = byId.get(e.id);
+    return item ? escapeHtml(item.name) : 'Unknown item';
+  }).join(', ') || '—';
+
+  list.innerHTML = rows.map(r => `
+    <div class="panel panel-plain" style="padding:10px 14px;">
+      <p style="margin:0; font-size:0.85rem;"><span style="color:var(--sea);">${sideLabel(r.offering_item_ids)}</span> <span class="muted">for</span> <span style="color:var(--gold-bright);">${sideLabel(r.requesting_item_ids)}</span></p>
+      <p class="muted" style="margin:2px 0 0; font-size:0.72rem;">${timeAgo(r.completed_at)}</p>
+    </div>
+  `).join('');
+  section.style.display = 'block';
 }

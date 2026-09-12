@@ -3383,6 +3383,8 @@ html.compact-mode .grid { gap: 12px; }
 .feed-action-btn:disabled { cursor: default; opacity: 0.6; }
 .feed-action-btn.is-active { color: #f43f5e; }
 .feed-action-btn.is-active i { fill: #f43f5e; }
+.feed-action-btn[data-bookmark-post].is-active { color: var(--brass-bright); }
+.feed-action-btn[data-bookmark-post].is-active i { fill: var(--brass-bright); }
 .feed-comments-panel { margin-top:12px; padding-top:12px; border-top:1px solid var(--glass-border); animation: fadeInUp 0.25s ease both; }
 .feed-comment-row { display:flex; gap:10px; padding:8px 0; }
 .feed-comment-row + .feed-comment-row { border-top:1px solid var(--navy-light); }
