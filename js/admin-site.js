@@ -33,7 +33,7 @@ async function initSiteTab() {
     await loadSitePagesDropdowns();
     await loadMaintenanceList();
     await loadPageBlockList();
-    await loadDiscordWebhooks();
+    initWebhookPanel();
 
     document.getElementById('broadcast-form').addEventListener('submit', handleCreateBroadcast);
     document.getElementById('event-form').addEventListener('submit', handleCreateEvent);
@@ -369,37 +369,233 @@ async function handleAddPageBlock(e) {
 // this admin panel were only ever used to moderate links inside global chat messages.
 
 
-// --- Discord Webhooks -----------------------------------------------------
 
-async function loadDiscordWebhooks() {
-  const { data, error } = await sb.from('discord_webhooks').select('channel, label, url, ping_role_id').order('label');
-  const list = document.getElementById('discord-webhook-list');
-  if (error) { list.innerHTML = errorStateHtml("Couldn't load webhooks.", 'loadDiscordWebhooks()'); refreshIcons(); return; }
+// --- Webhooks (multi-endpoint fan-out + delivery log) ----------------------
+// See webhook_endpoints / webhook_deliveries in the DB. Discord embeds are built
+// server-side by the event triggers; this panel only manages *where* they go.
 
-  list.innerHTML = (data || []).map(row => `
-    <div class="webhook-row" data-webhook-channel="${escapeHtml(row.channel)}" style="flex-wrap:wrap;">
-      <div class="webhook-row-label">
-        <strong>${escapeHtml(row.label)}</strong>
-        <span class="muted" style="font-size:0.72rem;">${escapeHtml(row.channel)}</span>
+const WEBHOOK_CHANNEL_LABELS = {
+  updates: 'General Updates', giveaways: 'Giveaways', trading: 'Trading',
+  services: 'Services (Raids/Trials)', crews: 'Crews', crew_wars: 'Crew Wars',
+  events: 'Sea Events', pvp: 'PvP Matches', tournaments: 'Tournaments',
+};
+const WEBHOOK_CHANNEL_ORDER = ['updates', 'giveaways', 'trading', 'services', 'crews', 'crew_wars', 'events', 'pvp', 'tournaments'];
+
+async function loadWebhookEndpoints() {
+  const wrap = document.getElementById('webhook-endpoint-groups');
+  const { data, error } = await sb.from('webhook_endpoints').select('*').order('channel').order('created_at');
+  if (error) { wrap.innerHTML = errorStateHtml("Couldn't load webhooks.", 'loadWebhookEndpoints()'); refreshIcons(); return; }
+
+  const byChannel = new Map();
+  (data || []).forEach(row => {
+    if (!byChannel.has(row.channel)) byChannel.set(row.channel, []);
+    byChannel.get(row.channel).push(row);
+  });
+
+  const orderedChannels = [...WEBHOOK_CHANNEL_ORDER.filter(c => byChannel.has(c)), ...[...byChannel.keys()].filter(c => !WEBHOOK_CHANNEL_ORDER.includes(c))];
+
+  if (!orderedChannels.length) {
+    wrap.innerHTML = `<p class="muted" style="margin:0;">No endpoints configured yet — add one to start sending notifications.</p>`;
+    return;
+  }
+
+  wrap.innerHTML = orderedChannels.map(channel => `
+    <div>
+      <p style="margin:0 0 8px; font-size:0.82rem; font-weight:700; color:var(--bone); text-transform:uppercase; letter-spacing:0.04em;">${escapeHtml(WEBHOOK_CHANNEL_LABELS[channel] || channel)}</p>
+      <div style="display:flex; flex-direction:column; gap:8px;">
+        ${byChannel.get(channel).map(renderWebhookEndpointRow).join('')}
       </div>
-      <input type="url" class="webhook-row-input" placeholder="https://discord.com/api/webhooks/…" value="${escapeHtml(row.url || '')}">
-      <input type="text" class="webhook-row-input webhook-role-input" placeholder="Role ID to ping (optional)" value="${escapeHtml(row.ping_role_id || '')}" style="max-width:180px;" inputmode="numeric" pattern="[0-9]*">
-      <button type="button" class="btn btn-ghost btn-sm" data-save-webhook="${escapeHtml(row.channel)}">Save</button>
     </div>
   `).join('');
 
-  list.querySelectorAll('[data-save-webhook]').forEach(btn => {
+  wireWebhookRowActions(wrap);
+  refreshIcons();
+}
+
+function renderWebhookEndpointRow(row) {
+  const providerIcon = row.provider === 'discord' ? 'message-circle' : 'code-2';
+  return `
+    <div class="webhook-row" data-endpoint-row="${row.id}" style="flex-wrap:wrap; ${row.enabled ? '' : 'opacity:0.55;'}">
+      <div class="webhook-row-label" style="min-width:160px;">
+        <strong><i data-lucide="${providerIcon}" class="icon-sm icon-inline"></i>${escapeHtml(row.label || row.provider)}</strong>
+        <span class="muted" style="font-size:0.72rem; display:block; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:260px;">${escapeHtml(row.url)}</span>
+      </div>
+      <div style="display:flex; align-items:center; gap:6px; margin-left:auto;">
+        <label class="toggle-switch" title="${row.enabled ? 'Enabled' : 'Disabled'}">
+          <input type="checkbox" data-toggle-endpoint="${row.id}" ${row.enabled ? 'checked' : ''}>
+          <span class="toggle-slider"></span>
+        </label>
+        <button type="button" class="btn btn-ghost btn-sm" data-test-endpoint="${row.id}" title="Send test"><i data-lucide="send" class="icon-sm"></i></button>
+        <button type="button" class="btn btn-ghost btn-sm" data-edit-endpoint="${row.id}" title="Edit"><i data-lucide="pencil" class="icon-sm"></i></button>
+        <button type="button" class="btn btn-ghost btn-sm" data-delete-endpoint="${row.id}" title="Delete"><i data-lucide="trash-2" class="icon-sm"></i></button>
+      </div>
+    </div>
+  `;
+}
+
+function wireWebhookRowActions(root) {
+  root.querySelectorAll('[data-toggle-endpoint]').forEach(input => {
+    input.addEventListener('change', async () => {
+      const { error } = await sb.from('webhook_endpoints').update({ enabled: input.checked, updated_at: new Date().toISOString() }).eq('id', input.dataset.toggleEndpoint);
+      if (error) { showToast(error.message, true); input.checked = !input.checked; return; }
+      showToast(input.checked ? 'Endpoint enabled.' : 'Endpoint disabled.');
+      loadWebhookEndpoints();
+    });
+  });
+  root.querySelectorAll('[data-test-endpoint]').forEach(btn => {
     btn.addEventListener('click', async () => {
-      const channel = btn.dataset.saveWebhook;
-      const row = list.querySelector(`[data-webhook-channel="${CSS.escape(channel)}"]`);
-      const url = row.querySelector('.webhook-row-input').value.trim();
-      const roleId = row.querySelector('.webhook-role-input').value.trim();
-      if (roleId && !/^\d+$/.test(roleId)) { showToast('Role ID must be numbers only — right-click the role in Discord (Developer Mode on) and Copy Role ID.', true); return; }
       btn.disabled = true;
-      const { error } = await sb.from('discord_webhooks').update({ url: url || null, ping_role_id: roleId || null, updated_at: new Date().toISOString() }).eq('channel', channel);
+      const { error } = await sb.rpc('admin_test_webhook', { p_endpoint_id: btn.dataset.testEndpoint });
       btn.disabled = false;
       if (error) { showToast(error.message, true); return; }
-      showToast(url ? 'Webhook saved.' : 'Webhook cleared — that channel is now silent.');
+      showToast('Test sent — check the Delivery Log below in a few seconds.');
+      setTimeout(loadWebhookDeliveryLog, 2500);
     });
+  });
+  root.querySelectorAll('[data-edit-endpoint]').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const { data } = await sb.from('webhook_endpoints').select('*').eq('id', btn.dataset.editEndpoint).single();
+      if (data) openWebhookModal(data);
+    });
+  });
+  root.querySelectorAll('[data-delete-endpoint]').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      if (!window.confirm('Delete this endpoint? This cannot be undone.')) return;
+      const { error } = await sb.from('webhook_endpoints').delete().eq('id', btn.dataset.deleteEndpoint);
+      if (error) { showToast(error.message, true); return; }
+      showToast('Endpoint deleted.');
+      loadWebhookEndpoints();
+    });
+  });
+}
+
+function openWebhookModal(existing = null) {
+  const form = document.getElementById('webhook-endpoint-form');
+  form.reset();
+  document.getElementById('webhook-endpoint-error').style.display = 'none';
+  document.getElementById('webhook-endpoint-modal-title').textContent = existing ? 'Edit Endpoint' : 'Add Endpoint';
+  document.getElementById('webhook-endpoint-id').value = existing?.id || '';
+
+  const channelSelect = document.getElementById('webhook-endpoint-channel');
+  const customInput = document.getElementById('webhook-endpoint-channel-custom');
+  if (existing) {
+    const knownOption = [...channelSelect.options].some(o => o.value === existing.channel);
+    channelSelect.value = knownOption ? existing.channel : '__custom';
+    customInput.style.display = knownOption ? 'none' : 'block';
+    customInput.value = knownOption ? '' : existing.channel;
+  } else {
+    channelSelect.value = 'updates';
+    customInput.style.display = 'none';
+  }
+
+  document.getElementById('webhook-endpoint-provider').value = existing?.provider || 'discord';
+  document.getElementById('webhook-endpoint-label').value = existing?.label || '';
+  document.getElementById('webhook-endpoint-url').value = existing?.url || '';
+  document.getElementById('webhook-endpoint-role').value = existing?.ping_role_id || '';
+  document.getElementById('webhook-endpoint-secret').value = existing?.secret || '';
+  document.getElementById('webhook-endpoint-enabled').checked = existing ? existing.enabled : true;
+  toggleWebhookProviderFields();
+
+  document.getElementById('webhook-endpoint-modal').classList.add('open');
+}
+
+function closeWebhookModal() {
+  document.getElementById('webhook-endpoint-modal').classList.remove('open');
+}
+
+function toggleWebhookProviderFields() {
+  const isDiscord = document.getElementById('webhook-endpoint-provider').value === 'discord';
+  document.getElementById('webhook-endpoint-discord-fields').style.display = isDiscord ? 'block' : 'none';
+  document.getElementById('webhook-endpoint-generic-fields').style.display = isDiscord ? 'none' : 'block';
+}
+
+async function handleSaveWebhookEndpoint(e) {
+  e.preventDefault();
+  const errEl = document.getElementById('webhook-endpoint-error');
+  errEl.style.display = 'none';
+
+  const id = document.getElementById('webhook-endpoint-id').value || null;
+  const channelSelectVal = document.getElementById('webhook-endpoint-channel').value;
+  const channel = channelSelectVal === '__custom' ? document.getElementById('webhook-endpoint-channel-custom').value.trim() : channelSelectVal;
+  const roleId = document.getElementById('webhook-endpoint-role').value.trim();
+
+  if (!channel) { errEl.textContent = 'Enter a custom channel key.'; errEl.style.display = 'block'; return; }
+  if (roleId && !/^\d+$/.test(roleId)) { errEl.textContent = 'Role ID must be numbers only.'; errEl.style.display = 'block'; return; }
+
+  const row = {
+    channel,
+    provider: document.getElementById('webhook-endpoint-provider').value,
+    label: document.getElementById('webhook-endpoint-label').value.trim(),
+    url: document.getElementById('webhook-endpoint-url').value.trim(),
+    ping_role_id: roleId || null,
+    secret: document.getElementById('webhook-endpoint-secret').value.trim() || null,
+    enabled: document.getElementById('webhook-endpoint-enabled').checked,
+    updated_at: new Date().toISOString(),
+  };
+
+  const btn = document.getElementById('webhook-endpoint-save-btn');
+  btn.disabled = true;
+  const { error } = id
+    ? await sb.from('webhook_endpoints').update(row).eq('id', id)
+    : await sb.from('webhook_endpoints').insert(row);
+  btn.disabled = false;
+
+  if (error) { errEl.textContent = error.message; errEl.style.display = 'block'; return; }
+  showToast(id ? 'Endpoint updated.' : 'Endpoint added.');
+  closeWebhookModal();
+  loadWebhookEndpoints();
+}
+
+// --- Delivery log ---
+
+let webhookLogFilter = '';
+
+async function loadWebhookDeliveryLog() {
+  const log = document.getElementById('webhook-delivery-log');
+  let query = sb.from('webhook_deliveries')
+    .select('id, channel, provider, event_summary, success, http_status, error_message, retry_count, created_at')
+    .order('created_at', { ascending: false })
+    .limit(40);
+
+  if (webhookLogFilter === 'success') query = query.eq('success', true);
+  else if (webhookLogFilter === 'failed') query = query.eq('success', false);
+  else if (webhookLogFilter === 'pending') query = query.is('success', null);
+
+  const { data, error } = await query;
+  if (error) { log.innerHTML = errorStateHtml("Couldn't load delivery log.", 'loadWebhookDeliveryLog()'); refreshIcons(); return; }
+  if (!data || !data.length) { log.innerHTML = `<p class="muted" style="margin:0;">No deliveries yet.</p>`; return; }
+
+  log.innerHTML = data.map(d => {
+    const statusTag = d.success === null
+      ? `<span class="tag tag-medium">Pending</span>`
+      : d.success
+      ? `<span class="tag tag-easy">${d.http_status || 200}</span>`
+      : `<span class="tag tag-hard">Failed${d.http_status ? ' · ' + d.http_status : ''}</span>`;
+    return `
+      <div class="flex-between" style="padding:10px 0; border-bottom:1px solid var(--navy-light); gap:12px;">
+        <div style="min-width:0;">
+          <p style="margin:0; font-size:0.85rem;"><strong>${escapeHtml(WEBHOOK_CHANNEL_LABELS[d.channel] || d.channel)}</strong> <span class="muted">${escapeHtml(d.event_summary || '')}</span></p>
+          <p class="muted" style="margin:2px 0 0; font-size:0.72rem;">${timeAgo(d.created_at)}${d.retry_count ? ` · retried ${d.retry_count}×` : ''}${d.error_message ? ` · ${escapeHtml(d.error_message)}` : ''}</p>
+        </div>
+        ${statusTag}
+      </div>
+    `;
+  }).join('');
+}
+
+function initWebhookPanel() {
+  loadWebhookEndpoints();
+  loadWebhookDeliveryLog();
+
+  document.getElementById('webhook-add-btn').addEventListener('click', () => openWebhookModal());
+  document.getElementById('webhook-endpoint-modal-close').addEventListener('click', closeWebhookModal);
+  document.getElementById('webhook-endpoint-form').addEventListener('submit', handleSaveWebhookEndpoint);
+  document.getElementById('webhook-endpoint-provider').addEventListener('change', toggleWebhookProviderFields);
+  document.getElementById('webhook-endpoint-channel').addEventListener('change', (e) => {
+    document.getElementById('webhook-endpoint-channel-custom').style.display = e.target.value === '__custom' ? 'block' : 'none';
+  });
+  document.getElementById('webhook-log-filter').addEventListener('change', (e) => {
+    webhookLogFilter = e.target.value;
+    loadWebhookDeliveryLog();
   });
 }

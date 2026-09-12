@@ -878,11 +878,31 @@
 
       <div data-site-subpanel="discord-webhooks" style="display:none;">
       <div class="panel" id="site-discord-webhooks" style="margin-top:16px; scroll-margin-top:90px;">
-        <h3 style="font-size:1.1rem;"><i data-lucide="webhook" class="icon-sm icon-inline"></i>Discord Webhooks</h3>
-        <p class="muted" style="font-size:0.85rem; margin-top:-8px;">Where each type of site activity gets posted in Discord. Leave a field blank to disable that channel's notifications.</p>
-        <div id="discord-webhook-list" style="display:flex; flex-direction:column; gap:12px;">
-          <div class="skeleton" style="height:56px;"></div>
-          <div class="skeleton" style="height:56px;"></div>
+        <div class="flex-between">
+          <h3 style="font-size:1.1rem; margin:0;"><i data-lucide="webhook" class="icon-sm icon-inline"></i>Webhooks</h3>
+          <button type="button" class="btn btn-primary btn-sm" id="webhook-add-btn"><i data-lucide="plus" class="icon-sm icon-inline"></i>Add Endpoint</button>
+        </div>
+        <p class="muted" style="font-size:0.85rem; margin:6px 0 0;">Fan out any event to multiple endpoints — Discord servers, or a generic JSON webhook for your own bot/automation. Every send is logged below so failures are never silent.</p>
+
+        <div id="webhook-endpoint-groups" style="margin-top:18px; display:flex; flex-direction:column; gap:18px;">
+          <div class="skeleton" style="height:80px;"></div>
+          <div class="skeleton" style="height:80px;"></div>
+        </div>
+      </div>
+
+      <div class="panel" id="site-webhook-deliveries" style="margin-top:16px; scroll-margin-top:90px;">
+        <div class="flex-between">
+          <h3 style="font-size:1.1rem; margin:0;"><i data-lucide="list-checks" class="icon-sm icon-inline"></i>Delivery Log</h3>
+          <select id="webhook-log-filter" style="margin:0; width:auto; font-size:0.8rem;">
+            <option value="">All statuses</option>
+            <option value="success">Success</option>
+            <option value="failed">Failed</option>
+            <option value="pending">Pending</option>
+          </select>
+        </div>
+        <div id="webhook-delivery-log" style="margin-top:14px; display:flex; flex-direction:column;">
+          <div class="skeleton" style="height:44px;"></div>
+          <div class="skeleton" style="height:44px; margin-top:6px;"></div>
         </div>
       </div>
       </div>
@@ -1205,6 +1225,61 @@
 </footer>
 
 <script src="https://unpkg.com/lucide@1.34.0"></script>
+<div id="webhook-endpoint-modal" class="build-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="webhook-endpoint-modal-title">
+  <div class="panel build-modal" style="max-width:460px;">
+    <div class="flex-between" style="margin-bottom:14px;">
+      <h3 id="webhook-endpoint-modal-title" style="font-size:1.05rem; margin:0;">Add Endpoint</h3>
+      <button type="button" class="btn btn-ghost btn-sm" id="webhook-endpoint-modal-close" aria-label="Close"><i data-lucide="x" class="icon-md"></i></button>
+    </div>
+    <form id="webhook-endpoint-form">
+      <input type="hidden" id="webhook-endpoint-id">
+      <label for="webhook-endpoint-channel">Channel</label>
+      <select id="webhook-endpoint-channel" required>
+        <option value="updates">General Updates</option>
+        <option value="giveaways">Giveaways</option>
+        <option value="trading">Trading</option>
+        <option value="services">Services (Raids/Trials)</option>
+        <option value="crews">Crews</option>
+        <option value="crew_wars">Crew Wars</option>
+        <option value="events">Sea Events</option>
+        <option value="pvp">PvP Matches</option>
+        <option value="tournaments">Tournaments</option>
+        <option value="__custom">Custom channel key…</option>
+      </select>
+      <input type="text" id="webhook-endpoint-channel-custom" placeholder="e.g. custom_analytics" style="display:none; margin-top:8px;">
+
+      <label for="webhook-endpoint-provider" style="margin-top:14px;">Provider</label>
+      <select id="webhook-endpoint-provider">
+        <option value="discord">Discord</option>
+        <option value="generic">Generic JSON (custom bot / Zapier / Make / n8n)</option>
+      </select>
+
+      <label for="webhook-endpoint-label">Label</label>
+      <input type="text" id="webhook-endpoint-label" placeholder="e.g. Main Server, Partner Server" required>
+
+      <label for="webhook-endpoint-url">Webhook URL</label>
+      <input type="url" id="webhook-endpoint-url" placeholder="https://discord.com/api/webhooks/…" required>
+
+      <div id="webhook-endpoint-discord-fields">
+        <label for="webhook-endpoint-role">Role ID to ping (optional)</label>
+        <input type="text" id="webhook-endpoint-role" placeholder="Right-click the role in Discord → Copy Role ID" inputmode="numeric" pattern="[0-9]*">
+      </div>
+      <div id="webhook-endpoint-generic-fields" style="display:none;">
+        <label for="webhook-endpoint-secret">Signing secret (optional)</label>
+        <input type="text" id="webhook-endpoint-secret" placeholder="Sent as the X-Webhook-Secret header">
+      </div>
+
+      <label style="display:flex; align-items:center; gap:8px; margin-top:14px; cursor:pointer;">
+        <input type="checkbox" id="webhook-endpoint-enabled" checked style="width:auto; margin:0;">
+        <span>Enabled</span>
+      </label>
+
+      <p class="field-error" id="webhook-endpoint-error" style="display:none;"></p>
+      <button type="submit" class="btn btn-primary btn-block" id="webhook-endpoint-save-btn">Save Endpoint</button>
+    </form>
+  </div>
+</div>
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.112.4"></script>
 <script src="/js/animations.js"></script>
 <script src="/js/install-prompt.js"></script>
