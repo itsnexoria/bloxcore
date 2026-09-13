@@ -219,7 +219,7 @@ async function loadGiveaways() {
   // Active giveaways are naturally bounded (they end automatically), so they're fetched
   // in full; the ended history keeps growing forever, so that one is paginated.
   const [{ data: active, error }, { data: counts }, endedFirstPage] = await Promise.all([
-    sb.from('giveaways').select('*, profiles!giveaways_winner_user_id_fkey(username, display_name)').eq('status', 'active').order('ends_at', { ascending: true }),
+    sb.from('giveaways').select('*').eq('status', 'active').order('ends_at', { ascending: true }),
     sb.rpc('get_giveaway_entry_counts'),
     fetchEndedGiveawaysPage(0, ENDED_GIVEAWAYS_PAGE_SIZE),
   ]);
@@ -269,11 +269,22 @@ async function loadGiveaways() {
 async function fetchEndedGiveawaysPage(offset, pageSize) {
   const { data, error } = await sb
     .from('giveaways')
-    .select('*, profiles!giveaways_winner_user_id_fkey(username, display_name)')
+    .select('*')
     .eq('status', 'ended')
     .order('ends_at', { ascending: false })
     .range(offset, offset + pageSize - 1);
   if (error) { logError(error); return null; }
+  if (!data.length) return data;
+
+  const { data: winnerRows } = await sb.from('giveaway_winners')
+    .select('giveaway_id, user_id, profiles(username, display_name)')
+    .in('giveaway_id', data.map(g => g.id));
+  const winnersMap = new Map();
+  (winnerRows || []).forEach(w => {
+    if (!winnersMap.has(w.giveaway_id)) winnersMap.set(w.giveaway_id, []);
+    winnersMap.get(w.giveaway_id).push(w.profiles);
+  });
+  data.forEach(g => { g.winners = winnersMap.get(g.id) || []; });
   return data;
 }
 
@@ -299,7 +310,7 @@ function renderActiveCard(g, entryCount) {
       <p class="rank-title" style="font-size:1.1rem; margin:0 0 10px;">${escapeHtml(g.prize)}</p>
       <p class="muted" style="font-size:0.88rem; margin:0 0 14px;">${escapeHtml(g.description)}</p>
       <p class="muted" style="font-size:0.8rem; font-family:var(--font-mono); margin:0 0 14px;">
-        ${entryCount} entered · ${timeRemaining(g.ends_at)}
+        ${entryCount} entered · ${g.winner_count > 1 ? `${g.winner_count} winners · ` : ''}${timeRemaining(g.ends_at)}
       </p>
       ${actionHtml}
       ${currentUser && g.created_by === currentUser.id ? `<button type="button" class="btn btn-ghost btn-block" style="margin-top:8px;" data-mark-complete="${g.id}"><i data-lucide="camera" class="icon-sm icon-inline"></i>Mark Completed</button>` : ''}
@@ -308,7 +319,8 @@ function renderActiveCard(g, entryCount) {
 }
 
 function renderEndedRow(g) {
-  const winnerName = g.winner_user_id ? displayNameFor(g.profiles) : 'No entries';
+  const winners = g.winners || [];
+  const winnerText = winners.length ? winners.map(displayNameFor).map(escapeHtml).join(', ') : 'No entries';
   const proofTag = g.proof_status === 'approved'
     ? `<span class="tag tag-easy">Proof Verified</span>`
     : g.proof_status === 'pending'
@@ -327,7 +339,7 @@ function renderEndedRow(g) {
         </div>
       </div>
       <p style="margin:0; font-family:var(--font-mono); color:var(--brass-bright);">
-        ${g.winner_user_id ? `<i data-lucide="trophy" class="icon-sm" style="color:var(--brass-bright);"></i> ${escapeHtml(winnerName)}` : winnerName}
+        ${winners.length ? `<i data-lucide="trophy" class="icon-sm" style="color:var(--brass-bright);"></i> ${winnerText}` : winnerText}
       </p>
     </div>
   `;

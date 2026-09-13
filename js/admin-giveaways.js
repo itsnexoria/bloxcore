@@ -66,7 +66,7 @@ async function loadGiveaways(page) {
   const to = from + GIVEAWAYS_PAGE_SIZE - 1;
 
   const [{ data: giveaways, error, count }, { data: counts }] = await Promise.all([
-    sb.from('giveaways').select('*, profiles!giveaways_winner_user_id_fkey(username, display_name), submitter:profiles!giveaways_created_by_fkey(username, display_name)', { count: 'exact' }).order('created_at', { ascending: false }).range(from, to),
+    sb.from('giveaways').select('*, submitter:profiles!giveaways_created_by_fkey(username, display_name)', { count: 'exact' }).order('created_at', { ascending: false }).range(from, to),
     sb.rpc('get_giveaway_entry_counts'),
   ]);
 
@@ -88,8 +88,20 @@ async function loadGiveaways(page) {
 
   const countMap = new Map((counts || []).map(c => [c.giveaway_id, c.entry_count]));
 
+  const endedIds = giveaways.filter(g => g.status === 'ended').map(g => g.id);
+  let winnersMap = new Map();
+  if (endedIds.length) {
+    const { data: winnerRows } = await sb.from('giveaway_winners')
+      .select('giveaway_id, user_id, profiles(username, display_name)')
+      .in('giveaway_id', endedIds);
+    (winnerRows || []).forEach(w => {
+      if (!winnersMap.has(w.giveaway_id)) winnersMap.set(w.giveaway_id, []);
+      winnersMap.get(w.giveaway_id).push({ user_id: w.user_id, ...w.profiles });
+    });
+  }
+
   table.innerHTML = `<div class="panel panel-plain" style="padding:0;">` +
-    giveaways.map((g, i) => renderGiveawayRow(g, countMap.get(g.id) || 0, i === giveaways.length - 1)).join('') +
+    giveaways.map((g, i) => renderGiveawayRow(g, countMap.get(g.id) || 0, i === giveaways.length - 1, winnersMap.get(g.id) || [])).join('') +
     `</div>` + renderGiveawaysPager(count);
 
   document.querySelectorAll('[data-gv-select]').forEach(cb => {
@@ -106,7 +118,7 @@ async function loadGiveaways(page) {
     btn.addEventListener('click', () => pickWinner(btn.dataset.pickWinner, btn));
   });
   document.querySelectorAll('[data-reroll-winner]').forEach(btn => {
-    btn.addEventListener('click', () => rerollWinner(btn.dataset.rerollWinner, btn));
+    btn.addEventListener('click', () => rerollWinner(btn.dataset.rerollWinner, btn.dataset.rerollUser, btn));
   });
   document.querySelectorAll('[data-delete-giveaway]').forEach(btn => {
     btn.addEventListener('click', () => deleteGiveaway(btn.dataset.deleteGiveaway, btn.dataset.title));
@@ -187,7 +199,7 @@ function renderGiveawaysPager(total) {
   `;
 }
 
-function renderGiveawayRow(g, entryCount, isLast) {
+function renderGiveawayRow(g, entryCount, isLast, winners = []) {
   const statusTag = g.status === 'active'
     ? `<span class="tag tag-easy">Active</span>`
     : g.status === 'pending'
@@ -195,7 +207,9 @@ function renderGiveawayRow(g, entryCount, isLast) {
     : g.status === 'rejected'
     ? `<span class="tag" style="background:rgb(var(--brass-rgb) / 0.16); color:var(--brass-bright);">Rejected</span>`
     : `<span class="tag" style="background:rgba(138,148,166,0.15); color:var(--ash);">Ended</span>`;
-  const winnerLabel = g.winner_user_id ? `<i data-lucide="trophy" class="icon-sm" style="color:var(--brass-bright);"></i> ${escapeHtml(displayNameFor(g.profiles))}` : '';
+  const winnerLabel = winners.length
+    ? `<i data-lucide="trophy" class="icon-sm" style="color:var(--brass-bright);"></i> ${winners.map(w => escapeHtml(displayNameFor(w))).join(', ')}`
+    : '';
   const image = g.image_url ? `<img src="${g.image_url}" alt="" loading="lazy" style="width:36px; height:36px; object-fit:contain; flex-shrink:0;">` : '';
   const submittedBy = g.submitter ? `<span class="muted"> · submitted by ${escapeHtml(displayNameFor(g.submitter))}</span>` : '';
 
@@ -207,8 +221,13 @@ function renderGiveawayRow(g, entryCount, isLast) {
         <div>
           <p style="margin:0; font-weight:700;">${escapeHtml(g.title)} <span class="muted" style="font-weight:400;">— ${escapeHtml(g.prize)}</span>${submittedBy}</p>
           <p class="muted" style="margin:2px 0 0; font-size:0.8rem;">
-            ${statusTag} ${g.proof_status === 'pending' ? `<span class="tag tag-medium">Proof Pending</span>` : ''} ${entryCount} entered · ends ${formatDate(g.ends_at)} ${winnerLabel ? `· ${winnerLabel}` : ''}
+            ${statusTag} ${g.proof_status === 'pending' ? `<span class="tag tag-medium">Proof Pending</span>` : ''} ${entryCount} entered · ${g.winner_count} winner${g.winner_count === 1 ? '' : 's'} · ends ${formatDate(g.ends_at)} ${winnerLabel ? `· ${winnerLabel}` : ''}
           </p>
+          ${winners.length ? `
+            <div style="display:flex; flex-wrap:wrap; gap:6px; margin-top:6px;">
+              ${winners.map(w => `<button class="btn btn-ghost btn-sm" data-reroll-winner="${g.id}" data-reroll-user="${w.user_id}" title="Reroll ${escapeHtml(displayNameFor(w))} — use if they never claimed" style="font-size:0.72rem; padding:3px 8px;"><i data-lucide="refresh-cw" class="icon-sm icon-inline"></i>Reroll ${escapeHtml(displayNameFor(w))}</button>`).join('')}
+            </div>
+          ` : ''}
         </div>
       </div>
       <div style="display:flex; gap:8px; flex-shrink:0; align-items:center;">
@@ -223,8 +242,7 @@ function renderGiveawayRow(g, entryCount, isLast) {
           <button class="btn btn-primary btn-sm" data-approve-giveaway="${g.id}">Approve</button>
           <button class="btn btn-ghost btn-sm" data-reject-giveaway="${g.id}">Reject</button>
         ` : ''}
-        ${g.status === 'active' ? `<button class="btn btn-primary btn-sm" data-pick-winner="${g.id}">Pick Winner</button>` : ''}
-        ${g.status === 'ended' && g.winner_user_id ? `<button class="btn btn-ghost btn-sm" data-reroll-winner="${g.id}" title="Pick a different winner — use if the current winner never claimed"><i data-lucide="refresh-cw" class="icon-sm icon-inline"></i>Reroll</button>` : ''}
+        ${g.status === 'active' ? `<button class="btn btn-primary btn-sm" data-pick-winner="${g.id}">Pick Winner${g.winner_count > 1 ? `s (${g.winner_count})` : ''}</button>` : ''}
         ${g.status === 'ended' && (!g.proof_status || g.proof_status === 'rejected') ? `
           <label class="btn btn-ghost btn-sm" style="cursor:pointer;">
             <i data-lucide="camera" class="icon-sm icon-inline"></i>${g.proof_status === 'rejected' ? 'Re-upload Proof' : 'Upload Proof'}
@@ -371,6 +389,7 @@ async function handleCreate(e) {
     description: document.getElementById('gv-description').value.trim(),
     ends_at: new Date(document.getElementById('gv-ends').value).toISOString(),
     image_url: selectedPrize.icon_url,
+    winner_count: Math.max(1, Math.min(20, Number(document.getElementById('gv-winner-count').value) || 1)),
     status: 'active',
     created_by: session.user.id,
   };
@@ -411,14 +430,14 @@ async function pickWinner(id, btn) {
   await loadGiveaways(giveawaysPage);
 }
 
-async function rerollWinner(id, btn) {
+async function rerollWinner(id, oldUserId, btn) {
   const confirmed = window.confirm("Pick a different winner? Use this if the current winner never claimed their prize — they won't be notified of losing the prize, but the new winner will be.");
   if (!confirmed) return;
 
   btn.disabled = true;
   btn.innerHTML = 'Rerolling…';
 
-  const { error } = await sb.rpc('reroll_giveaway_winner', { p_giveaway_id: id });
+  const { error } = await sb.rpc('reroll_giveaway_winner', { p_giveaway_id: id, p_old_winner_id: oldUserId });
 
   if (error) {
     showToast(error.message, true);
