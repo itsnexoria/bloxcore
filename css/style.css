@@ -780,12 +780,6 @@ section.section h2.center::after { margin-left: auto; margin-right: auto; }
 .rep-badge { display: inline-flex; align-items: center; font-size: 0.72rem; color: var(--gold-bright); background: rgb(var(--gold-rgb) / 0.1); border-radius: 999px; padding: 2px 8px; margin-left: 4px; }
 .new-account-badge { display: inline-flex; align-items: center; gap: 4px; font-size: 0.72rem; color: var(--blood-dim); background: rgba(220, 38, 38, 0.12); border-radius: 999px; padding: 2px 8px; margin-top: 4px; }
 
-.deep-link-highlight { animation: deepLinkPulse 1.8s ease; }
-@keyframes deepLinkPulse {
-  0% { box-shadow: 0 0 0 2px var(--brass-bright), 0 0 24px rgb(var(--brass-rgb) / 0.4); }
-  100% { box-shadow: none; }
-}
-
 .difficulty-label {
   font-size: 0.78rem;
   font-weight: 800;

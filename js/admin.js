@@ -29,23 +29,6 @@ async function initSubmissionsTab() {
   }
 }
 
-// Called once, the first time the Submissions tab is activated on the consolidated
-// /admin/ review page — not on DOMContentLoaded, since this page now has five tabs
-// and only the active one should fire its queries.
-async function initSubmissionsTab() {
-  if (_submissionsTabInit) return;
-  _submissionsTabInit = true;
-  try {
-    await loadPending();
-    wireBulkBar();
-    wireLightbox();
-  } catch (e) {
-    logError('Failed to init Submissions tab:', e);
-    _submissionsTabInit = false; // allow retry if the tab is re-activated
-    showToast('Something went wrong loading submissions. Try again.', true);
-  }
-}
-
 async function loadPending() {
   const list = document.getElementById('pending-list');
 
