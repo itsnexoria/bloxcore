@@ -11,6 +11,7 @@ let priceEntries = []; // [{ id, valueType: 'physical' | 'permanent' }]
 const TAB_LABELS = { raid: 'Raids', trial: 'Trials', dungeon: 'Dungeons' };
 
 onReady(async () => {
+  initFirstVisitBanner('services-tips-banner', 'services-tips-dismiss', 'bc_seen_tips_services');
   const { user, profile } = await getCurrentProfile();
   currentUser = user;
   currentProfile = profile;

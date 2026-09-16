@@ -66,6 +66,52 @@ async function loadLeaderboard(page) {
   const list = document.getElementById('leaderboard-list');
   currentPage = page;
 
+  document.getElementById('lb-season-info').style.display = 'none';
+  document.getElementById('lb-past-champions').style.display = 'none';
+
+  if (activePeriod === 'season') {
+    updateSubtitle('Ranked by XP earned this season.');
+    list.innerHTML = `<div class="skeleton" style="height:60px; margin:16px;"></div>`;
+
+    const { data: seasonRows } = await sb.rpc('get_current_season');
+    const season = seasonRows?.[0];
+    if (!season) { list.innerHTML = `<div class="empty-state">No active season right now.</div>`; return; }
+
+    document.getElementById('lb-season-info').style.display = 'block';
+    document.getElementById('lb-season-info-text').innerHTML = `<i data-lucide="calendar" class="icon-sm icon-inline"></i>${escapeHtml(season.name)} ends ${formatDate(season.ends_at)}`;
+
+    const { data, error } = await sb.rpc('get_season_leaderboard', { p_season_id: season.id, p_limit: 50 });
+    if (error) {
+      list.innerHTML = errorStateHtml("Couldn't load the season leaderboard right now.", 'loadLeaderboard(currentPage)');
+      refreshIcons();
+      logError(error);
+      return;
+    }
+    if (!data.length) {
+      list.innerHTML = `<div class="empty-state">No one's earned season XP yet — be the first.</div>`;
+      refreshIcons();
+      loadPastChampions();
+      return;
+    }
+    list.innerHTML = data.map((p, i) => {
+      const rank = i + 1;
+      const podium = rank <= 3;
+      return `
+      <div class="flex-between${p.username === currentUsername ? ' lb-row-mine' : ''}${podium ? ' lb-row-podium' : ''}" ${podium ? `data-rank="${rank}"` : ''} style="padding:16px 20px; ${i !== data.length - 1 && !podium ? 'border-bottom:1px solid var(--navy-light);' : ''}">
+        <div style="display:flex; align-items:center; gap:16px;">
+          <span class="${podium ? 'lb-podium-rank' : ''}" style="font-family:var(--font-mono); color:var(--ash); width:28px;">${podium ? `<i data-lucide="${rank === 1 ? 'crown' : 'medal'}" class="icon-sm"></i>` : `#${rank}`}</span>
+          ${avatarHtml(p, 36)}
+          <a href="/player/?u=${encodeURIComponent(p.username)}" style="margin:0; font-weight:700; color:var(--bone); text-decoration:none;">${escapeHtml(displayNameFor(p))} ${titleBadge({ title_color_override: p.title_color_override, titles: p.title_name ? { name: p.title_name, color: p.title_color } : null })}</a>
+        </div>
+        <p style="margin:0; font-family:var(--font-mono); color:var(--brass-bright);">${Number(p.season_xp).toLocaleString()} XP</p>
+      </div>
+    `;
+    }).join('');
+    refreshIcons();
+    loadPastChampions();
+    return;
+  }
+
   if (activePeriod !== 'alltime') {
     updateSubtitle('Ranked by level, then total XP earned.');
     list.innerHTML = `<div class="skeleton" style="height:60px; margin:16px;"></div>`;
@@ -329,5 +375,35 @@ async function loadCrewWarLeaderboard() {
     </div>
   `;
   }).join('');
+  refreshIcons();
+}
+
+async function loadPastChampions() {
+  const wrap = document.getElementById('lb-past-champions');
+  const list = document.getElementById('lb-past-champions-list');
+
+  const { data, error } = await sb
+    .from('season_champions')
+    .select('rank, season_xp, profiles(username, display_name, avatar_url, avatar_frame), seasons!inner(season_number, name, status)')
+    .eq('rank', 1)
+    .eq('seasons.status', 'closed')
+    .order('season_number', { ascending: false, referencedTable: 'seasons' })
+    .limit(10);
+
+  if (error || !data?.length) { wrap.style.display = 'none'; return; }
+
+  list.innerHTML = data.map(c => `
+    <div class="flex-between panel panel-plain" style="padding:12px 16px;">
+      <div style="display:flex; align-items:center; gap:12px;">
+        ${avatarHtml(c.profiles, 32)}
+        <div>
+          <a href="/player/?u=${encodeURIComponent(c.profiles.username)}" style="color:var(--bone); font-weight:700; text-decoration:none;">${escapeHtml(displayNameFor(c.profiles))}</a>
+          <p class="muted" style="margin:0; font-size:0.75rem;">${escapeHtml(c.seasons.name)} Champion</p>
+        </div>
+      </div>
+      <p style="margin:0; font-family:var(--font-mono); color:var(--brass-bright); font-size:0.85rem;">${Number(c.season_xp).toLocaleString()} XP</p>
+    </div>
+  `).join('');
+  wrap.style.display = 'block';
   refreshIcons();
 }

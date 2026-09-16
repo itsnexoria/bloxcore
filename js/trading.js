@@ -13,6 +13,7 @@ let myWatchlist = new Set(); // item ids
 let watchlistCategory = 'fruit';
 
 onReady(async () => {
+  initFirstVisitBanner('trading-tips-banner', 'trading-tips-dismiss', 'bc_seen_tips_trading');
   const { user } = await getCurrentProfile();
   currentUser = user;
 

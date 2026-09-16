@@ -87,6 +87,7 @@ onReady(async () => {
 
   renderProfileCard(profile, membership?.crews);
   initMyListingsTabs(profile.role);
+  loadOnboardingChecklist(profile, membership, user.id);
   await loadSubmissions(user.id);
   await loadMyTradeListings(user.id, settings.maxActiveTrades);
   await loadMyCombos(user.id, settings.maxCombosPerUser);
@@ -458,4 +459,36 @@ function renderSubmissionCard(sub) {
       </div>
     </div>
   `;
+}
+
+// Getting-started checklist — purely derived from real state (no separate progress
+// tracking needed), dismissible once via profiles.onboarding_dismissed.
+async function loadOnboardingChecklist(profile, membership, userId) {
+  if (profile.onboarding_dismissed) return;
+
+  const { count: bountyCount } = await sb.from('completions').select('id', { count: 'exact', head: true }).eq('user_id', userId);
+
+  const items = [
+    { done: !!profile.roblox_verified, label: 'Verify your Roblox account', href: '/settings/#account', cta: 'Verify' },
+    { done: !!membership, label: 'Join a crew', href: '/crews/', cta: 'Find a Crew' },
+    { done: (bountyCount || 0) > 0, label: 'Submit your first bounty', href: '/challenges/', cta: 'View Bounties' },
+  ];
+
+  if (items.every(i => i.done)) return; // nothing left to nudge them on
+
+  const el = document.getElementById('onboarding-checklist');
+  document.getElementById('onboarding-checklist-items').innerHTML = items.map(i => `
+    <div style="display:flex; align-items:center; gap:10px; padding:8px 0; ${i.done ? 'opacity:0.55;' : ''}">
+      <i data-lucide="${i.done ? 'check-circle-2' : 'circle'}" class="icon-sm" style="color:${i.done ? 'var(--gold-bright)' : 'var(--ash)'}; flex-shrink:0;"></i>
+      <span style="flex:1; font-size:0.88rem; ${i.done ? 'text-decoration:line-through;' : ''}">${i.label}</span>
+      ${!i.done ? `<a href="${i.href}" class="btn btn-primary btn-sm" style="flex-shrink:0;">${i.cta}</a>` : ''}
+    </div>
+  `).join('');
+  el.style.display = 'block';
+  refreshIcons();
+
+  document.getElementById('onboarding-checklist-dismiss').addEventListener('click', async () => {
+    el.style.display = 'none';
+    await sb.from('profiles').update({ onboarding_dismissed: true }).eq('id', userId);
+  });
 }

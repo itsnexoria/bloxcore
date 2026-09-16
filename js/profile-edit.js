@@ -47,6 +47,7 @@ let activeTitleColorOverride = '';
 let activeNameGradient = '';
 let activeAvatarFrame = '';
 let framesCatalog = [];
+let myUnlockedFrameKeys = new Set();
 let currentLevel = 0;
 let canUseRainbow = false;
 
@@ -166,13 +167,18 @@ function frameAvatarPreviewFor(frame) {
 
 async function updateFramePickerButton() {
   if (!framesCatalog.length) framesCatalog = await getAvatarFramesCatalog();
+  if (framesCatalog.some(f => f.exclusive) && !myUnlockedFrameKeys.size) {
+    const { data } = await sb.from('user_unlocked_frames').select('avatar_frames(key)').eq('user_id', currentUserId);
+    myUnlockedFrameKeys = new Set((data || []).map(r => r.avatar_frames?.key).filter(Boolean));
+  }
   const current = framesCatalog.find(f => f.key === activeAvatarFrame);
   const valueEl = document.getElementById('frame-picker-value');
   valueEl.textContent = current ? current.name : 'None';
   valueEl.classList.toggle('is-empty', !current);
 }
 
-function openFramePickerModal() {
+async function openFramePickerModal() {
+  await updateFramePickerButton();
   renderFrameModalGrid();
   document.getElementById('frame-picker-modal').classList.add('open');
 }
@@ -186,10 +192,10 @@ function renderFrameModalGrid() {
   const options = [{ key: '', name: 'None', min_level: 0 }, ...framesCatalog];
 
   grid.innerHTML = options.map(frame => {
-    const locked = currentLevel < frame.min_level;
+    const locked = frame.exclusive ? !myUnlockedFrameKeys.has(frame.key) : currentLevel < frame.min_level;
     const selected = (activeAvatarFrame || '') === frame.key;
     return `
-      <div class="build-modal-tile ${selected ? 'selected' : ''} ${locked ? 'locked' : ''}" data-frame-key="${frame.key}" data-frame-min-level="${frame.min_level}" title="${escapeHtml(frame.name)}${locked ? ` — unlocks at level ${frame.min_level}` : ''}">
+      <div class="build-modal-tile ${selected ? 'selected' : ''} ${locked ? 'locked' : ''}" data-frame-key="${frame.key}" data-frame-min-level="${frame.min_level}" title="${escapeHtml(frame.name)}${locked ? (frame.exclusive ? ' — earned through special events only' : ` — unlocks at level ${frame.min_level}`) : ''}">
         ${frameAvatarPreviewFor(frame.key ? frame : null)}
         <span>${escapeHtml(frame.name)}</span>
         ${locked ? '<span class="build-modal-tile-lock"><i data-lucide="lock" class="icon-sm"></i></span>' : ''}

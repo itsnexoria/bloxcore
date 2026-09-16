@@ -96,11 +96,21 @@
       <button class="btn btn-ghost btn-sm" data-period="today">Today</button>
       <button class="btn btn-ghost btn-sm" data-period="weekly">Weekly</button>
       <button class="btn btn-ghost btn-sm" data-period="monthly">Monthly</button>
+      <button class="btn btn-ghost btn-sm" data-period="season"><i data-lucide="trophy" class="icon-sm icon-inline"></i>Season</button>
       <button class="btn btn-primary btn-sm" data-period="alltime">All-Time</button>
+    </div>
+
+    <div id="lb-season-info" style="display:none; margin-bottom:16px;">
+      <p class="muted" style="margin:0; font-size:0.85rem;" id="lb-season-info-text"></p>
     </div>
 
     <div id="leaderboard-list" class="panel panel-plain" style="padding:0;">
       <div class="skeleton" style="height:60px; margin:16px;"></div>
+    </div>
+
+    <div id="lb-past-champions" style="display:none; margin-top:24px;">
+      <h3 style="font-size:1.05rem; margin-bottom:12px;"><i data-lucide="crown" class="icon-sm icon-inline"></i>Past Champions</h3>
+      <div id="lb-past-champions-list" style="display:flex; flex-direction:column; gap:8px;"></div>
     </div>
   </div>
 </section>

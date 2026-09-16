@@ -308,7 +308,7 @@ let _avatarFrames = {};
 let _avatarFramesList = [];
 const _avatarFramesLoaded = (async () => {
   try {
-    const { data, error } = await sb.from('avatar_frames').select('key, name, image_url, min_level').order('sort_order', { ascending: true });
+    const { data, error } = await sb.from('avatar_frames').select('id, key, name, image_url, min_level, exclusive').order('sort_order', { ascending: true });
     if (error) throw error;
     _avatarFramesList = data || [];
     _avatarFramesList.forEach(f => { _avatarFrames[f.key] = f; });
@@ -981,4 +981,22 @@ async function claimDailyLoginIfNeeded() {
   } catch (e) {
     logError('claimDailyLoginIfNeeded failed:', e);
   }
+}
+
+// First-visit dismissible tip banner — shown once per browser until the person
+// dismisses it, tracked purely in localStorage (no account-level state needed).
+function initFirstVisitBanner(bannerId, dismissBtnId, storageKey) {
+  const banner = document.getElementById(bannerId);
+  const dismissBtn = document.getElementById(dismissBtnId);
+  if (!banner || !dismissBtn) return;
+
+  if (!localStorage.getItem(storageKey)) {
+    banner.style.display = 'block';
+    refreshIcons();
+  }
+
+  dismissBtn.addEventListener('click', () => {
+    banner.style.display = 'none';
+    localStorage.setItem(storageKey, '1');
+  });
 }

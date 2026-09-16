@@ -79,6 +79,16 @@
       <button type="button" class="btn btn-primary btn-sm" id="new-listing-btn" style="display:none; flex-shrink:0;"><i data-lucide="plus" class="icon-sm icon-inline"></i>Post a Listing</button>
     </div>
 
+    <div id="services-tips-banner" class="panel panel-plain" style="display:none; margin-top:20px; border-left:3px solid var(--brass);">
+      <div class="flex-between" style="align-items:flex-start;">
+        <div style="display:flex; gap:10px;">
+          <i data-lucide="lightbulb" class="icon-sm" style="color:var(--brass-bright); flex-shrink:0; margin-top:2px;"></i>
+          <p style="margin:0; font-size:0.85rem;">Raids and Trials are paid services from other players — Dungeons are free co-op runs you can join. Always confirm the price and check the poster's profile before paying anyone.</p>
+        </div>
+        <button type="button" class="btn btn-ghost btn-sm" id="services-tips-dismiss" aria-label="Dismiss" style="flex-shrink:0;"><i data-lucide="x" class="icon-sm"></i></button>
+      </div>
+    </div>
+
     <div id="services-signed-out" class="panel panel-plain center" style="margin-top:24px; display:none;">
       <a href="/auth/" class="btn btn-primary btn-sm">Sign in to post a listing</a>
     </div>

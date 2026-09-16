@@ -64,6 +64,17 @@
 
     <h1 class="sr-only">Dashboard</h1>
 
+    <div id="onboarding-checklist" class="panel" style="display:none; margin-bottom:20px;">
+      <div class="flex-between" style="align-items:flex-start;">
+        <div>
+          <h3 style="font-size:1rem; margin:0 0 4px;"><i data-lucide="list-checks" class="icon-sm icon-inline"></i>Getting Started</h3>
+          <p class="muted" style="margin:0; font-size:0.82rem;">A few quick things to unlock the full BloxCore experience.</p>
+        </div>
+        <button type="button" class="btn btn-ghost btn-sm" id="onboarding-checklist-dismiss" aria-label="Dismiss"><i data-lucide="x" class="icon-sm"></i></button>
+      </div>
+      <div id="onboarding-checklist-items" style="display:flex; flex-direction:column; gap:8px; margin-top:14px;"></div>
+    </div>
+
     <div id="profile-card" class="panel" style="display:flex; gap:28px; align-items:center; flex-wrap:wrap;">
       <div class="skeleton" style="width:92px; height:92px; border-radius:50%;"></div>
       <div style="flex:1; min-width:220px;">

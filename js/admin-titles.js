@@ -13,6 +13,7 @@ async function initTitlesTab() {
     await loadSeasonalConfig();
     await loadRivalTitleConfig();
     await loadChampionTitleConfig();
+    await loadSeasonConfig();
 
     document.getElementById('title-form').addEventListener('submit', handleCreateTitle);
     document.getElementById('title-form-cancel').addEventListener('click', resetTitleForm);
@@ -21,6 +22,7 @@ async function initTitlesTab() {
     document.getElementById('run-seasonal-btn').addEventListener('click', runSeasonalNow);
     document.getElementById('save-rival-title-btn').addEventListener('click', saveRivalTitleConfig);
     document.getElementById('save-champion-title-btn').addEventListener('click', saveChampionTitleConfig);
+    document.getElementById('save-season-config-btn').addEventListener('click', saveSeasonConfig);
 
     let debounceTimer;
     document.getElementById('grant-user-search').addEventListener('input', (e) => {
@@ -58,8 +60,10 @@ async function loadTitles() {
   const seasonalCrewWars = document.getElementById('seasonal-crew-wars');
   const rivalSelect = document.getElementById('rival-title-select');
   const championSelect = document.getElementById('champion-title-select');
+  const seasonChampionSelect = document.getElementById('season-champion-title-select');
+  const seasonRunnerupSelect = document.getElementById('season-runnerup-title-select');
   const grantSelect = document.getElementById('grant-title-select');
-  [seasonalLb, seasonalCrew, seasonalCrewWars, rivalSelect, championSelect, grantSelect].forEach(select => {
+  [seasonalLb, seasonalCrew, seasonalCrewWars, rivalSelect, championSelect, seasonChampionSelect, seasonRunnerupSelect, grantSelect].forEach(select => {
     if (!select) return;
     select.querySelectorAll('option:not(:first-child)').forEach(o => o.remove());
     data.forEach(t => {
@@ -368,4 +372,54 @@ async function applyBulk(mode) {
     : `${mode === 'grant' ? 'Granted to' : 'Revoked from'} ${targets.length} player${targets.length > 1 ? 's' : ''}.`, failed > 0);
 
   await searchUsers(document.getElementById('grant-user-search').value.trim());
+}
+
+// --- Season System (Hall of Fame) config ---
+
+async function loadSeasonConfig() {
+  const [{ data: settings }, { data: frames }, { data: seasonRows }] = await Promise.all([
+    sb.from('site_settings').select('key, value').in('key', ['season_length_days', 'season_champion_title_id', 'season_champion_frame_id', 'season_runnerup_title_id']),
+    sb.from('avatar_frames').select('id, name').order('sort_order', { ascending: true }),
+    sb.rpc('get_current_season'),
+  ]);
+
+  const frameSelect = document.getElementById('season-champion-frame-select');
+  frames?.forEach(f => {
+    const option = document.createElement('option');
+    option.value = f.id;
+    option.textContent = f.name;
+    frameSelect.appendChild(option);
+  });
+
+  const map = new Map((settings || []).map(s => [s.key, s.value]));
+  const lengthVal = map.get('season_length_days');
+  if (lengthVal !== undefined && lengthVal !== null) document.getElementById('season-length-input').value = lengthVal;
+  const championTitle = map.get('season_champion_title_id');
+  if (championTitle && championTitle !== 'null') document.getElementById('season-champion-title-select').value = championTitle;
+  const championFrame = map.get('season_champion_frame_id');
+  if (championFrame && championFrame !== 'null') document.getElementById('season-champion-frame-select').value = championFrame;
+  const runnerupTitle = map.get('season_runnerup_title_id');
+  if (runnerupTitle && runnerupTitle !== 'null') document.getElementById('season-runnerup-title-select').value = runnerupTitle;
+
+  const season = seasonRows?.[0];
+  document.getElementById('season-current-info').textContent = season
+    ? `Currently: ${season.name}, ends ${new Date(season.ends_at).toLocaleDateString()}.`
+    : 'No active season found.';
+}
+
+async function saveSeasonConfig() {
+  const btn = document.getElementById('save-season-config-btn');
+  btn.disabled = true;
+
+  const updates = [
+    { key: 'season_length_days', value: Number(document.getElementById('season-length-input').value) || 30 },
+    { key: 'season_champion_title_id', value: document.getElementById('season-champion-title-select').value || null },
+    { key: 'season_champion_frame_id', value: document.getElementById('season-champion-frame-select').value || null },
+    { key: 'season_runnerup_title_id', value: document.getElementById('season-runnerup-title-select').value || null },
+  ];
+
+  const { error } = await sb.from('site_settings').upsert(updates, { onConflict: 'key' });
+  btn.disabled = false;
+  if (error) { showToast(error.message, true); return; }
+  showToast('Season config saved — takes effect the next time a season closes.');
 }

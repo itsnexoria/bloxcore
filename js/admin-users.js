@@ -218,7 +218,7 @@ async function loadUsers(query, page) {
 
   let req = sb
     .from('profiles')
-    .select('id, username, display_name, level, xp, region, role, banned, banned_reason, auto_approve_disabled, created_at', { count: 'exact' })
+    .select('id, username, display_name, level, xp, region, role, banned, banned_reason, auto_approve_disabled, shadow_muted, created_at', { count: 'exact' })
     .order('created_at', { ascending: false })
     .range(from, to);
 
@@ -263,6 +263,9 @@ async function loadUsers(query, page) {
   document.querySelectorAll('[data-toggle-auto-approve]').forEach(btn => {
     btn.addEventListener('click', () => toggleAutoApprove(btn.dataset.toggleAutoApprove, btn.dataset.next === 'true'));
   });
+  document.querySelectorAll('[data-toggle-shadow-mute]').forEach(btn => {
+    btn.addEventListener('click', () => toggleShadowMute(btn.dataset.toggleShadowMute, btn.dataset.next === 'true'));
+  });
   document.querySelectorAll('[data-user-select]').forEach(cb => {
     cb.checked = selectedUserIds.has(cb.dataset.userSelect);
     cb.addEventListener('change', () => {
@@ -296,12 +299,17 @@ function renderUserRow(u, isLast) {
   const isSelf = u.id === currentAdminId;
   const isAdminUser = u.role === 'admin';
   const bannedTag = u.banned ? `<span class="tag" style="background:rgba(255,77,109,0.3); color:#ffc2cf;">Banned${u.banned_reason ? `: ${escapeHtml(u.banned_reason)}` : ''}</span>` : '';
+  const mutedTag = u.shadow_muted ? `<span class="tag" style="background:rgba(138,148,166,0.25); color:var(--ash);"><i data-lucide="eye-off" class="icon-sm icon-inline"></i>Shadow-Muted</span>` : '';
 
   const banControl = isSelf || isAdminUser
     ? ''
     : (u.banned
         ? `<button class="btn btn-ghost btn-sm" data-unban="${u.id}">Unban</button>`
         : `<button class="btn btn-danger btn-sm" data-ban="${u.id}">Ban</button>`);
+
+  const muteControl = isSelf || isAdminUser
+    ? ''
+    : `<button class="btn btn-ghost btn-sm" data-toggle-shadow-mute="${u.id}" data-next="${!u.shadow_muted}" title="Shadow-muted posts are hidden from everyone but the poster and staff">${u.shadow_muted ? 'Un-mute' : 'Shadow-Mute'}</button>`;
 
   return `
     <div style="padding:14px 20px; ${isLast ? '' : 'border-bottom:1px solid var(--navy-light);'}">
@@ -311,7 +319,7 @@ function renderUserRow(u, isLast) {
           <div style="min-width:0;">
             <p style="margin:0; font-weight:700;">
               <a href="/player/?u=${encodeURIComponent(u.username)}" style="color:var(--bone); text-decoration:none;">${escapeHtml(displayNameFor(u))}</a>
-              ${ROLE_TAG[u.role] || ''} ${bannedTag}
+              ${ROLE_TAG[u.role] || ''} ${bannedTag} ${mutedTag}
             </p>
             <p class="muted" style="margin:2px 0 0; font-size:0.8rem;">
               @${escapeHtml(u.username)} · Lv. ${u.level} (${u.xp} XP)${u.region ? ` · ${escapeHtml(u.region)}` : ''} · joined ${formatDate(u.created_at)}
@@ -324,6 +332,7 @@ function renderUserRow(u, isLast) {
             <option value="mod" ${u.role === 'mod' ? 'selected' : ''}>Mod</option>
             <option value="admin" ${u.role === 'admin' ? 'selected' : ''}>Admin</option>
           </select>
+          ${muteControl}
           ${banControl}
         </div>
       </div>
@@ -396,5 +405,12 @@ async function toggleAutoApprove(userId, nextDisabled) {
   const { error } = await sb.rpc('set_auto_approve_disabled', { target_user_id: userId, disabled: nextDisabled });
   if (error) { showToast(error.message, true); return; }
   showToast(nextDisabled ? 'Auto-approve disabled for this user.' : 'Auto-approve re-enabled.');
+  await loadUsers(currentQuery, usersPage);
+}
+
+async function toggleShadowMute(userId, nextMuted) {
+  const { error } = await sb.rpc('admin_set_shadow_mute', { p_user_id: userId, p_muted: nextMuted });
+  if (error) { showToast(error.message, true); return; }
+  showToast(nextMuted ? 'User shadow-muted — their feed posts are now hidden from others.' : 'User un-muted.');
   await loadUsers(currentQuery, usersPage);
 }
