@@ -340,6 +340,8 @@ async function loadFeed() {
   container.innerHTML = data.map(renderPost).join('');
   wirePostActions(container);
   refreshIcons();
+  renderTikTokEmbeds(container);
+  loadLinkPreviews(container);
   loadReputationBadges(container, data.map(p => ({ id: p.user_id, createdAt: null })));
   scrollToHashTarget('data-post-id');
 
@@ -352,8 +354,10 @@ async function loadFeed() {
       renderItem: renderPost,
       onAppend: (rows) => {
         const ids = new Set(rows.map(r => String(r.id)));
-        [...container.querySelectorAll('[data-post-id]')].filter(el => ids.has(el.dataset.postId)).forEach(el => wirePostActions(el));
+        const newEls = [...container.querySelectorAll('[data-post-id]')].filter(el => ids.has(el.dataset.postId));
+        newEls.forEach(el => wirePostActions(el));
         refreshIcons();
+        newEls.forEach(el => { renderTikTokEmbeds(el); loadLinkPreviews(el); });
       },
     });
   }
@@ -458,9 +462,104 @@ function buildWarEmbedHtml(p) {
 }
 
 function linkifyHashtags(content) {
-  return escapeHtml(content).replace(/(^|[\s])#([a-zA-Z][a-zA-Z0-9_]{1,30})/g, (match, pre, tag) =>
+  const withHashtags = escapeHtml(content).replace(/(^|[\s])#([a-zA-Z][a-zA-Z0-9_]{1,30})/g, (match, pre, tag) =>
     `${pre}<a href="/feed/?tag=${encodeURIComponent(tag.toLowerCase())}" data-hashtag-link="${escapeHtml(tag.toLowerCase())}" style="color:var(--brass-bright); text-decoration:none;">#${escapeHtml(tag)}</a>`
   );
+  // Bare URLs pasted into a post (e.g. a YouTube/TikTok link) aren't clickable by default —
+  // linkify them too, on top of the embed card rendered separately below the post.
+  return withHashtags.replace(/(^|[\s])(https?:\/\/[^\s<]+)/g, (match, pre, url) =>
+    `${pre}<a href="${url}" target="_blank" rel="noopener noreferrer nofollow" style="color:var(--sea); text-decoration:underline; word-break:break-all;">${url}</a>`
+  );
+}
+
+// Finds the first http(s) link in a post's raw text and classifies it so the post can
+// render an inline embed: a native YouTube player, TikTok's official embed widget, or a
+// generic Open-Graph link-preview card (fetched server-side via an edge function).
+function detectEmbed(content) {
+  const m = content.match(/https?:\/\/[^\s<]+/);
+  if (!m) return null;
+  const url = m[0].replace(/[.,)]+$/, ''); // trim trailing punctuation caught by the match
+  let host;
+  try { host = new URL(url).hostname.toLowerCase().replace(/^www\./, ''); } catch { return null; }
+
+  if (host === 'youtube.com' || host === 'm.youtube.com' || host === 'youtu.be') {
+    const idMatch =
+      url.match(/(?:youtube\.com\/(?:watch\?(?:.*&)?v=|embed\/|shorts\/)|youtu\.be\/)([a-zA-Z0-9_-]{6,15})/);
+    if (idMatch) return { type: 'youtube', url, videoId: idMatch[1] };
+  }
+  if (host.endsWith('tiktok.com')) {
+    return { type: 'tiktok', url };
+  }
+  return { type: 'link', url };
+}
+
+function embedHtml(embed) {
+  if (!embed) return '';
+  if (embed.type === 'youtube') {
+    return `<div class="feed-embed-video" style="margin-top:12px; position:relative; padding-top:56.25%; border-radius:8px; overflow:hidden; background:#000;">
+      <iframe src="https://www.youtube-nocookie.com/embed/${embed.videoId}" style="position:absolute; inset:0; width:100%; height:100%; border:0;"
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen loading="lazy" title="Embedded YouTube video"></iframe>
+    </div>`;
+  }
+  if (embed.type === 'tiktok') {
+    return `<blockquote class="tiktok-embed" cite="${escapeHtml(embed.url)}" style="max-width:605px; min-width:280px; margin:12px auto 0;"><section></section></blockquote>`;
+  }
+  // Generic link preview: filled in asynchronously by loadLinkPreviews() after mount.
+  return `<div class="feed-link-preview-slot" data-preview-url="${escapeHtml(embed.url)}"></div>`;
+}
+
+function buildLinkPreviewCardHtml(url, data) {
+  let hostname = url;
+  try { hostname = new URL(url).hostname.replace(/^www\./, ''); } catch {}
+  return `
+    <a href="${escapeHtml(url)}" target="_blank" rel="noopener noreferrer nofollow" class="panel feed-link-preview-card" style="display:flex; gap:12px; text-decoration:none; color:inherit; overflow:hidden; padding:0; margin-top:12px;">
+      ${data.image ? `<img src="${escapeHtml(data.image)}" alt="" loading="lazy" style="width:110px; height:110px; object-fit:cover; flex-shrink:0;">` : ''}
+      <div style="padding:10px 12px 10px 0; min-width:0; align-self:center;">
+        <p class="muted" style="margin:0 0 2px; font-size:0.68rem; text-transform:uppercase; letter-spacing:0.04em;">${escapeHtml(data.site_name || hostname)}</p>
+        <p style="margin:0 0 4px; font-weight:700; font-size:0.85rem; overflow:hidden; text-overflow:ellipsis; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical;">${escapeHtml(data.title || url)}</p>
+        ${data.description ? `<p class="muted" style="margin:0; font-size:0.75rem; overflow:hidden; text-overflow:ellipsis; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical;">${escapeHtml(data.description)}</p>` : ''}
+      </div>
+    </a>`;
+}
+
+// TikTok's own embed.js only auto-renders blockquote.tiktok-embed elements present in the
+// DOM the moment it executes. Since feed posts render dynamically (initial load + infinite
+// scroll), re-inject a fresh copy of the script whenever new TikTok embeds appear so it
+// re-scans and picks up the ones it hasn't processed yet.
+function renderTikTokEmbeds(root) {
+  if (!root.querySelector('blockquote.tiktok-embed')) return;
+  const old = document.getElementById('tiktok-embed-script');
+  if (old) old.remove();
+  const script = document.createElement('script');
+  script.id = 'tiktok-embed-script';
+  script.async = true;
+  script.src = 'https://www.tiktok.com/embed.js';
+  document.body.appendChild(script);
+}
+
+async function loadLinkPreviews(root) {
+  const slots = [...root.querySelectorAll('[data-preview-url]')];
+  if (!slots.length) return;
+  // Dedupe: several posts could link the same URL in one batch — fetch it once.
+  const urls = [...new Set(slots.map(el => el.dataset.previewUrl))];
+  const results = await Promise.all(urls.map(async url => {
+    try {
+      const { data, error } = await sb.functions.invoke('fetch-link-preview', { body: { url } });
+      if (error || !data || data.fetch_failed) return [url, null];
+      return [url, data];
+    } catch {
+      return [url, null];
+    }
+  }));
+  const byUrl = new Map(results);
+  slots.forEach(el => {
+    const data = byUrl.get(el.dataset.previewUrl);
+    if (data && (data.title || data.image || data.description)) {
+      el.outerHTML = buildLinkPreviewCardHtml(el.dataset.previewUrl, data);
+    } else {
+      el.remove(); // no usable OG data — the URL is still clickable in the post text itself
+    }
+  });
 }
 
 function renderPost(p) {
@@ -470,6 +569,7 @@ function renderPost(p) {
   };
   const isOwner = currentUser && currentUser.id === p.user_id;
   const isPinned = currentProfile && currentProfile.pinned_feed_post_id === p.id;
+  const embed = detectEmbed(p.content || '');
 
   return `
     <div class="panel feed-post-card hover-lift-card" data-post-id="${p.id}">
@@ -491,6 +591,7 @@ function renderPost(p) {
       ${isPinned ? `<p class="muted" style="margin:10px 0 0; font-size:0.72rem;"><i data-lucide="pin" class="icon-sm icon-inline"></i>Pinned to profile</p>` : ''}
       <p style="margin:12px 0 0; white-space:pre-wrap; font-size:0.94rem;">${linkifyHashtags(p.content)}</p>
       ${p.image_url ? `<a href="${p.image_url}" target="_blank" rel="noopener noreferrer"><img src="${p.image_url}" alt="" loading="lazy" style="max-width:100%; border-radius:var(--radius-sm,8px); margin-top:12px; border:1px solid var(--glass-border);"></a>` : ''}
+      ${!p.image_url ? embedHtml(embed) : ''}
       ${p.repost_trade_listing_id ? `<div style="margin-top:12px;">${buildTradeEmbedHtml(p)}</div>` : ''}
       ${p.repost_crew_war_id ? `<div style="margin-top:12px;">${buildWarEmbedHtml(p)}</div>` : ''}
       <div style="display:flex; align-items:center; gap:18px; margin-top:14px; padding-top:12px; border-top:1px solid var(--glass-border);">

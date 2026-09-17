@@ -82,7 +82,7 @@
       <h1 style="font-size:1.8rem; margin:0;">The Bounty Board</h1>
     </div>
 
-    <div style="display:flex; gap:10px; margin-top:20px;">
+    <div style="display:flex; gap:10px; margin-top:20px; flex-wrap:wrap; align-items:center;">
       <select id="difficulty-filter">
         <option value="">All Difficulties</option>
         <option value="easy">Easy</option>
@@ -90,6 +90,7 @@
         <option value="hard">Hard</option>
         <option value="legendary">Legendary</option>
       </select>
+      <button type="button" id="bulk-mode-toggle" class="btn btn-ghost" style="font-size:0.82rem;"><i data-lucide="list-checks" class="icon-sm icon-inline"></i>Select Multiple</button>
     </div>
 
     <div id="suggested-challenges-wrap" style="display:none; margin-top:24px;">
@@ -108,11 +109,18 @@
   </div>
 </section>
 
+<!-- Floating bulk-submit bar (shown once 1+ quests are selected in bulk mode) -->
+<div id="bulk-action-bar" style="display:none; position:fixed; left:50%; bottom:24px; transform:translateX(-50%); z-index:150; background:var(--navy-light); border:1px solid var(--brass); border-radius:14px; padding:12px 16px; box-shadow:0 12px 30px rgba(0,0,0,0.4); display:flex; align-items:center; gap:12px;">
+  <span id="bulk-action-count" style="font-size:0.85rem; font-weight:700;">0 selected</span>
+  <button type="button" class="btn btn-ghost" id="bulk-action-clear" style="font-size:0.8rem;">Clear</button>
+  <button type="button" class="btn btn-primary" id="bulk-action-submit" style="font-size:0.85rem;">Submit Proof</button>
+</div>
+
 <!-- Submit proof modal -->
 <div id="submit-modal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="modal-challenge-title" style="display:none; position:fixed; inset:0; background:rgba(6,15,26,0.85); z-index:200; align-items:center; justify-content:center; padding:20px; overflow-y:auto;">
   <div class="panel" style="max-width:420px; width:100%;">
     <h2 id="modal-challenge-title" style="font-size:1.1rem;">Submit Proof</h2>
-    <p class="muted" style="font-size:0.8rem; margin:-6px 0 14px;">For a long grind (like "defeat 50 bosses"), add a few screenshots along the way, or paste a video link below instead of/alongside them.</p>
+    <p class="muted" style="font-size:0.8rem; margin:-6px 0 14px;" id="modal-challenge-hint">For a long grind (like "defeat 50 bosses"), add a few screenshots along the way, or paste a video link below instead of/alongside them.</p>
     <form id="submit-form">
       <label for="screenshot">Screenshot(s)</label>
       <div id="screenshot-dropzone" class="dropzone">

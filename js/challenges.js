@@ -1,9 +1,12 @@
 // BloxCore — challenges.html logic
 
 let currentUser = null;
-let activeChallengeId = null;
+let activeChallengeIds = [];
 let completionMap = new Map();
 let pendingChallengeIds = new Set();
+let lastChallengeData = [];
+let bulkMode = false;
+let selectedIds = new Set();
 const MAX_SCREENSHOTS = 5;
 const MAX_SCREENSHOT_MB = 8;
 const ALLOWED_IMAGE_TYPES = ['image/png', 'image/jpeg', 'image/webp', 'image/gif'];
@@ -33,7 +36,45 @@ onReady(async () => {
   document.getElementById('difficulty-filter').addEventListener('change', loadChallenges);
   document.getElementById('modal-cancel').addEventListener('click', closeModal);
   document.getElementById('submit-form').addEventListener('submit', handleSubmit);
+
+  const bulkToggle = document.getElementById('bulk-mode-toggle');
+  if (bulkToggle && currentUser) {
+    bulkToggle.addEventListener('click', () => {
+      bulkMode = !bulkMode;
+      if (!bulkMode) selectedIds.clear();
+      bulkToggle.classList.toggle('btn-primary', bulkMode);
+      bulkToggle.classList.toggle('btn-ghost', !bulkMode);
+      bulkToggle.innerHTML = bulkMode
+        ? `<i data-lucide="x" class="icon-sm icon-inline"></i>Cancel Selecting`
+        : `<i data-lucide="list-checks" class="icon-sm icon-inline"></i>Select Multiple`;
+      renderGrid();
+      updateBulkBar();
+    });
+  } else if (bulkToggle) {
+    bulkToggle.style.display = 'none';
+  }
+  document.getElementById('bulk-action-clear').addEventListener('click', () => {
+    selectedIds.clear();
+    renderGrid();
+    updateBulkBar();
+  });
+  document.getElementById('bulk-action-submit').addEventListener('click', () => {
+    if (!selectedIds.size) return;
+    const chosen = lastChallengeData.filter(c => selectedIds.has(c.id));
+    openModal(chosen.map(c => c.id), chosen.map(c => c.title).join(', '));
+  });
 });
+
+function updateBulkBar() {
+  const bar = document.getElementById('bulk-action-bar');
+  const count = document.getElementById('bulk-action-count');
+  if (selectedIds.size > 0) {
+    count.textContent = `${selectedIds.size} selected`;
+    bar.style.display = 'flex';
+  } else {
+    bar.style.display = 'none';
+  }
+}
 
 async function loadChallenges() {
   const grid = document.getElementById('challenges-grid');
@@ -60,6 +101,15 @@ async function loadChallenges() {
     grid.innerHTML = `<div class="empty-state">No quests match that filter yet.</div>`;
     return;
   }
+
+  lastChallengeData = data;
+  renderGrid();
+}
+
+function renderGrid() {
+  const grid = document.getElementById('challenges-grid');
+  const data = lastChallengeData;
+  if (!data.length) return;
 
   const sections = [
     { key: 'daily', label: 'Daily Bounties', hint: 'Resets every day' },
@@ -89,7 +139,14 @@ async function loadChallenges() {
   }).join('');
 
   document.querySelectorAll('[data-claim-id]').forEach(btn => {
-    btn.addEventListener('click', () => openModal(btn.dataset.claimId, btn.dataset.claimTitle));
+    btn.addEventListener('click', () => openModal([btn.dataset.claimId], btn.dataset.claimTitle));
+  });
+  document.querySelectorAll('[data-select-id]').forEach(cb => {
+    cb.addEventListener('change', () => {
+      if (cb.checked) selectedIds.add(cb.dataset.selectId);
+      else selectedIds.delete(cb.dataset.selectId);
+      updateBulkBar();
+    });
   });
   refreshIcons();
   startResetCountdowns();
@@ -217,6 +274,11 @@ function renderChallengeCard(c) {
     ? `<button class="quest-card-claim-btn" disabled><i data-lucide="check" class="icon-sm"></i> Completed</button>`
     : onCooldown
     ? `<button class="quest-card-claim-btn" disabled>${cooldownLabel}</button>`
+    : bulkMode
+    ? `<label class="quest-card-claim-btn" style="display:flex; align-items:center; justify-content:center; gap:8px; cursor:pointer;">
+         <input type="checkbox" data-select-id="${c.id}" ${selectedIds.has(c.id) ? 'checked' : ''} style="width:16px; height:16px;">
+         Select to Submit
+       </label>`
     : `<button class="quest-card-claim-btn" data-claim-id="${c.id}" data-claim-title="${escapeHtml(c.title)}">Claim Bounty <i data-lucide="chevron-right" class="icon-sm"></i></button>`;
 
   return `
@@ -253,13 +315,20 @@ function periodKey(date, unit) {
   return `${d.getUTCFullYear()}-W${weekNo}`;
 }
 
-function openModal(challengeId, title) {
+function openModal(challengeIds, title) {
   if (!currentUser) {
     window.location.href = '/auth/';
     return;
   }
-  activeChallengeId = challengeId;
-  document.getElementById('modal-challenge-title').textContent = `Submit Proof — ${title}`;
+  activeChallengeIds = challengeIds;
+  const hint = document.getElementById('modal-challenge-hint');
+  if (challengeIds.length > 1) {
+    document.getElementById('modal-challenge-title').textContent = `Submit Proof — ${challengeIds.length} Quests`;
+    hint.textContent = `This proof will be submitted for review against all ${challengeIds.length} selected quests: ${title}.`;
+  } else {
+    document.getElementById('modal-challenge-title').textContent = `Submit Proof — ${title}`;
+    hint.textContent = 'For a long grind (like "defeat 50 bosses"), add a few screenshots along the way, or paste a video link below instead of/alongside them.';
+  }
   document.getElementById('submit-error').style.display = 'none';
   document.getElementById('submit-form').reset();
   selectedFiles = [];
@@ -269,7 +338,7 @@ function openModal(challengeId, title) {
 
 function closeModal() {
   hideModalById('submit-modal');
-  activeChallengeId = null;
+  activeChallengeIds = [];
 }
 
 // ---- Screenshot dropzone ----
@@ -371,21 +440,32 @@ async function handleSubmit(e) {
   try {
     const screenshotUrls = [];
     for (const file of files) {
-      const url = await uploadScreenshot(currentUser.id, file, `${activeChallengeId}-${Date.now()}-${screenshotUrls.length}`);
+      const url = await uploadScreenshot(currentUser.id, file, `${activeChallengeIds[0]}-${Date.now()}-${screenshotUrls.length}`);
       screenshotUrls.push(url);
     }
 
-    const { error: insertError } = await sb.from('submissions').insert({
+    const rows = activeChallengeIds.map(challengeId => ({
       user_id: currentUser.id,
-      challenge_id: activeChallengeId,
+      challenge_id: challengeId,
       screenshot_urls: screenshotUrls,
       video_url: videoUrl || null,
-    });
+    }));
+    const { error: insertError } = await sb.from('submissions').insert(rows);
     if (insertError) throw insertError;
 
+    activeChallengeIds.forEach(id => pendingChallengeIds.add(id));
+    selectedIds.clear();
+    bulkMode = false;
+    const bulkToggle = document.getElementById('bulk-mode-toggle');
+    if (bulkToggle) {
+      bulkToggle.classList.remove('btn-primary');
+      bulkToggle.classList.add('btn-ghost');
+      bulkToggle.innerHTML = `<i data-lucide="list-checks" class="icon-sm icon-inline"></i>Select Multiple`;
+    }
+    updateBulkBar();
     closeModal();
-    showToast('Submitted! The crew will review it soon.');
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    showToast(activeChallengeIds.length > 1 ? `Submitted ${rows.length} quests! The crew will review them soon.` : 'Submitted! The crew will review it soon.');
+    await loadChallenges();
   } catch (err) {
     logError(err);
     errorEl.textContent = err.message || 'Something went wrong. Try again.';
