@@ -149,13 +149,26 @@ let allTitlesForRewardPicker = [];
 let rewardTitleId = '';
 let rewardTitleId2 = '';
 let rewardTitleModalSlot = 1;
+let titleUsageMap = new Map(); // title_id -> [{ questId, questTitle }] — which quests already reward this title
 const CHALLENGE_TITLE_RARITY_ORDER = { divine: 6, mythical: 5, legendary: 4, epic: 3, rare: 2, common: 0 };
 
 async function populateRewardTitleSelect() {
-  const { data: titles } = await sb.from('titles').select('id, name, color, rarity').order('name');
+  const [{ data: titles }, { data: challenges }] = await Promise.all([
+    sb.from('titles').select('id, name, color, rarity').order('name'),
+    sb.from('challenges').select('id, title, reward_title_id, reward_title_id_2'),
+  ]);
   allTitlesForRewardPicker = (titles || []).slice().sort((a, b) => {
     const rarityDiff = (CHALLENGE_TITLE_RARITY_ORDER[b.rarity] ?? 0) - (CHALLENGE_TITLE_RARITY_ORDER[a.rarity] ?? 0);
     return rarityDiff !== 0 ? rarityDiff : a.name.localeCompare(b.name);
+  });
+
+  titleUsageMap = new Map();
+  (challenges || []).forEach(c => {
+    [c.reward_title_id, c.reward_title_id_2].forEach(tid => {
+      if (!tid) return;
+      if (!titleUsageMap.has(tid)) titleUsageMap.set(tid, []);
+      titleUsageMap.get(tid).push({ questId: c.id, questTitle: c.title });
+    });
   });
 
   document.getElementById('reward-title-picker-btn').addEventListener('click', () => openRewardTitleModal(1));
@@ -164,6 +177,7 @@ async function populateRewardTitleSelect() {
   document.getElementById('reward-title-picker-modal').addEventListener('click', (e) => {
     if (e.target.id === 'reward-title-picker-modal') closeRewardTitleModal();
   });
+  document.getElementById('reward-title-modal-search').addEventListener('input', (e) => filterRewardTitleModal(e.target.value));
 }
 
 function setRewardTitleId(id) {
@@ -197,20 +211,29 @@ function setRewardTitleId2(id) {
 function openRewardTitleModal(slot) {
   rewardTitleModalSlot = slot;
   const currentId = slot === 2 ? rewardTitleId2 : rewardTitleId;
+  const editingId = document.getElementById('challenge-id').value;
   const noneTile = `
-    <div class="build-modal-tile title-tile ${currentId === '' ? 'selected' : ''}" data-title-id="">
+    <div class="build-modal-tile title-tile ${currentId === '' ? 'selected' : ''}" data-title-id="" data-title-name="none">
       <i data-lucide="ban" class="icon-lg"></i>
       <span class="title-tile-name">None</span>
     </div>
   `;
-  const tiles = allTitlesForRewardPicker.map(t => `
-    <div class="build-modal-tile title-tile ${currentId === t.id ? 'selected' : ''}" data-rarity="${t.rarity}" data-title-id="${t.id}">
+  const tiles = allTitlesForRewardPicker.map(t => {
+    // "Used elsewhere" excludes the quest currently being edited — its own existing
+    // reward title shouldn't look like a conflict with itself.
+    const usedBy = (titleUsageMap.get(t.id) || []).filter(u => u.questId !== editingId);
+    return `
+    <div class="build-modal-tile title-tile ${currentId === t.id ? 'selected' : ''} ${usedBy.length ? 'is-already-used' : ''}" data-rarity="${t.rarity}" data-title-id="${t.id}" data-title-name="${escapeHtml(t.name.toLowerCase())}">
       <span class="title-tile-name" style="${titleColorStyle(t.color)}">${escapeHtml(t.name)}</span>
       <span class="title-rarity-pill title-rarity-${t.rarity}">${t.rarity}</span>
+      ${usedBy.length ? `<span class="muted" style="display:block; font-size:0.66rem; margin-top:4px;" title="${usedBy.map(u => escapeHtml(u.questTitle)).join(', ')}"><i data-lucide="alert-triangle" style="width:10px;height:10px;"></i> Used on ${usedBy.length > 1 ? `${usedBy.length} quests` : escapeHtml(usedBy[0].questTitle)}</span>` : ''}
     </div>
-  `).join('');
+  `;
+  }).join('');
 
   document.getElementById('reward-title-modal-grid').innerHTML = noneTile + tiles;
+  document.getElementById('reward-title-modal-search').value = '';
+  document.getElementById('reward-title-modal-empty').style.display = 'none';
   refreshIcons();
 
   document.querySelectorAll('#reward-title-modal-grid [data-title-id]').forEach(tile => {
@@ -222,6 +245,20 @@ function openRewardTitleModal(slot) {
   });
 
   document.getElementById('reward-title-picker-modal').classList.add('open');
+}
+
+function filterRewardTitleModal(term) {
+  const q = term.trim().toLowerCase();
+  const tiles = [...document.querySelectorAll('#reward-title-modal-grid [data-title-id]')];
+  let visibleCount = 0;
+  tiles.forEach(tile => {
+    const match = !q || tile.dataset.titleName.includes(q) || tile.dataset.titleName === 'none';
+    tile.style.display = match ? '' : 'none';
+    if (match) visibleCount++;
+  });
+  const emptyEl = document.getElementById('reward-title-modal-empty');
+  document.getElementById('reward-title-modal-empty-term').textContent = term;
+  emptyEl.style.display = visibleCount === 0 && q ? 'block' : 'none';
 }
 
 function closeRewardTitleModal() {

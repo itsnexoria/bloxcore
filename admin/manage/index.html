@@ -692,6 +692,7 @@
         <button type="button" class="site-subtab-btn" data-site-subtab="discord-webhooks">Webhooks</button>
         <button type="button" class="site-subtab-btn" data-site-subtab="broadcasts">Broadcasts</button>
         <button type="button" class="site-subtab-btn" data-site-subtab="xp-events">XP Events</button>
+        <button type="button" class="site-subtab-btn" data-site-subtab="content-filter">Content Filter</button>
       </div>
 
       <div data-site-subpanel="settings" class="panel" id="site-settings" style="margin-top:16px; scroll-margin-top:90px;">
@@ -987,6 +988,25 @@
           <div id="event-list" style="margin-top:18px; display:flex; flex-direction:column; gap:10px;"></div>
         </div>
       </div>
+
+      <div data-site-subpanel="content-filter" style="display:none;">
+        <div class="panel" id="site-content-filter" style="margin-top:16px; scroll-margin-top:90px;">
+          <h3 style="font-size:1.1rem;"><i data-lucide="shield-alert" class="icon-sm icon-inline"></i>Banned Keywords</h3>
+          <p class="muted" style="font-size:0.85rem; margin-top:-8px;">A new feed post is auto-flagged (hidden from everyone but the author and staff) if its text contains any of these, case-insensitive. One per line — words or short phrases both work.</p>
+          <form id="keyword-filter-form">
+            <textarea id="keyword-filter-textarea" rows="6" placeholder="one keyword or phrase per line…" style="font-family:var(--font-mono); font-size:0.85rem;"></textarea>
+            <button type="submit" class="btn btn-primary btn-block" style="margin-top:10px;">Save Keywords</button>
+          </form>
+        </div>
+
+        <div class="panel" id="site-flagged-posts" style="margin-top:16px; scroll-margin-top:90px;">
+          <h3 style="font-size:1.1rem;"><i data-lucide="flag" class="icon-sm icon-inline"></i>Auto-Flagged Posts</h3>
+          <p class="muted" style="font-size:0.85rem; margin-top:-8px;">Posts caught by the keyword filter above, waiting on a mod decision.</p>
+          <div id="flagged-posts-list" style="margin-top:14px; display:flex; flex-direction:column; gap:10px;">
+            <div class="skeleton" style="height:60px;"></div>
+          </div>
+        </div>
+      </div>
     </div>
 
       </div>
@@ -1076,8 +1096,10 @@
       <h2 id="reward-title-picker-title" style="font-size:1.05rem; margin:0;">Choose a Reward Title</h2>
       <button type="button" class="btn btn-ghost btn-sm" id="reward-title-modal-close" aria-label="Close"><i data-lucide="x" class="icon-md"></i></button>
     </div>
-    <p class="muted" style="margin:0 0 14px; font-size:0.82rem;">Players who complete this quest will unlock this title. Up to 2 titles can be awarded per quest.</p>
+    <p class="muted" style="margin:0 0 14px; font-size:0.82rem;">Players who complete this quest will unlock this title. Up to 2 titles can be awarded per quest. Titles already used as a reward on another quest are marked so you don't double them up.</p>
+    <input type="text" id="reward-title-modal-search" placeholder="Search titles…" style="margin-bottom:12px;">
     <div id="reward-title-modal-grid" class="build-modal-grid" style="grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));"></div>
+    <p class="muted" id="reward-title-modal-empty" style="display:none; text-align:center; font-size:0.82rem; margin:14px 0 0;">No titles match "<span id="reward-title-modal-empty-term"></span>".</p>
   </div>
 </div>
 

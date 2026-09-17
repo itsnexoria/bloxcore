@@ -203,6 +203,17 @@ onReady(async () => {
     window.location.href = '/';
   });
 
+  document.getElementById('settings-signout-others-btn').addEventListener('click', async () => {
+    const btn = document.getElementById('settings-signout-others-btn');
+    btn.disabled = true;
+    btn.textContent = 'Logging out other devices…';
+    const { error } = await sb.auth.signOut({ scope: 'others' });
+    btn.disabled = false;
+    btn.innerHTML = '<i data-lucide="log-out" class="icon-sm icon-inline"></i>Log Out of All Other Devices';
+    refreshIcons();
+    showToast(error ? (error.message || 'Something went wrong.') : 'Every other session has been signed out.', !!error);
+  });
+
   document.getElementById('delete-account-btn').addEventListener('click', async () => {
     const typed = window.prompt('This permanently deletes your account and everything tied to it. Type DELETE to confirm.');
     if (typed !== 'DELETE') return;

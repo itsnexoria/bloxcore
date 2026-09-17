@@ -33,6 +33,8 @@ async function initSiteTab() {
     await loadSitePagesDropdowns();
     await loadMaintenanceList();
     await loadPageBlockList();
+    await loadKeywordFilter();
+    await loadFlaggedPosts();
     initWebhookPanel();
 
     document.getElementById('broadcast-form').addEventListener('submit', handleCreateBroadcast);
@@ -40,6 +42,7 @@ async function initSiteTab() {
     document.getElementById('settings-form').addEventListener('submit', handleSaveSettings);
     document.getElementById('maintenance-form').addEventListener('submit', handleEnableMaintenance);
     document.getElementById('page-block-form').addEventListener('submit', handleAddPageBlock);
+    document.getElementById('keyword-filter-form').addEventListener('submit', handleSaveKeywordFilter);
 
     document.querySelectorAll('.site-subtab-btn').forEach(btn => {
       btn.addEventListener('click', () => activateSiteSubtab(btn.dataset.siteSubtab));
@@ -49,6 +52,67 @@ async function initSiteTab() {
     _siteTabInit = false;
     showToast('Something went wrong loading site controls. Try again.', true);
   }
+}
+
+async function loadKeywordFilter() {
+  const { data } = await sb.from('site_settings').select('value').eq('key', 'banned_keywords').maybeSingle();
+  document.getElementById('keyword-filter-textarea').value = (data?.value || []).join('\n');
+}
+
+async function handleSaveKeywordFilter(e) {
+  e.preventDefault();
+  const btn = e.target.querySelector('button[type="submit"]');
+  btn.disabled = true;
+  const keywords = document.getElementById('keyword-filter-textarea').value
+    .split('\n').map(k => k.trim()).filter(Boolean);
+  const { error } = await sb.from('site_settings').upsert({ key: 'banned_keywords', value: keywords }, { onConflict: 'key' });
+  btn.disabled = false;
+  if (error) { showToast(error.message, true); return; }
+  showToast('Keyword filter updated.');
+}
+
+async function loadFlaggedPosts() {
+  const list = document.getElementById('flagged-posts-list');
+  const { data, error } = await sb
+    .from('feed_posts')
+    .select('id, content, auto_flag_matched, created_at, profiles(username, display_name)')
+    .eq('auto_flagged', true)
+    .order('created_at', { ascending: false });
+
+  if (error) { list.innerHTML = errorStateHtml("Couldn't load flagged posts.", 'loadFlaggedPosts()'); return; }
+  if (!data.length) { list.innerHTML = `<p class="muted" style="font-size:0.85rem;">Nothing flagged right now.</p>`; return; }
+
+  list.innerHTML = data.map(p => `
+    <div class="panel" style="margin:0; padding:12px 14px;" data-flagged-post="${p.id}">
+      <div class="flex-between" style="align-items:flex-start; gap:10px;">
+        <div style="min-width:0;">
+          <p class="muted" style="margin:0 0 4px; font-size:0.75rem;">@${escapeHtml(p.profiles?.username || 'unknown')} · matched "<strong>${escapeHtml(p.auto_flag_matched || '')}</strong>" · ${timeAgo(p.created_at)}</p>
+          <p style="margin:0; font-size:0.86rem; overflow-wrap:anywhere;">${escapeHtml(p.content || '')}</p>
+        </div>
+        <div style="display:flex; gap:6px; flex-shrink:0;">
+          <button type="button" class="btn btn-ghost btn-sm" data-approve-flagged="${p.id}" title="Clear flag, keep post"><i data-lucide="check" class="icon-sm"></i></button>
+          <button type="button" class="btn btn-danger btn-sm" data-delete-flagged="${p.id}" title="Delete post"><i data-lucide="trash-2" class="icon-sm"></i></button>
+        </div>
+      </div>
+    </div>
+  `).join('');
+  refreshIcons();
+
+  list.querySelectorAll('[data-approve-flagged]').forEach(btn => {
+    btn.addEventListener('click', () => resolveFlaggedPost(btn.dataset.approveFlagged, 'approve'));
+  });
+  list.querySelectorAll('[data-delete-flagged]').forEach(btn => {
+    btn.addEventListener('click', () => resolveFlaggedPost(btn.dataset.deleteFlagged, 'delete'));
+  });
+}
+
+async function resolveFlaggedPost(postId, action) {
+  const { error } = action === 'delete'
+    ? await sb.from('feed_posts').delete().eq('id', postId)
+    : await sb.from('feed_posts').update({ auto_flagged: false }).eq('id', postId);
+  if (error) { showToast(error.message, true); return; }
+  document.querySelector(`[data-flagged-post="${postId}"]`)?.remove();
+  showToast(action === 'delete' ? 'Post deleted.' : 'Flag cleared — post is public again.');
 }
 
 function activateSiteSubtab(name) {

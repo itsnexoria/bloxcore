@@ -3,9 +3,12 @@
 let currentUser = null;
 let currentProfile = null;
 let pendingImageFile = null;
+let pendingItemId = null;
 let followingIds = new Set();
 let myCrewId = null;
 let feedTag = null;
+let feedItemCategory = 'fruit';
+let allFeedTagItems = [];
 
 const FEED_PAGE_SIZE = 20;
 const CHAR_RING_CIRCUMFERENCE = 2 * Math.PI * 9; // r=9, matches the SVG in feed/index.html
@@ -40,6 +43,21 @@ onReady(async () => {
   document.getElementById('feed-attach-btn').addEventListener('click', () => document.getElementById('feed-image-input').click());
   document.getElementById('feed-image-input').addEventListener('change', handleImageSelect);
   document.getElementById('feed-image-remove-btn').addEventListener('click', clearImageSelection);
+  document.getElementById('feed-attach-item-btn').addEventListener('click', openFeedItemPicker);
+  document.getElementById('feed-item-picker-close').addEventListener('click', () => {
+    document.getElementById('feed-item-picker-modal').classList.remove('open');
+  });
+  document.getElementById('feed-item-chip-remove').addEventListener('click', clearItemSelection);
+  document.getElementById('feed-item-picker-search').addEventListener('input', renderFeedItemPickerGrid);
+  document.querySelectorAll('#feed-item-category-tabs [data-category]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      feedItemCategory = btn.dataset.category;
+      document.querySelectorAll('#feed-item-category-tabs [data-category]').forEach(b => {
+        b.className = `btn btn-sm ${b.dataset.category === feedItemCategory ? 'btn-primary' : 'btn-ghost'}`;
+      });
+      renderFeedItemPickerGrid();
+    });
+  });
   document.getElementById('feed-post-btn').addEventListener('click', handlePost);
 
   document.querySelectorAll('#feed-tabs [data-feed-tab]').forEach(btn => {
@@ -183,13 +201,48 @@ function clearImageSelection() {
   document.getElementById('feed-image-preview').style.display = 'none';
 }
 
+async function openFeedItemPicker() {
+  if (!allFeedTagItems.length) allFeedTagItems = await fetchBfItemCatalog(['fruit', 'limited', 'gamepass']);
+  document.getElementById('feed-item-picker-search').value = '';
+  renderFeedItemPickerGrid();
+  document.getElementById('feed-item-picker-modal').classList.add('open');
+}
+
+function renderFeedItemPickerGrid() {
+  const query = document.getElementById('feed-item-picker-search').value.trim().toLowerCase();
+  const grid = document.getElementById('feed-item-picker-grid');
+  const items = allFeedTagItems.filter(i => i.category === feedItemCategory && (!query || i.name.toLowerCase().includes(query)));
+  grid.innerHTML = items.length
+    ? items.map(pickerTileHtml).join('')
+    : `<p class="muted" style="grid-column:1/-1; text-align:center; font-size:0.82rem;">No items match.</p>`;
+  refreshIcons();
+  grid.querySelectorAll('[data-pick-item]').forEach(tile => {
+    tile.addEventListener('click', () => setItemSelection(Number(tile.dataset.pickItem)));
+  });
+}
+
+function setItemSelection(itemId) {
+  const item = allFeedTagItems.find(i => i.id === itemId);
+  if (!item) return;
+  pendingItemId = itemId;
+  document.getElementById('feed-item-chip-icon').src = item.icon_url || '';
+  document.getElementById('feed-item-chip-name').textContent = item.name;
+  document.getElementById('feed-item-chip').style.display = 'flex';
+  document.getElementById('feed-item-picker-modal').classList.remove('open');
+}
+
+function clearItemSelection() {
+  pendingItemId = null;
+  document.getElementById('feed-item-chip').style.display = 'none';
+}
+
 async function handlePost() {
   const auth = await requireAuth();
   if (!auth) return;
 
   const input = document.getElementById('feed-post-input');
   const content = input.value.trim();
-  if (!content && !pendingImageFile && !pendingRepost) return;
+  if (!content && !pendingImageFile && !pendingRepost && !pendingItemId) return;
   if (content.length > 280) { showToast('Posts are capped at 280 characters.', true); return; }
 
   const btn = document.getElementById('feed-post-btn');
@@ -208,8 +261,9 @@ async function handlePost() {
 
   const { error } = await sb.from('feed_posts').insert({
     user_id: auth.user.id,
-    content: content || (pendingRepost ? '' : '📷'),
+    content: content || (pendingRepost ? '' : pendingItemId ? '' : '📷'),
     image_url,
+    tagged_item_id: pendingItemId,
     repost_trade_listing_id: pendingRepost?.type === 'trade_listing' ? pendingRepost.id : null,
     repost_crew_war_id: pendingRepost?.type === 'crew_war' ? pendingRepost.id : null,
     visibility: myCrewId && document.getElementById('feed-post-visibility').value === 'crew' ? 'crew' : 'public',
@@ -221,6 +275,7 @@ async function handlePost() {
   input.value = '';
   updateCharCount();
   clearImageSelection();
+  clearItemSelection();
   if (pendingRepost) {
     pendingRepost = null;
     document.getElementById('feed-repost-preview').style.display = 'none';
@@ -508,6 +563,22 @@ function embedHtml(embed) {
   return `<div class="feed-link-preview-slot" data-preview-url="${escapeHtml(embed.url)}"></div>`;
 }
 
+// Mini item card for a post tagged with a bf_items entry via the composer's "Tag an item"
+// button — same value/rarity data source as /trading/, just a compact single-item flex card.
+function taggedItemEmbedHtml(p) {
+  const rarity = (p.ti_rarity || '').toLowerCase();
+  const value = p.ti_permanent_value ?? p.ti_regular_value;
+  return `
+    <a href="/trading/" class="panel feed-tagged-item-card" data-rarity="${rarity}" style="display:flex; align-items:center; gap:12px; text-decoration:none; color:inherit; margin-top:12px; padding:10px 14px;">
+      ${p.ti_icon_url ? `<img src="${escapeHtml(p.ti_icon_url)}" alt="" loading="lazy" style="width:44px; height:44px; object-fit:contain; flex-shrink:0;">` : `<i data-lucide="gem" class="icon-lg" style="flex-shrink:0;"></i>`}
+      <div style="min-width:0;">
+        <p class="muted" style="margin:0 0 2px; font-size:0.68rem; text-transform:uppercase; letter-spacing:0.04em;">${escapeHtml(p.ti_category || 'Item')}${rarity ? ` · ${escapeHtml(rarity)}` : ''}</p>
+        <p style="margin:0; font-weight:700; font-size:0.9rem;">${escapeHtml(p.ti_name || 'Item')}</p>
+        ${value ? `<p class="muted" style="margin:2px 0 0; font-size:0.78rem;"><i data-lucide="coins" class="icon-sm icon-inline"></i>${formatValue(value)}</p>` : ''}
+      </div>
+    </a>`;
+}
+
 function buildLinkPreviewCardHtml(url, data) {
   let hostname = url;
   try { hostname = new URL(url).hostname.replace(/^www\./, ''); } catch {}
@@ -537,6 +608,23 @@ function renderTikTokEmbeds(root) {
   document.body.appendChild(script);
 }
 
+// Twitter/X's widgets.js exposes a proper re-scan API (unlike TikTok's), so it only needs
+// loading once — after that, calling twttr.widgets.load() picks up any new tweet
+// blockquotes without re-injecting the script.
+function renderTwitterEmbeds(root) {
+  if (!root.querySelector('blockquote.twitter-tweet')) return;
+  if (window.twttr && window.twttr.widgets) {
+    window.twttr.widgets.load(root);
+    return;
+  }
+  if (document.getElementById('twitter-embed-script')) return; // already loading
+  const script = document.createElement('script');
+  script.id = 'twitter-embed-script';
+  script.async = true;
+  script.src = 'https://platform.twitter.com/widgets.js';
+  document.body.appendChild(script);
+}
+
 async function loadLinkPreviews(root) {
   const slots = [...root.querySelectorAll('[data-preview-url]')];
   if (!slots.length) return;
@@ -554,12 +642,15 @@ async function loadLinkPreviews(root) {
   const byUrl = new Map(results);
   slots.forEach(el => {
     const data = byUrl.get(el.dataset.previewUrl);
-    if (data && (data.title || data.image || data.description)) {
+    if (data && data.embed_html) {
+      el.outerHTML = `<div class="feed-tweet-embed" style="margin-top:12px;">${data.embed_html}</div>`;
+    } else if (data && (data.title || data.image || data.description)) {
       el.outerHTML = buildLinkPreviewCardHtml(el.dataset.previewUrl, data);
     } else {
-      el.remove(); // no usable OG data — the URL is still clickable in the post text itself
+      el.remove(); // no usable preview data — the URL is still clickable in the post text itself
     }
   });
+  renderTwitterEmbeds(root);
 }
 
 function renderPost(p) {
@@ -592,6 +683,7 @@ function renderPost(p) {
       <p style="margin:12px 0 0; white-space:pre-wrap; font-size:0.94rem;">${linkifyHashtags(p.content)}</p>
       ${p.image_url ? `<a href="${p.image_url}" target="_blank" rel="noopener noreferrer"><img src="${p.image_url}" alt="" loading="lazy" style="max-width:100%; border-radius:var(--radius-sm,8px); margin-top:12px; border:1px solid var(--glass-border);"></a>` : ''}
       ${!p.image_url ? embedHtml(embed) : ''}
+      ${p.tagged_item_id ? taggedItemEmbedHtml(p) : ''}
       ${p.repost_trade_listing_id ? `<div style="margin-top:12px;">${buildTradeEmbedHtml(p)}</div>` : ''}
       ${p.repost_crew_war_id ? `<div style="margin-top:12px;">${buildWarEmbedHtml(p)}</div>` : ''}
       <div style="display:flex; align-items:center; gap:18px; margin-top:14px; padding-top:12px; border-top:1px solid var(--glass-border);">

@@ -63,6 +63,7 @@ onReady(async () => {
     const chosen = lastChallengeData.filter(c => selectedIds.has(c.id));
     openModal(chosen.map(c => c.id), chosen.map(c => c.title).join(', '));
   });
+  updateBulkBar();
 });
 
 function updateBulkBar() {
