@@ -47,6 +47,7 @@ onReady(async () => {
       bulkToggle.innerHTML = bulkMode
         ? `<i data-lucide="x" class="icon-sm icon-inline"></i>Cancel Selecting`
         : `<i data-lucide="list-checks" class="icon-sm icon-inline"></i>Select Multiple`;
+      refreshIcons();
       renderGrid();
       updateBulkBar();
     });
