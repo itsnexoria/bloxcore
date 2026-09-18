@@ -1823,6 +1823,13 @@ select option {
   gap: 22px;
   grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
 }
+/* Homepage's featured-quests row always renders a small fixed count (3) — auto-fill can
+   leave a leftover empty column track on wide screens that the real cards don't expand
+   into, so they end up narrower than the row and don't read as a matched, even-sized set.
+   auto-fit collapses the empty track and lets the real cards share the full row width. */
+#featured-challenges.grid {
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+}
 /* Masonry layout: items pack top-to-bottom in balanced columns instead of stretching to
    match the tallest item in a row, which suits cards of very different heights. */
 .masonry {
@@ -2845,6 +2852,7 @@ html.compact-mode .grid { gap: 12px; }
   animation: fadeInUp 0.45s ease both;
   display: flex;
   flex-direction: column;
+  height: 100%;
 }
 .quest-card:hover { transform: translateY(-6px); box-shadow: 0 20px 42px rgb(var(--shadow-rgb) / 0.6); }
 .quest-card.is-inactive { opacity: 0.6; }
