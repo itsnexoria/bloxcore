@@ -235,7 +235,9 @@
       <button type="button" class="btn btn-ghost btn-sm" id="title-modal-close" aria-label="Close"><i data-lucide="x" class="icon-md"></i></button>
     </div>
     <p class="muted" style="margin:0 0 14px; font-size:0.82rem;" id="title-modal-progress"></p>
+    <input type="text" id="title-modal-search" placeholder="Search titles…" style="margin-bottom:12px;">
     <div id="title-modal-grid" class="build-modal-grid" style="grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));"></div>
+    <p class="muted" id="title-modal-empty" style="display:none; text-align:center; font-size:0.82rem; margin:14px 0 0;">No titles match "<span id="title-modal-empty-term"></span>".</p>
 
     <div id="title-color-row" style="display:none; margin-top:18px; padding-top:16px; border-top:1px solid var(--glass-border);">
       <label style="margin-bottom:8px;">Title Color</label>

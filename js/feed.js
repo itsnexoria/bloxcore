@@ -518,7 +518,7 @@ function buildWarEmbedHtml(p) {
 
 function linkifyHashtags(content) {
   const withHashtags = escapeHtml(content).replace(/(^|[\s])#([a-zA-Z][a-zA-Z0-9_]{1,30})/g, (match, pre, tag) =>
-    `${pre}<a href="/feed/?tag=${encodeURIComponent(tag.toLowerCase())}" data-hashtag-link="${escapeHtml(tag.toLowerCase())}" style="color:var(--brass-bright); text-decoration:none;">#${escapeHtml(tag)}</a>`
+    `${pre}<a href="/feed/?tag=${encodeURIComponent(tag.toLowerCase())}" data-hashtag-link="${escapeHtml(tag.toLowerCase())}" style="color:var(--blue); text-decoration:none;">#${escapeHtml(tag)}</a>`
   );
   // Bare URLs pasted into a post (e.g. a YouTube/TikTok link) aren't clickable by default —
   // linkify them too, on top of the embed card rendered separately below the post.
@@ -810,7 +810,7 @@ async function renderCommentsPanel(postId, panel) {
             <div style="min-width:0;">
               <a href="/player/?u=${encodeURIComponent(c.username || '')}" style="color:var(--bone); font-weight:700; text-decoration:none; font-size:0.83rem;">${escapeHtml(displayNameFor(c))}</a>
               <span class="muted" style="font-size:0.7rem; margin-left:6px;">${timeAgo(c.created_at)}</span>
-              <p style="margin:2px 0 0; font-size:0.84rem; white-space:pre-wrap;">${escapeHtml(c.content)}</p>
+              <p style="margin:2px 0 0; font-size:0.84rem; white-space:pre-wrap;">${linkifyHashtags(c.content)}</p>
             </div>
           </div>
         `).join('')

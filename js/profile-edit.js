@@ -77,6 +77,7 @@ async function populateTitleSelect(userId, activeId, colorOverride, role) {
   document.getElementById('title-picker-modal').addEventListener('click', (e) => {
     if (e.target.id === 'title-picker-modal') closeTitleModal();
   });
+  document.getElementById('title-modal-search').addEventListener('input', (e) => filterTitleModal(e.target.value));
 }
 
 function renderTitlePickerValue() {
@@ -219,7 +220,7 @@ function openTitleModal() {
     `${ownedTitleIds.size} of ${allTitlesForPicker.length} titles unlocked`;
 
   const noneTile = `
-    <div class="build-modal-tile title-tile ${activeTitleId === '' ? 'selected' : ''}" data-title-id="">
+    <div class="build-modal-tile title-tile ${activeTitleId === '' ? 'selected' : ''}" data-title-id="" data-title-name="none">
       <i data-lucide="ban" class="icon-lg"></i>
       <span class="title-tile-name">None</span>
     </div>
@@ -228,7 +229,7 @@ function openTitleModal() {
   const tiles = allTitlesForPicker.map(t => {
     const owned = ownedTitleIds.has(t.id);
     return `
-      <div class="build-modal-tile title-tile ${!owned ? 'locked' : ''} ${activeTitleId === t.id ? 'selected' : ''}" data-rarity="${t.rarity}" ${owned ? `data-title-id="${t.id}"` : ''}>
+      <div class="build-modal-tile title-tile ${!owned ? 'locked' : ''} ${activeTitleId === t.id ? 'selected' : ''}" data-rarity="${t.rarity}" data-title-name="${escapeHtml(t.name.toLowerCase())}" ${owned ? `data-title-id="${t.id}"` : ''}>
         ${owned ? '' : '<i data-lucide="lock" class="icon-sm lock-icon"></i>'}
         <span class="title-tile-name" style="${owned ? titleColorStyle(t.color) : 'color:var(--ash);'}">${escapeHtml(t.name)}</span>
         <span class="title-rarity-pill title-rarity-${t.rarity}">${t.rarity}</span>
@@ -237,6 +238,8 @@ function openTitleModal() {
   }).join('');
 
   document.getElementById('title-modal-grid').innerHTML = noneTile + tiles;
+  document.getElementById('title-modal-search').value = '';
+  document.getElementById('title-modal-empty').style.display = 'none';
   renderTitleColorSwatches();
   refreshIcons();
 
@@ -255,6 +258,20 @@ function openTitleModal() {
 
 function closeTitleModal() {
   document.getElementById('title-picker-modal').classList.remove('open');
+}
+
+function filterTitleModal(term) {
+  const q = term.trim().toLowerCase();
+  const tiles = [...document.querySelectorAll('#title-modal-grid [data-title-name]')];
+  let visibleCount = 0;
+  tiles.forEach(tile => {
+    const match = !q || tile.dataset.titleName.includes(q) || tile.dataset.titleName === 'none';
+    tile.style.display = match ? '' : 'none';
+    if (match) visibleCount++;
+  });
+  const emptyEl = document.getElementById('title-modal-empty');
+  document.getElementById('title-modal-empty-term').textContent = term;
+  emptyEl.style.display = visibleCount === 0 && q ? 'block' : 'none';
 }
 
 function populateBountySelect(id) {
