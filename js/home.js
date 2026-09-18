@@ -237,13 +237,17 @@ async function loadWeeklySpotlight() {
   if (playerProfile) {
     views.push(`
       <div class="spotlight-view">
+        <i data-lucide="crown" class="spotlight-decor-icon"></i>
         <span class="spotlight-kicker"><i data-lucide="star" class="icon-sm icon-inline"></i>Player of the Week</span>
-        <div style="display:flex; align-items:center; gap:14px; margin-top:8px;">
-          ${avatarHtml(playerProfile, 46)}
-          <div style="min-width:0;">
-            <a href="/player/?u=${encodeURIComponent(row.player_username || '')}" style="color:var(--bone); font-weight:700; text-decoration:none; font-size:1.05rem;">${escapeHtml(displayNameFor(playerProfile))}</a> ${titleBadge(playerProfile)}
-            <p class="muted" style="margin:2px 0 0; font-family:var(--font-mono); color:var(--brass-bright);">+${Number(row.player_weekly_xp).toLocaleString()} XP this week</p>
+        <div class="flex-between" style="margin-top:8px; gap:14px; flex-wrap:wrap;">
+          <div style="display:flex; align-items:center; gap:14px;">
+            <div class="spotlight-avatar-ring">${avatarHtml(playerProfile, 50)}</div>
+            <div style="min-width:0;">
+              <a href="/player/?u=${encodeURIComponent(row.player_username || '')}" style="color:var(--bone); font-weight:700; text-decoration:none; font-size:1.05rem;">${escapeHtml(displayNameFor(playerProfile))}</a> ${titleBadge(playerProfile)}
+              <div><span class="spotlight-stat-pill"><i data-lucide="trending-up" style="width:12px;height:12px;"></i>+${Number(row.player_weekly_xp).toLocaleString()} XP this week</span></div>
+            </div>
           </div>
+          <a href="/player/?u=${encodeURIComponent(row.player_username || '')}" class="btn btn-ghost btn-sm" style="flex-shrink:0;">View Profile <i data-lucide="arrow-right" class="icon-sm"></i></a>
         </div>
       </div>
     `);
@@ -251,15 +255,21 @@ async function loadWeeklySpotlight() {
   if (row.crew_id) {
     views.push(`
       <div class="spotlight-view">
+        <i data-lucide="crown" class="spotlight-decor-icon"></i>
         <span class="spotlight-kicker"><i data-lucide="users" class="icon-sm icon-inline"></i>Crew of the Week</span>
-        <div style="display:flex; align-items:center; gap:14px; margin-top:8px;">
-          ${row.crew_logo_url
-            ? `<img src="${row.crew_logo_url}" alt="" style="width:46px; height:46px; border-radius:10px; object-fit:cover; flex-shrink:0;" onerror="this.style.visibility='hidden';">`
-            : `<div style="width:46px; height:46px; border-radius:10px; background:var(--navy-light); display:flex; align-items:center; justify-content:center; color:var(--ash); flex-shrink:0;">${escapeHtml((row.crew_name[0] || '?').toUpperCase())}</div>`}
-          <div style="min-width:0;">
-            <a href="/crew/?name=${encodeURIComponent(row.crew_name)}" style="color:var(--bone); font-weight:700; text-decoration:none; font-size:1.05rem;">${row.crew_tag ? `[${escapeHtml(row.crew_tag)}] ` : ''}${escapeHtml(row.crew_name)}</a>
-            <p class="muted" style="margin:2px 0 0; font-family:var(--font-mono); color:var(--brass-bright);">+${Number(row.crew_weekly_xp).toLocaleString()} XP this week · ${row.crew_member_count} members</p>
+        <div class="flex-between" style="margin-top:8px; gap:14px; flex-wrap:wrap;">
+          <div style="display:flex; align-items:center; gap:14px;">
+            <div class="spotlight-avatar-ring">
+              ${row.crew_logo_url
+                ? `<img src="${row.crew_logo_url}" alt="" style="width:50px; height:50px; border-radius:11px; object-fit:cover; display:block;" onerror="this.style.visibility='hidden';">`
+                : `<div style="width:50px; height:50px; border-radius:11px; background:var(--navy-light); display:flex; align-items:center; justify-content:center; color:var(--ash); font-weight:700;">${escapeHtml((row.crew_name[0] || '?').toUpperCase())}</div>`}
+            </div>
+            <div style="min-width:0;">
+              <a href="/crew/?name=${encodeURIComponent(row.crew_name)}" style="color:var(--bone); font-weight:700; text-decoration:none; font-size:1.05rem;">${row.crew_tag ? `[${escapeHtml(row.crew_tag)}] ` : ''}${escapeHtml(row.crew_name)}</a>
+              <div><span class="spotlight-stat-pill"><i data-lucide="trending-up" style="width:12px;height:12px;"></i>+${Number(row.crew_weekly_xp).toLocaleString()} XP · ${row.crew_member_count} members</span></div>
+            </div>
           </div>
+          <a href="/crew/?name=${encodeURIComponent(row.crew_name)}" class="btn btn-ghost btn-sm" style="flex-shrink:0;">View Crew <i data-lucide="arrow-right" class="icon-sm"></i></a>
         </div>
       </div>
     `);

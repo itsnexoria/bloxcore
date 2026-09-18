@@ -278,7 +278,7 @@ function renderChallengeCard(c) {
     ? `<button class="quest-card-claim-btn" disabled>${cooldownLabel}</button>`
     : bulkMode
     ? `<label class="quest-card-claim-btn" style="display:flex; align-items:center; justify-content:center; gap:8px; cursor:pointer;">
-         <input type="checkbox" data-select-id="${c.id}" ${selectedIds.has(c.id) ? 'checked' : ''} style="width:16px; height:16px;">
+         <input type="checkbox" class="quest-select-checkbox" data-select-id="${c.id}" ${selectedIds.has(c.id) ? 'checked' : ''}>
          Select to Submit
        </label>`
     : `<button class="quest-card-claim-btn" data-claim-id="${c.id}" data-claim-title="${escapeHtml(c.title)}">Claim Bounty <i data-lucide="chevron-right" class="icon-sm"></i></button>`;
