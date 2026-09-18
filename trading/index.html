@@ -181,6 +181,28 @@
   </div>
 </div>
 
+<!-- Item value history — small sparkline built from bf_item_price_history snapshots,
+     opened via the chart icon on a watchlist tile. -->
+<div id="item-history-modal" class="build-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="item-history-title">
+  <div class="panel build-modal" style="max-width:400px;">
+    <div class="flex-between" style="margin-bottom:14px;">
+      <div style="display:flex; align-items:center; gap:10px;">
+        <img id="item-history-icon" src="" alt="" style="width:36px; height:36px; object-fit:contain;">
+        <div>
+          <h2 id="item-history-title" style="font-size:1rem; margin:0;"></h2>
+          <p class="muted" id="item-history-rarity" style="margin:0; font-size:0.75rem; text-transform:capitalize;"></p>
+        </div>
+      </div>
+      <button type="button" class="btn btn-ghost btn-sm" id="item-history-close" aria-label="Close"><i data-lucide="x" class="icon-md"></i></button>
+    </div>
+    <div id="item-history-chart-wrap"></div>
+    <div class="flex-between" style="margin-top:14px; font-size:0.8rem;">
+      <span class="muted">Current value</span>
+      <span id="item-history-current-value" style="font-family:var(--font-mono); font-weight:700; color:var(--brass-bright);"></span>
+    </div>
+  </div>
+</div>
+
 <footer class="site-footer">
   <div class="container">BloxCore is the #1 Blox Fruits community — your ultimate hub for trading, bounty hunting, crews, combos, sea events, giveaways, leaderboards, a live feed, and so much more! Item values are community-maintained and may not reflect current in-game trading. <a href="/terms/" style="color:inherit; text-decoration:underline;">Terms</a> · <a href="/privacy/" style="color:inherit; text-decoration:underline;">Privacy</a></div>
 </footer>

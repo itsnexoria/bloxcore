@@ -53,6 +53,12 @@ onReady(async () => {
   document.getElementById('watchlist-close').addEventListener('click', () => {
     document.getElementById('watchlist-modal').classList.remove('open');
   });
+  document.getElementById('item-history-close').addEventListener('click', () => {
+    document.getElementById('item-history-modal').classList.remove('open');
+  });
+  document.getElementById('item-history-modal').addEventListener('click', (e) => {
+    if (e.target.id === 'item-history-modal') document.getElementById('item-history-modal').classList.remove('open');
+  });
   document.querySelectorAll('#watchlist-category-tabs [data-category]').forEach(btn => {
     btn.addEventListener('click', () => {
       watchlistCategory = btn.dataset.category;
@@ -93,6 +99,7 @@ function renderWatchlistGrid() {
         return `
           <div class="build-modal-tile" data-rarity="${rarity}" data-watch-item="${item.id}" style="padding:8px; position:relative; ${isWatched ? 'box-shadow:0 0 0 2px var(--brass-bright);' : ''}">
             ${isWatched ? `<i data-lucide="eye" class="icon-sm" style="position:absolute; top:4px; right:4px; color:var(--brass-bright);"></i>` : ''}
+            <button type="button" class="btn btn-ghost btn-sm" data-view-item-history="${item.id}" title="Value history" aria-label="Value history" style="position:absolute; top:2px; left:2px; padding:3px;"><i data-lucide="line-chart" style="width:12px;height:12px;"></i></button>
             ${item.icon_url ? `<img src="${item.icon_url}" alt="" loading="lazy" onerror="this.style.display='none';">` : `<i data-lucide="sparkles" class="icon-lg"></i>`}
             <span style="font-size:0.72rem;">${escapeHtml(item.name)}</span>
           </div>
@@ -103,7 +110,76 @@ function renderWatchlistGrid() {
   grid.querySelectorAll('[data-watch-item]').forEach(tile => {
     tile.addEventListener('click', () => toggleWatchItem(Number(tile.dataset.watchItem)));
   });
+  grid.querySelectorAll('[data-view-item-history]').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation(); // don't also trigger the tile's watch-toggle click
+      openItemHistoryModal(Number(btn.dataset.viewItemHistory));
+    });
+  });
   refreshIcons();
+}
+
+async function openItemHistoryModal(itemId) {
+  const item = allTradeItems.find(i => i.id === itemId);
+  if (!item) return;
+
+  document.getElementById('item-history-icon').src = item.icon_url || '';
+  document.getElementById('item-history-title').textContent = item.name;
+  document.getElementById('item-history-rarity').textContent = item.rarity || '';
+  document.getElementById('item-history-current-value').textContent = formatValue(valueFor(item, 'regular'));
+  document.getElementById('item-history-chart-wrap').innerHTML = `<div class="skeleton" style="height:90px;"></div>`;
+  document.getElementById('item-history-modal').classList.add('open');
+
+  const { data } = await sb
+    .from('bf_item_price_history')
+    .select('regular_value, recorded_at')
+    .eq('item_id', itemId)
+    .order('recorded_at', { ascending: true })
+    .limit(90);
+
+  document.getElementById('item-history-chart-wrap').innerHTML = sparklineHtml(data || []);
+}
+
+// Dependency-free inline SVG line chart — the site loads no charting library, and a value
+// history sparkline is simple enough (a handful of points) not to need one.
+function sparklineHtml(points) {
+  if (points.length < 2) {
+    return `<p class="muted" style="font-size:0.8rem; text-align:center; padding:30px 0;">Not enough history yet — check back after the next value update.</p>`;
+  }
+  const w = 340, h = 90, pad = 8;
+  const values = points.map(p => p.regular_value ?? 0);
+  const min = Math.min(...values), max = Math.max(...values);
+  const range = max - min || 1;
+  const stepX = (w - pad * 2) / (points.length - 1);
+  const coords = values.map((v, i) => {
+    const x = pad + i * stepX;
+    const y = pad + (h - pad * 2) * (1 - (v - min) / range);
+    return [x, y];
+  });
+  const path = coords.map(([x, y], i) => `${i === 0 ? 'M' : 'L'}${x.toFixed(1)},${y.toFixed(1)}`).join(' ');
+  const areaPath = `${path} L${coords[coords.length - 1][0].toFixed(1)},${h - pad} L${coords[0][0].toFixed(1)},${h - pad} Z`;
+  const first = new Date(points[0].recorded_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+  const last = new Date(points[points.length - 1].recorded_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+  const changed = values[values.length - 1] - values[0];
+  const changeColor = changed > 0 ? 'var(--sea)' : changed < 0 ? '#f87171' : 'var(--ash)';
+
+  return `
+    <svg viewBox="0 0 ${w} ${h}" style="width:100%; height:${h}px; display:block;">
+      <defs>
+        <linearGradient id="sparkFill" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="var(--brass-bright)" stop-opacity="0.28"/>
+          <stop offset="100%" stop-color="var(--brass-bright)" stop-opacity="0"/>
+        </linearGradient>
+      </defs>
+      <path d="${areaPath}" fill="url(#sparkFill)"></path>
+      <path d="${path}" fill="none" stroke="var(--brass-bright)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"></path>
+    </svg>
+    <div class="flex-between muted" style="font-size:0.7rem; margin-top:2px;">
+      <span>${first}</span>
+      <span style="color:${changeColor}; font-weight:700;">${changed > 0 ? '+' : ''}${formatValue(changed)}</span>
+      <span>${last}</span>
+    </div>
+  `;
 }
 
 async function toggleWatchItem(itemId) {
@@ -352,7 +428,7 @@ function renderListing(t) {
         <div style="display:flex; align-items:center; gap:10px;">
           ${avatarHtml(profile, 34)}
           <div>
-            <a href="/player/?u=${encodeURIComponent(profile.username || '')}" style="color:var(--bone); font-weight:700; text-decoration:none; font-size:0.9rem;">${escapeHtml(displayNameFor(profile))}</a> ${titleBadge(profile)} <span data-rep-for="${t.user_id}"></span>
+            <a href="/player/?u=${encodeURIComponent(profile.username || '')}" style="color:var(--bone); font-weight:700; text-decoration:none; font-size:0.9rem;">${escapeHtml(displayNameFor(profile))}</a> ${titleBadge(profile)} <span data-rep-for="${t.user_id}"></span> <span data-verified-trader-for="${t.user_id}"></span>
             <p class="muted" style="margin:0; font-size:0.75rem;">${timeAgo(t.created_at)} · expires in ${hoursLeft(t.expires_at)}</p>
             <span data-new-account-for="${t.user_id}"></span>
           </div>

@@ -2930,6 +2930,23 @@ html.compact-mode .grid { gap: 12px; }
   margin: 0 0 6px;
 }
 .quest-card-desc { font-size: 0.86rem; color: var(--ash); margin: 0; flex: 1; }
+/* #hero-poster (homepage) cycles between different quests' title/description on a timer —
+   without a fixed content height the card visibly grows and shrinks every rotation as
+   text length changes. Pin both to a consistent height and clamp overflow instead. */
+#hero-poster .quest-card-title {
+  min-height: 2.4em;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+#hero-poster .quest-card-desc {
+  min-height: 3.6em;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+}
 .quest-card-divider { height: 1px; background: var(--glass-border); margin: 16px 0; }
 .quest-card-reward-label {
   font-size: 0.68rem;

@@ -35,6 +35,7 @@ async function initSiteTab() {
     await loadPageBlockList();
     await loadKeywordFilter();
     await loadFlaggedPosts();
+    await loadDuplicateAccountChecks();
     initWebhookPanel();
 
     document.getElementById('broadcast-form').addEventListener('submit', handleCreateBroadcast);
@@ -113,6 +114,41 @@ async function resolveFlaggedPost(postId, action) {
   if (error) { showToast(error.message, true); return; }
   document.querySelector(`[data-flagged-post="${postId}"]`)?.remove();
   showToast(action === 'delete' ? 'Post deleted.' : 'Flag cleared — post is public again.');
+}
+
+async function loadDuplicateAccountChecks() {
+  const [{ data: roblox, error: robloxErr }, { data: bursts, error: burstsErr }] = await Promise.all([
+    sb.rpc('get_duplicate_roblox_accounts'),
+    sb.rpc('get_referral_burst_clusters'),
+  ]);
+
+  const robloxList = document.getElementById('duplicate-roblox-list');
+  if (robloxErr) {
+    robloxList.innerHTML = errorStateHtml("Couldn't load this.", 'loadDuplicateAccountChecks()');
+  } else if (!roblox.length) {
+    robloxList.innerHTML = `<p class="muted" style="font-size:0.85rem;">No shared Roblox accounts found.</p>`;
+  } else {
+    robloxList.innerHTML = roblox.map(row => `
+      <div class="panel" style="margin:0; padding:12px 14px;">
+        <p style="margin:0 0 4px; font-size:0.86rem;"><strong>${escapeHtml(row.roblox_username || 'Unknown Roblox user')}</strong> <span class="muted">(Roblox ID ${row.roblox_user_id})</span> — linked to ${row.account_count} BloxCore accounts</p>
+        <p class="muted" style="margin:0; font-size:0.78rem;">${row.usernames.map(u => `@${escapeHtml(u)}`).join(', ')}</p>
+      </div>
+    `).join('');
+  }
+
+  const burstsList = document.getElementById('referral-bursts-list');
+  if (burstsErr) {
+    burstsList.innerHTML = errorStateHtml("Couldn't load this.", 'loadDuplicateAccountChecks()');
+  } else if (!bursts.length) {
+    burstsList.innerHTML = `<p class="muted" style="font-size:0.85rem;">No referral bursts found.</p>`;
+  } else {
+    burstsList.innerHTML = bursts.map(row => `
+      <div class="panel" style="margin:0; padding:12px 14px;">
+        <p style="margin:0 0 4px; font-size:0.86rem;"><strong>@${escapeHtml(row.referrer_username || 'unknown')}</strong> — ${row.burst_count} referrals in one burst</p>
+        <p class="muted" style="margin:0; font-size:0.78rem;">${row.referred_usernames.map(u => `@${escapeHtml(u)}`).join(', ')} · ${timeAgo(row.window_start)} → ${timeAgo(row.window_end)}</p>
+      </div>
+    `).join('');
+  }
 }
 
 function activateSiteSubtab(name) {

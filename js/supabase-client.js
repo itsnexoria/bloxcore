@@ -272,12 +272,16 @@ async function loadReputationBadges(container, posters) {
   if (!ids.length) return;
   const createdAtById = new Map(list.map(p => [p.id, p.createdAt]));
 
-  const { data } = await sb.from('vouches').select('target_id, direction').in('target_id', ids);
+  const [{ data }, { data: verifiedRows }] = await Promise.all([
+    sb.from('vouches').select('target_id, direction').in('target_id', ids),
+    sb.rpc('get_verified_traders', { p_user_ids: ids }),
+  ]);
   const scores = {};
   (data || []).forEach(v => {
     scores[v.target_id] = scores[v.target_id] || { positive: 0, negative: 0 };
     scores[v.target_id][v.direction === 1 ? 'positive' : 'negative']++;
   });
+  const verifiedIds = new Set((verifiedRows || []).map(r => r.user_id));
 
   container.querySelectorAll('[data-rep-for]').forEach(el => {
     const s = scores[el.dataset.repFor];
@@ -289,6 +293,11 @@ async function loadReputationBadges(container, posters) {
     const userId = el.dataset.newAccountFor;
     const s = scores[userId] || { positive: 0, negative: 0 };
     el.innerHTML = newAccountBadge({ created_at: createdAtById.get(userId) }, s.positive, s.negative);
+  });
+
+  container.querySelectorAll('[data-verified-trader-for]').forEach(el => {
+    if (!verifiedIds.has(el.dataset.verifiedTraderFor)) return;
+    el.innerHTML = `<span class="rep-badge" style="color:var(--sea); background:rgb(52 211 153 / 0.12);" title="Verified trader — enough completed trades with no open reports"><i data-lucide="badge-check" class="icon-sm icon-inline"></i>Verified</span>`;
   });
 
   refreshIcons();

@@ -693,6 +693,7 @@
         <button type="button" class="site-subtab-btn" data-site-subtab="broadcasts">Broadcasts</button>
         <button type="button" class="site-subtab-btn" data-site-subtab="xp-events">XP Events</button>
         <button type="button" class="site-subtab-btn" data-site-subtab="content-filter">Content Filter</button>
+        <button type="button" class="site-subtab-btn" data-site-subtab="duplicates">Duplicates</button>
       </div>
 
       <div data-site-subpanel="settings" class="panel" id="site-settings" style="margin-top:16px; scroll-margin-top:90px;">
@@ -1003,6 +1004,24 @@
           <h3 style="font-size:1.1rem;"><i data-lucide="flag" class="icon-sm icon-inline"></i>Auto-Flagged Posts</h3>
           <p class="muted" style="font-size:0.85rem; margin-top:-8px;">Posts caught by the keyword filter above, waiting on a mod decision.</p>
           <div id="flagged-posts-list" style="margin-top:14px; display:flex; flex-direction:column; gap:10px;">
+            <div class="skeleton" style="height:60px;"></div>
+          </div>
+        </div>
+      </div>
+
+      <div data-site-subpanel="duplicates" style="display:none;">
+        <div class="panel" id="site-duplicate-roblox" style="margin-top:16px; scroll-margin-top:90px;">
+          <h3 style="font-size:1.1rem;"><i data-lucide="user-x" class="icon-sm icon-inline"></i>Shared Roblox Accounts</h3>
+          <p class="muted" style="font-size:0.85rem; margin-top:-8px;">Multiple BloxCore accounts verified against the same Roblox account — the strongest multi-account signal, since a Discord login is easy to multiply but a verified Roblox account isn't.</p>
+          <div id="duplicate-roblox-list" style="margin-top:14px; display:flex; flex-direction:column; gap:10px;">
+            <div class="skeleton" style="height:60px;"></div>
+          </div>
+        </div>
+
+        <div class="panel" id="site-referral-bursts" style="margin-top:16px; scroll-margin-top:90px;">
+          <h3 style="font-size:1.1rem;"><i data-lucide="users" class="icon-sm icon-inline"></i>Referral Burst Clusters</h3>
+          <p class="muted" style="font-size:0.85rem; margin-top:-8px;">A referrer with several new accounts signing up in a tight window — the classic alt-farming loop. Flags 3+ referrals within 30 minutes of each other.</p>
+          <div id="referral-bursts-list" style="margin-top:14px; display:flex; flex-direction:column; gap:10px;">
             <div class="skeleton" style="height:60px;"></div>
           </div>
         </div>
