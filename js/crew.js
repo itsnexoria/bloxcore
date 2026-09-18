@@ -467,6 +467,7 @@ function openEditModal() {
   }
   document.getElementById('edit-crew-roblox').value = crew.roblox_username || '';
   document.getElementById('edit-crew-discord').value = crew.discord_invite || '';
+  document.getElementById('edit-crew-recruiting').checked = !!crew.recruiting;
   document.getElementById('edit-crew-error').style.display = 'none';
   document.getElementById('edit-crew-modal').style.display = 'flex';
 }
@@ -521,6 +522,7 @@ async function handleEditCrew(e) {
     logo_url,
     roblox_username: document.getElementById('edit-crew-roblox').value.trim() || null,
     discord_invite: document.getElementById('edit-crew-discord').value.trim() || null,
+    recruiting: document.getElementById('edit-crew-recruiting').checked,
   };
 
   if (updates.discord_invite && safeUrl(updates.discord_invite) === '#') {

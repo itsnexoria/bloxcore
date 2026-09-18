@@ -17,9 +17,11 @@ onReady(async () => {
   document.getElementById('lb-tab-crews').addEventListener('click', () => switchTab('crews'));
   document.getElementById('lb-tab-wars').addEventListener('click', () => switchTab('wars'));
   document.getElementById('lb-tab-pvp').addEventListener('click', () => switchTab('pvp'));
+  document.getElementById('lb-tab-referrers').addEventListener('click', () => switchTab('referrers'));
   if (window.location.hash === '#crews') switchTab('crews');
   else if (window.location.hash === '#wars') switchTab('wars');
   else if (window.location.hash === '#pvp') switchTab('pvp');
+  else if (window.location.hash === '#referrers') switchTab('referrers');
   document.querySelectorAll('#lb-period-tabs [data-period]').forEach(btn => {
     btn.addEventListener('click', () => switchPeriod(btn.dataset.period));
   });
@@ -49,12 +51,14 @@ function switchTab(tab) {
   document.getElementById('lb-tab-crews').className = `btn btn-sm ${tab === 'crews' ? 'btn-primary' : 'btn-ghost'}`;
   document.getElementById('lb-tab-wars').className = `btn btn-sm ${tab === 'wars' ? 'btn-primary' : 'btn-ghost'}`;
   document.getElementById('lb-tab-pvp').className = `btn btn-sm ${tab === 'pvp' ? 'btn-primary' : 'btn-ghost'}`;
-  // Crew Wars and PvP are both cumulative win/loss records, not period-based XP
-  // totals — the Today/Weekly/etc. tabs don't apply to either, unlike Players and Crews.
-  document.getElementById('lb-period-tabs').style.display = (tab === 'wars' || tab === 'pvp') ? 'none' : 'flex';
+  document.getElementById('lb-tab-referrers').className = `btn btn-sm ${tab === 'referrers' ? 'btn-primary' : 'btn-ghost'}`;
+  // Crew Wars, PvP, and Top Recruiters are all cumulative counts, not period-based XP
+  // totals — the Today/Weekly/etc. tabs don't apply to any of them, unlike Players and Crews.
+  document.getElementById('lb-period-tabs').style.display = (tab === 'wars' || tab === 'pvp' || tab === 'referrers') ? 'none' : 'flex';
   if (tab === 'players') loadLeaderboard(0);
   else if (tab === 'crews') loadCrewLeaderboard();
   else if (tab === 'pvp') loadPvpLeaderboard();
+  else if (tab === 'referrers') loadReferrerLeaderboard();
   else loadCrewWarLeaderboard();
 }
 
@@ -295,6 +299,43 @@ document.addEventListener('click', (e) => {
   if (e.target.id === 'lb-prev') loadLeaderboard(currentPage - 1);
   if (e.target.id === 'lb-next') loadLeaderboard(currentPage + 1);
 });
+
+async function loadReferrerLeaderboard() {
+  const list = document.getElementById('leaderboard-list');
+  document.getElementById('lb-subtitle').textContent = 'Ranked by how many people signed up with their referral link.';
+  list.innerHTML = `<div class="skeleton" style="height:60px; margin:16px;"></div>`;
+
+  const { data, error } = await sb.rpc('get_referrer_leaderboard');
+
+  if (error) {
+    list.innerHTML = errorStateHtml("Couldn't load the recruiters leaderboard right now.", 'loadReferrerLeaderboard()');
+    refreshIcons();
+    logError(error);
+    return;
+  }
+  if (!data.length) {
+    list.innerHTML = `<div class="empty-state">Nobody's referred anyone yet — grab your link from your <a href="/player/" style="color:var(--brass-bright);">profile page</a> and be the first.</div>`;
+    return;
+  }
+
+  list.innerHTML = data.map((p, i) => {
+    const rank = i + 1;
+    const podium = rank <= 3;
+    return `
+    <a href="/player/?u=${encodeURIComponent(p.username)}" style="text-decoration:none; color:inherit;">
+      <div class="flex-between${podium ? ' lb-row-podium' : ''}" ${podium ? `data-rank="${rank}"` : ''} style="padding:16px 20px; ${i !== data.length - 1 && !podium ? 'border-bottom:1px solid var(--navy-light);' : ''}">
+        <div style="display:flex; align-items:center; gap:16px;">
+          <span class="${podium ? 'lb-podium-rank' : ''}" style="font-family:var(--font-mono); color:var(--ash); width:28px;">${podium ? `<i data-lucide="${rank === 1 ? 'crown' : 'medal'}" class="icon-sm"></i>` : `#${rank}`}</span>
+          ${avatarHtml(p, 36)}
+          <span style="color:var(--bone); font-weight:700;">${escapeHtml(displayNameFor(p))}</span>
+        </div>
+        <p style="margin:0; font-family:var(--font-mono); color:var(--brass-bright);">${p.referral_count} invited</p>
+      </div>
+    </a>
+  `;
+  }).join('');
+  refreshIcons();
+}
 
 async function loadPvpLeaderboard() {
   const list = document.getElementById('leaderboard-list');

@@ -88,6 +88,7 @@ onReady(async () => {
   renderProfileCard(profile, membership?.crews);
   initMyListingsTabs(profile.role);
   loadOnboardingChecklist(profile, membership, user.id);
+  loadOnThisDay(user.id);
   await loadSubmissions(user.id);
   await loadMyTradeListings(user.id, settings.maxActiveTrades);
   await loadMyCombos(user.id, settings.maxCombosPerUser);
@@ -491,4 +492,17 @@ async function loadOnboardingChecklist(profile, membership, userId) {
     el.style.display = 'none';
     await sb.from('profiles').update({ onboarding_dismissed: true }).eq('id', userId);
   });
+}
+
+async function loadOnThisDay(userId) {
+  const { data, error } = await sb.rpc('get_on_this_day', { p_user_id: userId });
+  if (error || !data?.length) return; // nothing from this exact date last year — stay hidden
+
+  const totalXp = data.reduce((sum, r) => sum + (r.xp_awarded || 0), 0);
+  const yearsAgo = data[0].years_ago || 1;
+  document.getElementById('on-this-day-items').innerHTML = `
+    <p class="muted" style="margin:0 0 6px; font-size:0.82rem;">${yearsAgo} year${yearsAgo === 1 ? '' : 's'} ago today, you earned ${totalXp} XP:</p>
+    ${data.slice(0, 4).map(r => `<p style="margin:0; font-size:0.85rem;">· ${escapeHtml(r.detail || r.activity_type.replace(/_/g, ' '))}</p>`).join('')}
+  `;
+  document.getElementById('on-this-day').style.display = 'block';
 }

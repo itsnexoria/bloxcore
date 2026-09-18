@@ -11,6 +11,7 @@ let requestingEntries = [];
 let maxActiveTrades = 3;
 let myWatchlist = new Set(); // item ids
 let watchlistCategory = 'fruit';
+let listingLookup = new Map(); // id -> full listing row, for the Relist quick-duplicate action
 
 onReady(async () => {
   initFirstVisitBanner('trading-tips-banner', 'trading-tips-dismiss', 'bc_seen_tips_trading');
@@ -202,14 +203,14 @@ function itemById(id) {
 
 // --- Compose modal -----------------------------------------------------
 
-function openComposeModal() {
+function openComposeModal(prefill) {
   if (myActiveListingCount >= maxActiveTrades) {
     showToast(`You've hit the ${maxActiveTrades} active listing limit — close one first.`, true);
     return;
   }
-  offeringEntries = [];
-  requestingEntries = [];
-  document.getElementById('trade-note').value = '';
+  offeringEntries = prefill?.offering ? prefill.offering.map(e => ({ ...e })) : [];
+  requestingEntries = prefill?.requesting ? prefill.requesting.map(e => ({ ...e })) : [];
+  document.getElementById('trade-note').value = prefill?.note || '';
   renderSlotList('offering');
   renderSlotList('requesting');
   document.getElementById('trade-compose-modal').classList.add('open');
@@ -375,6 +376,7 @@ async function loadListings() {
   }
 
   container.innerHTML = data.map(renderListing).join('');
+  data.forEach(t => listingLookup.set(t.id, t));
   wireListingActions(container);
   refreshIcons();
   loadReputationBadges(container, data.map(t => ({ id: t.user_id, createdAt: t.profiles?.created_at })));
@@ -389,6 +391,7 @@ async function loadListings() {
       renderItem: renderListing,
       onAppend: (rows) => {
         const ids = new Set(rows.map(r => String(r.id)));
+        rows.forEach(t => listingLookup.set(t.id, t));
         const newEls = [...container.querySelectorAll('[data-listing-id]')].filter(el => ids.has(el.dataset.listingId));
         newEls.forEach(el => wireListingActions(el));
         refreshIcons();
@@ -433,7 +436,7 @@ function renderListing(t) {
             <span data-new-account-for="${t.user_id}"></span>
           </div>
         </div>
-        ${isOwner ? `<div style="display:flex; gap:6px;"><button class="btn btn-ghost btn-sm" data-complete-listing="${t.id}" title="Mark completed" aria-label="Mark completed"><i data-lucide="check" class="icon-sm"></i></button><button class="btn btn-ghost btn-sm" data-delete-listing="${t.id}" aria-label="Delete listing"><i data-lucide="x" class="icon-sm"></i></button></div>` : (currentUser ? `<button class="btn btn-ghost btn-sm" data-report-listing="${t.id}" title="Report" aria-label="Report listing"><i data-lucide="flag" class="icon-sm"></i></button>` : '')}
+        ${isOwner ? `<div style="display:flex; gap:6px;"><button class="btn btn-ghost btn-sm" data-relist-listing="${t.id}" title="Relist (duplicate as a fresh listing)" aria-label="Relist"><i data-lucide="repeat" class="icon-sm"></i></button><button class="btn btn-ghost btn-sm" data-complete-listing="${t.id}" title="Mark completed" aria-label="Mark completed"><i data-lucide="check" class="icon-sm"></i></button><button class="btn btn-ghost btn-sm" data-delete-listing="${t.id}" aria-label="Delete listing"><i data-lucide="x" class="icon-sm"></i></button></div>` : (currentUser ? `<button class="btn btn-ghost btn-sm" data-report-listing="${t.id}" title="Report" aria-label="Report listing"><i data-lucide="flag" class="icon-sm"></i></button>` : '')}
       </div>
 
       ${t.note ? `<p class="muted" style="margin:12px 0 0; font-size:0.85rem;">${escapeHtml(t.note)}</p>` : ''}
@@ -470,6 +473,13 @@ function renderListing(t) {
 
 function wireListingActions(root) {
   root = root || document;
+  root.querySelectorAll('[data-relist-listing]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const t = listingLookup.get(btn.dataset.relistListing);
+      if (!t) return;
+      openComposeModal({ offering: t.offering_item_ids, requesting: t.requesting_item_ids, note: t.note });
+    });
+  });
   root.querySelectorAll('[data-complete-listing]').forEach(btn => {
     btn.addEventListener('click', async () => {
       const { error } = await sb.from('trade_listings').update({ active: false }).eq('id', btn.dataset.completeListing);

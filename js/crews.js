@@ -18,6 +18,13 @@ onReady(async () => {
   document.getElementById('create-crew-btn').addEventListener('click', openModal);
   document.getElementById('crew-modal-cancel').addEventListener('click', closeModal);
   document.getElementById('crew-form').addEventListener('submit', handleCreate);
+  document.getElementById('crews-recruiting-toggle').addEventListener('click', () => {
+    recruitingOnly = !recruitingOnly;
+    const btn = document.getElementById('crews-recruiting-toggle');
+    btn.className = `btn btn-sm ${recruitingOnly ? 'btn-primary' : 'btn-ghost'}`;
+    document.getElementById('crews-grid').innerHTML = `<div class="skeleton" style="height:160px;"></div>`;
+    loadCrews();
+  });
 
   document.querySelectorAll('#crews-page-tabs [data-page-tab]').forEach(btn => {
     btn.addEventListener('click', () => switchPageTab(btn.dataset.pageTab));
@@ -97,6 +104,7 @@ async function guardCreateButton() {
 }
 
 const CREWS_PAGE_SIZE = 20;
+let recruitingOnly = false;
 
 async function loadCrews() {
   const grid = document.getElementById('crews-grid');
@@ -109,7 +117,9 @@ async function loadCrews() {
   }
 
   if (!rows.length) {
-    grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1;">No crews yet.</div>`;
+    grid.innerHTML = recruitingOnly
+      ? `<div class="empty-state" style="grid-column:1/-1;">No crews are actively recruiting right now — check back later.</div>`
+      : `<div class="empty-state" style="grid-column:1/-1;">No crews yet.</div>`;
     return;
   }
 
@@ -128,7 +138,9 @@ async function loadCrews() {
 // Fetches one page of crews plus a bounty total (sum of members' pirate_bounty) for
 // just those crews — scoped per page instead of pulling every crew's members at once.
 async function fetchCrewsPage(offset, pageSize) {
-  const { data, error } = await sb.from('crews').select('*').order('created_at', { ascending: false }).range(offset, offset + pageSize - 1);
+  let query = sb.from('crews').select('*').order('created_at', { ascending: false });
+  if (recruitingOnly) query = query.eq('recruiting', true);
+  const { data, error } = await query.range(offset, offset + pageSize - 1);
   if (error) {
     logError(error);
     return null;
@@ -156,6 +168,7 @@ function renderCrewCard(c) {
         <div style="min-width:0; flex:1;">
           <h3 title="${escapeHtml(c.name)}">${escapeHtml(c.name)}</h3>
           ${c.tag ? `<span class="tag tag-legendary">${escapeHtml(c.tag)}</span>` : ''}
+          ${c.recruiting ? `<span class="tag" style="background:rgb(52 211 153 / 0.15); color:var(--sea); margin-left:4px;"><i data-lucide="user-plus" class="icon-sm icon-inline"></i>Recruiting</span>` : ''}
         </div>
         <div class="crew-card-bounty">
           <p class="muted">Bounty</p>

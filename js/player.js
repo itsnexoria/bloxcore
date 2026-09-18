@@ -41,7 +41,7 @@ async function loadPlayer() {
   setProfileMeta(profile);
   content.innerHTML = renderProfile(profile, membership?.crews, isOwnProfile);
   refreshIcons();
-  wireProfileActions(profile);
+  wireProfileActions(profile, isOwnProfile);
   loadSocialActions(profile, viewerId, isOwnProfile);
   loadPlayerAchievements(profile.id);
   loadPlayerActivity(profile.id);
@@ -76,12 +76,16 @@ function setProfileMeta(p) {
   document.getElementById('meta-twitter-description')?.setAttribute('content', desc);
 }
 
-function wireProfileActions(p) {
+function wireProfileActions(p, isOwnProfile) {
   document.getElementById('profile-copy-link')?.addEventListener('click', async () => {
-    const url = `${location.origin}/player/?u=${encodeURIComponent(p.username)}`;
+    // On your own profile, sharing the page IS the invite — copy the referral link
+    // instead of a plain profile link so sharing your profile doubles as inviting people.
+    const url = isOwnProfile
+      ? `${location.origin}/auth/?ref=${encodeURIComponent(p.username)}`
+      : `${location.origin}/player/?u=${encodeURIComponent(p.username)}`;
     try {
       await navigator.clipboard.writeText(url);
-      showToast('Profile link copied.');
+      showToast(isOwnProfile ? 'Referral link copied — anyone who signs up with it counts as invited by you.' : 'Profile link copied.');
     } catch {
       showToast(url);
     }
@@ -206,7 +210,7 @@ function renderProfile(p, crew, isOwnProfile) {
               ${p.roblox_verified ? '<i data-lucide="badge-check" class="icon-sm profile-hero-verified-badge"></i>' : ''}
             </a>
           ` : ''}
-          <button type="button" id="profile-copy-link" class="profile-hero-icon-btn" title="Copy profile link" aria-label="Copy profile link"><i data-lucide="link" class="icon-sm"></i></button>
+          <button type="button" id="profile-copy-link" class="profile-hero-icon-btn" title="${isOwnProfile ? 'Copy your referral link' : 'Copy profile link'}" aria-label="${isOwnProfile ? 'Copy your referral link' : 'Copy profile link'}"><i data-lucide="${isOwnProfile ? 'user-plus' : 'link'}" class="icon-sm"></i></button>
           ${!isOwnProfile ? `<button type="button" id="profile-report" class="profile-hero-icon-btn" title="Report this profile" aria-label="Report this profile"><i data-lucide="flag" class="icon-sm"></i></button>` : ''}
         </div>
         <div class="profile-hero-overlay-info">
