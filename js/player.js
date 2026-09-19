@@ -43,8 +43,10 @@ async function loadPlayer() {
   refreshIcons();
   wireProfileActions(profile, isOwnProfile);
   loadSocialActions(profile, viewerId, isOwnProfile);
-  loadPlayerAchievements(profile.id);
-  loadPlayerActivity(profile.id);
+  loadPinnedShowcase(profile);
+  const hidden = new Set(profile.hidden_profile_sections || []);
+  if (!hidden.has('achievements')) loadPlayerAchievements(profile.id);
+  if (!hidden.has('activity')) loadPlayerActivity(profile.id);
   loadPlayerTradeListings(profile.id);
   loadPlayerCombos(profile.id);
   loadPlayerServices(profile.id);
@@ -52,9 +54,26 @@ async function loadPlayer() {
   loadPlayerGiveaways(profile.id, viewerId);
   loadPlayerLikesTotal(profile.id);
   loadPlayerVouches(profile.id, viewerId, isOwnProfile);
-  loadPlayerPvpHistory(profile.id);
-  loadPlayerTradeHistory(profile.id);
+  if (!hidden.has('pvp_history')) loadPlayerPvpHistory(profile.id);
+  if (!hidden.has('trade_history')) loadPlayerTradeHistory(profile.id);
   if (profile.pinned_feed_post_id) loadPlayerPinnedPost(profile.id);
+}
+
+async function loadPinnedShowcase(p) {
+  const ids = p.pinned_achievement_ids || [];
+  const el = document.getElementById('pinned-showcase');
+  if (!ids.length) return;
+
+  const { data } = await sb.from('achievements').select('id, name, icon, tier').in('id', ids);
+  if (!data?.length) return;
+
+  el.style.display = 'flex';
+  el.innerHTML = data.map(a => `
+    <span class="rep-badge" title="${escapeHtml(a.name)}" style="background:rgb(var(--brass-rgb) / 0.14); color:var(--brass-bright);">
+      <i data-lucide="${a.icon || 'award'}" class="icon-sm icon-inline"></i>${escapeHtml(a.name)}
+    </span>
+  `).join('');
+  refreshIcons();
 }
 
 function setNoindex() {
@@ -220,6 +239,7 @@ function renderProfile(p, crew, isOwnProfile) {
           </div>
           <p class="profile-hero-rank-title">${title}${showHandle ? ` <span class="profile-hero-handle">· @${escapeHtml(p.username)}</span>` : ''}</p>
           ${p.status_line ? `<span class="profile-hero-status"><i data-lucide="message-circle" class="icon-sm"></i>${escapeHtml(p.status_line)}</span>` : ''}
+          <div id="pinned-showcase" style="display:none; gap:8px; margin-top:6px;"></div>
           <div class="profile-hero-meta">
             <span class="profile-hero-meta-dot" style="background:${presenceColor};"></span>
             <span>${escapeHtml(lastSeenLabel(p.last_active_at))}</span>

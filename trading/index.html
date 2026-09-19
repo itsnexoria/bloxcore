@@ -78,6 +78,7 @@
       </div>
       <div style="display:flex; gap:8px; flex-shrink:0;">
         <button type="button" class="btn btn-ghost btn-sm" id="watchlist-btn" style="display:none;"><i data-lucide="eye" class="icon-sm icon-inline"></i>Watchlist</button>
+        <button type="button" class="btn btn-ghost btn-sm" id="card-theme-btn" style="display:none;"><i data-lucide="palette" class="icon-sm icon-inline"></i>Card Theme</button>
         <button type="button" class="btn btn-primary btn-sm" id="new-listing-btn" style="display:none;"><i data-lucide="plus" class="icon-sm icon-inline"></i>New Listing</button>
       </div>
     </div>
@@ -200,6 +201,18 @@
       <span class="muted">Current value</span>
       <span id="item-history-current-value" style="font-family:var(--font-mono); font-weight:700; color:var(--brass-bright);"></span>
     </div>
+  </div>
+</div>
+
+<!-- Card theme picker — unlocked by completed trade count via get_unlocked_trade_themes() -->
+<div id="theme-picker-modal" class="build-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="theme-picker-title">
+  <div class="panel build-modal" style="max-width:420px;">
+    <div class="flex-between" style="margin-bottom:14px;">
+      <h2 id="theme-picker-title" style="font-size:1.05rem; margin:0;">Trade Card Theme</h2>
+      <button type="button" class="btn btn-ghost btn-sm" id="theme-picker-close" aria-label="Close"><i data-lucide="x" class="icon-md"></i></button>
+    </div>
+    <p class="muted" style="font-size:0.82rem; margin:0 0 14px;">Themes unlock automatically as you complete more trades. Your active theme shows as a colored border on your own listings.</p>
+    <div id="theme-picker-grid" style="display:grid; grid-template-columns:repeat(auto-fill, minmax(120px, 1fr)); gap:10px;"></div>
   </div>
 </div>
 

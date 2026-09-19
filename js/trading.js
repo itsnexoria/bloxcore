@@ -26,6 +26,14 @@ onReady(async () => {
     document.getElementById('new-listing-btn').addEventListener('click', openComposeModal);
     document.getElementById('watchlist-btn').style.display = 'inline-flex';
     document.getElementById('watchlist-btn').addEventListener('click', openWatchlistModal);
+    document.getElementById('card-theme-btn').style.display = 'inline-flex';
+    document.getElementById('card-theme-btn').addEventListener('click', openThemePicker);
+    document.getElementById('theme-picker-close').addEventListener('click', () => {
+      document.getElementById('theme-picker-modal').classList.remove('open');
+    });
+    document.getElementById('theme-picker-modal').addEventListener('click', (e) => {
+      if (e.target.id === 'theme-picker-modal') document.getElementById('theme-picker-modal').classList.remove('open');
+    });
   } else {
     document.getElementById('trade-signed-out').style.display = 'block';
   }
@@ -75,6 +83,52 @@ onReady(async () => {
 });
 
 // --- Watchlist -----------------------------------------------------------
+
+async function openThemePicker() {
+  const grid = document.getElementById('theme-picker-grid');
+  grid.innerHTML = `<div class="skeleton" style="height:80px; grid-column:1/-1;"></div>`;
+  document.getElementById('theme-picker-modal').classList.add('open');
+
+  const [{ data: unlocked }, { data: allThemes }, { data: myProfile }] = await Promise.all([
+    sb.rpc('get_unlocked_trade_themes', { p_user_id: currentUser.id }),
+    sb.from('trade_card_themes').select('*').order('sort_order'),
+    sb.from('profiles').select('active_trade_theme_id').eq('id', currentUser.id).single(),
+  ]);
+
+  const unlockedIds = new Set((unlocked || []).map(t => t.id));
+  const activeId = myProfile?.active_trade_theme_id || null;
+
+  const noneTile = `
+    <div class="build-modal-tile" data-theme-id="" style="cursor:pointer; ${!activeId ? 'box-shadow:0 0 0 2px var(--brass-bright);' : ''}">
+      <i data-lucide="ban" class="icon-lg"></i>
+      <span style="font-size:0.78rem;">Default</span>
+    </div>
+  `;
+  const tiles = (allThemes || []).map(t => {
+    const isUnlocked = unlockedIds.has(t.id);
+    return `
+      <div class="build-modal-tile ${isUnlocked ? '' : 'locked'}" ${isUnlocked ? `data-theme-id="${t.id}"` : ''} style="${isUnlocked ? 'cursor:pointer;' : ''} ${activeId === t.id ? 'box-shadow:0 0 0 2px var(--brass-bright);' : ''} background:${isUnlocked ? `linear-gradient(135deg, ${t.gradient_from}33, var(--navy) 70%)` : ''}; border-color:${isUnlocked ? t.gradient_from : ''};">
+        ${isUnlocked ? '' : '<i data-lucide="lock" class="icon-sm lock-icon"></i>'}
+        <span style="font-size:0.78rem; ${isUnlocked ? `color:${t.gradient_from};` : 'color:var(--ash);'}">${escapeHtml(t.name)}</span>
+        ${!isUnlocked ? `<span class="muted" style="font-size:0.66rem;">${t.min_completed_trades} trades</span>` : ''}
+      </div>
+    `;
+  }).join('');
+
+  grid.innerHTML = noneTile + tiles;
+  refreshIcons();
+
+  grid.querySelectorAll('[data-theme-id]').forEach(tile => {
+    tile.addEventListener('click', async () => {
+      const themeId = tile.dataset.themeId || null;
+      const { error } = await sb.from('profiles').update({ active_trade_theme_id: themeId }).eq('id', currentUser.id);
+      if (error) { showToast(error.message, true); return; }
+      showToast('Card theme updated.');
+      document.getElementById('theme-picker-modal').classList.remove('open');
+      loadListings();
+    });
+  });
+}
 
 async function openWatchlistModal() {
   const { data } = await sb.from('item_watchlist').select('item_id').eq('user_id', currentUser.id);
@@ -348,7 +402,7 @@ const TRADE_LISTINGS_PAGE_SIZE = 40;
 async function fetchTradeListingsPage(offset, pageSize) {
   const { data, error } = await sb
     .from('trade_listings')
-    .select('id, user_id, offering_item_ids, requesting_item_ids, note, created_at, expires_at, profiles(username, display_name, avatar_url, avatar_frame, title_color_override, titles(name, color), created_at)')
+    .select('id, user_id, offering_item_ids, requesting_item_ids, note, created_at, expires_at, profiles(username, display_name, avatar_url, avatar_frame, title_color_override, titles(name, color), created_at, trade_card_themes(gradient_from, gradient_to))')
     .eq('active', true)
     .gt('created_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString())
     .order('created_at', { ascending: false })
@@ -424,9 +478,13 @@ function renderListing(t) {
   const isOwner = currentUser && t.user_id === currentUser.id;
   const offer = sideSummary(t.offering_item_ids);
   const request = sideSummary(t.requesting_item_ids);
+  const theme = profile.trade_card_themes;
+  const themeStyle = theme
+    ? `border-image: linear-gradient(135deg, ${theme.gradient_from}, ${theme.gradient_to}) 1; border-width: 2px; border-style: solid;`
+    : '';
 
   return `
-    <div class="panel trade-card hover-lift-card" data-listing-id="${t.id}">
+    <div class="panel trade-card hover-lift-card" data-listing-id="${t.id}" style="${themeStyle}">
       <div class="flex-between">
         <div style="display:flex; align-items:center; gap:10px;">
           ${avatarHtml(profile, 34)}

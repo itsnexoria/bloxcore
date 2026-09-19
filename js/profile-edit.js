@@ -33,6 +33,8 @@ onReady(async () => {
   wireBuildPickers();
   wireFramePicker();
   wireNameGradientPickers();
+  wirePinnedAchievements(auth.user.id, auth.profile.pinned_achievement_ids || []);
+  wireProfileSectionToggles(auth.user.id, auth.profile.hidden_profile_sections || []);
 
   document.getElementById('avatar-file').addEventListener('change', handleAvatarUpload);
   document.getElementById('banner-file').addEventListener('change', handleBannerUpload);
@@ -638,4 +640,78 @@ async function handleSave(e) {
 
   invalidateProfileCache();
   showToast('Profile saved.');
+}
+
+const HIDEABLE_PROFILE_SECTIONS = [
+  { key: 'trade_history', label: 'Trade History' },
+  { key: 'achievements', label: 'Achievements' },
+  { key: 'activity', label: 'Recent Activity' },
+  { key: 'pvp_history', label: 'PvP History' },
+];
+
+async function wirePinnedAchievements(userId, pinnedIds) {
+  let pinned = [...pinnedIds];
+  const grid = document.getElementById('pinned-achievements-grid');
+
+  const { data, error } = await sb
+    .from('user_achievements')
+    .select('achievement_id, achievements(id, name, icon, tier)')
+    .eq('user_id', userId);
+
+  if (error) {
+    grid.innerHTML = `<p class="muted" style="font-size:0.8rem; grid-column:1/-1;">Couldn't load achievements.</p>`;
+    return;
+  }
+  if (!data.length) {
+    grid.innerHTML = `<p class="muted" style="font-size:0.8rem; grid-column:1/-1;">You haven't earned any achievements yet.</p>`;
+    return;
+  }
+
+  const render = () => {
+    grid.innerHTML = data.map(({ achievements: a }) => `
+      <div class="build-modal-tile" data-achievement-tile="${a.id}" style="padding:10px 6px; cursor:pointer; ${pinned.includes(a.id) ? 'box-shadow:0 0 0 2px var(--brass-bright);' : ''}">
+        <i data-lucide="${a.icon || 'award'}" class="icon-lg"></i>
+        <span style="font-size:0.68rem; text-align:center;">${escapeHtml(a.name)}</span>
+      </div>
+    `).join('');
+    refreshIcons();
+    grid.querySelectorAll('[data-achievement-tile]').forEach(tile => {
+      tile.addEventListener('click', () => toggleShowcase(tile.dataset.achievementTile));
+    });
+  };
+
+  async function toggleShowcase(id) {
+    if (pinned.includes(id)) {
+      pinned = pinned.filter(x => x !== id);
+    } else {
+      if (pinned.length >= 3) { showToast('You can only pin up to 3 achievements — unpin one first.', true); return; }
+      pinned.push(id);
+    }
+    render();
+    const { error: saveError } = await sb.from('profiles').update({ pinned_achievement_ids: pinned }).eq('id', userId);
+    if (saveError) showToast(saveError.message, true);
+  }
+
+  render();
+}
+
+function wireProfileSectionToggles(userId, hiddenSections) {
+  const hidden = new Set(hiddenSections);
+  const container = document.getElementById('profile-section-toggles');
+  container.innerHTML = HIDEABLE_PROFILE_SECTIONS.map(s => `
+    <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-size:0.86rem;">
+      <input type="checkbox" data-section-toggle="${s.key}" ${hidden.has(s.key) ? '' : 'checked'} style="width:16px; height:16px;">
+      ${s.label}
+    </label>
+  `).join('');
+
+  container.querySelectorAll('[data-section-toggle]').forEach(cb => {
+    cb.addEventListener('change', async () => {
+      if (cb.checked) hidden.delete(cb.dataset.sectionToggle);
+      else hidden.add(cb.dataset.sectionToggle);
+      const { error } = await sb.from('profiles').update({ hidden_profile_sections: [...hidden] }).eq('id', userId);
+      if (error) { showToast(error.message, true); return; }
+      showToast('Saved.');
+    });
+  });
 }

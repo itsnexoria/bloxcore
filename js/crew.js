@@ -104,18 +104,23 @@ async function render() {
   `;
 
   const robloxUsername = crew.roblox_username ? escapeHtml(crew.roblox_username) : '';
+  const accent = crew.accent_color || '#a855f7';
 
   document.getElementById('crew-content').innerHTML = `
-    <div class="panel">
-      <div class="flex-between" style="align-items:flex-start;">
+    <div class="panel" style="overflow:hidden; padding-top:0; border-color:${accent}55;">
+      ${crew.banner_url
+        ? `<div style="margin:0 -28px 20px; height:130px; background:url('${crew.banner_url}') center/cover; position:relative;"><div style="position:absolute; inset:0; background:linear-gradient(180deg, transparent 40%, var(--navy) 100%);"></div></div>`
+        : `<div style="margin:0 -28px 20px; height:56px; background:linear-gradient(120deg, ${accent}33, var(--navy) 85%);"></div>`}
+      <div class="flex-between" style="align-items:flex-start; margin-top:${crew.banner_url ? '-56px' : '0'}; position:relative; z-index:1;">
         <div style="display:flex; align-items:center; gap:16px;">
           ${crew.logo_url
-            ? `<img src="${crew.logo_url}" alt="" loading="lazy" style="width:68px; height:68px; border-radius:var(--radius); object-fit:cover; flex-shrink:0; box-shadow:0 0 0 1px var(--glass-border), 0 6px 20px rgb(var(--shadow-rgb) / 0.4), 0 0 24px rgb(var(--purple-rgb) / 0.3);" onerror="this.style.display='none';">`
-            : `<div style="width:68px; height:68px; border-radius:var(--radius); background:linear-gradient(150deg, var(--navy-light), var(--navy)); display:flex; align-items:center; justify-content:center; color:var(--ash); font-family:var(--font-stamp); font-size:1.5rem; flex-shrink:0;">${escapeHtml((crew.name[0] || '?').toUpperCase())}</div>`}
+            ? `<img src="${crew.logo_url}" alt="" loading="lazy" style="width:68px; height:68px; border-radius:var(--radius); object-fit:cover; flex-shrink:0; box-shadow:0 0 0 3px var(--navy), 0 6px 20px rgb(var(--shadow-rgb) / 0.4), 0 0 24px ${accent}55;" onerror="this.style.display='none';">`
+            : `<div style="width:68px; height:68px; border-radius:var(--radius); background:linear-gradient(150deg, var(--navy-light), var(--navy)); display:flex; align-items:center; justify-content:center; color:var(--ash); font-family:var(--font-stamp); font-size:1.5rem; flex-shrink:0; box-shadow:0 0 0 3px var(--navy);">${escapeHtml((crew.name[0] || '?').toUpperCase())}</div>`}
           <div>
             <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
               <h1 style="font-size:1.5rem; margin:0;">${escapeHtml(crew.name)}</h1>
-              ${crew.tag ? `<span class="tag tag-legendary">${escapeHtml(crew.tag)}</span>` : ''}
+              ${crew.tag ? `<span class="tag" style="background:${accent}26; color:${accent}; border:1px solid ${accent}55;">${escapeHtml(crew.tag)}</span>` : ''}
+              ${crew.recruiting ? `<span class="tag" style="background:rgb(52 211 153 / 0.15); color:var(--sea);"><i data-lucide="user-plus" class="icon-sm icon-inline"></i>Recruiting</span>` : ''}
             </div>
             <p class="muted" style="margin:4px 0 0; font-size:0.85rem; display:flex; align-items:center; gap:6px;">
               <i data-lucide="users" class="icon-sm"></i>${members.length}/30 members
@@ -176,6 +181,7 @@ async function render() {
   document.getElementById('report-crew-btn')?.addEventListener('click', () => reportContent('crew', crew.id));
   document.getElementById('edit-crew-btn')?.addEventListener('click', openEditModal);
   document.getElementById('edit-crew-logo-file')?.addEventListener('change', handleCrewLogoSelect);
+  document.getElementById('edit-crew-banner-file')?.addEventListener('change', handleCrewBannerSelect);
   document.getElementById('add-member-form')?.addEventListener('submit', handleAddMember);
   document.getElementById('request-join-btn')?.addEventListener('click', openJoinRequestModal);
   document.getElementById('cancel-join-request-btn')?.addEventListener('click', () => handleCancelJoinRequest(myPendingRequest?.id));
@@ -434,6 +440,7 @@ async function handleAddMember(e) {
 }
 
 let pendingCrewLogoFile = null;
+let pendingCrewBannerFile = null;
 
 function handleCrewLogoSelect(e) {
   const file = e.target.files[0];
@@ -465,11 +472,38 @@ function openEditModal() {
   } else {
     preview.style.display = 'none';
   }
+  document.getElementById('edit-crew-banner-file').value = '';
+  pendingCrewBannerFile = null;
+  const bannerPreview = document.getElementById('edit-crew-banner-preview');
+  if (crew.banner_url) {
+    document.getElementById('edit-crew-banner-preview-img').src = crew.banner_url;
+    bannerPreview.style.display = 'block';
+  } else {
+    bannerPreview.style.display = 'none';
+  }
+  document.getElementById('edit-crew-accent-color').value = crew.accent_color || '#a855f7';
   document.getElementById('edit-crew-roblox').value = crew.roblox_username || '';
   document.getElementById('edit-crew-discord').value = crew.discord_invite || '';
   document.getElementById('edit-crew-recruiting').checked = !!crew.recruiting;
   document.getElementById('edit-crew-error').style.display = 'none';
   document.getElementById('edit-crew-modal').style.display = 'flex';
+}
+
+function handleCrewBannerSelect(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  if (file.size > 4 * 1024 * 1024) {
+    showToast('Crew banner must be 4MB or smaller.', true);
+    e.target.value = '';
+    return;
+  }
+  pendingCrewBannerFile = file;
+  const reader = new FileReader();
+  reader.onload = () => {
+    document.getElementById('edit-crew-banner-preview-img').src = reader.result;
+    document.getElementById('edit-crew-banner-preview').style.display = 'block';
+  };
+  reader.readAsDataURL(file);
 }
 
 function closeEditModal() {
@@ -515,11 +549,29 @@ async function handleEditCrew(e) {
     logo_url = urlData.publicUrl;
   }
 
+  let banner_url = crew.banner_url || null;
+  if (pendingCrewBannerFile) {
+    const compressed = await compressImage(pendingCrewBannerFile, { maxDimension: 1200, quality: 0.85 });
+    const ext = compressed.name ? compressed.name.split('.').pop() : pendingCrewBannerFile.name.split('.').pop();
+    const path = `crew-banners/${crew.id}-${Date.now()}.${ext}`;
+    const { error: uploadError } = await sb.storage.from('avatars').upload(path, compressed);
+    if (uploadError) {
+      errorEl.textContent = uploadError.message;
+      errorEl.style.display = 'block';
+      btn.disabled = false;
+      return;
+    }
+    const { data: urlData } = sb.storage.from('avatars').getPublicUrl(path);
+    banner_url = urlData.publicUrl;
+  }
+
   const updates = {
     name: newName,
     tag: document.getElementById('edit-crew-tag').value.trim() || null,
     description: newDescription,
     logo_url,
+    banner_url,
+    accent_color: document.getElementById('edit-crew-accent-color').value || null,
     roblox_username: document.getElementById('edit-crew-roblox').value.trim() || null,
     discord_invite: document.getElementById('edit-crew-discord').value.trim() || null,
     recruiting: document.getElementById('edit-crew-recruiting').checked,
