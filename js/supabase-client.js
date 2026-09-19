@@ -7,6 +7,23 @@ const SUPABASE_ANON_KEY = 'sb_publishable_g14CxS8Kbu5hjGIpRGirQg_L5SY7ZWW';
 // `supabase` global comes from the CDN script tag included in each HTML page.
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+// Client-side crash reporting — best-effort, fire-and-forget, capped per page load so a
+// crash loop can't hammer the DB. Never awaited, never blocks, never throws.
+let _clientErrorCount = 0;
+function reportClientError(message, stack) {
+  if (_clientErrorCount >= 5) return;
+  _clientErrorCount++;
+  sb.from('client_errors').insert({
+    user_id: window._bcCurrentUserId || null,
+    message: String(message || 'Unknown error').slice(0, 500),
+    stack: stack ? String(stack).slice(0, 3000) : null,
+    page_url: location.pathname + location.search,
+    user_agent: navigator.userAgent,
+  }).then(() => {}, () => {}); // swallow — logging a failure to log isn't worth it
+}
+window.addEventListener('error', (e) => reportClientError(e.message, e.error?.stack));
+window.addEventListener('unhandledrejection', (e) => reportClientError(e.reason?.message || String(e.reason), e.reason?.stack));
+
 // Flip to true locally for full error objects/stack traces in the console. Left false in
 // production: these ~66 call sites are all genuine error-path logs (catch blocks, failed
 // queries), not debug noise, so they still print — just trimmed to the message only, so a
@@ -568,6 +585,7 @@ async function getCurrentProfile() {
   _profileFetchPromise = (async () => {
     const { data: { session } } = await sb.auth.getSession();
     if (!session) return { user: null, profile: null };
+    window._bcCurrentUserId = session.user.id;
     const { data: profile, error } = await sb
       .from('profiles')
       .select('*, titles(name, color)')

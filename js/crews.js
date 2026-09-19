@@ -161,18 +161,22 @@ async function fetchCrewsPage(offset, pageSize) {
 function renderCrewCard(c) {
   return `
     <div class="panel crew-card hover-lift-card">
+      <div class="crew-card-banner"></div>
       <div class="crew-card-top">
-        ${c.logo_url
-          ? `<img src="${c.logo_url}" alt="" loading="lazy" class="crew-card-logo" onerror="this.style.display='none';">`
-          : `<div class="crew-card-logo crew-card-logo-fallback">${escapeHtml((c.name[0] || '?').toUpperCase())}</div>`}
-        <div style="min-width:0; flex:1;">
-          <h3 title="${escapeHtml(c.name)}">${escapeHtml(c.name)}</h3>
-          ${c.tag ? `<span class="tag tag-legendary">${escapeHtml(c.tag)}</span>` : ''}
-          ${c.recruiting ? `<span class="tag" style="background:rgb(52 211 153 / 0.15); color:var(--sea); margin-left:4px;"><i data-lucide="user-plus" class="icon-sm icon-inline"></i>Recruiting</span>` : ''}
+        <div class="crew-card-logo-ring">
+          ${c.logo_url
+            ? `<img src="${c.logo_url}" alt="" loading="lazy" class="crew-card-logo" onerror="this.style.display='none';">`
+            : `<div class="crew-card-logo crew-card-logo-fallback">${escapeHtml((c.name[0] || '?').toUpperCase())}</div>`}
         </div>
-        <div class="crew-card-bounty">
-          <p class="muted">Bounty</p>
-          <p>${formatBounty(c._bounty || 0)}</p>
+        <div style="min-width:0; flex:1;">
+          <div class="flex-between" style="align-items:flex-start; gap:8px;">
+            <h3 title="${escapeHtml(c.name)}" style="margin:0;">${escapeHtml(c.name)}</h3>
+            <span class="crew-card-bounty-chip"><i data-lucide="coins" style="width:12px;height:12px;"></i>${formatBounty(c._bounty || 0)}</span>
+          </div>
+          <div style="display:flex; gap:6px; margin-top:6px; flex-wrap:wrap;">
+            ${c.tag ? `<span class="tag tag-legendary">${escapeHtml(c.tag)}</span>` : ''}
+            ${c.recruiting ? `<span class="tag" style="background:rgb(52 211 153 / 0.15); color:var(--sea);"><i data-lucide="user-plus" class="icon-sm icon-inline"></i>Recruiting</span>` : ''}
+          </div>
         </div>
       </div>
       <p class="muted crew-card-desc">${escapeHtml(c.description)}</p>

@@ -694,6 +694,7 @@
         <button type="button" class="site-subtab-btn" data-site-subtab="xp-events">XP Events</button>
         <button type="button" class="site-subtab-btn" data-site-subtab="content-filter">Content Filter</button>
         <button type="button" class="site-subtab-btn" data-site-subtab="duplicates">Duplicates</button>
+        <button type="button" class="site-subtab-btn" data-site-subtab="client-errors">Client Errors</button>
       </div>
 
       <div data-site-subpanel="settings" class="panel" id="site-settings" style="margin-top:16px; scroll-margin-top:90px;">
@@ -1022,6 +1023,16 @@
           <h3 style="font-size:1.1rem;"><i data-lucide="users" class="icon-sm icon-inline"></i>Referral Burst Clusters</h3>
           <p class="muted" style="font-size:0.85rem; margin-top:-8px;">A referrer with several new accounts signing up in a tight window — the classic alt-farming loop. Flags 3+ referrals within 30 minutes of each other.</p>
           <div id="referral-bursts-list" style="margin-top:14px; display:flex; flex-direction:column; gap:10px;">
+            <div class="skeleton" style="height:60px;"></div>
+          </div>
+        </div>
+      </div>
+
+      <div data-site-subpanel="client-errors" style="display:none;">
+        <div class="panel" id="site-client-errors" style="margin-top:16px; scroll-margin-top:90px;">
+          <h3 style="font-size:1.1rem;"><i data-lucide="bug" class="icon-sm icon-inline"></i>Client-Side Errors</h3>
+          <p class="muted" style="font-size:0.85rem; margin-top:-8px;">JS crashes caught live in visitors' browsers (last 14 days, auto-purged). Capped at 5 reports per page load per visitor so a crash loop can't flood this.</p>
+          <div id="client-errors-list" style="margin-top:14px; display:flex; flex-direction:column; gap:8px;">
             <div class="skeleton" style="height:60px;"></div>
           </div>
         </div>

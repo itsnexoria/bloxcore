@@ -36,6 +36,7 @@ async function initSiteTab() {
     await loadKeywordFilter();
     await loadFlaggedPosts();
     await loadDuplicateAccountChecks();
+    await loadClientErrors();
     initWebhookPanel();
 
     document.getElementById('broadcast-form').addEventListener('submit', handleCreateBroadcast);
@@ -149,6 +150,31 @@ async function loadDuplicateAccountChecks() {
       </div>
     `).join('');
   }
+}
+
+async function loadClientErrors() {
+  const list = document.getElementById('client-errors-list');
+  const { data, error } = await sb.rpc('get_client_errors');
+
+  if (error) {
+    list.innerHTML = errorStateHtml("Couldn't load client errors.", 'loadClientErrors()');
+    return;
+  }
+  if (!data.length) {
+    list.innerHTML = `<p class="muted" style="font-size:0.85rem;">No client errors reported in the last 14 days.</p>`;
+    return;
+  }
+
+  list.innerHTML = data.map(e => `
+    <details class="panel" style="margin:0; padding:10px 14px;">
+      <summary style="cursor:pointer; font-size:0.85rem;">
+        <strong>${escapeHtml(e.message)}</strong>
+        <span class="muted" style="font-size:0.75rem;"> — ${escapeHtml(e.page_url || 'unknown page')} · ${e.username ? `@${escapeHtml(e.username)}` : 'signed out'} · ${timeAgo(e.created_at)}</span>
+      </summary>
+      ${e.stack ? `<pre style="margin:8px 0 0; font-size:0.72rem; white-space:pre-wrap; overflow-wrap:anywhere; color:var(--ash);">${escapeHtml(e.stack)}</pre>` : ''}
+      <p class="muted" style="margin:6px 0 0; font-size:0.7rem;">${escapeHtml(e.user_agent || '')}</p>
+    </details>
+  `).join('');
 }
 
 function activateSiteSubtab(name) {

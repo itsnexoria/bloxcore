@@ -77,6 +77,9 @@ onReady(async () => {
     document.getElementById('notify-crew-wars-toggle').disabled = true;
     document.getElementById('notify-new-messages-toggle').disabled = true;
     document.getElementById('notify-new-followers-toggle').disabled = true;
+    document.getElementById('notify-crew-join-requests-toggle').disabled = true;
+    document.getElementById('notify-friend-requests-toggle').disabled = true;
+    document.getElementById('notify-tournament-updates-toggle').disabled = true;
     document.getElementById('connections-list').innerHTML = `<span class="muted" style="font-size:0.85rem;">Sign in to view.</span>`;
     return;
   }
@@ -197,6 +200,12 @@ onReady(async () => {
     "You'll be notified about new messages.", 'New message notifications turned off.');
   wireSimpleNotifyToggle('notify-new-followers-toggle', 'notify_new_followers', user.id, profile,
     "You'll be notified about new followers.", 'New follower notifications turned off.');
+  wireSimpleNotifyToggle('notify-crew-join-requests-toggle', 'notify_crew_join_requests', user.id, profile,
+    "You'll be notified about crew join requests.", 'Crew join request notifications turned off.');
+  wireSimpleNotifyToggle('notify-friend-requests-toggle', 'notify_friend_requests', user.id, profile,
+    "You'll be notified about friend requests.", 'Friend request notifications turned off.');
+  wireSimpleNotifyToggle('notify-tournament-updates-toggle', 'notify_tournament_updates', user.id, profile,
+    "You'll be notified about tournament match updates.", 'Tournament update notifications turned off.');
 
   document.getElementById('settings-signout-btn').addEventListener('click', async () => {
     await sb.auth.signOut();

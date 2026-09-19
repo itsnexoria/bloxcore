@@ -740,16 +740,22 @@ section.section h2.center::after { margin-left: auto; margin-right: auto; }
 .tag-hard { background: linear-gradient(160deg, rgb(var(--brass-rgb) / 0.24), rgb(var(--brass-rgb) / 0.1)); color: var(--brass-bright); }
 .tag-legendary { background: linear-gradient(160deg, rgb(var(--purple-rgb) / 0.26), rgb(var(--purple-rgb) / 0.1)); color: var(--purple); }
 
-.crew-card { display: flex; flex-direction: column; }
-.crew-card-top { display: flex; align-items: flex-start; gap: 14px; margin-bottom: 14px; }
-.crew-card-logo { width: 52px; height: 52px; border-radius: var(--radius-sm); object-fit: cover; flex-shrink: 0; box-shadow: 0 0 0 1px var(--glass-border), 0 0 18px rgb(var(--purple-rgb) / 0.25); }
-.crew-card-logo-fallback { background: linear-gradient(150deg, var(--navy-light), var(--navy)); display: flex; align-items: center; justify-content: center; color: var(--ash); font-family: var(--font-stamp); font-size: 1.2rem; }
-.crew-card-top h3 { font-size: 1.02rem; margin: 0 0 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.crew-card-bounty { text-align: right; flex-shrink: 0; }
-.crew-card-bounty .muted { margin: 0; font-size: 0.6rem; text-transform: uppercase; letter-spacing: 0.05em; }
-.crew-card-bounty p:last-child { margin: 0; font-family: var(--font-stamp); font-size: 1rem; color: var(--gold-bright); text-shadow: 0 0 12px rgb(var(--gold-rgb) / 0.35); }
-.crew-card-desc { font-size: 0.86rem; margin: 0 0 16px; flex-grow: 1; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-.crew-card-footer { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding-top: 12px; border-top: 1px solid var(--glass-border); }
+.crew-card { display: flex; flex-direction: column; position: relative; overflow: hidden; padding: 0; }
+.crew-card-banner {
+  height: 56px;
+  margin: 0 0 -28px;
+  background:
+    radial-gradient(circle at 30% 0%, rgb(var(--purple-rgb) / 0.35), transparent 65%),
+    linear-gradient(120deg, rgb(var(--purple-rgb) / 0.22), var(--navy) 80%);
+}
+.crew-card-top { display: flex; align-items: flex-end; gap: 14px; margin: 0 20px 14px; position: relative; z-index: 1; }
+.crew-card-logo-ring { padding: 3px; border-radius: calc(var(--radius-sm) + 3px); background: linear-gradient(140deg, var(--purple), rgb(var(--purple-rgb) / 0.25)); flex-shrink: 0; box-shadow: 0 6px 16px rgb(6 15 26 / 0.5); }
+.crew-card-logo { width: 60px; height: 60px; border-radius: var(--radius-sm); object-fit: cover; display: block; }
+.crew-card-logo-fallback { background: linear-gradient(150deg, var(--navy-light), var(--navy)); display: flex; align-items: center; justify-content: center; color: var(--ash); font-family: var(--font-stamp); font-size: 1.3rem; }
+.crew-card-top h3 { font-size: 1.02rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.crew-card-bounty-chip { display: inline-flex; align-items: center; gap: 4px; flex-shrink: 0; padding: 3px 9px; border-radius: 999px; background: rgb(var(--gold-rgb) / 0.14); border: 1px solid rgb(var(--gold-rgb) / 0.3); color: var(--gold-bright); font-family: var(--font-mono); font-size: 0.74rem; font-weight: 700; margin-top: 2px; }
+.crew-card-desc { font-size: 0.86rem; margin: 0 20px 16px; flex-grow: 1; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.crew-card-footer { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 12px 20px 20px; border-top: 1px solid var(--glass-border); margin-top: auto; }
 .crew-card-members { font-size: 0.78rem; display: flex; align-items: center; gap: 5px; }
 
 .site-jump-nav { display: flex; gap: 8px; flex-wrap: wrap; position: sticky; top: 66px; z-index: 5; padding: 10px 0; }
