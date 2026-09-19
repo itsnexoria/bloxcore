@@ -698,11 +698,14 @@ async function wirePinnedAchievements(userId, pinnedIds) {
 function wireProfileSectionToggles(userId, hiddenSections) {
   const hidden = new Set(hiddenSections);
   const container = document.getElementById('profile-section-toggles');
-  container.innerHTML = HIDEABLE_PROFILE_SECTIONS.map(s => `
-    <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-size:0.86rem;">
-      <input type="checkbox" data-section-toggle="${s.key}" ${hidden.has(s.key) ? '' : 'checked'} style="width:16px; height:16px;">
-      ${s.label}
-    </label>
+  container.innerHTML = HIDEABLE_PROFILE_SECTIONS.map((s, i) => `
+    <div style="display:flex; align-items:center; justify-content:space-between; gap:16px; padding:14px 16px; ${i > 0 ? 'border-top:1px solid var(--glass-border);' : ''}">
+      <span style="font-size:0.9rem;">${s.label}</span>
+      <label class="toggle-switch">
+        <input type="checkbox" data-section-toggle="${s.key}" ${hidden.has(s.key) ? '' : 'checked'}>
+        <span class="toggle-slider"></span>
+      </label>
+    </div>
   `).join('');
 
   container.querySelectorAll('[data-section-toggle]').forEach(cb => {

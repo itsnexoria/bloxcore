@@ -92,13 +92,15 @@
         <span class="build-picker-value" data-empty="None" id="frame-picker-value">None</span>
       </button>
 
-      <label>Pinned Achievements <span class="muted" style="font-weight:400;">(up to 3 — shown right on your profile header)</span></label>
-      <div id="pinned-achievements-grid" style="display:grid; grid-template-columns:repeat(auto-fill, minmax(90px, 1fr)); gap:10px; margin-bottom:16px;">
+      <label style="margin-bottom:6px;">Pinned Achievements</label>
+      <p class="muted" style="margin:-4px 0 10px; font-size:0.82rem;">Pick up to 3 to feature right on your profile header.</p>
+      <div id="pinned-achievements-grid" style="display:grid; grid-template-columns:repeat(auto-fill, minmax(90px, 1fr)); gap:10px; margin-bottom:22px;">
         <p class="muted" style="font-size:0.8rem; grid-column:1/-1;">Loading…</p>
       </div>
 
-      <label>Profile Sections <span class="muted" style="font-weight:400;">(hide ones you don't want visible)</span></label>
-      <div id="profile-section-toggles" style="display:flex; flex-direction:column; gap:8px; margin-bottom:16px;"></div>
+      <label style="margin-bottom:6px;">Profile Sections</label>
+      <p class="muted" style="margin:-4px 0 10px; font-size:0.82rem;">Hide any of these on your profile if you'd rather not show them.</p>
+      <div id="profile-section-toggles" style="display:flex; flex-direction:column; gap:2px; margin-bottom:22px; border:1px solid var(--glass-border); border-radius:var(--radius-sm); overflow:hidden;"></div>
 
       <form id="profile-form">
         <label for="display_name">Display Name</label>
