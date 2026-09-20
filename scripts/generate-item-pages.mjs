@@ -53,8 +53,8 @@ function demandCopy(demand) {
 // program to use (e.g. an Amazon Associates link for Robux gift cards, or a creator-code
 // program). Leave AFFILIATE_LINK empty to hide the block entirely. Must stay clearly
 // disclosed as an affiliate/sponsored link per FTC guidelines — don't strip that wording.
-const AFFILIATE_LINK = ''; // e.g. 'https://www.amazon.com/dp/XXXXXXX?tag=youraffiliateid'
-const AFFILIATE_LABEL = 'Need Robux to trade for this?';
+const AFFILIATE_LINK = 'https://www.g2g.com/nxrealm08';
+const AFFILIATE_LABEL = 'Want to buy or sell this directly?';
 
 function affiliateBlockHtml() {
   if (!AFFILIATE_LINK) return '';
