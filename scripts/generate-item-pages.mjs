@@ -49,6 +49,24 @@ function demandCopy(demand) {
   return `Demand sits at ${demand}/10 — quite low right now, so expect it to move slowly on the trading board.`;
 }
 
+// Affiliate/sponsored slot — edit AFFILIATE_LINK and AFFILIATE_LABEL once you have a real
+// program to use (e.g. an Amazon Associates link for Robux gift cards, or a creator-code
+// program). Leave AFFILIATE_LINK empty to hide the block entirely. Must stay clearly
+// disclosed as an affiliate/sponsored link per FTC guidelines — don't strip that wording.
+const AFFILIATE_LINK = ''; // e.g. 'https://www.amazon.com/dp/XXXXXXX?tag=youraffiliateid'
+const AFFILIATE_LABEL = 'Need Robux to trade for this?';
+
+function affiliateBlockHtml() {
+  if (!AFFILIATE_LINK) return '';
+  return `
+    <div class="panel" style="margin:20px 0; padding:14px 18px; display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap:wrap; border-color:rgb(var(--brass-rgb) / 0.3);">
+      <p style="margin:0; font-size:0.88rem;">${AFFILIATE_LABEL}</p>
+      <a href="${AFFILIATE_LINK}" target="_blank" rel="noopener noreferrer sponsored" class="btn btn-ghost btn-sm">Check Prices <i data-lucide="external-link" class="icon-sm icon-inline"></i></a>
+    </div>
+    <p class="muted" style="font-size:0.7rem; margin:-14px 0 20px;">Sponsored/affiliate link — BloxCore may earn a small commission at no extra cost to you.</p>
+  `;
+}
+
 function pageHtml(item, related) {
   const categoryLabel = CATEGORY_LABEL[item.category] || item.category;
   const slug = slugify(item.name);
@@ -194,6 +212,7 @@ function pageHtml(item, related) {
       ${hasPermanent ? `<div><p class="muted" style="margin:0; font-size:0.75rem; text-transform:uppercase;">Permanent Value</p><p style="margin:2px 0 0; font-family:var(--font-mono); font-size:1.3rem; color:var(--brass-bright);">${permFmt}</p></div>` : ''}
       ${rarity ? `<div><p class="muted" style="margin:0; font-size:0.75rem; text-transform:uppercase;">Rarity</p><p style="margin:2px 0 0; font-size:1.1rem;">${rarity}</p></div>` : ''}
     </div>
+    ${affiliateBlockHtml()}
     <h2 style="font-size:1.3rem;">Demand &amp; Trend</h2>
     <p>${demandCopy(item.demand)}${item.trend && TREND_COPY[item.trend] ? ` It's also ${TREND_COPY[item.trend]}.` : ''}</p>
     <h2 style="font-size:1.3rem;">How to Trade ${item.name}</h2>

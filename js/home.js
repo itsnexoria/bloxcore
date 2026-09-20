@@ -218,15 +218,19 @@ async function loadTopCrews() {
 // widget never fires two separate round-trips.
 async function loadWeeklySpotlight() {
   const el = document.getElementById('weekly-spotlight');
-  const { data, error } = await sb.rpc('get_weekly_spotlight');
+  const [{ data, error }, { data: shotData }] = await Promise.all([
+    sb.rpc('get_weekly_spotlight'),
+    sb.rpc('get_screenshot_of_the_week'),
+  ]);
   const row = data?.[0];
+  const shot = shotData?.[0];
 
-  if (error || !row || (!row.player_id && !row.crew_id)) {
+  if ((error || !row || (!row.player_id && !row.crew_id)) && !shot) {
     el.innerHTML = `<p class="muted" style="margin:0; padding:10px 0;">Spotlight kicks in once someone earns XP this week — could be you.</p>`;
     return;
   }
 
-  const playerProfile = row.player_id ? {
+  const playerProfile = row?.player_id ? {
     username: row.player_username, display_name: row.player_display_name,
     avatar_url: row.player_avatar_url, avatar_frame: row.player_avatar_frame,
     title_color_override: row.player_title_color_override,
@@ -252,7 +256,7 @@ async function loadWeeklySpotlight() {
       </div>
     `);
   }
-  if (row.crew_id) {
+  if (row?.crew_id) {
     views.push(`
       <div class="spotlight-view">
         <i data-lucide="crown" class="spotlight-decor-icon"></i>
@@ -270,6 +274,25 @@ async function loadWeeklySpotlight() {
             </div>
           </div>
           <a href="/crew/?name=${encodeURIComponent(row.crew_name)}" class="btn btn-ghost btn-sm" style="flex-shrink:0;">View Crew <i data-lucide="arrow-right" class="icon-sm"></i></a>
+        </div>
+      </div>
+    `);
+  }
+
+  if (shot) {
+    views.push(`
+      <div class="spotlight-view">
+        <i data-lucide="camera" class="spotlight-decor-icon"></i>
+        <span class="spotlight-kicker"><i data-lucide="image" class="icon-sm icon-inline"></i>Screenshot of the Week</span>
+        <div class="flex-between" style="margin-top:8px; gap:14px; flex-wrap:wrap;">
+          <div style="display:flex; align-items:center; gap:14px; min-width:0;">
+            <img src="${shot.image_url}" alt="" style="width:58px; height:58px; border-radius:11px; object-fit:cover; flex-shrink:0; border:2px solid var(--brass-bright);">
+            <div style="min-width:0;">
+              <span style="color:var(--bone); font-weight:700; font-size:1rem;">${escapeHtml(displayNameFor({ username: shot.username, display_name: shot.display_name }))}</span>
+              <div><span class="spotlight-stat-pill"><i data-lucide="heart" style="width:12px;height:12px;"></i>${shot.like_count} like${shot.like_count === 1 ? '' : 's'} this week</span></div>
+            </div>
+          </div>
+          <a href="/feed/#${shot.id}" class="btn btn-ghost btn-sm" style="flex-shrink:0;">View Post <i data-lucide="arrow-right" class="icon-sm"></i></a>
         </div>
       </div>
     `);
