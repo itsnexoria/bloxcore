@@ -1013,7 +1013,7 @@ select option {
 
 @media (max-width: 760px) {
   .messages-layout { grid-template-columns: 1fr; height: auto; }
-  .messages-thread-pane { display: none; min-height: 70vh; }
+  .messages-thread-pane { display: none; height: 70vh; }
   .messages-layout.thread-active .messages-list-pane { display: none; }
   .messages-layout.thread-active .messages-thread-pane { display: flex; }
   #thread-back-btn { display: inline-flex; }

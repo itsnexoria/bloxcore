@@ -439,14 +439,23 @@ async function handleSubmit(e) {
   submitBtn.disabled = true;
   submitBtn.textContent = files.length ? `Uploading ${files.length} image${files.length > 1 ? 's' : ''}…` : 'Submitting…';
 
+  const submittingIds = (activeChallengeIds || []).slice(); // snapshot — closeModal() clears the live array below
+  if (!submittingIds.length) {
+    errorEl.textContent = 'No quest selected — close this and try again.';
+    errorEl.style.display = 'block';
+    submitBtn.disabled = false;
+    submitBtn.textContent = 'Submit for Review';
+    return;
+  }
+
   try {
     const screenshotUrls = [];
     for (const file of files) {
-      const url = await uploadScreenshot(currentUser.id, file, `${activeChallengeIds[0]}-${Date.now()}-${screenshotUrls.length}`);
+      const url = await uploadScreenshot(currentUser.id, file, `${submittingIds[0]}-${Date.now()}-${screenshotUrls.length}`);
       screenshotUrls.push(url);
     }
 
-    const rows = activeChallengeIds.map(challengeId => ({
+    const rows = submittingIds.map(challengeId => ({
       user_id: currentUser.id,
       challenge_id: challengeId,
       screenshot_urls: screenshotUrls,
@@ -455,7 +464,7 @@ async function handleSubmit(e) {
     const { error: insertError } = await sb.from('submissions').insert(rows);
     if (insertError) throw insertError;
 
-    activeChallengeIds.forEach(id => pendingChallengeIds.add(id));
+    submittingIds.forEach(id => pendingChallengeIds.add(id));
     selectedIds.clear();
     bulkMode = false;
     const bulkToggle = document.getElementById('bulk-mode-toggle');
@@ -466,7 +475,7 @@ async function handleSubmit(e) {
     }
     updateBulkBar();
     closeModal();
-    showToast(activeChallengeIds.length > 1 ? `Submitted ${rows.length} quests! The crew will review them soon.` : 'Submitted! The crew will review it soon.');
+    showToast(submittingIds.length > 1 ? `Submitted ${rows.length} quests! The crew will review them soon.` : 'Submitted! The crew will review it soon.');
     await loadChallenges();
   } catch (err) {
     logError(err);
