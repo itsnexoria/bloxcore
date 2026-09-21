@@ -25,6 +25,20 @@ function escapeAttr(s) {
   return String(s ?? '').replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 }
 
+// Discord CDN avatar URLs default to a small size (often 128px) unless you ask for bigger —
+// that's most of why the unfurled card looked "ugly": a tiny, often-pixelated square image
+// stretched into Discord's large embed-image slot. Request a proper size when we can.
+function bigAvatar(url) {
+  if (!url) return url;
+  try {
+    const u = new URL(url);
+    if (u.hostname === 'cdn.discordapp.com') u.searchParams.set('size', '512');
+    return u.toString();
+  } catch {
+    return url;
+  }
+}
+
 class MetaRewriter {
   constructor(data) {
     this.data = data;
@@ -73,7 +87,7 @@ async function handlePlayer(request, env, url) {
   return rewriteMeta(response, {
     title: escapeAttr(title),
     description: escapeAttr(description),
-    image: profile.avatar_url || undefined,
+    image: bigAvatar(profile.avatar_url) || undefined,
     imageAlt: escapeAttr(`${name}'s avatar`),
     url: `https://bloxcores.com/player/?u=${encodeURIComponent(profile.username)}`,
   });
@@ -96,7 +110,7 @@ async function handleAuth(request, env, url) {
   return rewriteMeta(response, {
     title: escapeAttr(title),
     description: escapeAttr(description),
-    image: profile.avatar_url || undefined,
+    image: bigAvatar(profile.avatar_url) || undefined,
     imageAlt: escapeAttr(`${name}'s avatar`),
     url: `https://bloxcores.com/auth/?ref=${encodeURIComponent(profile.username)}`,
   });
