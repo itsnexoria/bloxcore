@@ -93,13 +93,35 @@
       </div>
     </div>
 
-    <div id="trade-signed-out" class="panel panel-plain center" style="margin-top:24px; display:none;">
-      <a href="/auth/" class="btn btn-primary btn-sm">Sign in to post a listing</a>
+    <div style="display:flex; gap:8px; margin-top:20px;">
+      <button type="button" class="btn btn-sm btn-primary" id="trading-tab-btn-browse">Browse Trades</button>
+      <button type="button" class="btn btn-sm btn-ghost" id="trading-tab-btn-values">Value History</button>
     </div>
 
-    <div id="trade-listings" style="display:flex; flex-direction:column; gap:16px; margin-top:28px;">
-      <div class="skeleton" style="height:180px;"></div>
-      <div class="skeleton" style="height:180px;"></div>
+    <div id="trading-tab-browse">
+      <div id="trade-signed-out" class="panel panel-plain center" style="margin-top:24px; display:none;">
+        <a href="/auth/" class="btn btn-primary btn-sm">Sign in to post a listing</a>
+      </div>
+
+      <div id="trade-listings" style="display:flex; flex-direction:column; gap:16px; margin-top:28px;">
+        <div class="skeleton" style="height:180px;"></div>
+        <div class="skeleton" style="height:180px;"></div>
+      </div>
+    </div>
+
+    <div id="trading-tab-values" style="display:none; margin-top:24px;">
+      <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
+        <input type="text" id="value-history-search" placeholder="Search items…" style="flex:1; min-width:200px;">
+        <div style="display:flex; gap:6px;" id="value-history-category-tabs">
+          <button type="button" class="btn btn-sm btn-primary" data-category="fruit">Fruits</button>
+          <button type="button" class="btn btn-sm btn-ghost" data-category="limited">Limiteds</button>
+          <button type="button" class="btn btn-sm btn-ghost" data-category="gamepass">Gamepasses</button>
+        </div>
+      </div>
+      <div id="value-history-grid" class="grid" style="margin-top:20px; grid-template-columns:repeat(auto-fill, minmax(180px, 1fr));">
+        <div class="skeleton" style="height:90px;"></div>
+        <div class="skeleton" style="height:90px;"></div>
+      </div>
     </div>
   </div>
 </section>
@@ -213,6 +235,28 @@
     </div>
     <p class="muted" style="font-size:0.82rem; margin:0 0 14px;">Themes unlock automatically as you complete more trades. Your active theme shows as a colored border on your own listings.</p>
     <div id="theme-picker-grid" style="display:grid; grid-template-columns:repeat(auto-fill, minmax(120px, 1fr)); gap:10px;"></div>
+  </div>
+</div>
+
+<!-- Price alert — set on a watchlist item, fires when bf_items.regular_value crosses target -->
+<div id="alert-modal" class="build-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="alert-modal-title">
+  <div class="panel build-modal" style="max-width:360px;">
+    <div class="flex-between" style="margin-bottom:14px;">
+      <h2 id="alert-modal-title" style="font-size:1.05rem; margin:0;">Price Alert — <span id="alert-modal-item-name"></span></h2>
+      <button type="button" class="btn btn-ghost btn-sm" id="alert-modal-close" aria-label="Close"><i data-lucide="x" class="icon-md"></i></button>
+    </div>
+    <p class="muted" style="font-size:0.82rem; margin:0 0 14px;">We'll notify you the next time this item's value crosses your target.</p>
+    <label for="alert-modal-direction">Notify me when value goes</label>
+    <select id="alert-modal-direction">
+      <option value="above">Above</option>
+      <option value="below">Below</option>
+    </select>
+    <label for="alert-modal-target">Target Value</label>
+    <input type="number" id="alert-modal-target" min="1" placeholder="e.g. 5000000">
+    <div style="display:flex; gap:10px; margin-top:16px;">
+      <button type="button" class="btn btn-ghost" id="alert-modal-clear-btn" style="display:none;">Clear Alert</button>
+      <button type="button" class="btn btn-primary btn-block" id="alert-modal-save-btn">Save Alert</button>
+    </div>
   </div>
 </div>
 

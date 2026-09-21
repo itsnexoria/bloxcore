@@ -10,8 +10,10 @@ let requestingEntries = [];
 
 let maxActiveTrades = 3;
 let myWatchlist = new Set(); // item ids
+let myWatchlistAlerts = new Map(); // item_id -> { direction, target_value, triggered_at }
 let watchlistCategory = 'fruit';
 let listingLookup = new Map(); // id -> full listing row, for the Relist quick-duplicate action
+let valueHistoryCategory = 'fruit';
 
 onReady(async () => {
   initFirstVisitBanner('trading-tips-banner', 'trading-tips-dismiss', 'bc_seen_tips_trading');
@@ -33,6 +35,26 @@ onReady(async () => {
     });
     document.getElementById('theme-picker-modal').addEventListener('click', (e) => {
       if (e.target.id === 'theme-picker-modal') document.getElementById('theme-picker-modal').classList.remove('open');
+    });
+    document.getElementById('alert-modal-close').addEventListener('click', () => {
+      document.getElementById('alert-modal').classList.remove('open');
+    });
+    document.getElementById('alert-modal').addEventListener('click', (e) => {
+      if (e.target.id === 'alert-modal') document.getElementById('alert-modal').classList.remove('open');
+    });
+    document.getElementById('alert-modal-save-btn').addEventListener('click', saveAlert);
+    document.getElementById('alert-modal-clear-btn').addEventListener('click', clearAlert);
+    document.getElementById('trading-tab-btn-browse').addEventListener('click', () => switchTradingTab('browse'));
+    document.getElementById('trading-tab-btn-values').addEventListener('click', () => switchTradingTab('values'));
+    document.getElementById('value-history-search').addEventListener('input', renderValueHistoryGrid);
+    document.querySelectorAll('#value-history-category-tabs [data-category]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        valueHistoryCategory = btn.dataset.category;
+        document.querySelectorAll('#value-history-category-tabs [data-category]').forEach(b => {
+          b.className = `btn btn-sm ${b.dataset.category === valueHistoryCategory ? 'btn-primary' : 'btn-ghost'}`;
+        });
+        renderValueHistoryGrid();
+      });
     });
   } else {
     document.getElementById('trade-signed-out').style.display = 'block';
@@ -130,9 +152,47 @@ async function openThemePicker() {
   });
 }
 
+function switchTradingTab(tab) {
+  document.getElementById('trading-tab-btn-browse').className = `btn btn-sm ${tab === 'browse' ? 'btn-primary' : 'btn-ghost'}`;
+  document.getElementById('trading-tab-btn-values').className = `btn btn-sm ${tab === 'values' ? 'btn-primary' : 'btn-ghost'}`;
+  document.getElementById('trading-tab-browse').style.display = tab === 'browse' ? '' : 'none';
+  document.getElementById('trading-tab-values').style.display = tab === 'values' ? '' : 'none';
+  if (tab === 'values') renderValueHistoryGrid();
+}
+
+function renderValueHistoryGrid() {
+  const query = document.getElementById('value-history-search').value.trim().toLowerCase();
+  const grid = document.getElementById('value-history-grid');
+  const items = allTradeItems
+    .filter(i => i.category === valueHistoryCategory && i.name.toLowerCase().includes(query))
+    .sort((a, b) => (valueFor(b, 'regular') || 0) - (valueFor(a, 'regular') || 0));
+
+  grid.innerHTML = items.length
+    ? items.map(item => {
+        const rarity = (item.rarity || '').toLowerCase();
+        const trendColor = item.trend === 'up' || item.trend === 'underpaid' ? 'var(--sea)' : item.trend === 'overpaid' || item.trend === 'unstable' ? '#f87171' : 'var(--ash)';
+        return `
+          <div class="panel hover-lift-card" data-view-value-history="${item.id}" style="cursor:pointer; padding:14px; display:flex; align-items:center; gap:12px;" data-rarity="${rarity}">
+            ${item.icon_url ? `<img src="${item.icon_url}" alt="" loading="lazy" style="width:40px; height:40px; object-fit:contain; flex-shrink:0;" onerror="this.style.display='none';">` : `<i data-lucide="sparkles" class="icon-lg" style="flex-shrink:0;"></i>`}
+            <div style="min-width:0;">
+              <p style="margin:0; font-weight:700; font-size:0.86rem; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${escapeHtml(item.name)}</p>
+              <p style="margin:2px 0 0; font-family:var(--font-mono); font-size:0.82rem; color:${trendColor};">${formatValue(valueFor(item, 'regular'))}</p>
+            </div>
+          </div>
+        `;
+      }).join('')
+    : `<p class="muted" style="grid-column:1/-1;">No items found${query ? ' matching your search' : ''}.</p>`;
+
+  grid.querySelectorAll('[data-view-value-history]').forEach(tile => {
+    tile.addEventListener('click', () => openItemHistoryModal(Number(tile.dataset.viewValueHistory)));
+  });
+  refreshIcons();
+}
+
 async function openWatchlistModal() {
-  const { data } = await sb.from('item_watchlist').select('item_id').eq('user_id', currentUser.id);
+  const { data } = await sb.from('item_watchlist').select('item_id, alert_direction, alert_target_value, alert_triggered_at').eq('user_id', currentUser.id);
   myWatchlist = new Set((data || []).map(r => r.item_id));
+  myWatchlistAlerts = new Map((data || []).filter(r => r.alert_direction).map(r => [r.item_id, r]));
   watchlistCategory = 'fruit';
   document.querySelectorAll('#watchlist-category-tabs [data-category]').forEach(b => {
     b.className = `btn btn-sm ${b.dataset.category === 'fruit' ? 'btn-primary' : 'btn-ghost'}`;
@@ -150,11 +210,13 @@ function renderWatchlistGrid() {
   grid.innerHTML = items.length
     ? items.map(item => {
         const isWatched = myWatchlist.has(item.id);
+        const alert = myWatchlistAlerts.get(item.id);
         const rarity = (item.rarity || '').toLowerCase();
         return `
           <div class="build-modal-tile" data-rarity="${rarity}" data-watch-item="${item.id}" style="padding:8px; position:relative; ${isWatched ? 'box-shadow:0 0 0 2px var(--brass-bright);' : ''}">
             ${isWatched ? `<i data-lucide="eye" class="icon-sm" style="position:absolute; top:4px; right:4px; color:var(--brass-bright);"></i>` : ''}
             <button type="button" class="btn btn-ghost btn-sm" data-view-item-history="${item.id}" title="Value history" aria-label="Value history" style="position:absolute; top:2px; left:2px; padding:3px;"><i data-lucide="line-chart" style="width:12px;height:12px;"></i></button>
+            ${isWatched ? `<button type="button" class="btn btn-ghost btn-sm" data-set-alert="${item.id}" title="${alert ? `Alert set: ${alert.alert_direction} ${formatValue(alert.alert_target_value)}` : 'Set a price alert'}" aria-label="Set price alert" style="position:absolute; bottom:2px; right:2px; padding:3px;"><i data-lucide="bell${alert && !alert.alert_triggered_at ? '-ring' : ''}" style="width:12px;height:12px; ${alert && !alert.alert_triggered_at ? 'color:var(--brass-bright);' : ''}"></i></button>` : ''}
             ${item.icon_url ? `<img src="${item.icon_url}" alt="" loading="lazy" onerror="this.style.display='none';">` : `<i data-lucide="sparkles" class="icon-lg"></i>`}
             <span style="font-size:0.72rem;">${escapeHtml(item.name)}</span>
           </div>
@@ -171,7 +233,56 @@ function renderWatchlistGrid() {
       openItemHistoryModal(Number(btn.dataset.viewItemHistory));
     });
   });
+  grid.querySelectorAll('[data-set-alert]').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      openAlertModal(Number(btn.dataset.setAlert));
+    });
+  });
   refreshIcons();
+}
+
+async function openAlertModal(itemId) {
+  const item = allTradeItems.find(i => i.id === itemId);
+  if (!item) return;
+  const alert = myWatchlistAlerts.get(itemId);
+
+  document.getElementById('alert-modal-item-name').textContent = item.name;
+  document.getElementById('alert-modal-direction').value = alert?.alert_direction || 'above';
+  document.getElementById('alert-modal-target').value = alert?.alert_target_value || '';
+  document.getElementById('alert-modal-clear-btn').style.display = alert ? 'inline-flex' : 'none';
+  document.getElementById('alert-modal').dataset.itemId = itemId;
+  document.getElementById('alert-modal').classList.add('open');
+}
+
+async function saveAlert() {
+  const itemId = Number(document.getElementById('alert-modal').dataset.itemId);
+  const direction = document.getElementById('alert-modal-direction').value;
+  const target = Number(document.getElementById('alert-modal-target').value);
+  if (!target || target <= 0) { showToast('Enter a target value above 0.', true); return; }
+
+  const { error } = await sb.from('item_watchlist')
+    .update({ alert_direction: direction, alert_target_value: target, alert_triggered_at: null })
+    .eq('user_id', currentUser.id).eq('item_id', itemId);
+  if (error) { showToast(error.message, true); return; }
+
+  myWatchlistAlerts.set(itemId, { item_id: itemId, alert_direction: direction, alert_target_value: target, alert_triggered_at: null });
+  document.getElementById('alert-modal').classList.remove('open');
+  renderWatchlistGrid();
+  showToast('Price alert set.');
+}
+
+async function clearAlert() {
+  const itemId = Number(document.getElementById('alert-modal').dataset.itemId);
+  const { error } = await sb.from('item_watchlist')
+    .update({ alert_direction: null, alert_target_value: null, alert_triggered_at: null })
+    .eq('user_id', currentUser.id).eq('item_id', itemId);
+  if (error) { showToast(error.message, true); return; }
+
+  myWatchlistAlerts.delete(itemId);
+  document.getElementById('alert-modal').classList.remove('open');
+  renderWatchlistGrid();
+  showToast('Price alert cleared.');
 }
 
 async function openItemHistoryModal(itemId) {
@@ -435,6 +546,7 @@ async function loadListings() {
   refreshIcons();
   loadReputationBadges(container, data.map(t => ({ id: t.user_id, createdAt: t.profiles?.created_at })));
   scrollToHashTarget('data-listing-id');
+  scrollToQueryTarget('listing', 'data-listing-id');
 
   if (data.length === TRADE_LISTINGS_PAGE_SIZE) {
     attachLoadMore(container, {
@@ -494,6 +606,7 @@ function renderListing(t) {
             <span data-new-account-for="${t.user_id}"></span>
           </div>
         </div>
+        <button class="btn btn-ghost btn-sm" data-share-listing="${t.id}" title="Copy link to this listing" aria-label="Copy link"><i data-lucide="link" class="icon-sm"></i></button>
         ${isOwner ? `<div style="display:flex; gap:6px;"><button class="btn btn-ghost btn-sm" data-relist-listing="${t.id}" title="Relist (duplicate as a fresh listing)" aria-label="Relist"><i data-lucide="repeat" class="icon-sm"></i></button><button class="btn btn-ghost btn-sm" data-complete-listing="${t.id}" title="Mark completed" aria-label="Mark completed"><i data-lucide="check" class="icon-sm"></i></button><button class="btn btn-ghost btn-sm" data-delete-listing="${t.id}" aria-label="Delete listing"><i data-lucide="x" class="icon-sm"></i></button></div>` : (currentUser ? `<button class="btn btn-ghost btn-sm" data-report-listing="${t.id}" title="Report" aria-label="Report listing"><i data-lucide="flag" class="icon-sm"></i></button>` : '')}
       </div>
 
@@ -556,6 +669,17 @@ function wireListingActions(root) {
   });
   root.querySelectorAll('[data-report-listing]').forEach(btn => {
     btn.addEventListener('click', () => reportContent('trade_listing', btn.dataset.reportListing));
+  });
+  root.querySelectorAll('[data-share-listing]').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const shareUrl = `${location.origin}/trading/?listing=${btn.dataset.shareListing}`;
+      try {
+        await navigator.clipboard.writeText(shareUrl);
+        showToast('Link copied — sharing it shows a snapshot of this trade.');
+      } catch {
+        showToast(shareUrl);
+      }
+    });
   });
   root.querySelectorAll('[data-repost-trade]').forEach(btn => {
     btn.addEventListener('click', () => { window.location.href = `/feed/?repost_trade=${btn.dataset.repostTrade}`; });

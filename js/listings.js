@@ -98,6 +98,20 @@ function scrollToHashTarget(attr) {
   }, 150);
 }
 
+// Same idea as scrollToHashTarget, but reads a query param instead of the hash — used for
+// links that need the target ID visible server-side too (for dynamic OG-tag unfurling via
+// a Pages Function), since a URL hash never reaches the server at all.
+function scrollToQueryTarget(param, attr) {
+  const id = new URLSearchParams(location.search).get(param);
+  if (!id) return;
+  const el = document.querySelector(`[${attr}="${id}"]`);
+  if (!el) return;
+  setTimeout(() => {
+    el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    el.classList.add('deep-link-highlight');
+  }, 150);
+}
+
 // ---- Countdown formatting ---------------------------------------------------------------
 
 // Short-lived listings (trading, services): hours/minutes only, no "ends"/"expires" verb.
