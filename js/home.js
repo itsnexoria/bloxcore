@@ -4,7 +4,7 @@ let homeTab = 'players';
 
 onReady(async () => {
   loadStats();
-  loadFeaturedChallenges();
+  loadHappeningNow();
   loadTopPirates();
   loadWeeklySpotlight();
   document.getElementById('home-tab-players')?.addEventListener('click', () => switchHomeTab('players'));
@@ -26,21 +26,18 @@ function switchHomeTab(tab) {
 
 async function loadStats() {
   const el = document.getElementById('home-stats');
-  const [{ count: pirates }, { count: crews }, { count: completions }, { count: titles }] = await Promise.all([
+  const [{ count: pirates }, { count: crews }, { count: seaEvents }, { count: giveaways }] = await Promise.all([
     sb.from('profiles').select('id', { count: 'exact', head: true }),
     sb.from('crews').select('id', { count: 'exact', head: true }),
-    // `completions` only stores one row per (user, challenge) — it's a cooldown/last-completed
-    // marker, not a log, so it undercounts repeatable daily/weekly bounties. activity_log gets a
-    // fresh row every approval, so it's the accurate source for a running total.
-    sb.from('activity_log').select('id', { count: 'exact', head: true }).eq('type', 'challenge_approved'),
-    sb.from('titles').select('id', { count: 'exact', head: true }),
+    sb.from('sea_events').select('id', { count: 'exact', head: true }),
+    sb.from('giveaways').select('id', { count: 'exact', head: true }),
   ]);
 
   const stats = [
     { label: 'Pirates Registered', value: pirates },
-    { label: 'Bounties Completed', value: completions },
+    { label: 'Sea Events Hosted', value: seaEvents },
     { label: 'Active Crews', value: crews },
-    { label: 'Titles to Unlock', value: titles },
+    { label: 'Giveaways Run', value: giveaways },
   ];
 
   el.innerHTML = stats.map(s => `
@@ -51,71 +48,85 @@ async function loadStats() {
   `).join('');
 }
 
-// Same "quest-card" component used on /challenges/ (css/style.css .quest-card-*),
-// so the homepage's Live Bounties preview visually matches the full quest board
-// instead of running its own separate wanted-poster design.
-const QUEST_ICON_RULES = [
-  { icon: 'anchor', words: ['sea beast', 'sea', 'shark', 'ocean', 'fish'] },
-  { icon: 'swords', words: ['raid', 'dungeon', 'boss', 'trial'] },
-  { icon: 'crosshair', words: ['pvp', 'duel', 'kill', 'defeat player'] },
-  { icon: 'crown', words: ['bounty', 'wanted level'] },
-  { icon: 'circle-dollar-sign', words: ['beli', 'money', 'earn', 'cash'] },
-  { icon: 'users', words: ['crew', 'team'] },
-  { icon: 'gift', words: ['giveaway'] },
-];
-const QUEST_DIFFICULTY_BADGE = {
-  easy: '/assets/game/quests/easy.png',
-  medium: '/assets/game/quests/medium.png',
-  hard: '/assets/game/quests/hard.png',
-  legendary: '/assets/game/quests/legendary.png',
+// Same "quest-card" component used across the site (css/style.css .quest-card-*),
+// reused here as a generic "live poster" for whatever's actually happening right
+// now — a sea event, a PvP match, or a giveaway — instead of being quest-only.
+const HAPPENING_TIER = { sea_event: 'medium', pvp_match: 'hard', giveaway: 'legendary' };
+const SEA_EVENT_LABELS = {
+  sea_beast: 'Sea Beast', terror_shark: 'Terror Shark', leviathan: 'Leviathan',
+  prehistoric_island: 'Prehistoric Island', mirage: 'Mirage', kitsune_shrine: 'Kitsune Shrine',
 };
 
-function questIconFor(c) {
-  const text = `${c.title} ${c.description}`.toLowerCase();
-  for (const rule of QUEST_ICON_RULES) {
-    if (rule.words.some(w => text.includes(w))) return rule.icon;
-  }
-  return 'target';
+function happeningCardHtml(item) {
+  return `
+    <div class="quest-card" data-difficulty="${HAPPENING_TIER[item.kind]}">
+      <div class="quest-card-hero">
+        <i data-lucide="${item.icon}" class="quest-card-hero-icon"></i>
+        <span class="quest-card-wanted-pill"><i data-lucide="circle" style="width:8px;height:8px;fill:currentColor;"></i> LIVE NOW</span>
+        <span class="quest-card-badge quest-card-badge-img"><i data-lucide="${item.icon}" class="icon-md"></i></span>
+      </div>
+      <div class="quest-card-body">
+        <h3 class="quest-card-title">${escapeHtml(item.title)}</h3>
+        <p class="quest-card-desc">${escapeHtml(item.body)}</p>
+        <div class="quest-card-divider"></div>
+        <p class="quest-card-reward-label">Status</p>
+        <p class="quest-card-reward-value">${escapeHtml(item.status)}</p>
+        <p class="quest-card-meta-row"><span class="quest-card-meta-dot"></span>${escapeHtml(item.meta)}</p>
+        <a href="${item.href}" class="quest-card-claim-btn" style="text-decoration:none;">${escapeHtml(item.cta)} <i data-lucide="chevron-right" class="icon-sm"></i></a>
+      </div>
+    </div>
+  `;
 }
 
-async function loadFeaturedChallenges() {
-  const el = document.getElementById('featured-challenges');
+async function loadHappeningNow() {
+  const el = document.getElementById('happening-now');
   try {
-    const { data, error } = await sb
-      .from('challenges')
-      .select('title, description, difficulty, xp_reward, rotation, repeatable, cooldown_hours')
-      .eq('active', true)
-      .order('created_at', { ascending: false })
-      .limit(3);
+    const now = Date.now();
+    const [{ data: events }, { data: matches }, { data: giveaways }] = await Promise.all([
+      sb.from('sea_events').select('type, notes, expires_at, created_at').order('created_at', { ascending: false }).limit(5),
+      sb.from('pvp_matches').select('match_type, expires_at, created_at').order('created_at', { ascending: false }).limit(5),
+      sb.from('giveaways').select('title, prize, ends_at').eq('status', 'active').order('ends_at', { ascending: true }).limit(3),
+    ]);
 
-    if (error || !data?.length) {
-      el.innerHTML = `<p class="muted" style="grid-column:1/-1;">No quests live right now — check back soon.</p>`;
+    const items = [];
+    (events || []).filter(ev => new Date(ev.expires_at).getTime() > now).slice(0, 3).forEach(ev => items.push({
+      kind: 'sea_event', icon: 'waves',
+      title: `${SEA_EVENT_LABELS[ev.type] || ev.type} — Live Server`,
+      body: ev.notes || 'A server is up and taking pirates right now.',
+      status: 'Open', meta: timeRemainingCompact(ev.expires_at),
+      href: '/sea-events/', cta: 'Join Server',
+    }));
+    (matches || []).filter(m => new Date(m.expires_at).getTime() > now).slice(0, 3).forEach(m => items.push({
+      kind: 'pvp_match', icon: 'crosshair',
+      title: `${m.match_type} Match — Open`,
+      body: 'A PvP match is looking for opponents right now.',
+      status: 'Open', meta: timeRemainingCompact(m.expires_at),
+      href: '/pvp/', cta: 'Join Match',
+    }));
+    (giveaways || []).slice(0, 3).forEach(g => items.push({
+      kind: 'giveaway', icon: 'gift',
+      title: g.title,
+      body: `Prize: ${g.prize}`,
+      status: 'Entries Open', meta: timeRemaining(g.ends_at),
+      href: '/giveaways/', cta: 'Enter Giveaway',
+    }));
+
+    // Interleave by kind so the preview shows variety, not three of the same type.
+    const byKind = { sea_event: items.filter(i => i.kind === 'sea_event'), pvp_match: items.filter(i => i.kind === 'pvp_match'), giveaway: items.filter(i => i.kind === 'giveaway') };
+    const picked = [];
+    for (const kind of ['sea_event', 'pvp_match', 'giveaway']) if (byKind[kind].length) picked.push(byKind[kind][0]);
+    for (const kind of ['sea_event', 'pvp_match', 'giveaway']) { if (picked.length >= 3) break; if (byKind[kind][1]) picked.push(byKind[kind][1]); }
+
+    if (!picked.length) {
+      el.innerHTML = `<p class="muted" style="grid-column:1/-1;">Nothing live right now — <a href="/sea-events/">post a sea event</a>, <a href="/pvp/">start a match</a>, or check back soon.</p>`;
       return;
     }
 
-    el.innerHTML = data.map(c => `
-    <div class="quest-card" data-difficulty="${c.difficulty}">
-      <div class="quest-card-hero">
-        <i data-lucide="${questIconFor(c)}" class="quest-card-hero-icon"></i>
-        <span class="quest-card-wanted-pill"><i data-lucide="star" style="width:10px;height:10px;"></i> WANTED <i data-lucide="star" style="width:10px;height:10px;"></i></span>
-        <span class="quest-card-badge quest-card-badge-img">${QUEST_DIFFICULTY_BADGE[c.difficulty] ? `<img src="${QUEST_DIFFICULTY_BADGE[c.difficulty]}" alt="${escapeHtml(c.difficulty)}">` : `<i data-lucide="${questIconFor(c)}" class="icon-md"></i>`}</span>
-      </div>
-      <div class="quest-card-body">
-        <h3 class="quest-card-title">${escapeHtml(c.title)}</h3>
-        <p class="quest-card-desc">${escapeHtml(c.description)}</p>
-        <div class="quest-card-divider"></div>
-        <p class="quest-card-reward-label">Reward</p>
-        <p class="quest-card-reward-value">+${c.xp_reward} XP</p>
-        <p class="quest-card-meta-row"><span class="quest-card-meta-dot"></span>${c.difficulty}</p>
-        <p class="quest-card-meta-sub">${c.rotation !== 'none' ? `${c.rotation.charAt(0).toUpperCase()}${c.rotation.slice(1)} Quest` : c.repeatable ? `Repeatable${c.cooldown_hours > 0 ? ` · ${c.cooldown_hours}h cooldown` : ''}` : 'One-Time Quest'}</p>
-        <a href="/challenges/" class="quest-card-claim-btn" style="text-decoration:none;">View Quest <i data-lucide="chevron-right" class="icon-sm"></i></a>
-      </div>
-    </div>
-  `).join('');
+    el.innerHTML = picked.map(happeningCardHtml).join('');
     refreshIcons();
   } catch (e) {
-    logError('Failed to load featured challenges:', e);
-    el.innerHTML = `<p class="muted" style="grid-column:1/-1;">Couldn't load quests right now.</p>`;
+    logError('Failed to load happening-now feed:', e);
+    el.innerHTML = `<p class="muted" style="grid-column:1/-1;">Couldn't load live activity right now.</p>`;
   }
 }
 

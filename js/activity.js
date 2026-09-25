@@ -8,48 +8,73 @@ onReady(async () => {
   initHeroPosterRotation();
 });
 
+// Hero poster rotates through whatever's actually live — a sea event, a PvP
+// match, or a giveaway — so the homepage always leads with real community
+// activity instead of a fixed quest pitch. Falls back to a generic join pitch
+// if nothing's live (new site / quiet period).
 async function initHeroPosterRotation() {
   const poster = document.getElementById('hero-poster');
   if (!poster) return;
 
-  const { data, error } = await sb
-    .from('challenges')
-    .select('title, description, xp_reward, difficulty')
-    .eq('active', true)
-    .or('rotation.eq.none,currently_featured.eq.true')
-    .limit(20);
+  const now = Date.now();
+  const [{ data: events }, { data: matches }, { data: giveaways }] = await Promise.all([
+    sb.from('sea_events').select('type, notes, expires_at').order('created_at', { ascending: false }).limit(10),
+    sb.from('pvp_matches').select('match_type, expires_at').order('created_at', { ascending: false }).limit(10),
+    sb.from('giveaways').select('title, prize, ends_at').eq('status', 'active').order('ends_at', { ascending: true }).limit(10),
+  ]);
 
-  if (error || !data || !data.length) return;
+  const pool = [];
+  (events || []).filter(ev => new Date(ev.expires_at).getTime() > now).forEach(ev => pool.push({
+    tier: 'medium', icon: 'waves',
+    title: `${SEA_EVENT_LABELS[ev.type] || ev.type} — Live Server`,
+    body: ev.notes || 'A server is up and taking pirates right now.',
+    reward: 'Open', tag: timeRemainingCompact(ev.expires_at),
+  }));
+  (matches || []).filter(m => new Date(m.expires_at).getTime() > now).forEach(m => pool.push({
+    tier: 'hard', icon: 'crosshair',
+    title: `${m.match_type} Match — Open`,
+    body: 'A PvP match is looking for opponents right now.',
+    reward: 'Open', tag: timeRemainingCompact(m.expires_at),
+  }));
+  (giveaways || []).forEach(g => pool.push({
+    tier: 'legendary', icon: 'gift',
+    title: g.title, body: `Prize: ${g.prize}`,
+    reward: 'Entries Open', tag: timeRemaining(g.ends_at),
+  }));
 
-  // Shuffle so it doesn't cycle in the same DB order every page load
-  const pool = data.sort(() => Math.random() - 0.5);
+  if (!pool.length) {
+    pool.push({
+      tier: 'medium', icon: 'compass',
+      title: 'Be the First to Post', body: 'Nothing live yet — post a sea event, PvP match, or giveaway to get things going.',
+      reward: 'Get Started', tag: 'Join free',
+    });
+  }
+
+  // Shuffle so it doesn't cycle in the same order every page load
+  pool.sort(() => Math.random() - 0.5);
   let index = 0;
-  showHeroChallenge(pool[index]);
+  showHeroPoster(pool[index]);
 
-  setInterval(() => {
-    index = (index + 1) % pool.length;
-    poster.style.opacity = '0';
-    setTimeout(() => {
-      showHeroChallenge(pool[index]);
-      poster.style.opacity = '1';
-    }, 400);
-  }, 12000);
+  if (pool.length > 1) {
+    setInterval(() => {
+      index = (index + 1) % pool.length;
+      poster.style.opacity = '0';
+      setTimeout(() => {
+        showHeroPoster(pool[index]);
+        poster.style.opacity = '1';
+      }, 400);
+    }, 12000);
+  }
 }
 
-function showHeroChallenge(c) {
-  document.getElementById('hero-poster-title').textContent = c.title;
-  document.getElementById('hero-poster-body').textContent = c.description;
-  document.getElementById('hero-poster-reward').textContent = `+${c.xp_reward} XP`;
-  document.getElementById('hero-poster').dataset.difficulty = c.difficulty;
-  const tag = document.getElementById('hero-poster-tag');
-  tag.textContent = c.difficulty;
-
-  const icon = questIconFor(c);
-  document.getElementById('hero-poster-icon-wrap').innerHTML = `<i data-lucide="${icon}" class="quest-card-hero-icon"></i>`;
-  const badge = document.getElementById('hero-poster-badge');
-  badge.innerHTML = QUEST_DIFFICULTY_BADGE[c.difficulty]
-    ? `<img src="${QUEST_DIFFICULTY_BADGE[c.difficulty]}" alt="${escapeHtml(c.difficulty)}">`
-    : `<i data-lucide="${icon}" class="icon-md"></i>`;
+function showHeroPoster(item) {
+  document.getElementById('hero-poster-title').textContent = item.title;
+  document.getElementById('hero-poster-body').textContent = item.body;
+  document.getElementById('hero-poster-reward').textContent = item.reward;
+  document.getElementById('hero-poster').dataset.difficulty = item.tier;
+  document.getElementById('hero-poster-tag').textContent = item.tag;
+  document.getElementById('hero-poster-icon-wrap').innerHTML = `<i data-lucide="${item.icon}" class="quest-card-hero-icon"></i>`;
+  document.getElementById('hero-poster-badge').innerHTML = `<i data-lucide="${item.icon}" class="icon-md"></i>`;
   refreshIcons();
 }
 
