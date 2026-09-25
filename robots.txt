@@ -1,0 +1,13 @@
+User-agent: *
+Allow: /
+Disallow: /admin/
+Disallow: /dashboard/
+Disallow: /profile/
+Disallow: /settings/
+Disallow: /auth/
+Disallow: /messages/
+Disallow: /onboarding/
+Disallow: /appeal/
+Disallow: /notifications/
+
+Sitemap: https://bloxcores.com/sitemap.xml

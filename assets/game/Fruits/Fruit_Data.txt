@@ -1,0 +1,409 @@
+Rocket:
+- Common
+- Natural
+- $5,000 Beli
+- 50 Robux
+- Trade Value 5k
+- Perm Trade Value 10M
+
+Spin:
+- Common
+- Natural
+- $7,500 Beli
+- 75 Robux
+- Trade Value 7,5k
+- Perm Trade Value 15M
+
+Blade:
+- Common
+- Natural
+- $30,000 Beli
+- 100 Robux
+- Trade Value 50K
+- Perm Trade Value 20M
+
+Spring:
+- Common
+- Natural
+- $60,000 Beli
+- 180 Robux
+- Trade Value 60k
+- Perm Trade Value 60M
+
+Bomb:
+- Common
+- Natural
+- $80,000 Beli
+- 220 Robux
+- Trade Value 80k
+- Perm Trade Value 90M
+- Skins: 
+ - Nuclear
+  - Trade value 600M  
+ - Thermite
+  - Trade value 600M  
+ - Azura
+  - Trade value 600M  
+ - Celebration
+  - Trade value 10M 
+
+Smoke:
+- Common
+- Elemental
+- $100,000 Beli
+- 250 Robux
+- Trade Value 100k
+- Perm Trade Value 120M
+
+Spike:
+- Common
+- Natural
+- $180,000 Beli
+- 380 Robux
+- Trade Value 180k
+- Perm Trade Value 140M
+
+Flame:
+- Uncommon
+- Elemental
+- $250,000 Beli
+- 550 Robux
+- Trade Value 250k
+- Perm Trade Value 450M
+
+Ice:
+- Uncommon
+- Elemental
+- $350,000 Beli
+- 750 Robux
+- Trade Value 550k
+- Perm Trade Value 640M
+
+Sand:
+- Uncommon
+- Elemental
+- $420,000 Beli
+- 850 Robux
+- Trade Value 420k
+- Perm Trade Value 720M
+
+Dark:
+- Uncommon
+- Elemental
+- $500,000 Beli
+- 950 Robux
+- Trade Value 400k
+- Perm Trade Value 800M
+
+Eagle:
+- Uncommon
+- Beast
+- $550,000 Beli
+- 975 Robux
+- Trade Value 800k
+- Perm Trade Value 820M
+- Skins: 
+ - Matrix
+  - Trade value 250M  
+ - Glacier
+  - Trade value 20M  
+ - Requiem
+  - Trade value 160M  
+
+Diamond:
+- Uncommon
+- Natural
+- $600,000 Beli
+- 1,000 Robux
+- Trade Value 1M
+- Perm Trade Value 840M
+- Skins: 
+ - Ruby
+  - Trade value 160M  
+ - Topaz
+  - Trade value 220M  
+ - Emerald
+  - Trade value 220M  
+ - Rose Quartz
+  - Trade value 350M
+
+Light:
+- Rare
+- Elemental
+- $650,000 Beli
+- 1,100 Robux
+- Trade Value 800K
+- Perm Trade Value 960M
+
+Rubber:
+- Rare
+- Natural
+- $750,000 Beli
+- 1,200 Robux
+- Trade Value 700K
+- Perm Trade Value 104M
+
+Chost:
+- Rare
+- Natural
+- $940,000 Beli
+- 1,275 Robux
+- Trade Value 800K
+- Perm Trade Value 1,16B
+
+Magma:
+- Rare
+- Elemental
+- $960,000 Beli
+- 1,300 Robux
+- Trade Value 1,15M
+- Perm Trade Value 1.28B
+
+Quake:
+- Legendary
+- Natural
+- $1,000,000 Beli
+- 1,500 Robux
+- Trade Value 1M
+- Perm Trade Value 1.52B
+
+Buddha:
+- Legendary
+- Beast
+- $1,200,000 Beli
+- 1,650 Robux
+- Trade Value 10M
+- Perm Trade Value 2B
+
+Love:
+- Legendary
+- Natural
+- $1,300,000 Beli
+- 1,700 Robux
+- Trade Value 1,5M
+- Perm Trade Value 2.08B
+
+Creation:
+- Legendary
+- Natural
+- $1,400,000 Beli
+- 1,750 Robux
+- Trade Value 2,5M
+- Perm Trade Value 2.24B
+
+Spider:
+- Legendary
+- Natural
+- $1,500,000 Beli
+- 1,800 Robux
+- Trade Value 1,5M
+- Perm Trade Value 2.4B
+
+Sound:
+- Legendary
+- Natural
+- $1,700,000 Beli
+- 1,900 Robux
+- Trade Value 2,5M
+- Perm Trade Value 2.72B
+
+Phoenix:
+- Legendary
+- Beast
+- $1,800,000 Beli
+- 2,000 Robux
+- Trade Value 2,75M
+- Perm Trade Value 3.04B
+
+Portal:
+- Legendary
+- Natural
+- $1,900,000 Beli
+- 2,000 Robux
+- Trade Value 10M
+- Perm Trade Value 3.04B
+- Skins:
+ - Divine
+  - Trade value 1.76B
+
+Lightning:
+- Legendary
+- Elemental
+- $2,100,000 Beli
+- 2,100 Robux
+- Trade Value 50M
+- Perm Trade Value 3.52B
+- Skins: 
+ - Green
+  - Trade value 410M  
+ - Yellow
+  - Trade value 1.89B  
+ - Red
+  - Trade value 3.18B  
+ - Purple
+  - Trade value 5.85B 
+
+Pain:
+- Legendary
+- Natural
+- $2,300,000 Beli
+- 2,200 Robux
+- Trade Value 10M
+- Perm Trade Value 3.84B
+- Skins: 
+ - Celestial
+  - Trade value 1.1B  
+ - Frustration
+  - Trade value 980M  
+ - Sadness
+  - Trade value 920M  
+ - Torment
+  - Trade value 170M
+ - Super Spirit
+  - Trade value 3.68B 
+
+Blizzard:
+- Legendary
+- Elemental
+- $2,400,000 Beli
+- 2,250 Robux
+- Trade Value 5M
+- Perm Trade Value 3.92B
+
+Gravity:
+- Mythical
+- Natural
+- $2,500,000 Beli
+- 2,300 Robux
+- Trade Value 10M
+- Perm Trade Value 4.36B
+
+Mammoth:
+- Mythical
+- Beast
+- $2,700,000 Beli
+- 2,350 Robux
+- Trade Value 10M
+- Perm Trade Value 4.52B
+
+T-Rex:
+- Mythical
+- Beast
+- $2,700,000 Beli
+- 2,350 Robux
+- Trade Value 20M
+- Perm Trade Value 4.52B
+
+Dough:
+- Mythical
+- Elemental
+- $2,800,000 Beli
+- 2,400 Robux
+- Trade Value 30M
+- Perm Trade Value 4.68B
+
+Shadow:
+- Mythical
+- Natural
+- $2,900,000 Beli
+- 2,425 Robux
+- Trade Value 6,5M
+- Perm Trade Value 4.76B
+
+Venom:
+- Mythical
+- Natural
+- $3,000,000 Beli
+- 2,450 Robux
+- Trade Value 20M
+- Perm Trade Value 4.84B
+
+Gas:
+- Mythical
+- Elemental
+- $3,200,000 Beli
+- 2,500 Robux
+- Trade Value 60M
+- Perm Trade Value 5B
+
+Spirit:
+- Mythical
+- Natural
+- $3,400,000 Beli
+- 2,550 Robux
+- Trade Value 10M
+- Perm Trade Value 5.16B
+
+Tiger:
+- Mythical
+- Beast
+- $5,000,000 Beli
+- 3,000 Robux
+- Trade Value 130M
+- Perm Trade Value 5.66B
+- Skins: 
+ - Werewolf
+  - Trade value 1.01B
+
+Yeti:
+- Mythical
+- Beast
+- $5,000,000 Beli
+- 3,000 Robux
+- Trade Value 120M
+- Perm Trade Value 5.66B
+- Mutations: 
+ - Fiend
+  - Trade value 920M
+
+Kitsune:
+- Mythical
+- Beast
+- $8,000,000 Beli
+- 4,000 Robux
+- Trade Value 660M
+- Perm Trade Value 6.98B
+- Mutations: 
+ - Crimson
+  - Trade value 9.68B
+Skins:
+ - Galaxy Empyrean
+  - Trade value: 13.31B
+
+Control:
+- Mythical
+- Natural
+- $9,000,000 Beli
+- 4,000 Robux
+- Trade Value 160M
+- Perm Trade Value 6.98B
+
+Dragon:
+- Mythical
+- Beast
+- $15,000,000 Beli
+- 5,000 Robux
+- Perm Trade Value 8.05B
+- Fruits:
+ - West: Trading value: 5.66B
+ - East: Trading value: 5B
+Skins:
+ - Ember
+  - Trade value 7.93B
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

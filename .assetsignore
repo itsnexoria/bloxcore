@@ -1,0 +1,10 @@
+# Files that shouldn't be publicly servable as static assets — wrangler otherwise uploads
+# everything under assets.directory ("." here), including .git internals, which were
+# showing up as fetchable at https://bloxcores.com/.git/... before this file existed.
+.git/**
+.gitignore
+.wrangler/**
+worker.js
+wrangler.jsonc
+scripts/**
+node_modules/**

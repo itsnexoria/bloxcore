@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<script>(function(){try{var a=localStorage.getItem('bc_accent');if(a==='custom'){var c=JSON.parse(localStorage.getItem('bc_custom_theme')||'null');if(c){var s=document.documentElement.style;s.setProperty('--ink',c.ink);s.setProperty('--navy',c.navy);s.setProperty('--navy-light',c['navy-light']);s.setProperty('--brass',c.brass);s.setProperty('--brass-bright',c['brass-bright']);s.setProperty('--ink-glow',c.navy);var h=c.brass.replace('#','');s.setProperty('--brass-rgb',parseInt(h.substring(0,2),16)+' '+parseInt(h.substring(2,4),16)+' '+parseInt(h.substring(4,6),16));document.documentElement.setAttribute('data-accent','custom');}}else if(a){document.documentElement.setAttribute('data-accent',a);}if(localStorage.getItem('bc_reduce_motion')==='1')document.documentElement.classList.add('reduce-motion');if(localStorage.getItem('bc_compact_mode')==='1')document.documentElement.classList.add('compact-mode');}catch(e){}})();</script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BloxCore — The #1 Blox Fruits Community</title>
+<meta name="robots" content="index, follow">
+<meta name="description" content="Join BloxCore, the ultimate Blox Fruits community for trading, bounty hunting, crews, combos, sea events, giveaways, leaderboards, and a live feed.">
+<meta name="keywords" content="Roblox, Blox Fruits, BloxCore, Nexoria, Nexus, trading, perms, fruits, One Piece game, anime game, PvP, crews, best Roblox game, bounty hunting, giveaways, leaderboard, sea events, combos, quests">
+<link rel="canonical" href="https://bloxcores.com/">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="BloxCore">
+<meta property="og:title" content="BloxCore — The #1 Blox Fruits Community">
+<meta property="og:description" content="Join BloxCore, the ultimate Blox Fruits community for trading, bounty hunting, crews, combos, sea events, giveaways, leaderboards, and a live feed.">
+<meta property="og:image" content="https://bloxcores.com/assets/og-banner.jpg">
+<meta property="og:url" content="https://bloxcores.com/">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="BloxCore — The #1 Blox Fruits Community">
+<meta name="twitter:description" content="Join BloxCore, the ultimate Blox Fruits community for trading, bounty hunting, crews, combos, sea events, giveaways, leaderboards, and a live feed.">
+<meta name="twitter:image" content="https://bloxcores.com/assets/og-banner.jpg">
+<link rel="preconnect" href="https://unpkg.com">
+<link rel="preconnect" href="https://cdn.jsdelivr.net">
+<link rel="dns-prefetch" href="https://unpkg.com">
+<link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
+<link rel="preload" href="/assets/logo.png" as="image">
+<link rel="stylesheet" href="/css/style.css">
+<link rel="stylesheet" href="/css/animations.css">
+<link rel="icon" type="image/png" href="/assets/logo.png">
+<link rel="manifest" href="/manifest.json">
+<link rel="apple-touch-icon" href="/assets/apple-touch-icon.png">
+<meta name="theme-color" content="#0a0e17">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  "name": "BloxCore",
+  "alternateName": "BloxCore",
+  "url": "https://bloxcores.com/",
+  "description": "BloxCore is the #1 Blox Fruits community — trading, bounty hunting, crews, combos, sea events, giveaways, leaderboards, and a live feed.",
+  "potentialAction": {
+    "@type": "SearchAction",
+    "target": {
+      "@type": "EntryPoint",
+      "urlTemplate": "https://bloxcores.com/?q={search_term_string}"
+    },
+    "query-input": "required name=search_term_string"
+  }
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  "name": "BloxCore",
+  "alternateName": "BloxCore",
+  "url": "https://bloxcores.com/",
+  "logo": "https://bloxcores.com/assets/logo.png",
+  "sameAs": []
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebPage",
+  "name": "BloxCore — The #1 Blox Fruits Community",
+  "description": "Join BloxCore, the ultimate Blox Fruits community for trading, bounty hunting, crews, combos, sea events, giveaways, leaderboards, and a live feed.",
+  "url": "https://bloxcores.com/",
+  "isPartOf": {
+    "@type": "WebSite",
+    "name": "BloxCore",
+    "url": "https://bloxcores.com/"
+  }
+}
+</script>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-inner">
+    <a href="/" class="brand"><img src="/assets/logo.png" alt="BloxCore" class="brand-logo"><span class="brand-name">Blox<span>Core</span></span></a>
+    <div class="nav-header-actions">
+      <div id="nav-messages-slot"></div>
+      <div id="nav-notif-slot"></div>
+      <button type="button" class="nav-toggle" aria-label="Open menu" aria-expanded="false"><i data-lucide="menu" class="icon-md nav-toggle-icon-menu"></i><i data-lucide="x" class="icon-md nav-toggle-icon-close"></i></button>
+      <div id="nav-profile-slot"></div>
+    </div>
+        <div class="nav-links">
+      <div class="nav-links-glow" aria-hidden="true"></div>
+      <div class="nav-drawer-header">
+        <span class="nav-drawer-title"><i data-lucide="compass" class="icon-sm"></i>Menu</span>
+        <button type="button" class="nav-drawer-close" aria-label="Close menu"><i data-lucide="x" class="icon-sm"></i></button>
+      </div>
+      <div class="nav-links-scroll">
+        <ul class="nav-link-list">
+          <li><a href="/" class="nav-link" style="--i:0"><span class="nav-link-icon" data-tone="gold"><i data-lucide="home"></i></span>Home</a></li>
+          <li><a href="/friends/" class="nav-link" style="--i:1"><span class="nav-link-icon" data-tone="blue"><i data-lucide="heart-handshake"></i></span>Friends</a></li>
+          <li><a href="/feed/" class="nav-link" style="--i:2"><span class="nav-link-icon" data-tone="pink"><i data-lucide="rss"></i></span>Feed</a></li>
+          <li class="nav-group-label" style="--i:3">Compete</li>
+          <li><a href="/pvp/" class="nav-link" style="--i:4"><span class="nav-link-icon" data-tone="blood"><i data-lucide="crosshair"></i></span>PvP</a></li>
+          <li><a href="/challenges/" class="nav-link" style="--i:5"><span class="nav-link-icon" data-tone="purple"><i data-lucide="swords"></i></span>Quests</a></li>
+          <li><a href="/combos/" class="nav-link" style="--i:6"><span class="nav-link-icon" data-tone="pink"><i data-lucide="flame"></i></span>Combos</a></li>
+          <li><a href="/leaderboard/" class="nav-link" style="--i:7"><span class="nav-link-icon" data-tone="gold"><i data-lucide="trophy"></i></span>Leaderboard</a></li>
+          <li class="nav-group-label" style="--i:8">Community</li>
+          <li><a href="/sea-events/" class="nav-link" style="--i:9"><span class="nav-link-icon" data-tone="sea"><i data-lucide="waves"></i></span>Sea Events</a></li>
+          <li><a href="/giveaways/" class="nav-link" style="--i:10"><span class="nav-link-icon" data-tone="purple"><i data-lucide="gift"></i></span>Giveaways</a></li>
+          <li><a href="/crews/" class="nav-link" style="--i:11"><span class="nav-link-icon" data-tone="blue"><i data-lucide="users"></i></span>Crews</a></li>
+          <li><a href="/trading/" class="nav-link" style="--i:12"><span class="nav-link-icon" data-tone="sea"><i data-lucide="repeat"></i></span>Trading</a></li>
+          <li><a href="/services/" class="nav-link" style="--i:13"><span class="nav-link-icon" data-tone="gold"><i data-lucide="briefcase"></i></span>Services</a></li>
+          <li class="nav-group-label" style="--i:14">More</li>
+          <li><a href="/whats-new/" class="nav-link" style="--i:15"><span class="nav-link-icon" data-tone="pink"><i data-lucide="sparkles"></i></span>What's New</a></li>
+          <li><a href="/notifications/" class="nav-link" style="--i:16"><span class="nav-link-icon" data-tone="blue"><i data-lucide="bell"></i></span>Notifications</a></li>
+        </ul>
+      </div>
+      <div id="nav-auth-slot" class="nav-auth-slot"></div>
+    </div>
+  </div>
+</nav>
+
+<header class="section" style="position:relative; overflow:hidden;">
+  <div class="hero-atlas" aria-hidden="true"></div>
+  <svg class="compass-mark" aria-hidden="true" style="top:-60px; right:2%;" viewBox="0 0 100 100" data-parallax="0.03">
+    <circle cx="50" cy="50" r="46" fill="none" stroke="currentColor" stroke-width="0.6"/>
+    <circle cx="50" cy="50" r="34" fill="none" stroke="currentColor" stroke-width="0.4"/>
+    <g stroke="currentColor" stroke-width="0.6">
+      <line x1="50" y1="4" x2="50" y2="96"/><line x1="4" y1="50" x2="96" y2="50"/>
+      <line x1="15" y1="15" x2="85" y2="85"/><line x1="85" y1="15" x2="15" y2="85"/>
+    </g>
+    <path d="M50 12 L57 50 L50 88 L43 50 Z" fill="currentColor" opacity="0.85"/>
+    <path d="M12 50 L50 43 L88 50 L50 57 Z" fill="currentColor" opacity="0.4"/>
+    <text x="50" y="10" text-anchor="middle" font-size="7" fill="currentColor" font-family="monospace">N</text>
+  </svg>
+  <div class="container hero-grid" style="position:relative; z-index:1;">
+    <div>
+      <p class="muted" style="font-family: var(--font-mono); text-transform:uppercase; letter-spacing:0.08em; font-size:0.85rem;">A Blox Fruits community board</p>
+      <h1 style="font-size: clamp(2.1rem, 4.5vw + 1rem, 3.2rem); line-height:1.1;">Every <span class="text-gradient-anim">bounty</span> starts with one job done.</h1>
+      <p class="muted" style="font-size:1.05rem; max-width:520px;">
+        Take on challenges pulled straight from the Grand Line grind — defeat bosses, awaken fruits, master styles.
+        Submit your proof, get reviewed, and watch your name climb from Rookie to Pirate King.
+      </p>
+      <div style="display:flex; gap:14px; margin-top:24px; flex-wrap:wrap;">
+        <a href="/auth/" class="btn btn-primary glow-pulse">Start Your Bounty</a>
+        <a href="/challenges/" class="btn btn-ghost">Browse Quests</a>
+      </div>
+      <div class="trust-strip">
+        <span><i data-lucide="check-circle-2"></i>Free to join</span>
+        <span><i data-lucide="shield-check"></i>Screenshot-verified</span>
+        <span><i data-lucide="users"></i>Active crews daily</span>
+      </div>
+    </div>
+    <div style="position:relative; justify-self:center;">
+      <div aria-hidden="true" data-parallax="0.05" style="position:absolute; inset:-30px; background:radial-gradient(circle, rgb(var(--brass-rgb) / 0.22), transparent 70%); filter:blur(6px); animation: stampPulse 4s ease-in-out infinite;"></div>
+      <div class="quest-card" id="hero-poster" style="max-width:320px; transition: opacity 0.4s ease, transform 0.15s ease-out; position:relative;">
+        <div class="quest-card-hero">
+          <span id="hero-poster-icon-wrap"><i data-lucide="target" class="quest-card-hero-icon"></i></span>
+          <span class="quest-card-wanted-pill"><i data-lucide="star" style="width:10px;height:10px;"></i> WANTED <i data-lucide="star" style="width:10px;height:10px;"></i></span>
+          <span class="quest-card-badge quest-card-badge-img" id="hero-poster-badge"></span>
+        </div>
+        <div class="quest-card-body">
+          <h3 class="quest-card-title" id="hero-poster-title">First Blood</h3>
+          <p class="quest-card-desc" id="hero-poster-body">Defeat your first Marine grunt and screenshot the kill feed.</p>
+          <div class="quest-card-divider"></div>
+          <p class="quest-card-reward-label">Reward</p>
+          <p class="quest-card-reward-value" id="hero-poster-reward">+15 XP</p>
+          <p class="quest-card-meta-row"><span class="quest-card-meta-dot"></span><span id="hero-poster-tag">Easy</span></p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <svg class="wave-divider" viewBox="0 0 1440 60" preserveAspectRatio="none" aria-hidden="true">
+    <path d="M0,32 C240,60 480,4 720,24 C960,44 1200,58 1440,20 L1440,60 L0,60 Z"/>
+  </svg>
+</header>
+
+<main>
+
+<section class="section" style="padding-top:0;">
+  <div class="container">
+    <div id="home-stats" class="grid" style="grid-template-columns:repeat(auto-fit, minmax(140px,1fr));">
+      <div class="skeleton" style="height:90px;"></div>
+      <div class="skeleton" style="height:90px;"></div>
+      <div class="skeleton" style="height:90px;"></div>
+      <div class="skeleton" style="height:90px;"></div>
+    </div>
+  </div>
+</section>
+
+<section class="section" style="padding-top:0;">
+  <div class="container">
+    <div id="weekly-spotlight" class="panel spotlight-panel">
+      <div class="skeleton" style="height:70px;"></div>
+    </div>
+  </div>
+</section>
+
+<section class="section" style="padding-top:0;">
+  <div class="container">
+    <h2 class="center" style="font-size:1.6rem;">How the loop works</h2>
+    <div class="grid" style="margin-top:32px;">
+      <div class="panel">
+        <h3 style="font-size:1.05rem; color:var(--brass-bright);">01 · Pick a Bounty</h3>
+        <p class="muted">Browse live quests by difficulty — from easy first kills to legendary raid clears.</p>
+      </div>
+      <div class="panel">
+        <h3 style="font-size:1.05rem; color:var(--brass-bright);">02 · Submit Proof</h3>
+        <p class="muted">Upload a screenshot showing you completed it. No proof, no XP — keeps the board honest.</p>
+      </div>
+      <div class="panel">
+        <h3 style="font-size:1.05rem; color:var(--brass-bright);">03 · Get Reviewed</h3>
+        <p class="muted">The crew reviews submissions and stamps them approved or sends them back.</p>
+      </div>
+      <div class="panel">
+        <h3 style="font-size:1.05rem; color:var(--brass-bright);">04 · Rank Up</h3>
+        <p class="muted">Approved bounties add XP. Level up and your title climbs — Rookie to Pirate King.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section" style="padding-top:0;">
+  <div class="container">
+    <div class="flex-between" style="margin-bottom:20px;">
+      <h2 style="font-size:1.4rem; margin:0;">Live Bounties</h2>
+      <a href="/challenges/" class="btn btn-ghost btn-sm">See All</a>
+    </div>
+    <div id="featured-challenges" class="grid">
+      <div class="skeleton" style="height:340px;"></div>
+      <div class="skeleton" style="height:340px;"></div>
+      <div class="skeleton" style="height:340px;"></div>
+    </div>
+  </div>
+</section>
+
+<section class="section" style="padding-top:0;">
+  <div class="container" style="max-width:720px;">
+    <div class="flex-between" style="margin-bottom:20px; flex-wrap:wrap; gap:10px;">
+      <div style="display:flex; gap:8px; flex-wrap:wrap;">
+        <button class="btn btn-primary btn-sm" id="home-tab-players">Top Pirates</button>
+        <button class="btn btn-ghost btn-sm" id="home-tab-crews">Top Crews</button>
+        <button class="btn btn-ghost btn-sm" id="home-tab-wars">Crew Wars</button>
+      </div>
+      <a href="/leaderboard/" class="btn btn-ghost btn-sm" id="home-leaderboard-link">Full Leaderboard</a>
+    </div>
+    <div id="top-pirates" class="panel panel-plain" style="padding:0;">
+      <div class="skeleton" style="height:50px; margin:14px;"></div>
+      <div class="skeleton" style="height:50px; margin:14px;"></div>
+      <div class="skeleton" style="height:50px; margin:14px;"></div>
+    </div>
+  </div>
+</section>
+
+<section class="section" style="padding-top:0;">
+  <div class="container">
+    <div class="flex-between" style="margin-bottom:20px;">
+      <h2 style="font-size:1.4rem; margin:0;">Live Activity</h2>
+      <span class="muted" style="font-size:0.8rem; font-family:var(--font-mono);"><span id="activity-live-dot" style="color:var(--sea);"><i data-lucide="circle" style="width:8px;height:8px;fill:currentColor;"></i></span> updating live</span>
+    </div>
+    <div id="activity-feed" class="panel" style="padding:0;">
+      <div class="skeleton" style="height:56px; margin:14px;"></div>
+      <div class="skeleton" style="height:56px; margin:14px;"></div>
+      <div class="skeleton" style="height:56px; margin:14px;"></div>
+    </div>
+  </div>
+</section>
+
+<section class="section" style="padding-top:0;" aria-labelledby="features-heading">
+  <div class="container">
+    <h2 id="features-heading" class="center" style="font-size:1.6rem;">Everything you need in one Blox Fruits community</h2>
+    <p class="muted center" style="max-width:640px; margin:10px auto 0;">BloxCore brings the whole Blox Fruits grind into one place — trading, bounty hunting, crews, and more, all built around one honest ranking system.</p>
+    <div class="grid" style="margin-top:32px; grid-template-columns:repeat(auto-fit, minmax(260px, 1fr));">
+      <article class="panel">
+        <div class="icon-badge" data-tone="gold"><i data-lucide="repeat" class="icon-md"></i></div>
+        <h3 style="font-size:1.05rem;">Blox Fruits Trading</h3>
+        <p class="muted">Post what you're offering, browse item-for-item trades from the community, and close deals safely with a report system watching your back. <a href="/blox-fruits-trading/">See how BloxCore trading works</a> or check <a href="/blox-fruits-values/">current Blox Fruits values</a>.</p>
+      </article>
+      <article class="panel">
+        <div class="icon-badge"><i data-lucide="scroll" class="icon-md"></i></div>
+        <h3 style="font-size:1.05rem;">Bounty Quests</h3>
+        <p class="muted">Complete real in-game objectives — boss kills, awakenings, style mastery — submit proof, and earn XP that climbs you from Rookie to Pirate King. <a href="/blox-fruits-bounties/">Learn about BloxCore bounties</a>.</p>
+      </article>
+      <article class="panel">
+        <div class="icon-badge" data-tone="purple"><i data-lucide="users" class="icon-md"></i></div>
+        <h3 style="font-size:1.05rem;">Crews</h3>
+        <p class="muted">Found or join a crew, recruit members through your Roblox username or Discord invite, and climb the crew leaderboard together. <a href="/blox-fruits-crews/">Explore Blox Fruits crews</a>.</p>
+      </article>
+      <article class="panel">
+        <div class="icon-badge"><i data-lucide="swords" class="icon-md"></i></div>
+        <h3 style="font-size:1.05rem;">Daily &amp; Weekly Quests</h3>
+        <p class="muted">A rotating pool of daily, weekly, and monthly quests keeps the bounty board fresh, with streak tracking that rewards showing up. <a href="/blox-fruits-challenges/">Browse quest types</a>.</p>
+      </article>
+      <article class="panel">
+        <div class="icon-badge" data-tone="gold"><i data-lucide="flame" class="icon-md"></i></div>
+        <h3 style="font-size:1.05rem;">Combos</h3>
+        <p class="muted">Share and discover fruit, sword, and gun combos from the community, with an upvote system that surfaces the best ones. <a href="/blox-fruits-combos/">Browse Blox Fruits combos</a>.</p>
+      </article>
+      <article class="panel">
+        <div class="icon-badge" data-tone="blue"><i data-lucide="waves" class="icon-md"></i></div>
+        <h3 style="font-size:1.05rem;">Sea Events</h3>
+        <p class="muted">Post or find a live server for Sea Beasts, Terror Sharks, Leviathan, Prehistoric Island, and Mirage — squad up in seconds. <a href="/blox-fruits-sea-events/">See Sea Events on BloxCore</a>.</p>
+      </article>
+      <article class="panel">
+        <div class="icon-badge" data-tone="purple"><i data-lucide="gift" class="icon-md"></i></div>
+        <h3 style="font-size:1.05rem;">Giveaways</h3>
+        <p class="muted">Enter community giveaways for fruits and limiteds, or host your own — every submission goes through staff review to keep things honest. <a href="/blox-fruits-giveaways/">View active giveaways</a>.</p>
+      </article>
+      <article class="panel">
+        <div class="icon-badge" data-tone="pink"><i data-lucide="rss" class="icon-md"></i></div>
+        <h3 style="font-size:1.05rem;">Live Feed</h3>
+        <p class="muted">A public feed for wins, screenshots, and updates — like, comment, and follow other pirates. <a href="/feed/">Check the feed</a>.</p>
+      </article>
+      <article class="panel">
+        <div class="icon-badge" data-tone="gold"><i data-lucide="trophy" class="icon-md"></i></div>
+        <h3 style="font-size:1.05rem;">Leaderboards</h3>
+        <p class="muted">Track the top pirates and top crews by XP, and a separate crew wars leaderboard ranked by win/loss record. <a href="/blox-fruits-leaderboards/">Check the leaderboards</a>.</p>
+      </article>
+      <article class="panel">
+        <div class="icon-badge" data-tone="sea"><i data-lucide="user" class="icon-md"></i></div>
+        <h3 style="font-size:1.05rem;">Player Profiles</h3>
+        <p class="muted">A public profile for your build, bounty, titles, and history — follow other pirates, add friends, and message the ones you trust.</p>
+      </article>
+    </div>
+  </div>
+</section>
+
+<section class="section" style="padding-top:0;">
+  <div class="container panel bg-gradient-anim" style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:20px; overflow:hidden;">
+    <div>
+      <h2 style="font-size:1.4rem; margin-bottom:6px;">Ready to make a name for yourself?</h2>
+      <p class="muted" style="margin:0;">Sign up with email or Discord — it takes a minute.</p>
+    </div>
+    <a href="/auth/" class="btn btn-primary glow-pulse">Join BloxCore</a>
+  </div>
+</section>
+
+</main>
+
+<footer class="site-footer" style="padding:48px 0 24px;">
+  <div class="container">
+    <div class="grid" style="grid-template-columns:1.4fr repeat(3, 1fr); gap:28px; text-align:left; margin-bottom:28px;">
+      <div>
+        <a href="/" class="brand" style="display:inline-flex;"><img src="/assets/logo.png" alt="BloxCore" class="brand-logo"><span class="brand-name">Blox<span>Core</span></span></a>
+        <p class="muted" style="font-size:0.85rem; margin-top:10px; max-width:280px;">BloxCore is the #1 Blox Fruits community — trading, bounty hunting, crews, combos, sea events, giveaways, leaderboards, and a live feed, all in one place. Unofficial and fan-made; not affiliated with the game's developers.</p>
+      </div>
+      <div>
+        <p style="font-weight:700; font-size:0.85rem; margin-bottom:10px;">Blox Fruits Community</p>
+        <ul style="list-style:none; padding:0; margin:0; display:flex; flex-direction:column; gap:8px;">
+          <li><a href="/blox-fruits-trading/" class="muted" style="font-size:0.85rem;">Trading</a></li>
+          <li><a href="/blox-fruits-crews/" class="muted" style="font-size:0.85rem;">Crews</a></li>
+          <li><a href="/blox-fruits-bounties/" class="muted" style="font-size:0.85rem;">Bounty Hunting</a></li>
+          <li><a href="/blox-fruits-challenges/" class="muted" style="font-size:0.85rem;">Quests</a></li>
+          <li><a href="/blox-fruits-combos/" class="muted" style="font-size:0.85rem;">Combos</a></li>
+        </ul>
+      </div>
+      <div>
+        <p style="font-weight:700; font-size:0.85rem; margin-bottom:10px;">More on BloxCore</p>
+        <ul style="list-style:none; padding:0; margin:0; display:flex; flex-direction:column; gap:8px;">
+          <li><a href="/blox-fruits-sea-events/" class="muted" style="font-size:0.85rem;">Sea Events</a></li>
+          <li><a href="/blox-fruits-giveaways/" class="muted" style="font-size:0.85rem;">Giveaways</a></li>
+          <li><a href="/blox-fruits-leaderboards/" class="muted" style="font-size:0.85rem;">Leaderboards</a></li>
+          <li><a href="/blox-fruits-values/" class="muted" style="font-size:0.85rem;">Item Values</a></li>
+          <li><a href="/friends/" class="muted" style="font-size:0.85rem;">Friends</a></li>
+        </ul>
+      </div>
+      <div>
+        <p style="font-weight:700; font-size:0.85rem; margin-bottom:10px;">About &amp; Legal</p>
+        <ul style="list-style:none; padding:0; margin:0; display:flex; flex-direction:column; gap:8px;">
+          <li><a href="/#features-heading" class="muted" style="font-size:0.85rem;">About BloxCore</a></li>
+          <li><a href="/terms/" class="muted" style="font-size:0.85rem;">Terms of Service</a></li>
+          <li><a href="/privacy/" class="muted" style="font-size:0.85rem;">Privacy Policy</a></li>
+          <li><a href="mailto:contact@nexorealm.org" class="muted" style="font-size:0.85rem;">Contact</a></li>
+        </ul>
+      </div>
+    </div>
+    <div style="border-top:1px solid var(--glass-border); padding-top:18px;">
+      BloxCore is the #1 Blox Fruits community — your ultimate hub for trading, bounty hunting, crews, combos, sea events, giveaways, leaderboards, a live feed, and so much more! <a href="/terms/" style="color:inherit; text-decoration:underline;">Terms</a> · <a href="/privacy/" style="color:inherit; text-decoration:underline;">Privacy</a>
+    </div>
+  </div>
+</footer>
+
+<script src="https://unpkg.com/lucide@1.34.0"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.112.4"></script>
+<script src="/js/animations.js"></script>
+<script src="/js/install-prompt.js"></script>
+<script src="/js/supabase-client.js"></script>
+<script src="/js/nav.js"></script>
+<script src="/js/search.js"></script>
+<script src="/js/activity.js"></script>
+<script src="/js/home.js"></script>
+</body>
+</html>
