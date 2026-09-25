@@ -1,0 +1,42 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Lockfiles (remove these lines if you want to commit bun.lock or package-lock.json)
+# bun.lockb
+
+# Wrangler / Cloudflare
+.wrangler/
+.dev.vars
+.env
+.env.*
+!.env.example
+
+# Build output
+dist/
+build/
+out/
+.next/
+.cache/
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+bun-debug.log*
+.wrangler-logs/
+
+# Editor and OS files
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Coverage and temp files
+coverage/
+*.tmp
+*.temp
