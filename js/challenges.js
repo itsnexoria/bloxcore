@@ -479,8 +479,25 @@ async function handleSubmit(e) {
     await loadChallenges();
   } catch (err) {
     logError(err);
-    errorEl.textContent = err.message || 'Something went wrong. Try again.';
-    errorEl.style.display = 'block';
+    // A row-level-security rejection here almost always means one of the selected quests
+    // changed state (got approved/rejected elsewhere) since this page loaded its
+    // completion/pending data — refresh that state so the stale selection clears instead
+    // of leaving the user stuck retrying the same broken submission.
+    if (err.code === '42501' || /row-level security/i.test(err.message || '')) {
+      errorEl.textContent = "One of the selected quests can't be submitted anymore (likely already completed or reviewed elsewhere) — refreshing your quest list now.";
+      errorEl.style.display = 'block';
+      selectedIds.clear();
+      const [{ data: completions }, { data: pending }] = await Promise.all([
+        sb.from('completions').select('challenge_id, completed_at').eq('user_id', currentUser.id),
+        sb.from('submissions').select('challenge_id').eq('user_id', currentUser.id).eq('status', 'pending'),
+      ]);
+      completionMap = new Map((completions || []).map(c => [c.challenge_id, c.completed_at]));
+      pendingChallengeIds = new Set((pending || []).map(s => s.challenge_id));
+      await loadChallenges();
+    } else {
+      errorEl.textContent = err.message || 'Something went wrong. Try again.';
+      errorEl.style.display = 'block';
+    }
   } finally {
     submitBtn.disabled = false;
     submitBtn.textContent = 'Submit for Review';
@@ -590,7 +607,7 @@ async function loadSuggestedChallenges() {
   document.getElementById('suggested-challenges-grid').innerHTML = suggestions.map(renderChallengeCard).join('');
   wrap.style.display = 'block';
   document.querySelectorAll('#suggested-challenges-grid [data-claim-id]').forEach(btn => {
-    btn.addEventListener('click', () => openModal(btn.dataset.claimId, btn.dataset.claimTitle));
+    btn.addEventListener('click', () => openModal([btn.dataset.claimId], btn.dataset.claimTitle));
   });
   refreshIcons();
 }

@@ -43,6 +43,8 @@ async function initReportsTab() {
   _reportsTabInit = true;
 
   try {
+    loadReportSlaStats();
+
     document.querySelectorAll('#report-status-tabs [data-status]').forEach(btn => {
       btn.addEventListener('click', () => {
         currentStatus = btn.dataset.status;
@@ -92,6 +94,7 @@ async function bulkDismissReports() {
   showToast(`Dismissed ${ids.length} report${ids.length > 1 ? 's' : ''}.`);
   selectedReportIds = new Set();
   await loadReports();
+  loadReportSlaStats();
 }
 
 const REPORTS_PAGE_SIZE = 25;
@@ -224,6 +227,7 @@ async function updateReport(reportId, status) {
   const { error } = await sb.from('reports').update({ status }).eq('id', reportId);
   if (error) { showToast(error.message, true); return; }
   await loadReports();
+  loadReportSlaStats();
 }
 
 async function deleteTargetAndResolve(reportId, targetType, targetId) {
@@ -237,4 +241,16 @@ async function deleteTargetAndResolve(reportId, targetType, targetId) {
   await sb.from('reports').update({ status: 'resolved' }).eq('id', reportId);
   showToast('Content deleted and report resolved.');
   await loadReports();
+  loadReportSlaStats();
+}
+
+async function loadReportSlaStats() {
+  const { data, error } = await sb.rpc('get_report_sla_stats');
+  const row = data?.[0];
+  if (error || !row) return;
+
+  document.getElementById('sla-avg-resolve').textContent = row.avg_resolve_hours != null ? `${row.avg_resolve_hours}h` : '—';
+  document.getElementById('sla-median-resolve').textContent = row.median_resolve_hours != null ? `${row.median_resolve_hours}h` : '—';
+  document.getElementById('sla-open-count').textContent = row.open_count;
+  document.getElementById('sla-oldest-open').textContent = row.oldest_open_hours != null ? `${row.oldest_open_hours}h` : 'None open';
 }

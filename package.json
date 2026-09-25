@@ -1,0 +1,7 @@
+{
+  "name": "bloxcore",
+  "private": true,
+  "dependencies": {
+    "cf-workers-og": "^3.0.1"
+  }
+}

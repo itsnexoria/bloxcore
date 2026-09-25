@@ -457,7 +457,7 @@ async function handleAvatarUpload(e) {
 // ---- Build picker popup ----
 
 function wireBuildPickers() {
-  document.querySelectorAll('.build-picker-btn').forEach(btn => {
+  document.querySelectorAll('.build-picker-btn[data-build-key]').forEach(btn => {
     btn.addEventListener('click', () => openBuildModal(btn.dataset.buildKey));
   });
   document.getElementById('build-modal-close').addEventListener('click', closeBuildModal);

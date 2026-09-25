@@ -44,6 +44,7 @@ async function loadPlayer() {
   wireProfileActions(profile, isOwnProfile);
   loadSocialActions(profile, viewerId, isOwnProfile);
   loadPinnedShowcase(profile);
+  if (viewerId && !isOwnProfile) loadMutuals(viewerId, profile.id);
   const hidden = new Set(profile.hidden_profile_sections || []);
   if (!hidden.has('achievements')) loadPlayerAchievements(profile.id);
   if (!hidden.has('activity')) loadPlayerActivity(profile.id);
@@ -73,6 +74,28 @@ async function loadPinnedShowcase(p) {
       <i data-lucide="${a.icon || 'award'}" class="icon-sm icon-inline"></i>${escapeHtml(a.name)}
     </span>
   `).join('');
+  refreshIcons();
+}
+
+async function loadMutuals(viewerId, profileId) {
+  const { data, error } = await sb.rpc('get_mutuals', { p_viewer_id: viewerId, p_profile_id: profileId });
+  const row = data?.[0];
+  if (error || !row) return;
+  if (!row.same_crew_name && !row.mutual_friend_count) return;
+
+  const parts = [];
+  if (row.same_crew_name) {
+    parts.push(`Same crew: <a href="/crew/?name=${encodeURIComponent(row.same_crew_name)}" style="color:var(--brass-bright);">${row.same_crew_tag ? `[${escapeHtml(row.same_crew_tag)}] ` : ''}${escapeHtml(row.same_crew_name)}</a>`);
+  }
+  if (row.mutual_friend_count > 0) {
+    const names = (row.mutual_friend_usernames || []).slice(0, 3).map(u => `@${escapeHtml(u)}`).join(', ');
+    const extra = row.mutual_friend_count > 3 ? ` +${row.mutual_friend_count - 3} more` : '';
+    parts.push(`${row.mutual_friend_count} mutual friend${row.mutual_friend_count === 1 ? '' : 's'}: ${names}${extra}`);
+  }
+
+  const el = document.getElementById('mutuals-line');
+  el.innerHTML = `<span class="muted"><i data-lucide="users" class="icon-sm icon-inline"></i>${parts.join(' · ')}</span>`;
+  el.style.display = 'block';
   refreshIcons();
 }
 
@@ -240,6 +263,7 @@ function renderProfile(p, crew, isOwnProfile) {
           <p class="profile-hero-rank-title">${title}${showHandle ? ` <span class="profile-hero-handle">· @${escapeHtml(p.username)}</span>` : ''}</p>
           ${p.status_line ? `<span class="profile-hero-status"><i data-lucide="message-circle" class="icon-sm"></i>${escapeHtml(p.status_line)}</span>` : ''}
           <div id="pinned-showcase" style="display:none; gap:8px; margin-top:6px;"></div>
+          <div id="mutuals-line" style="display:none; margin-top:8px; font-size:0.82rem;"></div>
           <div class="profile-hero-meta">
             <span class="profile-hero-meta-dot" style="background:${presenceColor};"></span>
             <span>${escapeHtml(lastSeenLabel(p.last_active_at))}</span>

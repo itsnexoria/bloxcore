@@ -102,6 +102,13 @@
         </div>
       </div>
 
+      <div id="report-sla-stats" class="grid" style="grid-template-columns:repeat(4, 1fr); gap:12px; margin-top:16px;">
+        <div class="panel" style="margin:0; padding:14px;"><p class="muted" style="margin:0; font-size:0.7rem; text-transform:uppercase;">Avg Resolve Time</p><p id="sla-avg-resolve" style="margin:4px 0 0; font-size:1.3rem; font-family:var(--font-mono);">—</p></div>
+        <div class="panel" style="margin:0; padding:14px;"><p class="muted" style="margin:0; font-size:0.7rem; text-transform:uppercase;">Median Resolve Time</p><p id="sla-median-resolve" style="margin:4px 0 0; font-size:1.3rem; font-family:var(--font-mono);">—</p></div>
+        <div class="panel" style="margin:0; padding:14px;"><p class="muted" style="margin:0; font-size:0.7rem; text-transform:uppercase;">Open Now</p><p id="sla-open-count" style="margin:4px 0 0; font-size:1.3rem; font-family:var(--font-mono);">—</p></div>
+        <div class="panel" style="margin:0; padding:14px;"><p class="muted" style="margin:0; font-size:0.7rem; text-transform:uppercase;">Oldest Open Report</p><p id="sla-oldest-open" style="margin:4px 0 0; font-size:1.3rem; font-family:var(--font-mono);">—</p></div>
+      </div>
+
       <div id="report-bulk-bar" class="panel panel-plain" style="margin-top:12px; padding:12px 20px; display:none; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap;">
         <label style="display:flex; align-items:center; gap:8px; text-transform:none; font-weight:600; margin:0;">
           <input type="checkbox" id="report-select-all" style="width:auto; margin:0;">

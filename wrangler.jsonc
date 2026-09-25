@@ -6,7 +6,7 @@
   "assets": {
     "directory": ".",
     "binding": "ASSETS",
-    "run_worker_first": ["/player/*", "/auth/*", "/crew/*", "/trading/*"]
+    "run_worker_first": ["/player/*", "/auth/*", "/crew/*", "/trading/*", "/og/*"]
   },
   "observability": {
     "enabled": true

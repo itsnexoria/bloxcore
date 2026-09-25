@@ -9,6 +9,8 @@
 // this is required because link-unfurling bots (Discord, Twitter/X, iMessage, etc.) only
 // ever read the raw HTML; they never run the site's client-side JS.
 
+import { ImageResponse } from 'cf-workers-og/html';
+
 const SUPABASE_URL = 'https://hpvwxaubgiyqgqtyjofb.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_g14CxS8Kbu5hjGIpRGirQg_L5SY7ZWW';
 
@@ -167,7 +169,6 @@ async function handleTrading(request, env, url) {
 
   const nameList = (ids) => ids.map(id => itemsById[id]?.name).filter(Boolean).join(', ') || 'items';
   const posterName = listing.profiles?.display_name || listing.profiles?.username || 'A trader';
-  const firstImage = itemsById[offeringIds[0]]?.icon_url || itemsById[requestingIds[0]]?.icon_url;
 
   const title = `${posterName}'s Trade — BloxCore`;
   const description = `Offering: ${nameList(offeringIds)}. Looking for: ${nameList(requestingIds)}.`;
@@ -175,10 +176,82 @@ async function handleTrading(request, env, url) {
   return rewriteMeta(response, {
     title: escapeAttr(title),
     description: escapeAttr(description.slice(0, 200)),
-    image: firstImage || undefined,
-    imageAlt: escapeAttr('Trade item'),
+    image: `https://bloxcores.com/og/trade.png?listing=${encodeURIComponent(listingId)}`,
+    imageAlt: escapeAttr('Trade details'),
     url: `https://bloxcores.com/trading/?listing=${encodeURIComponent(listingId)}`,
   });
+}
+
+// Composited trade-card image for og:image — text-only by design. An earlier version
+// embedded remote item-icon <img> URLs directly in the render, but that's a documented
+// real-world failure mode for image-generation libraries in Workers (the remote fetch can
+// blow up the whole request at render time even when it works in testing) — so this only
+// ever renders text/shapes it already has in hand, no network calls mid-render.
+async function handleOgTradeImage(request, env, url) {
+  const fallback = () => Response.redirect('https://bloxcores.com/assets/og-banner.jpg', 302);
+  const listingId = url.searchParams.get('listing');
+  if (!listingId) return fallback();
+
+  try {
+    const listing = await supabaseGet(
+      `trade_listings?id=eq.${encodeURIComponent(listingId)}&select=offering_item_ids,requesting_item_ids,profiles(username,display_name)`
+    );
+    if (!listing) return fallback();
+
+    const offeringIds = (listing.offering_item_ids || []).map(i => i.id);
+    const requestingIds = (listing.requesting_item_ids || []).map(i => i.id);
+    const allIds = [...new Set([...offeringIds, ...requestingIds])];
+
+    let itemsById = {};
+    if (allIds.length) {
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/bf_items?id=in.(${allIds.join(',')})&select=id,name`, {
+        headers: { apikey: SUPABASE_ANON_KEY, Authorization: `Bearer ${SUPABASE_ANON_KEY}` },
+      });
+      if (res.ok) {
+        for (const item of await res.json()) itemsById[item.id] = item;
+      }
+    }
+
+    const namesFor = (ids) => ids.map(id => itemsById[id]?.name).filter(Boolean);
+    const offeringNames = namesFor(offeringIds);
+    const requestingNames = namesFor(requestingIds);
+    const posterName = escapeAttr(listing.profiles?.display_name || listing.profiles?.username || 'A trader');
+
+    const itemListHtml = (names) => {
+      const shown = names.slice(0, 5);
+      const extra = names.length - shown.length;
+      const rows = shown.map(n => `<div style="display:flex; color:#f4f2ea; font-size:26px; margin-bottom:10px;">• ${escapeAttr(n)}</div>`).join('');
+      const more = extra > 0 ? `<div style="display:flex; color:#8892a6; font-size:22px;">+${extra} more</div>` : '';
+      return rows + more || '<div style="display:flex; color:#8892a6; font-size:24px;">Nothing listed</div>';
+    };
+
+    const html = `
+      <div style="display:flex; flex-direction:column; width:1200px; height:630px; background:linear-gradient(135deg, #0a0e17, #131c2e); padding:60px; font-family:sans-serif;">
+        <div style="display:flex; flex-direction:column;">
+          <div style="display:flex; color:#d6a841; font-size:30px; font-weight:700; letter-spacing:2px;">BLOXCORE</div>
+          <div style="display:flex; color:#8892a6; font-size:22px; margin-top:4px;">bloxcores.com</div>
+        </div>
+        <div style="display:flex; color:#f4f2ea; font-size:44px; font-weight:800; margin-top:24px;">${posterName}'s Trade</div>
+        <div style="display:flex; flex:1; margin-top:36px; gap:32px;">
+          <div style="display:flex; flex-direction:column; flex:1; background:rgba(255,255,255,0.05); border:2px solid rgba(214,168,65,0.35); border-radius:18px; padding:28px;">
+            <div style="display:flex; color:#d6a841; font-size:22px; font-weight:700; letter-spacing:1px; margin-bottom:18px;">OFFERING</div>
+            ${itemListHtml(offeringNames)}
+          </div>
+          <div style="display:flex; align-items:center; justify-content:center; color:#8892a6; font-size:36px; font-weight:700;">→</div>
+          <div style="display:flex; flex-direction:column; flex:1; background:rgba(255,255,255,0.05); border:2px solid rgba(214,168,65,0.35); border-radius:18px; padding:28px;">
+            <div style="display:flex; color:#d6a841; font-size:22px; font-weight:700; letter-spacing:1px; margin-bottom:18px;">LOOKING FOR</div>
+            ${itemListHtml(requestingNames)}
+          </div>
+        </div>
+      </div>
+    `;
+
+    return new ImageResponse(html, { width: 1200, height: 630 });
+  } catch (err) {
+    // Any failure in the render pipeline (WASM hiccup, bad data, timeout) falls back to a
+    // static image rather than ever surfacing a broken/blank embed.
+    return fallback();
+  }
 }
 
 export default {
@@ -189,6 +262,7 @@ export default {
       if (url.pathname === '/auth/') return await handleAuth(request, env, url);
       if (url.pathname === '/crew/') return await handleCrew(request, env, url);
       if (url.pathname === '/trading/') return await handleTrading(request, env, url);
+      if (url.pathname === '/og/trade.png') return await handleOgTradeImage(request, env, url);
     } catch (err) {
       // Any failure (Supabase down, bad data, etc.) should never take the page down —
       // fall through to the plain static page instead.
