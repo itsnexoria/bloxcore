@@ -5,12 +5,26 @@ let homeTab = 'players';
 onReady(async () => {
   loadStats();
   loadHappeningNow();
+  loadOnlineChip();
+  loadFeaturedCrews();
+  loadTrendingValues();
   loadTopPirates();
   loadWeeklySpotlight();
   document.getElementById('home-tab-players')?.addEventListener('click', () => switchHomeTab('players'));
   document.getElementById('home-tab-crews')?.addEventListener('click', () => switchHomeTab('crews'));
   document.getElementById('home-tab-wars')?.addEventListener('click', () => switchHomeTab('wars'));
 });
+
+async function loadOnlineChip() {
+  const el = document.getElementById('hero-online-count');
+  if (!el) return;
+  try {
+    el.textContent = await getOnlineCount();
+  } catch (e) {
+    logError('Failed to load online count:', e);
+    document.getElementById('hero-online-chip')?.remove();
+  }
+}
 
 function switchHomeTab(tab) {
   if (tab === homeTab) return;
@@ -80,13 +94,32 @@ function happeningCardHtml(item) {
 
 async function loadHappeningNow() {
   const el = document.getElementById('happening-now');
+  const ticker = document.getElementById('home-ticker');
   try {
     const now = Date.now();
-    const [{ data: events }, { data: matches }, { data: giveaways }] = await Promise.all([
+    const nowIso = new Date(now).toISOString();
+    const [
+      { data: events }, { data: matches }, { data: giveaways },
+      { count: eventCount }, { count: matchCount }, { count: giveawayCount },
+    ] = await Promise.all([
       sb.from('sea_events').select('type, notes, expires_at, created_at').order('created_at', { ascending: false }).limit(5),
       sb.from('pvp_matches').select('match_type, expires_at, created_at').order('created_at', { ascending: false }).limit(5),
       sb.from('giveaways').select('title, prize, ends_at').eq('status', 'active').order('ends_at', { ascending: true }).limit(3),
+      sb.from('sea_events').select('id', { count: 'exact', head: true }).gt('expires_at', nowIso),
+      sb.from('pvp_matches').select('id', { count: 'exact', head: true }).gt('expires_at', nowIso),
+      sb.from('giveaways').select('id', { count: 'exact', head: true }).eq('status', 'active'),
     ]);
+
+    if (ticker) {
+      const parts = [];
+      if (eventCount) parts.push(`<span class="home-ticker-item"><i data-lucide="waves"></i>${eventCount} sea event${eventCount === 1 ? '' : 's'} live</span>`);
+      if (matchCount) parts.push(`<span class="home-ticker-item"><i data-lucide="crosshair"></i>${matchCount} PvP match${matchCount === 1 ? '' : 'es'} open</span>`);
+      if (giveawayCount) parts.push(`<span class="home-ticker-item"><i data-lucide="gift"></i>${giveawayCount} giveaway${giveawayCount === 1 ? '' : 's'} running</span>`);
+      ticker.innerHTML = parts.length
+        ? `<span class="live-dot"></span>${parts.join('<span class="home-ticker-sep">·</span>')}`
+        : `<span class="home-ticker-item"><i data-lucide="sparkles"></i>Be the first to post something today</span>`;
+      refreshIcons();
+    }
 
     const items = [];
     (events || []).filter(ev => new Date(ev.expires_at).getTime() > now).slice(0, 3).forEach(ev => items.push({
@@ -127,6 +160,7 @@ async function loadHappeningNow() {
   } catch (e) {
     logError('Failed to load happening-now feed:', e);
     el.innerHTML = `<p class="muted" style="grid-column:1/-1;">Couldn't load live activity right now.</p>`;
+    if (ticker) ticker.innerHTML = `<span class="home-ticker-item">Live activity unavailable right now</span>`;
   }
 }
 
@@ -191,6 +225,78 @@ async function loadTopCrewWars() {
   `;
   }).join('');
   refreshIcons();
+}
+
+// Visually richer than the flat leaderboard rows below — reuses the exact same
+// .crew-card component /crews/ renders, banner-behind-logo overlap included, so
+// the homepage doesn't run a second, competing crew-card design.
+async function loadFeaturedCrews() {
+  const el = document.getElementById('featured-crews');
+  if (!el) return;
+  try {
+    const { data, error } = await sb.rpc('get_crew_leaderboard');
+    if (error || !data?.length) {
+      el.innerHTML = `<p class="muted" style="grid-column:1/-1;">No crews have made a name for themselves yet — <a href="/crews/">start one</a>.</p>`;
+      return;
+    }
+    el.innerHTML = data.slice(0, 3).map(c => `
+      <div class="panel crew-card hover-lift-card">
+        <div class="crew-card-banner" style="${c.banner_url ? `background-image:linear-gradient(160deg, transparent 40%, var(--navy) 100%), url('${c.banner_url}'); background-size:cover; background-position:center;` : ''}"></div>
+        <div class="crew-card-top">
+          <div class="crew-card-logo-ring">
+            ${c.logo_url
+              ? `<img src="${c.logo_url}" alt="" loading="lazy" class="crew-card-logo" onerror="this.style.display='none';">`
+              : `<div class="crew-card-logo crew-card-logo-fallback">${escapeHtml((c.name[0] || '?').toUpperCase())}</div>`}
+          </div>
+          <div style="min-width:0; flex:1;">
+            <h3 title="${escapeHtml(c.name)}" style="margin:0;">${c.tag ? `[${escapeHtml(c.tag)}] ` : ''}${escapeHtml(c.name)}</h3>
+            <span class="muted" style="font-size:0.8rem; font-family:var(--font-mono);">${Number(c.total_xp).toLocaleString()} XP</span>
+          </div>
+        </div>
+        <div class="crew-card-footer">
+          <span class="muted crew-card-members"><i data-lucide="users" class="icon-sm icon-inline"></i>${c.member_count} member${Number(c.member_count) === 1 ? '' : 's'}</span>
+          <a href="/crew/?name=${encodeURIComponent(c.name)}" class="btn btn-primary btn-sm">View Crew</a>
+        </div>
+      </div>
+    `).join('');
+    refreshIcons();
+  } catch (e) {
+    logError('Failed to load featured crews:', e);
+    el.innerHTML = `<p class="muted" style="grid-column:1/-1;">Couldn't load crews right now.</p>`;
+  }
+}
+
+// Highest-value tradeable items — reuses the same rarity-tinted .build-modal-tile
+// component from the build picker, so items look identical everywhere they show up.
+async function loadTrendingValues() {
+  const el = document.getElementById('trending-values');
+  if (!el) return;
+  try {
+    const { data, error } = await sb.from('bf_items').select('name, icon_url, rarity, regular_value, trend')
+      .in('category', ['fruit', 'limited', 'gamepass']).not('regular_value', 'is', null)
+      .order('regular_value', { ascending: false }).limit(6);
+    if (error || !data?.length) {
+      el.innerHTML = `<p class="muted" style="grid-column:1/-1;">Item values aren't up yet — check <a href="/blox-fruits-values/">the full list</a>.</p>`;
+      return;
+    }
+    const trendColor = t => (t === 'up' || t === 'underpaid') ? 'var(--sea)' : (t === 'overpaid' || t === 'unstable') ? '#f87171' : 'var(--ash)';
+    el.innerHTML = data.map(item => `
+      <figure class="value-tile-figure" style="margin:0;">
+        <div class="build-modal-tile" data-rarity="${(item.rarity || 'common').toLowerCase()}" style="cursor:default;">
+          ${item.icon_url ? `<img src="${item.icon_url}" alt="" loading="lazy">` : `<i data-lucide="gem" class="icon-md"></i>`}
+        </div>
+        <figcaption>
+          <div class="value-tile-name">${escapeHtml(item.name)}</div>
+          <div class="value-tile-price">${Number(item.regular_value).toLocaleString()}</div>
+          ${item.trend ? `<div class="value-tile-trend" style="color:${trendColor(item.trend)};">${escapeHtml(item.trend)}</div>` : ''}
+        </figcaption>
+      </figure>
+    `).join('');
+    refreshIcons();
+  } catch (e) {
+    logError('Failed to load trending values:', e);
+    el.innerHTML = `<p class="muted" style="grid-column:1/-1;">Couldn't load item values right now.</p>`;
+  }
 }
 
 async function loadTopCrews() {

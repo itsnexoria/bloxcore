@@ -146,6 +146,7 @@
         <span><i data-lucide="check-circle-2"></i>Free to join</span>
         <span><i data-lucide="waves"></i>Sea events daily</span>
         <span><i data-lucide="users"></i>Active crews daily</span>
+        <span id="hero-online-chip"><i data-lucide="circle" style="width:8px;height:8px;fill:var(--sea); color:var(--sea);"></i><span id="hero-online-count">—</span> online now</span>
       </div>
     </div>
     <div style="position:relative; justify-self:center;">
@@ -174,6 +175,14 @@
 
 <main>
 
+<section class="section" style="padding-top:0; padding-bottom:0;">
+  <div class="container" style="display:flex; justify-content:center;">
+    <div id="home-ticker" class="home-ticker">
+      <span class="home-ticker-item"><span class="live-dot"></span>Loading live activity…</span>
+    </div>
+  </div>
+</section>
+
 <section class="section" style="padding-top:0;">
   <div class="container">
     <div id="home-stats" class="grid" style="grid-template-columns:repeat(auto-fit, minmax(140px,1fr));">
@@ -196,22 +205,34 @@
 <section class="section" style="padding-top:0;">
   <div class="container">
     <h2 class="center" style="font-size:1.6rem;">How pirates use BloxCore</h2>
-    <div class="grid" style="margin-top:32px;">
-      <div class="panel">
-        <h3 style="font-size:1.05rem; color:var(--brass-bright);">01 · Build Your Profile</h3>
-        <p class="muted">Set a banner, frame, and title — your profile is your showcase for what you've done on the server.</p>
+    <div class="timeline-row" style="margin-top:36px; max-width:960px; margin-left:auto; margin-right:auto;">
+      <div class="timeline-step">
+        <div class="timeline-step-num">1</div>
+        <div class="timeline-step-body">
+          <h3>Build Your Profile</h3>
+          <p class="muted">Set a banner, frame, and title — your profile is your showcase for what you've done on the server.</p>
+        </div>
       </div>
-      <div class="panel">
-        <h3 style="font-size:1.05rem; color:var(--brass-bright);">02 · Jump Into the Action</h3>
-        <p class="muted">Post or join a live sea event, raid, or PvP match — squad up with whoever's online right now.</p>
+      <div class="timeline-step">
+        <div class="timeline-step-num">2</div>
+        <div class="timeline-step-body">
+          <h3>Jump Into the Action</h3>
+          <p class="muted">Post or join a live sea event, raid, or PvP match — squad up with whoever's online right now.</p>
+        </div>
       </div>
-      <div class="panel">
-        <h3 style="font-size:1.05rem; color:var(--brass-bright);">03 · Team Up &amp; Trade</h3>
-        <p class="muted">Found or join a crew, trade fruits and limiteds with the community, and enter giveaways.</p>
+      <div class="timeline-step">
+        <div class="timeline-step-num">3</div>
+        <div class="timeline-step-body">
+          <h3>Team Up &amp; Trade</h3>
+          <p class="muted">Found or join a crew, trade fruits and limiteds with the community, and enter giveaways.</p>
+        </div>
       </div>
-      <div class="panel">
-        <h3 style="font-size:1.05rem; color:var(--brass-bright);">04 · Climb the Ranks</h3>
-        <p class="muted">Earn XP for what you do, level up, and watch your name rise on the leaderboards.</p>
+      <div class="timeline-step">
+        <div class="timeline-step-num">4</div>
+        <div class="timeline-step-body">
+          <h3>Climb the Ranks</h3>
+          <p class="muted">Earn XP for what you do, level up, and watch your name rise on the leaderboards.</p>
+        </div>
       </div>
     </div>
   </div>
@@ -227,6 +248,37 @@
       <div class="skeleton" style="height:340px;"></div>
       <div class="skeleton" style="height:340px;"></div>
       <div class="skeleton" style="height:340px;"></div>
+    </div>
+  </div>
+</section>
+
+<section class="section" style="padding-top:0;">
+  <div class="container">
+    <div class="flex-between" style="margin-bottom:20px;">
+      <h2 style="font-size:1.4rem; margin:0;">Explore the Seas</h2>
+      <a href="/sea-events/" class="btn btn-ghost btn-sm">Post an Event</a>
+    </div>
+    <div class="grid" style="grid-template-columns:repeat(auto-fit, minmax(120px, 1fr));">
+      <a href="/sea-events/" class="sea-type-tile"><img src="https://static.wikia.nocookie.net/roblox-blox-piece/images/9/91/SeaBeast.webp/revision/latest?cb=20240212015257" alt="" loading="lazy"><span>Sea Beast</span></a>
+      <a href="/sea-events/" class="sea-type-tile"><img src="https://static.wikia.nocookie.net/roblox-blox-piece/images/1/15/Terrorshark_IG_%28Green%29.png/revision/latest/scale-to-width-down/268?cb=20240907213938" alt="" loading="lazy"><span>Terror Shark</span></a>
+      <a href="/sea-events/" class="sea-type-tile"><img src="https://static.wikia.nocookie.net/roblox-blox-piece/images/0/0a/Leviathan.png/revision/latest/scale-to-width-down/268?cb=20250127234818" alt="" loading="lazy"><span>Leviathan</span></a>
+      <a href="/sea-events/" class="sea-type-tile"><img src="https://static.wikia.nocookie.net/roblox-blox-piece/images/b/b1/Prehistoric_Island.png/revision/latest?cb=20241229013115" alt="" loading="lazy"><span>Prehistoric Island</span></a>
+      <a href="/sea-events/" class="sea-type-tile"><img src="https://static.wikia.nocookie.net/roblox-blox-piece/images/f/f9/Mirage_Clear_View.png/revision/latest/scale-to-width-down/267?cb=20230316042605" alt="" loading="lazy"><span>Mirage</span></a>
+      <a href="/sea-events/" class="sea-type-tile"><img src="https://static.wikia.nocookie.net/roblox-blox-piece/images/8/89/Kitsune_Shrine_Full.png/revision/latest/scale-to-width-down/268?cb=20240812005020" alt="" loading="lazy"><span>Kitsune Shrine</span></a>
+    </div>
+  </div>
+</section>
+
+<section class="section" style="padding-top:0;">
+  <div class="container">
+    <div class="flex-between" style="margin-bottom:20px;">
+      <h2 style="font-size:1.4rem; margin:0;">Top Crews This Week</h2>
+      <a href="/crews/" class="btn btn-ghost btn-sm">See All Crews</a>
+    </div>
+    <div id="featured-crews" class="grid" style="grid-template-columns:repeat(auto-fit, minmax(240px, 1fr));">
+      <div class="skeleton" style="height:170px;"></div>
+      <div class="skeleton" style="height:170px;"></div>
+      <div class="skeleton" style="height:170px;"></div>
     </div>
   </div>
 </section>
@@ -259,6 +311,20 @@
       <div class="skeleton" style="height:56px; margin:14px;"></div>
       <div class="skeleton" style="height:56px; margin:14px;"></div>
       <div class="skeleton" style="height:56px; margin:14px;"></div>
+    </div>
+  </div>
+</section>
+
+<section class="section" style="padding-top:0;">
+  <div class="container">
+    <div class="flex-between" style="margin-bottom:20px;">
+      <h2 style="font-size:1.4rem; margin:0;">Chase-Worthy Items</h2>
+      <a href="/blox-fruits-values/" class="btn btn-ghost btn-sm">All Values</a>
+    </div>
+    <div id="trending-values" class="grid" style="grid-template-columns:repeat(auto-fit, minmax(110px, 1fr));">
+      <div class="skeleton" style="height:140px;"></div>
+      <div class="skeleton" style="height:140px;"></div>
+      <div class="skeleton" style="height:140px;"></div>
     </div>
   </div>
 </section>
@@ -313,6 +379,34 @@
         <h3 style="font-size:1.05rem;">Combos &amp; Quests</h3>
         <p class="muted">Share and discover fruit, sword, and gun combos, and work through a rotating pool of daily and weekly quests for bonus XP on the side. <a href="/blox-fruits-combos/">Browse combos</a> or <a href="/blox-fruits-challenges/">browse quests</a>.</p>
       </article>
+    </div>
+  </div>
+</section>
+
+<section class="section" style="padding-top:0;">
+  <div class="container" style="max-width:760px;">
+    <h2 class="center" style="font-size:1.6rem;">Questions, answered</h2>
+    <div class="faq-list" style="margin-top:28px;">
+      <details class="settings-accordion">
+        <summary>Is BloxCore free?</summary>
+        <p class="muted">Completely — sign up with email or Discord, no subscription, no paywalled features.</p>
+      </details>
+      <details class="settings-accordion">
+        <summary>Is BloxCore affiliated with Blox Fruits or Roblox?</summary>
+        <p class="muted">No — BloxCore is an unofficial, fan-made community site built by players, not the game's developers.</p>
+      </details>
+      <details class="settings-accordion">
+        <summary>How do I post a sea event or PvP match?</summary>
+        <p class="muted">Sign in, head to <a href="/sea-events/">Sea Events</a> or <a href="/pvp/">PvP</a>, and hit the post button — it's live for other pirates in seconds.</p>
+      </details>
+      <details class="settings-accordion">
+        <summary>Are trades and giveaways safe?</summary>
+        <p class="muted">Every giveaway submission and trade report goes through staff review, and repeat offenders get flagged — but always trade with common sense, just like in-game.</p>
+      </details>
+      <details class="settings-accordion">
+        <summary>Can I join or start a crew?</summary>
+        <p class="muted">Yes — browse <a href="/crews/">open crews</a> looking for recruits, or start your own and invite people through your Roblox username or a Discord link.</p>
+      </details>
     </div>
   </div>
 </section>

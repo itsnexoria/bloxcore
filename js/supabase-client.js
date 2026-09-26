@@ -398,6 +398,15 @@ function presenceStatus(lastActiveAt) {
   if (ms <= 30 * 60 * 1000) return 'idle';
   return 'offline';
 }
+
+// Shared "how many pirates are online right now" count — used by the homepage hero
+// and the nav drawer. Matches the same 5-minute window presenceStatus() uses for a
+// single profile's dot, just counted across the whole table.
+async function getOnlineCount() {
+  const since = new Date(Date.now() - 5 * 60 * 1000).toISOString();
+  const { count } = await sb.from('profiles').select('id', { count: 'exact', head: true }).gte('last_active_at', since);
+  return count || 0;
+}
 function lastSeenLabel(lastActiveAt) {
   const status = presenceStatus(lastActiveAt);
   if (status === 'online') return 'Online now';

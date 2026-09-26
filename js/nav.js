@@ -286,7 +286,13 @@ async function populateAuthArea() {
 
   if (!user) {
     applyRoleGatedNavItems('user');
-    slot.innerHTML = `<a href="/auth/" class="btn btn-primary btn-sm"><i data-lucide="log-in" class="icon-sm icon-inline"></i>Sign In</a>`;
+    slot.innerHTML = `
+      <div class="nav-cta-card">
+        <strong>Join BloxCore</strong>
+        <p class="muted">Sea events, PvP, crews, trading, giveaways, and more — free to join.</p>
+        <a href="/auth/" class="btn btn-primary btn-sm"><i data-lucide="log-in" class="icon-sm icon-inline"></i>Sign In</a>
+      </div>
+    `;
     const notifSlot = document.getElementById('nav-notif-slot');
     if (notifSlot) notifSlot.innerHTML = '';
     const messagesSlot = document.getElementById('nav-messages-slot');
@@ -321,8 +327,25 @@ async function populateAuthArea() {
   const onAdminPage = window.location.pathname.startsWith('/admin/');
   const adminLink = (role !== 'user' && !onAdminPage) ? `<a href="/admin/" class="nav-auth-icon-btn" title="Admin" aria-label="Admin"><i data-lucide="shield" class="icon-sm"></i></a>` : '';
 
+  const level = profile?.level || 1;
+  const xp = profile?.xp || 0;
+  const pct = xpProgress(xp, level).pct;
+
   slot.innerHTML = `
-    <div class="nav-auth-icons">
+    <div class="nav-profile-card">
+      ${avatarHtml(profile, 46)}
+      <div class="nav-profile-card-info">
+        <a href="/dashboard/" class="nav-profile-card-name">${escapeHtml(displayNameFor(profile))}${titleBadge(profile) ? ` ${titleBadge(profile)}` : ''}</a>
+        <div class="nav-profile-card-level">Level ${level} · ${escapeHtml(rankTitleForLevel(level))}</div>
+        <div class="nav-xp-bar"><div class="nav-xp-bar-fill" style="width:${pct}%;"></div></div>
+      </div>
+    </div>
+    <div class="nav-stat-chips">
+      <div class="nav-stat-chip"><i data-lucide="flame"></i><span>${profile?.login_streak || 0}</span><small>Streak</small></div>
+      <div class="nav-stat-chip"><i data-lucide="crosshair"></i><span>${profile?.pvp_rating ?? '—'}</span><small>PvP</small></div>
+      <div class="nav-stat-chip"><i data-lucide="swords"></i><span>${profile?.crew_wars_won || 0}</span><small>Wars Won</small></div>
+    </div>
+    <div class="nav-auth-icons" style="margin-top:12px;">
       <a href="/dashboard/" class="nav-auth-icon-btn" title="My Profile" aria-label="My Profile"><i data-lucide="user" class="icon-sm"></i></a>
       ${adminLink}
       <a href="/settings/" class="nav-auth-icon-btn" title="Settings" aria-label="Settings"><i data-lucide="settings" class="icon-sm"></i></a>
