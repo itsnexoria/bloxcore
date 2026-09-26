@@ -131,17 +131,17 @@
     <path d="M12 50 L50 43 L88 50 L50 57 Z" fill="currentColor" opacity="0.4"/>
     <text x="50" y="10" text-anchor="middle" font-size="7" fill="currentColor" font-family="monospace">N</text>
   </svg>
-  <div class="container hero-grid" style="position:relative; z-index:1;">
+  <div class="container hero-grid hero-grid-bento" style="position:relative; z-index:1;">
     <div>
-      <p class="muted" style="font-family: var(--font-mono); text-transform:uppercase; letter-spacing:0.08em; font-size:0.85rem;">A Blox Fruits community hub</p>
-      <h1 style="font-size: clamp(2.1rem, 4.5vw + 1rem, 3.2rem); line-height:1.1;">Where the <span class="text-gradient-anim">Grand Line</span> actually hangs out.</h1>
-      <p class="muted" style="font-size:1.05rem; max-width:520px;">
-        Post a sea event, run a raid, queue a PvP match, or drop a giveaway — squad up with a crew, trade with the
-        community, and build a profile that shows off who you are on the server.
+      <p class="muted" style="font-family: var(--font-mono); text-transform:uppercase; letter-spacing:0.08em; font-size:0.85rem;">The ultimate Blox Fruits community</p>
+      <h1 style="font-size: clamp(2.3rem, 5vw + 1rem, 3.6rem); line-height:1.05; text-transform:uppercase;">Make your <span class="text-gradient-anim">name.</span></h1>
+      <p class="muted" style="font-size:1.05rem; max-width:480px;">
+        Sea events. PvP. Crews. Trading. BloxCore brings together everything you need
+        to rise, fight, and build your legacy on the Grand Line.
       </p>
       <div style="display:flex; gap:14px; margin-top:24px; flex-wrap:wrap;">
-        <a href="/auth/" class="btn btn-primary glow-pulse">Join BloxCore</a>
-        <a href="/sea-events/" class="btn btn-ghost">See What's Live</a>
+        <a href="/auth/" class="btn btn-primary glow-pulse"><i data-lucide="users" class="icon-sm icon-inline"></i>Join BloxCore</a>
+        <a href="/sea-events/" class="btn btn-ghost"><i data-lucide="compass" class="icon-sm icon-inline"></i>See What's Live</a>
       </div>
       <div class="trust-strip">
         <span><i data-lucide="check-circle-2"></i>Free to join</span>
@@ -150,9 +150,12 @@
         <span id="hero-online-chip"><i data-lucide="circle" style="width:8px;height:8px;fill:var(--sea); color:var(--sea);"></i><span id="hero-online-count">—</span> online now</span>
       </div>
     </div>
-    <div style="position:relative; justify-self:center;">
-      <div aria-hidden="true" data-parallax="0.05" style="position:absolute; inset:-30px; background:radial-gradient(circle, rgb(var(--brass-rgb) / 0.22), transparent 70%); filter:blur(6px); animation: stampPulse 4s ease-in-out infinite;"></div>
-      <div class="quest-card" id="hero-poster" data-difficulty="medium" style="max-width:320px; transition: opacity 0.4s ease, transform 0.15s ease-out; position:relative;">
+    <div class="hero-scene-wrap">
+      <div class="hero-scene-frame">
+        <div class="hero-scene-img"></div>
+        <div class="hero-scene-shade"></div>
+      </div>
+      <div class="quest-card hero-scene-poster" id="hero-poster" data-difficulty="medium">
         <div class="quest-card-hero">
           <span id="hero-poster-icon-wrap"><i data-lucide="waves" class="quest-card-hero-icon"></i></span>
           <span class="quest-card-wanted-pill"><i data-lucide="circle" style="width:8px;height:8px;fill:currentColor;"></i> LIVE NOW</span>
@@ -174,7 +177,7 @@
 
 <main>
 
-<section class="section" style="padding-top:0; padding-bottom:0;">
+<section class="section" style="padding-top:32px; padding-bottom:0;">
   <div class="container" style="display:flex; justify-content:center;">
     <div id="home-ticker" class="home-ticker">
       <span class="home-ticker-item"><span class="live-dot"></span>Loading live activity…</span>
@@ -182,7 +185,7 @@
   </div>
 </section>
 
-<section class="section" style="padding-top:0;">
+<section class="section" style="padding-top:20px;">
   <div class="container">
     <div id="home-stats" class="grid" style="grid-template-columns:repeat(auto-fit, minmax(140px,1fr));">
       <div class="skeleton" style="height:90px;"></div>
@@ -193,7 +196,77 @@
   </div>
 </section>
 
-<section class="section" style="padding-top:0;">
+<section class="section" style="padding-top:0;" aria-label="Live dashboard">
+  <div class="container">
+    <div class="dash-grid">
+
+      <div class="dash-col-featured">
+        <div class="dash-card-header">
+          <h2><i data-lucide="target" class="icon-sm icon-inline"></i>Featured Right Now</h2>
+        </div>
+        <div id="dash-featured"><div class="skeleton" style="height:100%; min-height:360px;"></div></div>
+      </div>
+
+      <div class="dash-col">
+        <div class="dash-card panel panel-plain">
+          <div class="dash-card-header">
+            <h2><i data-lucide="waves" class="icon-sm icon-inline"></i>Live Right Now</h2>
+            <a href="/sea-events/" class="dash-card-link">View All <i data-lucide="arrow-right" class="icon-sm"></i></a>
+          </div>
+          <div id="dash-live-list" class="dash-list">
+            <div class="skeleton" style="height:44px; margin:12px 20px;"></div>
+            <div class="skeleton" style="height:44px; margin:12px 20px;"></div>
+            <div class="skeleton" style="height:44px; margin:12px 20px;"></div>
+          </div>
+        </div>
+        <div class="dash-card panel panel-plain">
+          <div class="dash-card-header">
+            <h2><i data-lucide="users" class="icon-sm icon-inline"></i>Active Crews</h2>
+            <a href="/crews/" class="dash-card-link">View All <i data-lucide="arrow-right" class="icon-sm"></i></a>
+          </div>
+          <div id="dash-active-crews" class="dash-list">
+            <div class="skeleton" style="height:52px; margin:12px 20px;"></div>
+            <div class="skeleton" style="height:52px; margin:12px 20px;"></div>
+            <div class="skeleton" style="height:52px; margin:12px 20px;"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="dash-col">
+        <div class="dash-card panel panel-plain">
+          <div class="dash-card-header">
+            <h2><i data-lucide="trophy" class="icon-sm icon-inline"></i>Top Pirates</h2>
+            <a href="/leaderboard/" class="dash-card-link" id="home-leaderboard-link">View All <i data-lucide="arrow-right" class="icon-sm"></i></a>
+          </div>
+          <div class="dash-tab-row">
+            <button class="btn btn-primary btn-sm" id="home-tab-players">Pirates</button>
+            <button class="btn btn-ghost btn-sm" id="home-tab-crews">Crews</button>
+            <button class="btn btn-ghost btn-sm" id="home-tab-wars">Crew Wars</button>
+          </div>
+          <div id="top-pirates" class="dash-list">
+            <div class="skeleton" style="height:44px; margin:12px 20px;"></div>
+            <div class="skeleton" style="height:44px; margin:12px 20px;"></div>
+            <div class="skeleton" style="height:44px; margin:12px 20px;"></div>
+          </div>
+        </div>
+        <div class="dash-card panel panel-plain">
+          <div class="dash-card-header">
+            <h2><i data-lucide="activity" class="icon-sm icon-inline"></i>Live Activity</h2>
+            <span class="muted" style="font-size:0.78rem; font-family:var(--font-mono); display:flex; align-items:center; gap:6px;"><span id="activity-live-dot" style="color:var(--sea); display:flex;"><i data-lucide="circle" style="width:8px;height:8px;fill:currentColor;"></i></span>live</span>
+          </div>
+          <div id="activity-feed" class="dash-list">
+            <div class="skeleton" style="height:44px; margin:12px 20px;"></div>
+            <div class="skeleton" style="height:44px; margin:12px 20px;"></div>
+            <div class="skeleton" style="height:44px; margin:12px 20px;"></div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<section class="section">
   <div class="container">
     <div id="weekly-spotlight" class="panel spotlight-panel">
       <div class="skeleton" style="height:70px;"></div>
@@ -240,20 +313,6 @@
 <section class="section" style="padding-top:0;">
   <div class="container">
     <div class="flex-between" style="margin-bottom:20px;">
-      <h2 style="font-size:1.4rem; margin:0;">Live Right Now</h2>
-      <a href="/sea-events/" class="btn btn-ghost btn-sm">See All</a>
-    </div>
-    <div id="happening-now" class="grid">
-      <div class="skeleton" style="height:340px;"></div>
-      <div class="skeleton" style="height:340px;"></div>
-      <div class="skeleton" style="height:340px;"></div>
-    </div>
-  </div>
-</section>
-
-<section class="section" style="padding-top:0;">
-  <div class="container">
-    <div class="flex-between" style="margin-bottom:20px;">
       <h2 style="font-size:1.4rem; margin:0;">Explore the Seas</h2>
       <a href="/sea-events/" class="btn btn-ghost btn-sm">Post an Event</a>
     </div>
@@ -264,52 +323,6 @@
       <a href="/sea-events/" class="sea-type-tile"><div class="icon-badge" data-tone="gold"><i data-lucide="compass" class="icon-md"></i></div><span>Prehistoric Island</span></a>
       <a href="/sea-events/" class="sea-type-tile"><div class="icon-badge" data-tone="pink"><i data-lucide="flame" class="icon-md"></i></div><span>Mirage</span></a>
       <a href="/sea-events/" class="sea-type-tile"><div class="icon-badge" data-tone="purple"><i data-lucide="castle" class="icon-md"></i></div><span>Kitsune Shrine</span></a>
-    </div>
-  </div>
-</section>
-
-<section class="section" style="padding-top:0;">
-  <div class="container">
-    <div class="flex-between" style="margin-bottom:20px;">
-      <h2 style="font-size:1.4rem; margin:0;">Top Crews This Week</h2>
-      <a href="/crews/" class="btn btn-ghost btn-sm">See All Crews</a>
-    </div>
-    <div id="featured-crews" class="grid" style="grid-template-columns:repeat(auto-fit, minmax(240px, 1fr));">
-      <div class="skeleton" style="height:170px;"></div>
-      <div class="skeleton" style="height:170px;"></div>
-      <div class="skeleton" style="height:170px;"></div>
-    </div>
-  </div>
-</section>
-
-<section class="section" style="padding-top:0;">
-  <div class="container" style="max-width:720px;">
-    <div class="flex-between" style="margin-bottom:20px; flex-wrap:wrap; gap:10px;">
-      <div style="display:flex; gap:8px; flex-wrap:wrap;">
-        <button class="btn btn-primary btn-sm" id="home-tab-players">Top Pirates</button>
-        <button class="btn btn-ghost btn-sm" id="home-tab-crews">Top Crews</button>
-        <button class="btn btn-ghost btn-sm" id="home-tab-wars">Crew Wars</button>
-      </div>
-      <a href="/leaderboard/" class="btn btn-ghost btn-sm" id="home-leaderboard-link">Full Leaderboard</a>
-    </div>
-    <div id="top-pirates" class="panel panel-plain" style="padding:0;">
-      <div class="skeleton" style="height:50px; margin:14px;"></div>
-      <div class="skeleton" style="height:50px; margin:14px;"></div>
-      <div class="skeleton" style="height:50px; margin:14px;"></div>
-    </div>
-  </div>
-</section>
-
-<section class="section" style="padding-top:0;">
-  <div class="container">
-    <div class="flex-between" style="margin-bottom:20px;">
-      <h2 style="font-size:1.4rem; margin:0;">Live Activity</h2>
-      <span class="muted" style="font-size:0.8rem; font-family:var(--font-mono);"><span id="activity-live-dot" style="color:var(--sea);"><i data-lucide="circle" style="width:8px;height:8px;fill:currentColor;"></i></span> updating live</span>
-    </div>
-    <div id="activity-feed" class="panel" style="padding:0;">
-      <div class="skeleton" style="height:56px; margin:14px;"></div>
-      <div class="skeleton" style="height:56px; margin:14px;"></div>
-      <div class="skeleton" style="height:56px; margin:14px;"></div>
     </div>
   </div>
 </section>

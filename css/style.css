@@ -3637,3 +3637,137 @@ html.compact-mode .grid { gap: 12px; }
 
 /* ---- FAQ (reuses .settings-accordion, just gapped) ---- */
 .faq-list { display: flex; flex-direction: column; gap: 10px; }
+
+/* ==========================================================================
+   Homepage redesign — hero scene art + "everything live at once" dashboard
+   bento grid, reusing existing tokens (.panel, .tag-*, .quest-card) so it
+   stays visually consistent with the rest of the site.
+   ========================================================================== */
+
+.hero-grid-bento { align-items: center; }
+
+.hero-scene-wrap { position: relative; justify-self: center; width: 100%; max-width: 480px; }
+.hero-scene-frame {
+  position: relative;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  aspect-ratio: 16 / 10;
+  border: 1px solid rgb(var(--brass-rgb) / 0.35);
+  box-shadow: 0 24px 60px rgb(var(--shadow-rgb) / 0.55), 0 0 0 1px rgb(0 0 0 / 0.2), 0 0 40px rgb(var(--brass-rgb) / 0.12);
+  animation: fadeInUp 0.5s ease both;
+}
+.hero-scene-img {
+  position: absolute;
+  inset: 0;
+  background-image: url('/assets/hero-scene.jpg');
+  background-size: cover;
+  background-position: center;
+  transform: scale(1.02);
+}
+.hero-scene-shade {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(200deg, transparent 40%, rgb(var(--shadow-rgb) / 0.55) 100%),
+              linear-gradient(0deg, rgb(var(--shadow-rgb) / 0.35), transparent 35%);
+}
+.hero-scene-poster {
+  position: absolute;
+  left: -10%;
+  bottom: -14%;
+  width: 78%;
+  max-width: 300px;
+  z-index: 2;
+  transition: opacity 0.4s ease, transform 0.15s ease-out;
+}
+@media (max-width: 860px) {
+  .hero-scene-wrap { max-width: 420px; margin: 0 auto; }
+  .hero-scene-poster { left: 50%; transform: translateX(-50%); bottom: -12%; width: 86%; }
+}
+@media (max-width: 640px) {
+  .hero-scene-poster { position: relative; left: auto; bottom: auto; transform: none; width: 100%; margin-top: 18px; }
+}
+
+/* ---- Live dashboard bento grid ---- */
+.dash-grid {
+  display: grid;
+  grid-template-columns: 1.1fr 1fr 1fr;
+  gap: 20px;
+  align-items: start;
+}
+@media (max-width: 980px) {
+  .dash-grid { grid-template-columns: 1fr 1fr; }
+  .dash-col-featured { grid-column: 1 / -1; }
+}
+@media (max-width: 640px) {
+  .dash-grid { grid-template-columns: 1fr; }
+}
+
+.dash-col, .dash-col-featured { display: flex; flex-direction: column; gap: 20px; min-width: 0; }
+
+.dash-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--glass-border);
+}
+.dash-card-header h2 {
+  margin: 0;
+  font-size: 0.98rem;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.dash-card-header h2 i { color: var(--brass-bright); }
+.dash-card-link {
+  font-size: 0.76rem;
+  font-weight: 700;
+  color: var(--ash);
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  white-space: nowrap;
+  transition: color 0.15s ease;
+}
+.dash-card-link:hover { color: var(--brass-bright); }
+.dash-card-link i { width: 13px; height: 13px; }
+
+.dash-card { padding: 0; overflow: hidden; }
+.dash-card .dash-card-header { padding: 16px 20px 14px; }
+.dash-tab-row { display: flex; gap: 6px; padding: 0 20px 14px; flex-wrap: wrap; }
+
+.dash-list { min-height: 40px; }
+.dash-list .empty-state, .dash-list p.muted { padding: 18px 20px; margin: 0; }
+
+.dash-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 20px;
+  border-bottom: 1px solid var(--navy-light);
+  text-decoration: none;
+  color: inherit;
+  transition: background 0.15s ease;
+}
+.dash-row:last-child { border-bottom: none; }
+.dash-row:hover { background: rgb(255 255 255 / 0.03); }
+.dash-row-main { display: flex; align-items: center; gap: 12px; min-width: 0; flex: 1; }
+.dash-row-icon {
+  width: 32px; height: 32px; border-radius: 9px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  background: rgb(var(--brass-rgb) / 0.14); color: var(--brass-bright);
+}
+.dash-row-icon img { width: 100%; height: 100%; border-radius: 9px; object-fit: cover; display: block; }
+.dash-row-title {
+  color: var(--bone); font-weight: 700; font-size: 0.88rem;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.dash-row-sub { color: var(--ash); font-size: 0.74rem; margin-top: 1px; }
+.dash-row-meta { flex-shrink: 0; font-size: 0.76rem; font-family: var(--font-mono); color: var(--ash); text-align: right; }
+
+/* ---- Featured live card (left column, tall) — wraps a full-height .quest-card ---- */
+.dash-col-featured #dash-featured .quest-card { height: 100%; max-width: none; margin: 0; }
+.dash-col-featured #dash-featured .quest-card-hero { height: 200px; }

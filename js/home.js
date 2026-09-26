@@ -6,7 +6,7 @@ onReady(async () => {
   loadStats();
   loadHappeningNow();
   loadOnlineChip();
-  loadFeaturedCrews();
+  loadActiveCrews();
   loadTrendingValues();
   loadTopPirates();
   loadWeeklySpotlight();
@@ -66,6 +66,7 @@ async function loadStats() {
 // reused here as a generic "live poster" for whatever's actually happening right
 // now — a sea event, a PvP match, or a giveaway — instead of being quest-only.
 const HAPPENING_TIER = { sea_event: 'medium', pvp_match: 'hard', giveaway: 'legendary' };
+const HAPPENING_TIER_LABEL = { medium: 'Medium', hard: 'Hard', legendary: 'Legendary' };
 const SEA_EVENT_LABELS = {
   sea_beast: 'Sea Beast', terror_shark: 'Terror Shark', leviathan: 'Leviathan',
   prehistoric_island: 'Prehistoric Island', mirage: 'Mirage', kitsune_shrine: 'Kitsune Shrine',
@@ -92,8 +93,28 @@ function happeningCardHtml(item) {
   `;
 }
 
+// Compact row version of the same item, used in the homepage dashboard's
+// "Live Right Now" list (everything after the single featured item above).
+function dashLiveRowHtml(item) {
+  const tier = HAPPENING_TIER[item.kind];
+  const tagClass = tier === 'legendary' ? 'tag-legendary' : tier === 'hard' ? 'tag-hard' : 'tag-medium';
+  return `
+    <a href="${item.href}" class="dash-row">
+      <div class="dash-row-main">
+        <span class="dash-row-icon"><i data-lucide="${item.icon}" style="width:16px;height:16px;"></i></span>
+        <div style="min-width:0;">
+          <div class="dash-row-title">${escapeHtml(item.title)}</div>
+          <div class="dash-row-sub">${escapeHtml(item.meta)}</div>
+        </div>
+      </div>
+      <span class="tag ${tagClass}" style="flex-shrink:0;">${HAPPENING_TIER_LABEL[tier]}</span>
+    </a>
+  `;
+}
+
 async function loadHappeningNow() {
-  const el = document.getElementById('happening-now');
+  const featuredEl = document.getElementById('dash-featured');
+  const listEl = document.getElementById('dash-live-list');
   const ticker = document.getElementById('home-ticker');
   try {
     const now = Date.now();
@@ -144,22 +165,30 @@ async function loadHappeningNow() {
       href: '/giveaways/', cta: 'Enter Giveaway',
     }));
 
-    // Interleave by kind so the preview shows variety, not three of the same type.
+    // Interleave by kind so the preview shows variety, not all of the same type.
     const byKind = { sea_event: items.filter(i => i.kind === 'sea_event'), pvp_match: items.filter(i => i.kind === 'pvp_match'), giveaway: items.filter(i => i.kind === 'giveaway') };
     const picked = [];
     for (const kind of ['sea_event', 'pvp_match', 'giveaway']) if (byKind[kind].length) picked.push(byKind[kind][0]);
-    for (const kind of ['sea_event', 'pvp_match', 'giveaway']) { if (picked.length >= 3) break; if (byKind[kind][1]) picked.push(byKind[kind][1]); }
+    for (const kind of ['sea_event', 'pvp_match', 'giveaway']) { if (picked.length >= 5) break; if (byKind[kind][1]) picked.push(byKind[kind][1]); }
+    for (const kind of ['sea_event', 'pvp_match', 'giveaway']) { if (picked.length >= 5) break; if (byKind[kind][2]) picked.push(byKind[kind][2]); }
 
     if (!picked.length) {
-      el.innerHTML = `<p class="muted" style="grid-column:1/-1;">Nothing live right now — <a href="/sea-events/">post a sea event</a>, <a href="/pvp/">start a match</a>, or check back soon.</p>`;
+      featuredEl.innerHTML = `
+        <div class="quest-card" data-difficulty="medium" style="align-items:center; justify-content:center; text-align:center; padding:30px;">
+          <p class="muted" style="margin:0;">Nothing live right now — <a href="/sea-events/">post a sea event</a>, <a href="/pvp/">start a match</a>, or check back soon.</p>
+        </div>`;
+      listEl.innerHTML = `<p class="muted">Check back soon.</p>`;
+      refreshIcons();
       return;
     }
 
-    el.innerHTML = picked.map(happeningCardHtml).join('');
+    featuredEl.innerHTML = happeningCardHtml(picked[0]);
+    listEl.innerHTML = picked.slice(1, 5).map(dashLiveRowHtml).join('') || `<p class="muted">Nothing else live at the moment.</p>`;
     refreshIcons();
   } catch (e) {
     logError('Failed to load happening-now feed:', e);
-    el.innerHTML = `<p class="muted" style="grid-column:1/-1;">Couldn't load live activity right now.</p>`;
+    featuredEl.innerHTML = `<p class="muted" style="padding:20px;">Couldn't load live activity right now.</p>`;
+    listEl.innerHTML = '';
     if (ticker) ticker.innerHTML = `<span class="home-ticker-item">Live activity unavailable right now</span>`;
   }
 }
@@ -227,42 +256,46 @@ async function loadTopCrewWars() {
   refreshIcons();
 }
 
-// Visually richer than the flat leaderboard rows below — reuses the exact same
-// .crew-card component /crews/ renders, banner-behind-logo overlap included, so
-// the homepage doesn't run a second, competing crew-card design.
-async function loadFeaturedCrews() {
-  const el = document.getElementById('featured-crews');
+// Homepage dashboard's "Active Crews" list — recruiting crews first (so the
+// panel actually helps people find a crew), topped up with the biggest crews
+// by member count if there aren't enough open ones yet.
+async function loadActiveCrews() {
+  const el = document.getElementById('dash-active-crews');
   if (!el) return;
   try {
-    const { data, error } = await sb.rpc('get_crew_leaderboard');
+    const { data, error } = await sb.from('crews').select('id, name, tag, logo_url, recruiting').order('created_at', { ascending: false }).limit(30);
     if (error || !data?.length) {
-      el.innerHTML = `<p class="muted" style="grid-column:1/-1;">No crews have made a name for themselves yet — <a href="/crews/">start one</a>.</p>`;
+      el.innerHTML = `<p class="muted">No crews have made a name for themselves yet — <a href="/crews/">start one</a>.</p>`;
       return;
     }
-    el.innerHTML = data.slice(0, 3).map(c => `
-      <div class="panel crew-card hover-lift-card">
-        <div class="crew-card-banner" style="${c.banner_url ? `background-image:linear-gradient(160deg, transparent 40%, var(--navy) 100%), url('${c.banner_url}'); background-size:cover; background-position:center;` : ''}"></div>
-        <div class="crew-card-top">
-          <div class="crew-card-logo-ring">
+    const { data: members } = await sb.from('crew_members').select('crew_id').in('crew_id', data.map(c => c.id));
+    const countByCrew = {};
+    (members || []).forEach(m => { countByCrew[m.crew_id] = (countByCrew[m.crew_id] || 0) + 1; });
+    data.forEach(c => { c._memberCount = countByCrew[c.id] || 0; });
+
+    const sorted = [...data].sort((a, b) => (b.recruiting - a.recruiting) || (b._memberCount - a._memberCount));
+    const top4 = sorted.slice(0, 4);
+
+    el.innerHTML = top4.map(c => `
+      <a href="/crew/?name=${encodeURIComponent(c.name)}" class="dash-row">
+        <div class="dash-row-main">
+          <span class="dash-row-icon">
             ${c.logo_url
-              ? `<img src="${c.logo_url}" alt="" loading="lazy" class="crew-card-logo" onerror="this.style.display='none';">`
-              : `<div class="crew-card-logo crew-card-logo-fallback">${escapeHtml((c.name[0] || '?').toUpperCase())}</div>`}
-          </div>
-          <div style="min-width:0; flex:1;">
-            <h3 title="${escapeHtml(c.name)}" style="margin:0;">${c.tag ? `[${escapeHtml(c.tag)}] ` : ''}${escapeHtml(c.name)}</h3>
-            <span class="muted" style="font-size:0.8rem; font-family:var(--font-mono);">${Number(c.total_xp).toLocaleString()} XP</span>
+              ? `<img src="${c.logo_url}" alt="" loading="lazy" onerror="this.parentElement.innerHTML='${escapeHtml((c.name[0] || '?').toUpperCase())}';">`
+              : escapeHtml((c.name[0] || '?').toUpperCase())}
+          </span>
+          <div style="min-width:0;">
+            <div class="dash-row-title">${c.tag ? `[${escapeHtml(c.tag)}] ` : ''}${escapeHtml(c.name)}</div>
+            <div class="dash-row-sub">${c._memberCount} member${c._memberCount === 1 ? '' : 's'}</div>
           </div>
         </div>
-        <div class="crew-card-footer">
-          <span class="muted crew-card-members"><i data-lucide="users" class="icon-sm icon-inline"></i>${c.member_count} member${Number(c.member_count) === 1 ? '' : 's'}</span>
-          <a href="/crew/?name=${encodeURIComponent(c.name)}" class="btn btn-primary btn-sm">View Crew</a>
-        </div>
-      </div>
+        <span class="tag ${c.recruiting ? 'tag-easy' : ''}" style="flex-shrink:0; ${c.recruiting ? '' : 'background:rgb(255 255 255 / 0.06); color:var(--ash);'}">${c.recruiting ? 'Recruiting' : 'Full'}</span>
+      </a>
     `).join('');
     refreshIcons();
   } catch (e) {
-    logError('Failed to load featured crews:', e);
-    el.innerHTML = `<p class="muted" style="grid-column:1/-1;">Couldn't load crews right now.</p>`;
+    logError('Failed to load active crews:', e);
+    el.innerHTML = `<p class="muted">Couldn't load crews right now.</p>`;
   }
 }
 
