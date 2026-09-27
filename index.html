@@ -106,7 +106,7 @@
 
     <div class="nav-header-actions">
       <div class="nav-bar-socials">
-        <a href="https://discord.gg/Kg5XtHpwDU" class="nav-bar-social-btn" aria-label="Discord" title="Join the discord server!" target="_blank" rel="noopener noreferrer"><i data-lucide="message-circle" class="icon-sm"></i></a>
+        <a href="https://discord.gg/Kg5XtHpwDU" class="nav-bar-social-btn" aria-label="Discord" title="Join the discord server!" target="_blank" rel="noopener noreferrer"><i class="fa-brands fa-discord"></i></a>
      </div>
       <div id="nav-messages-slot"></div>
       <div id="nav-notif-slot"></div>
@@ -214,7 +214,8 @@
 </main>
 
 <footer class="site-footer" style="padding:28px 0;">
-  <div class="container flex-between">
+  <div class="container" style="position:relative; display:flex; align-items:center; justify-content:space-between;">
+
     <!-- Brand -->
     <a href="/" class="brand" style="display:inline-flex;">
       <img src="/assets/logo.png"
@@ -225,66 +226,79 @@
         Blox<span>Core</span>
       </span>
     </a>
-    <!-- Links + Socials -->
-    <div style="display:flex; align-items:center; gap:20px;">
-      <!-- Legal links -->
-      <div style="display:flex; gap:16px; font-size:0.82rem;">
-        <a href="/terms/" class="muted">Terms</a>
-        <a href="/privacy/" class="muted">Privacy</a>
-        <a href="mailto:support@nexorealm.org" class="muted">Contact</a>
-      </div>
-      <!-- Social icons -->
-      <div style="display:flex; align-items:center; gap:14px; font-size:1.05rem;">
-        <a href="https://www.youtube.com/@itsnexoria"
-           target="_blank"
-           rel="noopener noreferrer"
-           class="muted"
-           aria-label="YouTube"
-           title="YouTube">
-          <i class="fa-brands fa-youtube"></i>
-        </a>
-        <a href="https://discord.gg/Kg5XtHpwDU"
-           target="_blank"
-           rel="noopener noreferrer"
-           class="muted"
-           aria-label="Discord"
-           title="Discord">
-          <i class="fa-brands fa-discord"></i>
-        </a>
-        <a href="https://www.twitch.tv/nxrealm08"
-           target="_blank"
-           rel="noopener noreferrer"
-           class="muted"
-           aria-label="Twitch"
-           title="Twitch">
-          <i class="fa-brands fa-twitch"></i>
-        </a>
-        <a href="https://x.com/itsnexoria"
-           target="_blank"
-           rel="noopener noreferrer"
-           class="muted"
-           aria-label="X"
-           title="X">
-          <i class="fa-brands fa-x-twitter"></i>
-        </a>
-        <a href="https://www.instagram.com/itsnexoria/"
-           target="_blank"
-           rel="noopener noreferrer"
-           class="muted"
-           aria-label="Instagram"
-           title="Instagram">
-          <i class="fa-brands fa-instagram"></i>
-        </a>
-        <a href="https://www.tiktok.com/@nxrealm08"
-           target="_blank"
-           rel="noopener noreferrer"
-           class="muted"
-           aria-label="TikTok"
-           title="TikTok">
-          <i class="fa-brands fa-tiktok"></i>
-        </a>
-      </div>
+
+    <!-- Centered Social Icons -->
+    <div style="
+      position:absolute;
+      left:50%;
+      transform:translateX(-50%);
+      display:flex;
+      align-items:center;
+      gap:14px;
+      font-size:1.05rem;
+    ">
+      <a href="https://www.youtube.com/@itsnexoria"
+         target="_blank"
+         rel="noopener noreferrer"
+         class="muted"
+         aria-label="YouTube"
+         title="YouTube">
+        <i class="fa-brands fa-youtube"></i>
+      </a>
+
+      <a href="https://discord.gg/Kg5XtHpwDU"
+         target="_blank"
+         rel="noopener noreferrer"
+         class="muted"
+         aria-label="Discord"
+         title="Discord">
+        <i class="fa-brands fa-discord"></i>
+      </a>
+
+      <a href="https://www.twitch.tv/nxrealm08"
+         target="_blank"
+         rel="noopener noreferrer"
+         class="muted"
+         aria-label="Twitch"
+         title="Twitch">
+        <i class="fa-brands fa-twitch"></i>
+      </a>
+
+      <a href="https://x.com/itsnexoria"
+         target="_blank"
+         rel="noopener noreferrer"
+         class="muted"
+         aria-label="X"
+         title="X">
+        <i class="fa-brands fa-x-twitter"></i>
+      </a>
+
+      <a href="https://www.instagram.com/itsnexoria/"
+         target="_blank"
+         rel="noopener noreferrer"
+         class="muted"
+         aria-label="Instagram"
+         title="Instagram">
+        <i class="fa-brands fa-instagram"></i>
+      </a>
+
+      <a href="https://www.tiktok.com/@nxrealm08"
+         target="_blank"
+         rel="noopener noreferrer"
+         class="muted"
+         aria-label="TikTok"
+         title="TikTok">
+        <i class="fa-brands fa-tiktok"></i>
+      </a>
     </div>
+
+    <!-- Legal Links -->
+    <div style="display:flex; gap:16px; font-size:0.82rem;">
+      <a href="/terms/" class="muted">Terms</a>
+      <a href="/privacy/" class="muted">Privacy</a>
+      <a href="mailto:support@nexorealm.org" class="muted">Contact</a>
+    </div>
+
   </div>
 </footer>
 
