@@ -30,6 +30,7 @@
 <link rel="icon" type="image/png" href="/assets/favicon.png">
 <link rel="manifest" href="/manifest.json">
 <link rel="apple-touch-icon" href="/assets/apple-touch-icon.png">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
 <meta name="theme-color" content="#0a0e17">
 <script type="application/ld+json">
 {
@@ -105,8 +106,8 @@
 
     <div class="nav-header-actions">
       <div class="nav-bar-socials">
-        <a href="https://discord.gg/Kg5XtHpwDU" class="nav-bar-social-btn" aria-label="Discord" title="Add your Discord invite link"><i data-lucide="message-circle" class="icon-sm"></i></a>
-      </div>
+        <a href="https://discord.gg/Kg5XtHpwDU" class="nav-bar-social-btn" aria-label="Discord" title="Join the discord server!" target="_blank" rel="noopener noreferrer"><i data-lucide="message-circle" class="icon-sm"></i></a>
+     </div>
       <div id="nav-messages-slot"></div>
       <div id="nav-notif-slot"></div>
       <div id="nav-profile-slot"></div>
@@ -214,12 +215,75 @@
 
 <footer class="site-footer" style="padding:28px 0;">
   <div class="container flex-between">
-    <a href="/" class="brand" style="display:inline-flex;"><img src="/assets/logo.png" alt="BloxCore" class="brand-logo" style="height:28px;"><span class="brand-name" style="font-size:1rem;">Blox<span>Core</span></span></a>
-    <p class="muted" style="margin:0; font-size:0.82rem; text-align:center;">Unofficial, fan-made Blox Fruits community — not affiliated with the game's developers.</p>
-    <div style="display:flex; gap:16px; font-size:0.82rem;">
-      <a href="/terms/" class="muted">Terms</a>
-      <a href="/privacy/" class="muted">Privacy</a>
-      <a href="mailto:contact@nexorealm.org" class="muted">Contact</a>
+    <!-- Brand -->
+    <a href="/" class="brand" style="display:inline-flex;">
+      <img src="/assets/logo.png"
+           alt="BloxCore"
+           class="brand-logo"
+           style="height:28px;">
+      <span class="brand-name" style="font-size:1rem;">
+        Blox<span>Core</span>
+      </span>
+    </a>
+    <!-- Links + Socials -->
+    <div style="display:flex; align-items:center; gap:20px;">
+      <!-- Legal links -->
+      <div style="display:flex; gap:16px; font-size:0.82rem;">
+        <a href="/terms/" class="muted">Terms</a>
+        <a href="/privacy/" class="muted">Privacy</a>
+        <a href="mailto:support@nexorealm.org" class="muted">Contact</a>
+      </div>
+      <!-- Social icons -->
+      <div style="display:flex; align-items:center; gap:14px; font-size:1.05rem;">
+        <a href="https://www.youtube.com/@itsnexoria"
+           target="_blank"
+           rel="noopener noreferrer"
+           class="muted"
+           aria-label="YouTube"
+           title="YouTube">
+          <i class="fa-brands fa-youtube"></i>
+        </a>
+        <a href="https://discord.gg/Kg5XtHpwDU"
+           target="_blank"
+           rel="noopener noreferrer"
+           class="muted"
+           aria-label="Discord"
+           title="Discord">
+          <i class="fa-brands fa-discord"></i>
+        </a>
+        <a href="https://www.twitch.tv/nxrealm08"
+           target="_blank"
+           rel="noopener noreferrer"
+           class="muted"
+           aria-label="Twitch"
+           title="Twitch">
+          <i class="fa-brands fa-twitch"></i>
+        </a>
+        <a href="https://x.com/itsnexoria"
+           target="_blank"
+           rel="noopener noreferrer"
+           class="muted"
+           aria-label="X"
+           title="X">
+          <i class="fa-brands fa-x-twitter"></i>
+        </a>
+        <a href="https://www.instagram.com/itsnexoria/"
+           target="_blank"
+           rel="noopener noreferrer"
+           class="muted"
+           aria-label="Instagram"
+           title="Instagram">
+          <i class="fa-brands fa-instagram"></i>
+        </a>
+        <a href="https://www.tiktok.com/@nxrealm08"
+           target="_blank"
+           rel="noopener noreferrer"
+           class="muted"
+           aria-label="TikTok"
+           title="TikTok">
+          <i class="fa-brands fa-tiktok"></i>
+        </a>
+      </div>
     </div>
   </div>
 </footer>
