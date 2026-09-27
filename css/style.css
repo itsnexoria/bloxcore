@@ -3862,3 +3862,16 @@ html.compact-mode .grid { gap: 12px; }
 }
 .ffeat-item:hover .ffeat-link { gap: 7px; }
 .ffeat-link i { width: 14px; height: 14px; }
+
+/* ==========================================================================
+   Ad slots
+   ========================================================================== */
+.ad-slot {
+  display: flex; flex-direction: column; align-items: center; gap: 6px;
+  max-width: 728px; margin: 32px auto; padding: 10px 0;
+}
+.ad-slot-label {
+  font-family: var(--font-mono); text-transform: uppercase; letter-spacing: 0.08em;
+  font-size: 0.65rem; color: var(--bone); opacity: 0.4;
+}
+.ad-slot iframe, .ad-slot > div { max-width: 100%; }
