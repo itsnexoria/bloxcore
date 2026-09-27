@@ -3661,6 +3661,7 @@ html.compact-mode .grid { gap: 12px; }
     linear-gradient(90deg, var(--ink) 0%, rgb(var(--shadow-rgb) / 0.88) 28%, rgb(var(--shadow-rgb) / 0.35) 55%, transparent 75%),
     linear-gradient(0deg, var(--ink) 0%, transparent 30%, transparent 70%, rgb(var(--shadow-rgb) / 0.3) 100%);
 }
+.hero-fullbleed-inner { width: 100%; padding: 0 max(24px, 5%); }
 .hero-fullbleed-copy { max-width: 560px; }
 @media (max-width: 760px) {
   .hero-fullbleed { padding: 64px 0 48px; min-height: 0; }

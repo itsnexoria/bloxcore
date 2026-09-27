@@ -80,6 +80,7 @@ function showHeroPoster(item) {
 
 async function loadActivity() {
   const feed = document.getElementById('activity-feed');
+  if (!feed) return;
 
   const { data, error } = await sb
     .from('activity_log')
@@ -155,6 +156,7 @@ window.addEventListener('pagehide', () => {
 
 function prependActivity(a) {
   const feed = document.getElementById('activity-feed');
+  if (!feed) return;
   if (feed.querySelector('.empty-state') || feed.querySelector('.skeleton')) {
     feed.innerHTML = '';
   }

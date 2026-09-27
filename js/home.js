@@ -60,6 +60,7 @@ function dashLiveRowHtml(item) {
 async function loadHappeningNow() {
   const featuredEl = document.getElementById('dash-featured');
   const listEl = document.getElementById('dash-live-list');
+  if (!featuredEl || !listEl) return;
   try {
     const now = Date.now();
     const [{ data: events }, { data: matches }, { data: giveaways }] = await Promise.all([
@@ -120,6 +121,7 @@ async function loadHappeningNow() {
 
 async function loadTopPirates() {
   const el = document.getElementById('top-pirates');
+  if (!el) return;
   const { data, error } = await sb
     .from('profiles')
     .select('username, display_name, avatar_url, avatar_frame, level, xp, title_color_override, titles(name, color)')
