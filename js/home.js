@@ -19,7 +19,7 @@ const SEA_EVENT_LABELS = {
 
 function happeningCardHtml(item) {
   return `
-    <div class="live-poster" data-difficulty="${HAPPENING_TIER[item.kind]}">
+    <div class="quest-card" data-difficulty="${HAPPENING_TIER[item.kind]}">
       <div class="quest-card-hero">
         <i data-lucide="${item.icon}" class="quest-card-hero-icon"></i>
         <span class="quest-card-wanted-pill"><i data-lucide="circle" style="width:8px;height:8px;fill:currentColor;"></i> LIVE NOW</span>
@@ -100,7 +100,7 @@ async function loadHappeningNow() {
 
     if (!picked.length) {
       featuredEl.innerHTML = `
-        <div class="live-poster" data-difficulty="medium" style="align-items:center; justify-content:center; text-align:center; padding:30px;">
+        <div class="quest-card" data-difficulty="medium" style="align-items:center; justify-content:center; text-align:center; padding:30px;">
           <p class="muted" style="margin:0;">Nothing live right now — <a href="/sea-events/">post a sea event</a>, <a href="/pvp/">start a match</a>, or check back soon.</p>
         </div>`;
       listEl.innerHTML = `<p class="muted">Check back soon.</p>`;

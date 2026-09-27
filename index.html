@@ -104,7 +104,11 @@
     </div>
 
     <div class="nav-header-actions">
-      <a href="#" class="nav-bar-social-btn" aria-label="Discord" title="Add your Discord invite link"><i data-lucide="message-circle" class="icon-sm"></i></a>
+      <div class="nav-bar-socials">
+        <a href="#" class="nav-bar-social-btn" aria-label="Discord" title="Add your Discord invite link"><i data-lucide="message-circle" class="icon-sm"></i></a>
+        <a href="#" class="nav-bar-social-btn" aria-label="X" title="Add your X link"><i data-lucide="twitter" class="icon-sm"></i></a>
+        <a href="#" class="nav-bar-social-btn" aria-label="YouTube" title="Add your YouTube link"><i data-lucide="youtube" class="icon-sm"></i></a>
+      </div>
       <div id="nav-messages-slot"></div>
       <div id="nav-notif-slot"></div>
       <div id="nav-profile-slot"></div>
@@ -143,13 +147,13 @@
     </div>
   </div>
 </nav>
-
-<header class="section hero-simple" style="position:relative; overflow:hidden;">
-  <div class="hero-atlas" aria-hidden="true"></div>
-  <div class="container hero-grid hero-grid-bento" style="position:relative; z-index:1;">
-    <div>
+<header class="section hero-simple hero-fullbleed" style="position:relative; overflow:hidden;">
+  <div class="hero-bg" aria-hidden="true"></div>
+  <div class="hero-bg-shade" aria-hidden="true"></div>
+  <div class="container" style="position:relative; z-index:1;">
+    <div class="hero-fullbleed-copy">
       <p class="muted" style="font-family: var(--font-mono); text-transform:uppercase; letter-spacing:0.08em; font-size:0.85rem;">The ultimate Blox Fruits community</p>
-      <h1 style="font-size: clamp(2.3rem, 5vw + 1rem, 3.6rem); line-height:1.05; text-transform:uppercase;">Make your <span class="text-gradient-anim">name.</span></h1>
+      <h1 style="font-size: clamp(2.3rem, 5vw + 1rem, 3.6rem); line-height:1.05; text-transform:uppercase;">Make your <span style="color:var(--brass-bright);">name.</span></h1>
       <p class="muted" style="font-size:1.05rem; max-width:480px;">
         Bounties. Trading. Crews. Community.<br>
         BloxCore brings together everything you need to rise, fight, and build your legacy on the seas.
@@ -157,25 +161,6 @@
       <div style="display:flex; gap:14px; margin-top:24px; flex-wrap:wrap;">
         <a href="/auth/" class="btn btn-primary glow-pulse"><i data-lucide="users" class="icon-sm icon-inline"></i>Join BloxCore</a>
         <a href="/sea-events/" class="btn btn-ghost"><i data-lucide="target" class="icon-sm icon-inline"></i>Explore Bounties</a>
-      </div>
-    </div>
-    <div class="hero-scene-wrap">
-      <div class="hero-scene-frame">
-        <div class="hero-scene-img"></div>
-        <div class="hero-scene-shade"></div>
-      </div>
-      <div class="live-poster hero-scene-poster" id="hero-poster" data-difficulty="medium">
-        <div class="quest-card-hero">
-          <span id="hero-poster-icon-wrap"><i data-lucide="waves" class="quest-card-hero-icon"></i></span>
-          <span class="quest-card-wanted-pill"><i data-lucide="circle" style="width:8px;height:8px;fill:currentColor;"></i> LIVE NOW</span>
-          <span class="quest-card-badge quest-card-badge-img" id="hero-poster-badge"><i data-lucide="waves" class="icon-md"></i></span>
-        </div>
-        <div class="quest-card-body">
-          <h3 class="quest-card-title" id="hero-poster-title">Community is loading…</h3>
-          <p class="quest-card-desc" id="hero-poster-body">Sea events, raids, PvP matches, and giveaways show up here the moment someone posts one.</p>
-          <div class="quest-card-divider"></div>
-          <p class="quest-card-meta-row"><span class="quest-card-meta-dot"></span><span id="hero-poster-reward">Loading…</span><span style="opacity:0.5; margin:0 4px;">·</span><span id="hero-poster-tag">One sec</span></p>
-        </div>
       </div>
     </div>
   </div>
@@ -271,11 +256,11 @@
         <p class="muted">Build your crew, grow stronger, dominate the seas.</p>
         <span class="ffeat-link">Find Crews <i data-lucide="arrow-right" class="icon-sm"></i></span>
       </a>
-      <a href="/pvp/" class="ffeat-item">
-        <div class="icon-badge" data-tone="blood"><i data-lucide="crosshair" class="icon-md"></i></div>
-        <h3>PvP</h3>
-        <p class="muted">Queue up, battle other pirates, and climb the rankings.</p>
-        <span class="ffeat-link">Start a Match <i data-lucide="arrow-right" class="icon-sm"></i></span>
+      <a href="/sea-events/" class="ffeat-item">
+        <div class="icon-badge" data-tone="blood"><i data-lucide="waves" class="icon-md"></i></div>
+        <h3>Sea Events</h3>
+        <p class="muted">Limited time events with exclusive rewards.</p>
+        <span class="ffeat-link">View Events <i data-lucide="arrow-right" class="icon-sm"></i></span>
       </a>
       <a href="/giveaways/" class="ffeat-item">
         <div class="icon-badge" data-tone="gold"><i data-lucide="gift" class="icon-md"></i></div>
@@ -294,6 +279,12 @@
 </section>
 
 </main>
+
+<div class="ad-slot ad-slot-native">
+  <span class="ad-slot-label">Advertisement</span>
+  <script async="async" data-cfasync="false" src="https://pl31528379.profitableratecpmnetwork.com/1dd0069cb22b02f6884ad8e7e72afcb2/invoke.js"></script>
+  <div id="container-1dd0069cb22b02f6884ad8e7e72afcb2"></div>
+</div>
 
 <footer class="site-footer" style="padding:28px 0;">
   <div class="container flex-between">
