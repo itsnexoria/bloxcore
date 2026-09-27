@@ -3046,6 +3046,32 @@ html.compact-mode .grid { gap: 12px; }
 .quest-card[data-difficulty="hard"] { --qc-rgb: 249 115 22; }
 .quest-card[data-difficulty="legendary"] { --qc-rgb: var(--purple-rgb); }
 
+/* ------------------------------ Live poster (homepage) ------------------------------
+   Same box + internals as .quest-card above (.quest-card-hero/-title/-desc/-divider/etc.
+   are reused as-is, unscoped) but WITHOUT the ornate hand-painted "quest board" banner
+   images that component pulls in per difficulty — those read as a fantasy quest board,
+   not the flat dashboard look the homepage actually uses everywhere else. Dropping the
+   .quest-card ancestor class means that image-swap rule simply never matches, so
+   .quest-card-hero falls back to its own plain gradient tinted by --qc-rgb below. */
+.live-poster {
+  position: relative;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  background: var(--navy);
+  border: 1px solid var(--glass-border);
+  box-shadow: 0 14px 34px rgb(var(--shadow-rgb) / 0.5);
+  transition: transform 0.25s cubic-bezier(.2,.9,.2,1), box-shadow 0.25s ease;
+  animation: fadeInUp 0.45s ease both;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+.live-poster:hover { transform: translateY(-6px); box-shadow: 0 20px 42px rgb(var(--shadow-rgb) / 0.6); }
+.live-poster[data-difficulty="easy"] { --qc-rgb: 52 211 153; }
+.live-poster[data-difficulty="medium"] { --qc-rgb: var(--blue-rgb); }
+.live-poster[data-difficulty="hard"] { --qc-rgb: 249 115 22; }
+.live-poster[data-difficulty="legendary"] { --qc-rgb: var(--purple-rgb); }
+
 .quest-progress-wrap {
   position: relative;
   flex: 1;
@@ -3769,7 +3795,7 @@ html.compact-mode .grid { gap: 12px; }
 .dash-row-meta { flex-shrink: 0; font-size: 0.76rem; font-family: var(--font-mono); color: var(--ash); text-align: right; }
 
 /* ---- Featured live card (left column, tall) — wraps a full-height .quest-card ---- */
-.dash-col-featured #dash-featured .quest-card { height: 100%; max-width: none; margin: 0; }
+.dash-col-featured #dash-featured .live-poster { height: 100%; max-width: none; margin: 0; }
 .dash-col-featured #dash-featured .quest-card-hero { height: 200px; }
 
 /* ==========================================================================
@@ -3811,10 +3837,9 @@ html.compact-mode .grid { gap: 12px; }
 .nav-bar-more-menu a:hover { background: rgb(255 255 255 / 0.06); color: var(--bone); }
 .nav-bar-more-menu a i { width: 15px; height: 15px; }
 
-.nav-bar-socials { display: none; align-items: center; gap: 6px; margin-right: 4px; }
 .nav-bar-social-btn {
-  display: flex; align-items: center; justify-content: center;
-  width: 34px; height: 34px; border-radius: 50%;
+  display: none; align-items: center; justify-content: center;
+  width: 34px; height: 34px; border-radius: 50%; margin-right: 4px;
   border: 1px solid var(--glass-border); color: var(--ash);
   transition: color 0.15s ease, border-color 0.15s ease, transform 0.15s ease;
 }
@@ -3823,12 +3848,11 @@ html.compact-mode .grid { gap: 12px; }
 
 @media (min-width: 880px) {
   .nav-bar .nav-bar-links { display: flex; }
-  .nav-bar .nav-bar-socials { display: flex; }
+  .nav-bar .nav-bar-social-btn { display: flex; }
   .nav-bar .nav-toggle:not(.nav-toggle-merged) { display: none; }
 }
 @media (min-width: 880px) and (max-width: 1100px) {
   .nav-bar .nav-bar-link { padding: 8px 9px; font-size: 0.8rem; gap: 5px; }
-  .nav-bar .nav-bar-socials { display: none; }
 }
 @media (max-width: 879px) {
   .nav-bar #nav-bar-signin span, .nav-bar #nav-bar-signin { padding: 8px 10px; }
@@ -3862,16 +3886,3 @@ html.compact-mode .grid { gap: 12px; }
 }
 .ffeat-item:hover .ffeat-link { gap: 7px; }
 .ffeat-link i { width: 14px; height: 14px; }
-
-/* ==========================================================================
-   Ad slots
-   ========================================================================== */
-.ad-slot {
-  display: flex; flex-direction: column; align-items: center; gap: 6px;
-  max-width: 728px; margin: 32px auto; padding: 10px 0;
-}
-.ad-slot-label {
-  font-family: var(--font-mono); text-transform: uppercase; letter-spacing: 0.08em;
-  font-size: 0.65rem; color: var(--bone); opacity: 0.4;
-}
-.ad-slot iframe, .ad-slot > div { max-width: 100%; }
