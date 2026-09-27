@@ -3679,7 +3679,7 @@ html.compact-mode .grid { gap: 12px; }
   z-index: 2;
   transition: opacity 0.4s ease, transform 0.15s ease-out;
 }
-@media (max-width: 860px) {
+@media (max-width: 879px) {
   .hero-scene-wrap { max-width: 420px; margin: 0 auto; }
   .hero-scene-poster { left: 50%; transform: translateX(-50%); bottom: -12%; width: 86%; }
 }
@@ -3771,3 +3771,94 @@ html.compact-mode .grid { gap: 12px; }
 /* ---- Featured live card (left column, tall) — wraps a full-height .quest-card ---- */
 .dash-col-featured #dash-featured .quest-card { height: 100%; max-width: none; margin: 0; }
 .dash-col-featured #dash-featured .quest-card-hero { height: 200px; }
+
+/* ==========================================================================
+   Homepage-only horizontal nav bar (".nav.nav-bar") — reference-style top
+   nav with inline links + a "More" menu for everything else. Scoped to this
+   modifier class so every other page keeps its normal hamburger-drawer nav
+   untouched. Falls back to the same drawer below ~860px.
+   ========================================================================== */
+.nav-bar-links { display: none; align-items: center; gap: 4px; }
+.nav-bar-link {
+  display: inline-flex; align-items: center; gap: 7px;
+  padding: 9px 13px; border-radius: var(--radius-sm);
+  font-size: 0.86rem; font-weight: 700; color: var(--ash);
+  text-decoration: none; background: none; border: none; cursor: pointer;
+  font-family: inherit; transition: color 0.15s ease, background 0.15s ease;
+  white-space: nowrap;
+}
+.nav-bar-link i { width: 15px; height: 15px; }
+.nav-bar-link:hover, .nav-bar-link.is-active { color: var(--bone); background: rgb(255 255 255 / 0.05); }
+.nav-bar-link.is-active { color: var(--brass-bright); }
+
+.nav-bar-more { position: relative; }
+.nav-bar-more:hover .nav-bar-more-menu, .nav-bar-more:focus-within .nav-bar-more-menu { opacity: 1; visibility: visible; transform: translateY(0); }
+.nav-bar-more-menu {
+  position: absolute; top: calc(100% + 8px); left: 0; min-width: 190px;
+  background: linear-gradient(180deg, var(--navy), var(--ink) 85%);
+  border: 1px solid var(--glass-border); border-radius: var(--radius-sm);
+  box-shadow: 0 20px 40px rgb(var(--shadow-rgb) / 0.5);
+  padding: 6px; display: flex; flex-direction: column; gap: 1px;
+  opacity: 0; visibility: hidden; transform: translateY(-6px);
+  transition: opacity 0.15s ease, transform 0.15s ease, visibility 0.15s;
+  z-index: 80;
+}
+.nav-bar-more-menu a {
+  display: flex; align-items: center; gap: 9px; padding: 8px 10px;
+  border-radius: 8px; color: var(--ash); text-decoration: none;
+  font-size: 0.84rem; font-weight: 600;
+}
+.nav-bar-more-menu a:hover { background: rgb(255 255 255 / 0.06); color: var(--bone); }
+.nav-bar-more-menu a i { width: 15px; height: 15px; }
+
+.nav-bar-socials { display: none; align-items: center; gap: 6px; margin-right: 4px; }
+.nav-bar-social-btn {
+  display: flex; align-items: center; justify-content: center;
+  width: 34px; height: 34px; border-radius: 50%;
+  border: 1px solid var(--glass-border); color: var(--ash);
+  transition: color 0.15s ease, border-color 0.15s ease, transform 0.15s ease;
+}
+.nav-bar-social-btn:hover { color: var(--brass-bright); border-color: rgb(var(--brass-rgb) / 0.5); transform: translateY(-1px); }
+.nav-bar-social-btn i { width: 15px; height: 15px; }
+
+@media (min-width: 880px) {
+  .nav-bar .nav-bar-links { display: flex; }
+  .nav-bar .nav-bar-socials { display: flex; }
+  .nav-bar .nav-toggle:not(.nav-toggle-merged) { display: none; }
+}
+@media (min-width: 880px) and (max-width: 1100px) {
+  .nav-bar .nav-bar-link { padding: 8px 9px; font-size: 0.8rem; gap: 5px; }
+  .nav-bar .nav-bar-socials { display: none; }
+}
+@media (max-width: 879px) {
+  .nav-bar #nav-bar-signin span, .nav-bar #nav-bar-signin { padding: 8px 10px; }
+  .nav-bar #nav-bar-signin i { margin-right: 0; }
+}
+@media (max-width: 480px) {
+  .nav-bar #nav-bar-signin { display: none; }
+}
+
+/* ==========================================================================
+   Footer feature strip ("Everything you need. All in one place.") — plain
+   icon + title + description columns, no card chrome, matching the
+   reference layout.
+   ========================================================================== */
+.ffeat-section { border-top: 1px solid var(--glass-border); padding-top: 44px; }
+.ffeat-eyebrow {
+  font-family: var(--font-mono); text-transform: uppercase; letter-spacing: 0.1em;
+  font-size: 0.82rem; color: var(--brass-bright); margin: 0 0 32px;
+}
+.ffeat-grid {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 28px 20px;
+}
+.ffeat-item { text-align: center; text-decoration: none; display: flex; flex-direction: column; align-items: center; }
+.ffeat-item .icon-badge { margin-bottom: 14px; }
+.ffeat-item h3 { margin: 0 0 6px; font-size: 1.02rem; color: var(--bone); }
+.ffeat-item p { margin: 0 0 10px; font-size: 0.82rem; line-height: 1.45; }
+.ffeat-link {
+  font-size: 0.82rem; font-weight: 700; color: var(--brass-bright);
+  display: inline-flex; align-items: center; gap: 4px; transition: gap 0.15s ease;
+}
+.ffeat-item:hover .ffeat-link { gap: 7px; }
+.ffeat-link i { width: 14px; height: 14px; }

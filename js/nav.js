@@ -322,6 +322,11 @@ async function populateAuthArea() {
   initNotifications(user.id);
   initMessagesBadge(user.id);
   renderNavProfileAvatar(profile);
+  // Homepage's horizontal nav bar (see index.html's ".nav-bar") has a static, always-in-DOM
+  // "Sign In" button next to the profile-avatar slot for logged-out visitors. Once we know
+  // someone's signed in, drop it — the avatar (which now opens the drawer) covers that job.
+  // Optional chaining makes this a safe no-op on every other page, which doesn't have the element.
+  document.getElementById('nav-bar-signin')?.remove();
   claimDailyLoginIfNeeded();
 
   const onAdminPage = window.location.pathname.startsWith('/admin/');
