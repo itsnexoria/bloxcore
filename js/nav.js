@@ -267,11 +267,18 @@ function highlightActiveLink() {
   let path = window.location.pathname;
   if (path.length > 1 && path.endsWith('/')) path = path.slice(0, -1);
   if (path === '') path = '/';
+  const normalize = (href) => (href.length > 1 && href.endsWith('/')) ? href.slice(0, -1) : href;
 
   document.querySelectorAll('.nav-links a[href]').forEach(a => {
-    let href = a.getAttribute('href');
-    if (href.length > 1 && href.endsWith('/')) href = href.slice(0, -1);
-    if (href === path) a.classList.add('active');
+    if (normalize(a.getAttribute('href')) === path) a.classList.add('active');
+  });
+  // Desktop horizontal bar (.nav-bar-link, e.g. Home/Bounties/Trading/Crews/Feed/Leaderboards)
+  // uses its own is-active class/style and needs the same per-page treatment — it used to only
+  // ever appear on the homepage (with Home hardcoded active in the markup), but now that every
+  // page shares the same nav include, it has to be computed here instead or every page would
+  // show "Home" as active.
+  document.querySelectorAll('.nav-bar-link[href]').forEach(a => {
+    a.classList.toggle('is-active', normalize(a.getAttribute('href')) === path);
   });
 }
 
