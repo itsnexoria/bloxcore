@@ -9,6 +9,7 @@
 <meta name="description" content="Your BloxCore notifications.">
 <meta name="keywords" content="Roblox, Blox Fruits, BloxCore, Nexoria, Nexus, trading, perms, fruits, One Piece game, anime game, PvP, crews, best Roblox game, bounty hunting, giveaways, leaderboard, sea events, combos, quests">
 <link rel="stylesheet" href="/css/style.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
 <link rel="stylesheet" href="/css/animations.css">
 <link rel="icon" href="/favicon.ico" sizes="any">
 <link rel="icon" type="image/png" href="/assets/favicon.png">
@@ -95,25 +96,12 @@
     </div>
   </div>
 </nav>
+<div class="page-titlebar">
+  <i data-lucide="bell"></i><h1>Notifications</h1>
+  <button type="button" class="btn btn-ghost btn-sm" id="notif-page-mark-all-read" style="margin-left:auto;"><i data-lucide="check-check" class="icon-sm icon-inline"></i>Mark all read</button>
+</div>
 <section class="section page-head">
-  <svg class="compass-mark" aria-hidden="true" style="width:200px; height:200px; opacity:0.07; top:-36px; right:-16px;" viewBox="0 0 100 100">
-    <circle cx="50" cy="50" r="46" fill="none" stroke="currentColor" stroke-width="0.6"/>
-    <circle cx="50" cy="50" r="34" fill="none" stroke="currentColor" stroke-width="0.4"/>
-    <path d="M50 12 L57 50 L50 88 L43 50 Z" fill="currentColor" opacity="0.85"/>
-    <path d="M12 50 L50 43 L88 50 L50 57 Z" fill="currentColor" opacity="0.4"/>
-  </svg>
   <div class="container" style="max-width:760px; position:relative; z-index:1;">
-    <div class="flex-between">
-      <div style="display:flex; align-items:center;">
-        <div class="page-head-icon"><i data-lucide="bell" class="icon-md"></i></div>
-        <div>
-          <h1 style="font-size:1.6rem; margin:0 0 2px;">Notifications</h1>
-          <p class="muted" style="margin:0;">Everything BloxCore has sent you, in one place.</p>
-        </div>
-      </div>
-      <button type="button" class="btn btn-ghost btn-sm" id="notif-page-mark-all-read"><i data-lucide="check-check" class="icon-sm icon-inline"></i>Mark all read</button>
-    </div>
-
     <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:20px;">
       <button type="button" class="btn btn-sm notif-filter-btn active" data-notif-filter="all">All</button>
       <button type="button" class="btn btn-sm notif-filter-btn" data-notif-filter="rank">Rank &amp; Titles</button>

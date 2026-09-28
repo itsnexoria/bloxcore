@@ -38,7 +38,7 @@ onReady(async () => {
       return rarityDiff !== 0 ? rarityDiff : a.name.localeCompare(b.name);
     });
 
-    document.getElementById('submit-giveaway-btn').style.display = 'inline-flex';
+    document.getElementById('submit-giveaway-btn').style.display = 'flex';
     document.getElementById('submit-giveaway-btn').addEventListener('click', () => {
       document.getElementById('giveaway-submit-modal').classList.add('open');
     });

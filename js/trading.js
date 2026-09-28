@@ -24,7 +24,7 @@ onReady(async () => {
   maxActiveTrades = settings.maxActiveTrades;
 
   if (currentUser) {
-    document.getElementById('new-listing-btn').style.display = 'inline-flex';
+    document.getElementById('new-listing-btn').style.display = 'flex';
     document.getElementById('new-listing-btn').addEventListener('click', openComposeModal);
     document.getElementById('watchlist-btn').style.display = 'inline-flex';
     document.getElementById('watchlist-btn').addEventListener('click', openWatchlistModal);
@@ -47,6 +47,7 @@ onReady(async () => {
     document.getElementById('trading-tab-btn-browse').addEventListener('click', () => switchTradingTab('browse'));
     document.getElementById('trading-tab-btn-values').addEventListener('click', () => switchTradingTab('values'));
     document.getElementById('value-history-search').addEventListener('input', renderValueHistoryGrid);
+    document.getElementById('value-history-sort').addEventListener('change', renderValueHistoryGrid);
     document.querySelectorAll('#value-history-category-tabs [data-category]').forEach(btn => {
       btn.addEventListener('click', () => {
         valueHistoryCategory = btn.dataset.category;
@@ -163,9 +164,17 @@ function switchTradingTab(tab) {
 function renderValueHistoryGrid() {
   const query = document.getElementById('value-history-search').value.trim().toLowerCase();
   const grid = document.getElementById('value-history-grid');
+  const sortMode = document.getElementById('value-history-sort')?.value || 'value';
   const items = allTradeItems
     .filter(i => i.category === valueHistoryCategory && i.name.toLowerCase().includes(query))
-    .sort((a, b) => (valueFor(b, 'regular') || 0) - (valueFor(a, 'regular') || 0));
+    .sort((a, b) => {
+      const byValue = (valueFor(b, 'regular') || 0) - (valueFor(a, 'regular') || 0);
+      if (sortMode === 'value') return byValue;
+      // Rising (up/underpaid) → steady → falling (overpaid/unstable); value breaks ties.
+      const rank = t => t === 'up' || t === 'underpaid' ? 0 : t === 'overpaid' || t === 'unstable' ? 2 : 1;
+      const diff = rank(a.trend) - rank(b.trend);
+      return (sortMode === 'trend-down' ? -diff : diff) || byValue;
+    });
 
   grid.innerHTML = items.length
     ? items.map(item => {

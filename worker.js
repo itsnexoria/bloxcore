@@ -41,6 +41,30 @@ function bigAvatar(url) {
   }
 }
 
+// Fetches an image and inlines it as a data: URI so the ImageResponse renderer never makes a
+// *remote* fetch mid-render (the documented failure mode noted on the trade card) — the bytes
+// are already in hand by the time we hand HTML to it. Returns null on any failure so callers
+// can render a text-only fallback instead of ever throwing.
+async function fetchImageAsDataUri(imageUrl, { timeoutMs = 3000 } = {}) {
+  if (!imageUrl) return null;
+  try {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), timeoutMs);
+    const res = await fetch(imageUrl, { signal: controller.signal });
+    clearTimeout(timer);
+    if (!res.ok) return null;
+    const contentType = res.headers.get('content-type') || 'image/png';
+    const buf = await res.arrayBuffer();
+    if (buf.byteLength > 2_000_000) return null; // guard against an unexpectedly huge image
+    let binary = '';
+    const bytes = new Uint8Array(buf);
+    for (let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]);
+    return `data:${contentType};base64,${btoa(binary)}`;
+  } catch {
+    return null;
+  }
+}
+
 class MetaRewriter {
   constructor(data) {
     this.data = data;
@@ -89,8 +113,8 @@ async function handlePlayer(request, env, url) {
   return rewriteMeta(response, {
     title: escapeAttr(title),
     description: escapeAttr(description),
-    image: bigAvatar(profile.avatar_url) || undefined,
-    imageAlt: escapeAttr(`${name}'s avatar`),
+    image: `https://bloxcores.com/og/player.png?u=${encodeURIComponent(profile.username)}`,
+    imageAlt: escapeAttr(`${name}'s BloxCore profile card`),
     url: `https://bloxcores.com/player/?u=${encodeURIComponent(profile.username)}`,
   });
 }
@@ -137,8 +161,8 @@ async function handleCrew(request, env, url) {
   return rewriteMeta(response, {
     title: escapeAttr(title),
     description: escapeAttr(description),
-    image: crew.banner_url || crew.logo_url || undefined,
-    imageAlt: escapeAttr(`${crew.name} banner`),
+    image: `https://bloxcores.com/og/crew.png?name=${encodeURIComponent(crew.name)}`,
+    imageAlt: escapeAttr(`${crew.name} crew card`),
     url: `https://bloxcores.com/crew/?name=${encodeURIComponent(crew.name)}`,
   });
 }
@@ -180,6 +204,98 @@ async function handleTrading(request, env, url) {
     imageAlt: escapeAttr('Trade details'),
     url: `https://bloxcores.com/trading/?listing=${encodeURIComponent(listingId)}`,
   });
+}
+
+// Composited profile-card image for og:image — same branded-card look as the trade card, but
+// with the player's own avatar inlined as a data: URI (see fetchImageAsDataUri) when one exists.
+// Falls back to a plain initial-letter badge if there's no avatar or the fetch/render fails, and
+// to the static site banner if anything else goes wrong — never a broken or blank embed.
+async function handleOgPlayerImage(request, env, url) {
+  const fallback = () => Response.redirect('https://bloxcores.com/assets/og-banner.jpg', 302);
+  const username = url.searchParams.get('u');
+  if (!username) return fallback();
+
+  try {
+    const profile = await supabaseGet(
+      `profiles?username=eq.${encodeURIComponent(username)}&select=username,display_name,avatar_url,level,login_streak,pvp_rating`
+    );
+    if (!profile) return fallback();
+
+    const name = escapeAttr(profile.display_name || profile.username);
+    const avatarData = await fetchImageAsDataUri(bigAvatar(profile.avatar_url));
+    const avatarHtml = avatarData
+      ? `<img src="${avatarData}" width="180" height="180" style="border-radius:50%; border:4px solid #d6a841; object-fit:cover;" />`
+      : `<div style="display:flex; align-items:center; justify-content:center; width:180px; height:180px; border-radius:50%; border:4px solid #d6a841; background:rgba(214,168,65,0.12); color:#d6a841; font-size:72px; font-weight:800;">${escapeAttr((profile.display_name || profile.username || '?')[0].toUpperCase())}</div>`;
+
+    const html = `
+      <div style="display:flex; flex-direction:column; width:1200px; height:630px; background:linear-gradient(135deg, #0a0e17, #131c2e); padding:60px; font-family:sans-serif;">
+        <div style="display:flex; flex-direction:column;">
+          <div style="display:flex; color:#d6a841; font-size:30px; font-weight:700; letter-spacing:2px;">BLOXCORE</div>
+          <div style="display:flex; color:#8892a6; font-size:22px; margin-top:4px;">bloxcores.com</div>
+        </div>
+        <div style="display:flex; flex:1; align-items:center; gap:48px; margin-top:24px;">
+          ${avatarHtml}
+          <div style="display:flex; flex-direction:column;">
+            <div style="display:flex; color:#f4f2ea; font-size:52px; font-weight:800;">${name}</div>
+            <div style="display:flex; color:#d6a841; font-size:28px; font-weight:600; margin-top:10px;">Level ${profile.level ?? 1} Pirate</div>
+            <div style="display:flex; gap:28px; margin-top:24px;">
+              <div style="display:flex; flex-direction:column; background:rgba(255,255,255,0.05); border:2px solid rgba(214,168,65,0.35); border-radius:14px; padding:16px 24px;">
+                <div style="display:flex; color:#8892a6; font-size:18px;">Streak</div>
+                <div style="display:flex; color:#f4f2ea; font-size:30px; font-weight:700;">${profile.login_streak || 0}</div>
+              </div>
+              <div style="display:flex; flex-direction:column; background:rgba(255,255,255,0.05); border:2px solid rgba(214,168,65,0.35); border-radius:14px; padding:16px 24px;">
+                <div style="display:flex; color:#8892a6; font-size:18px;">PvP Rating</div>
+                <div style="display:flex; color:#f4f2ea; font-size:30px; font-weight:700;">${profile.pvp_rating ?? '—'}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+    return new ImageResponse(html, { width: 1200, height: 630 });
+  } catch {
+    return fallback();
+  }
+}
+
+// Same pattern for crew pages — crew logo inlined as a data: URI when available.
+async function handleOgCrewImage(request, env, url) {
+  const fallback = () => Response.redirect('https://bloxcores.com/assets/og-banner.jpg', 302);
+  const name = url.searchParams.get('name');
+  if (!name) return fallback();
+
+  try {
+    const crew = await supabaseGet(
+      `crews?name=eq.${encodeURIComponent(name)}&select=name,tag,logo_url,crew_members(count)`
+    );
+    if (!crew) return fallback();
+
+    const memberCount = crew.crew_members?.[0]?.count ?? 0;
+    const crewName = escapeAttr(`${crew.tag ? `[${crew.tag}] ` : ''}${crew.name}`);
+    const logoData = await fetchImageAsDataUri(crew.logo_url);
+    const logoHtml = logoData
+      ? `<img src="${logoData}" width="180" height="180" style="border-radius:24px; border:4px solid #d6a841; object-fit:cover;" />`
+      : `<div style="display:flex; align-items:center; justify-content:center; width:180px; height:180px; border-radius:24px; border:4px solid #d6a841; background:rgba(214,168,65,0.12); color:#d6a841; font-size:72px; font-weight:800;">${escapeAttr((crew.name || '?')[0].toUpperCase())}</div>`;
+
+    const html = `
+      <div style="display:flex; flex-direction:column; width:1200px; height:630px; background:linear-gradient(135deg, #0a0e17, #131c2e); padding:60px; font-family:sans-serif;">
+        <div style="display:flex; flex-direction:column;">
+          <div style="display:flex; color:#d6a841; font-size:30px; font-weight:700; letter-spacing:2px;">BLOXCORE</div>
+          <div style="display:flex; color:#8892a6; font-size:22px; margin-top:4px;">bloxcores.com</div>
+        </div>
+        <div style="display:flex; flex:1; align-items:center; gap:48px; margin-top:24px;">
+          ${logoHtml}
+          <div style="display:flex; flex-direction:column;">
+            <div style="display:flex; color:#f4f2ea; font-size:48px; font-weight:800;">${crewName}</div>
+            <div style="display:flex; color:#8892a6; font-size:26px; margin-top:14px;">${memberCount} member${memberCount === 1 ? '' : 's'}</div>
+          </div>
+        </div>
+      </div>
+    `;
+    return new ImageResponse(html, { width: 1200, height: 630 });
+  } catch {
+    return fallback();
+  }
 }
 
 // Composited trade-card image for og:image — text-only by design. An earlier version
@@ -263,6 +379,8 @@ export default {
       if (url.pathname === '/crew/') return await handleCrew(request, env, url);
       if (url.pathname === '/trading/') return await handleTrading(request, env, url);
       if (url.pathname === '/og/trade.png') return await handleOgTradeImage(request, env, url);
+      if (url.pathname === '/og/player.png') return await handleOgPlayerImage(request, env, url);
+      if (url.pathname === '/og/crew.png') return await handleOgCrewImage(request, env, url);
     } catch (err) {
       // Any failure (Supabase down, bad data, etc.) should never take the page down —
       // fall through to the plain static page instead.

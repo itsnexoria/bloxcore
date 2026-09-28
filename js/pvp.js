@@ -18,7 +18,7 @@ onReady(async () => {
   currentUser = session?.user ?? null;
 
   if (currentUser) {
-    document.getElementById('post-match-btn').style.display = 'inline-flex';
+    document.getElementById('post-match-btn').style.display = 'flex';
   }
 
   document.getElementById('post-match-btn').addEventListener('click', () => {

@@ -20,6 +20,7 @@
 <meta name="twitter:description" content="Post what you're offering and looking for, and browse live trade listings from the BloxCore community.">
 <meta name="twitter:image" content="https://bloxcores.com/assets/og-banner.jpg">
 <link rel="stylesheet" href="/css/style.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
 <link rel="stylesheet" href="/css/animations.css">
 <link rel="icon" href="/favicon.ico" sizes="any">
 <link rel="icon" type="image/png" href="/assets/favicon.png">
@@ -106,19 +107,15 @@
     </div>
   </div>
 </nav>
+<div class="page-titlebar">
+  <i data-lucide="repeat"></i><h1>Trading</h1>
+  <div style="display:flex; gap:8px; margin-left:auto;">
+    <button type="button" class="btn btn-ghost btn-sm" id="watchlist-btn" style="display:none;"><i data-lucide="eye" class="icon-sm icon-inline"></i>Watchlist</button>
+    <button type="button" class="btn btn-ghost btn-sm" id="card-theme-btn" style="display:none;"><i data-lucide="palette" class="icon-sm icon-inline"></i>Card Theme</button>
+  </div>
+</div>
 <section class="section">
   <div class="container">
-    <div class="flex-between">
-      <div>
-        <h1 style="font-size:1.8rem; margin-bottom:2px;">Trading</h1>
-        <p class="muted" style="margin:0;">Trade at your own risk, BloxCore doesn't verify or guarantee any trade. Listings auto-delete after 24 hours.</p>
-      </div>
-      <div style="display:flex; gap:8px; flex-shrink:0;">
-        <button type="button" class="btn btn-ghost btn-sm" id="watchlist-btn" style="display:none;"><i data-lucide="eye" class="icon-sm icon-inline"></i>Watchlist</button>
-        <button type="button" class="btn btn-ghost btn-sm" id="card-theme-btn" style="display:none;"><i data-lucide="palette" class="icon-sm icon-inline"></i>Card Theme</button>
-        <button type="button" class="btn btn-primary btn-sm" id="new-listing-btn" style="display:none;"><i data-lucide="plus" class="icon-sm icon-inline"></i>New Listing</button>
-      </div>
-    </div>
 
     <div id="trading-tips-banner" class="panel panel-plain" style="display:none; margin-top:20px; border-left:3px solid var(--brass);">
       <div class="flex-between" style="align-items:flex-start;">
@@ -149,6 +146,11 @@
     <div id="trading-tab-values" style="display:none; margin-top:24px;">
       <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
         <input type="text" id="value-history-search" placeholder="Search items…" style="flex:1; min-width:200px;">
+        <select id="value-history-sort" aria-label="Sort items">
+          <option value="value">Highest value</option>
+          <option value="trend-up">Trending up first</option>
+          <option value="trend-down">Trending down first</option>
+        </select>
         <div style="display:flex; gap:6px;" id="value-history-category-tabs">
           <button type="button" class="btn btn-sm btn-primary" data-category="fruit">Fruits</button>
           <button type="button" class="btn btn-sm btn-ghost" data-category="limited">Limiteds</button>
@@ -391,6 +393,8 @@
 
   </div>
 </footer>
+
+<button type="button" class="fab-btn" id="new-listing-btn" style="display:none;" aria-label="New Listing" title="New Listing"><i data-lucide="plus"></i></button>
 
 <script src="https://unpkg.com/lucide@1.34.0"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.112.4"></script>

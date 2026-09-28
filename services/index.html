@@ -20,6 +20,7 @@
 <meta name="twitter:description" content="Find or offer paid raid runs and trial carries from other Blox Fruits players.">
 <meta name="twitter:image" content="https://bloxcores.com/assets/og-banner.jpg">
 <link rel="stylesheet" href="/css/style.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
 <link rel="stylesheet" href="/css/animations.css">
 <link rel="icon" href="/favicon.ico" sizes="any">
 <link rel="icon" type="image/png" href="/assets/favicon.png">
@@ -106,15 +107,9 @@
     </div>
   </div>
 </nav>
+<div class="page-titlebar"><i data-lucide="briefcase"></i><h1>Services</h1></div>
 <section class="section">
   <div class="container">
-    <div class="flex-between">
-      <div>
-        <h1 style="font-size:1.8rem; margin-bottom:2px;">Services</h1>
-        <p class="muted" style="margin:0;">Pay other pirates for raids or trials, or team up for a dungeon run. Arrange payment carefully — BloxCore doesn't process payments or guarantee any deal.</p>
-      </div>
-      <button type="button" class="btn btn-primary btn-sm" id="new-listing-btn" style="display:none; flex-shrink:0;"><i data-lucide="plus" class="icon-sm icon-inline"></i>Post a Listing</button>
-    </div>
 
     <div id="services-tips-banner" class="panel panel-plain" style="display:none; margin-top:20px; border-left:3px solid var(--brass);">
       <div class="flex-between" style="align-items:flex-start;">
@@ -310,6 +305,8 @@
 
   </div>
 </footer>
+
+<button type="button" class="fab-btn" id="new-listing-btn" style="display:none;" aria-label="Post a Listing" title="Post a Listing"><i data-lucide="plus"></i></button>
 
 <script src="https://unpkg.com/lucide@1.34.0"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.112.4"></script>

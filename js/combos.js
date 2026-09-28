@@ -24,7 +24,7 @@ onReady(async () => {
   }).catch(e => logError('Failed to apply combo length settings:', e));
 
   if (currentUserId) {
-    document.getElementById('new-combo-btn').style.display = 'inline-flex';
+    document.getElementById('new-combo-btn').style.display = 'flex';
     document.getElementById('new-combo-btn').addEventListener('click', () => {
       document.getElementById('combo-compose').style.display = 'block';
     });

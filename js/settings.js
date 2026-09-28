@@ -490,6 +490,14 @@ async function handleRobloxBioStart(e) {
   errEl.style.display = 'none';
   const username = document.getElementById('roblox-bio-username-input').value.trim();
   if (!username) return;
+  // Quick client-side shape check (3-20 chars, letters/digits/underscore, at most one internal
+  // dot) so a typo'd Roblox username fails instantly instead of waiting on a round trip to the
+  // edge function just to get the same answer back.
+  if (!/^[a-zA-Z0-9_]{3,20}$/.test(username) && !/^[a-zA-Z0-9_]+\.[a-zA-Z0-9_]+$/.test(username)) {
+    errEl.textContent = 'That doesn\'t look like a real Roblox username.';
+    errEl.style.display = 'block';
+    return;
+  }
 
   const btn = document.getElementById('roblox-bio-start-btn');
   btn.disabled = true;

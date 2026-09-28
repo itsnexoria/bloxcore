@@ -3900,3 +3900,28 @@ html.compact-mode .grid { gap: 12px; }
   font-size: 0.65rem; color: var(--bone); opacity: 0.4;
 }
 .ad-slot iframe, .ad-slot > div { max-width: 100%; }
+
+/* Slim page title bar — sits directly under the main nav on every inner page, replacing the old
+   big colored-icon hero header (icon box + h1 + subtitle) that duplicated the nav/tabs and made
+   pages feel cluttered. Icon + title only; any page description now lives in the meta tags, not
+   rendered on the page itself. */
+.page-titlebar {
+  display: flex; align-items: center; gap: 10px;
+  padding: 14px clamp(16px, 4vw, 32px);
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+  background: rgba(255,255,255,0.02);
+}
+.page-titlebar i { width: 18px; height: 18px; color: var(--brass-bright); flex-shrink: 0; }
+.page-titlebar h1 { font-size: 1.05rem; margin: 0; font-weight: 700; }
+
+/* Floating "post/create" action button — replaces the inline toolbar button that used to sit
+   next to the old page header. Icon-only circle, fixed bottom-right, safe-area aware. */
+.fab-btn {
+  position: fixed; right: 20px; bottom: calc(20px + env(safe-area-inset-bottom, 0px));
+  z-index: 40; width: 56px; height: 56px; border-radius: 50%; padding: 0;
+  display: none; align-items: center; justify-content: center;
+  background: var(--brass-bright); color: var(--ink); border: none; cursor: pointer;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.4);
+}
+.fab-btn:hover { filter: brightness(1.08); }
+.fab-btn i { width: 24px; height: 24px; }

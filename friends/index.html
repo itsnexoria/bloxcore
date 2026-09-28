@@ -20,6 +20,7 @@
 <meta name="twitter:description" content="Manage your BloxCore friends list, message friends, and handle friend requests.">
 <meta name="twitter:image" content="https://bloxcores.com/assets/og-banner.jpg">
 <link rel="stylesheet" href="/css/style.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
 <link rel="stylesheet" href="/css/animations.css">
 <link rel="icon" href="/favicon.ico" sizes="any">
 <link rel="icon" type="image/png" href="/assets/favicon.png">
@@ -106,18 +107,9 @@
     </div>
   </div>
 </nav>
+<div class="page-titlebar"><i data-lucide="heart-handshake"></i><h1>Friends</h1></div>
 <section class="section page-head" style="padding-top:20px; padding-bottom:24px;">
-  <svg class="compass-mark" aria-hidden="true" style="width:160px; height:160px; opacity:0.06; top:-30px; right:-10px;" viewBox="0 0 100 100">
-    <circle cx="50" cy="50" r="46" fill="none" stroke="currentColor" stroke-width="0.6"/>
-    <circle cx="50" cy="50" r="34" fill="none" stroke="currentColor" stroke-width="0.4"/>
-    <path d="M50 12 L57 50 L50 88 L43 50 Z" fill="currentColor" opacity="0.85"/>
-    <path d="M12 50 L50 43 L88 50 L50 57 Z" fill="currentColor" opacity="0.4"/>
-  </svg>
   <div class="container" style="max-width:1400px; position:relative; z-index:1;">
-    <div style="display:flex; align-items:center; margin-bottom:16px;">
-      <div class="page-head-icon" style="width:36px; height:36px; margin-right:10px;"><i data-lucide="heart-handshake" class="icon-sm"></i></div>
-      <h1 style="font-size:1.3rem; margin:0;">Friends</h1>
-    </div>
     <div style="display:flex; gap:8px; margin:0 0 18px;" id="friends-hub-tabs">
       <button type="button" class="btn btn-primary btn-sm" data-hub-tab="messages"><i data-lucide="mail" class="icon-sm icon-inline"></i>Messages</button>
       <button type="button" class="btn btn-ghost btn-sm" data-hub-tab="friends"><i data-lucide="users" class="icon-sm icon-inline"></i>Friends</button>
