@@ -67,6 +67,7 @@ onReady(async () => {
 
   loadPulseStats();
   loadSidebarTrending();
+  loadSidebarTopPlayers();
   if (currentUser) loadSidebarSuggestions();
   else document.getElementById('feed-sidebar-suggestions-card').style.display = 'none';
 
@@ -327,6 +328,27 @@ async function loadSidebarTrending() {
     </a>
   `).join('');
   refreshIcons();
+}
+
+async function loadSidebarTopPlayers() {
+  const el = document.getElementById('feed-sidebar-top-players');
+  if (!el) return;
+  const { data } = await sb.from('profiles')
+    .select('id, username, display_name, avatar_url, avatar_frame, level')
+    .eq('hide_from_leaderboard', false)
+    .order('level', { ascending: false })
+    .order('xp', { ascending: false })
+    .limit(5);
+  if (!data || !data.length) { el.closest('.feed-sidebar-card').style.display = 'none'; return; }
+  el.innerHTML = data.map(p => `
+    <div class="feed-sidebar-suggestion-row">
+      <a href="/player/?u=${encodeURIComponent(p.username || '')}" style="display:flex; align-items:center; gap:8px; text-decoration:none; color:inherit; min-width:0; flex:1;">
+        ${avatarHtml(p, 30)}
+        <span style="font-size:0.82rem; color:var(--bone); overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${escapeHtml(displayNameFor(p))}</span>
+      </a>
+      <span class="muted" style="font-size:0.72rem; flex-shrink:0;">Lv ${p.level ?? 1}</span>
+    </div>
+  `).join('');
 }
 
 async function loadSidebarSuggestions() {

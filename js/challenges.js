@@ -108,6 +108,9 @@ async function loadChallenges() {
   renderGrid();
 }
 
+const STANDING_PAGE_SIZE = 12;
+let standingVisibleCount = STANDING_PAGE_SIZE;
+
 function renderGrid() {
   const grid = document.getElementById('challenges-grid');
   const data = lastChallengeData;
@@ -123,8 +126,12 @@ function renderGrid() {
   const PERIOD_UNIT_FOR_KEY = { daily: 'day', weekly: 'week', monthly: 'month' };
 
   grid.innerHTML = sections.map(section => {
-    const items = data.filter(c => c.rotation === section.key);
-    if (!items.length) return '';
+    const allItems = data.filter(c => c.rotation === section.key);
+    if (!allItems.length) return '';
+    // Standing bounties can be a long list — render in pages so the grid doesn't lag.
+    const paged = section.key === 'none';
+    const items = paged ? allItems.slice(0, standingVisibleCount) : allItems;
+    const remaining = allItems.length - items.length;
     const periodUnit = PERIOD_UNIT_FOR_KEY[section.key];
     return `
       <div class="bounty-section">
@@ -135,11 +142,16 @@ function renderGrid() {
           </span>
         </div>
         <div class="grid">${items.map(renderChallengeCard).join('')}</div>
+        ${paged && remaining > 0 ? `<div style="text-align:center; margin-top:18px;"><button type="button" class="btn btn-ghost btn-sm" id="standing-load-more">Load more (${remaining} left)</button></div>` : ''}
         ${periodUnit && currentUser ? renderPeriodCompletionFooter(items, periodUnit) : ''}
       </div>
     `;
   }).join('');
 
+  document.getElementById('standing-load-more')?.addEventListener('click', () => {
+    standingVisibleCount += STANDING_PAGE_SIZE;
+    renderGrid();
+  });
   document.querySelectorAll('[data-claim-id]').forEach(btn => {
     btn.addEventListener('click', () => openModal([btn.dataset.claimId], btn.dataset.claimTitle));
   });

@@ -334,7 +334,7 @@ async function populateAuthArea() {
   // someone's signed in, drop it — the avatar (which now opens the drawer) covers that job.
   // Optional chaining makes this a safe no-op on every other page, which doesn't have the element.
   document.getElementById('nav-bar-signin')?.remove();
-  claimDailyLoginIfNeeded();
+  const dailyClaim = claimDailyLoginIfNeeded();
 
   const onAdminPage = window.location.pathname.startsWith('/admin/');
   const adminLink = (role !== 'user' && !onAdminPage) ? `<a href="/admin/" class="nav-auth-icon-btn" title="Admin" aria-label="Admin"><i data-lucide="shield" class="icon-sm"></i></a>` : '';
@@ -365,6 +365,16 @@ async function populateAuthArea() {
     <button class="btn btn-ghost btn-sm" id="nav-sign-out"><i data-lucide="log-out" class="icon-sm icon-inline"></i>Sign Out</button>
   `;
   refreshIcons();
+
+  // The drawer card above is built from the profile fetched before today's login claim ran,
+  // so on the first visit of a day the streak chip would show yesterday's number until the
+  // next page load. Patch it in place once the claim resolves.
+  dailyClaim.then(row => {
+    if (row && row.streak) {
+      const chip = slot.querySelector('.nav-stat-chip span');
+      if (chip) chip.textContent = row.streak;
+    }
+  });
 
   document.getElementById('nav-sign-out')?.addEventListener('click', async () => {
     await sb.auth.signOut();

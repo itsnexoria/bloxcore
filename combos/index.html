@@ -111,6 +111,13 @@
 <section class="section page-head">
   <div class="container" style="position:relative; z-index:1;">
     <div class="page-toolbar">
+    <div style="display:flex; gap:8px; flex-wrap:wrap;" id="combo-filters">
+      <button class="btn btn-primary btn-sm" data-difficulty="all">All</button>
+      <button class="btn btn-ghost btn-sm" data-difficulty="easy">Easy</button>
+      <button class="btn btn-ghost btn-sm" data-difficulty="medium">Medium</button>
+      <button class="btn btn-ghost btn-sm" data-difficulty="hard">Hard</button>
+      <button class="btn btn-ghost btn-sm" data-difficulty="legendary">Legendary</button>
+    </div>
     <button type="button" class="btn btn-primary btn-sm" id="new-combo-btn" style="display:none;"><i data-lucide="plus" class="icon-sm icon-inline"></i>Add Combo</button>
     </div>
     <div id="combo-compose" class="panel" style="margin-top:20px; display:none;">
@@ -174,14 +181,6 @@
           <button type="button" class="btn btn-ghost" id="combo-cancel-btn">Cancel</button>
         </div>
       </form>
-    </div>
-
-    <div style="display:flex; gap:8px; margin:20px 0; flex-wrap:wrap;" id="combo-filters">
-      <button class="btn btn-primary btn-sm" data-difficulty="all">All</button>
-      <button class="btn btn-ghost btn-sm" data-difficulty="easy">Easy</button>
-      <button class="btn btn-ghost btn-sm" data-difficulty="medium">Medium</button>
-      <button class="btn btn-ghost btn-sm" data-difficulty="hard">Hard</button>
-      <button class="btn btn-ghost btn-sm" data-difficulty="legendary">Legendary</button>
     </div>
 
     <div id="combo-list" class="masonry" style="margin-top:16px;">

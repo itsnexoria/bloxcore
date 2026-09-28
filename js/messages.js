@@ -122,8 +122,10 @@ function renderFriendRequests() {
 
   list.innerHTML = incomingRequests.map(r => `
     <div class="friend-request-row" data-request-id="${r.friendshipId}">
-      ${avatarHtml(r.profile, 34)}
-      <span class="friend-row-name" style="flex:1;">${escapeHtml(displayNameFor(r.profile))}</span>
+      <a href="/player/?u=${encodeURIComponent(r.profile.username)}" style="display:flex; align-items:center; gap:10px; flex:1; min-width:0; text-decoration:none; color:inherit;">
+        ${avatarHtml(r.profile, 34)}
+        <span class="friend-row-name" style="flex:1;">${escapeHtml(displayNameFor(r.profile))}</span>
+      </a>
       <button type="button" class="btn btn-primary btn-sm" data-accept="${r.friendshipId}"><i data-lucide="check" class="icon-sm"></i></button>
       <button type="button" class="btn btn-ghost btn-sm" data-decline="${r.friendshipId}"><i data-lucide="x" class="icon-sm"></i></button>
     </div>
@@ -195,11 +197,13 @@ function renderFriendsManagementList() {
 
   list.innerHTML = friends.map(f => `
     <div class="friend-row" data-manage-friend-id="${f.profile.id}" style="cursor:default;">
-      ${avatarHtml(f.profile, 38, '', presenceStatus(f.profile.last_active_at))}
-      <div style="min-width:0; flex:1;">
-        <div class="friend-row-name">${escapeHtml(displayNameFor(f.profile))}</div>
-        <div class="friend-row-preview">${escapeHtml(lastSeenLabel(f.profile.last_active_at))}</div>
-      </div>
+      <a href="/player/?u=${encodeURIComponent(f.profile.username)}" style="display:flex; align-items:center; gap:10px; min-width:0; flex:1; text-decoration:none; color:inherit;">
+        ${avatarHtml(f.profile, 38, '', presenceStatus(f.profile.last_active_at))}
+        <div style="min-width:0; flex:1;">
+          <div class="friend-row-name">${escapeHtml(displayNameFor(f.profile))}</div>
+          <div class="friend-row-preview">${escapeHtml(lastSeenLabel(f.profile.last_active_at))}</div>
+        </div>
+      </a>
       <button type="button" class="btn btn-ghost btn-sm" data-message-friend="${f.profile.id}" title="Message"><i data-lucide="mail" class="icon-sm"></i></button>
       <button type="button" class="btn btn-ghost btn-sm" data-remove-friend="${f.friendshipId}" title="Remove friend"><i data-lucide="user-minus" class="icon-sm"></i></button>
     </div>

@@ -1004,18 +1004,20 @@ document.addEventListener('DOMContentLoaded', () => {
 async function claimDailyLoginIfNeeded() {
   try {
     const todayUtc = new Date().toISOString().slice(0, 10);
-    if (localStorage.getItem('bc_login_streak_date') === todayUtc) return;
+    if (localStorage.getItem('bc_login_streak_date') === todayUtc) return null;
 
     const { data, error } = await sb.rpc('claim_daily_login');
-    if (error) { logError('claim_daily_login failed:', error); return; }
+    if (error) { logError('claim_daily_login failed:', error); return null; }
     localStorage.setItem('bc_login_streak_date', todayUtc);
 
     const row = data?.[0];
     if (row && !row.already_claimed && row.xp_awarded > 0) {
       showToast(`Day ${row.streak} login streak — +${row.xp_awarded} XP!`);
     }
+    return row || null;
   } catch (e) {
     logError('claimDailyLoginIfNeeded failed:', e);
+    return null;
   }
 }
 
