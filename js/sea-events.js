@@ -19,7 +19,7 @@ onReady(async () => {
   currentUser = session?.user ?? null;
 
   if (currentUser) {
-    document.getElementById('post-event-btn').style.display = 'flex';
+    document.getElementById('post-event-btn').style.display = 'inline-flex';
   }
 
   document.getElementById('post-event-btn').addEventListener('click', () => {

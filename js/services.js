@@ -24,7 +24,7 @@ onReady(async () => {
   allServiceItems = await fetchBfItemCatalog();
 
   if (currentUser) {
-    document.getElementById('new-listing-btn').style.display = 'flex';
+    document.getElementById('new-listing-btn').style.display = 'inline-flex';
     document.getElementById('new-listing-btn').addEventListener('click', openComposeModal);
   } else {
     document.getElementById('services-signed-out').style.display = 'block';

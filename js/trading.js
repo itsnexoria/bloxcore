@@ -24,7 +24,7 @@ onReady(async () => {
   maxActiveTrades = settings.maxActiveTrades;
 
   if (currentUser) {
-    document.getElementById('new-listing-btn').style.display = 'flex';
+    document.getElementById('new-listing-btn').style.display = 'inline-flex';
     document.getElementById('new-listing-btn').addEventListener('click', openComposeModal);
     document.getElementById('watchlist-btn').style.display = 'inline-flex';
     document.getElementById('watchlist-btn').addEventListener('click', openWatchlistModal);
