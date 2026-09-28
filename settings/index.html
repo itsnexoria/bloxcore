@@ -35,7 +35,7 @@
 
     <div class="nav-bar-links" style="display:none;">
       <a href="/" class="nav-bar-link"><i data-lucide="home" class="icon-sm"></i>Home</a>
-      <a href="/sea-events/" class="nav-bar-link"><i data-lucide="target" class="icon-sm"></i>Bounties</a>
+      <a href="/sea-events/" class="nav-bar-link"><i data-lucide="waves" class="icon-sm"></i>Sea Events</a>
       <a href="/trading/" class="nav-bar-link"><i data-lucide="repeat" class="icon-sm"></i>Trading</a>
       <a href="/crews/" class="nav-bar-link"><i data-lucide="users" class="icon-sm"></i>Crews</a>
       <a href="/feed/" class="nav-bar-link"><i data-lucide="rss" class="icon-sm"></i>Feed</a>
@@ -87,6 +87,7 @@
           <li><a href="/giveaways/" class="nav-link" style="--i:10"><span class="nav-link-icon" data-tone="purple"><i data-lucide="gift"></i></span>Giveaways</a></li>
           <li><a href="/crews/" class="nav-link" style="--i:11"><span class="nav-link-icon" data-tone="blue"><i data-lucide="users"></i></span>Crews</a></li>
           <li><a href="/trading/" class="nav-link" style="--i:12"><span class="nav-link-icon" data-tone="sea"><i data-lucide="repeat"></i></span>Trading</a></li>
+          <li><a href="/trade-calculator/" class="nav-link" style="--i:13"><span class="nav-link-icon" data-tone="gold"><i data-lucide="calculator"></i></span>Trade Calculator</a></li>
           <li><a href="/services/" class="nav-link" style="--i:13"><span class="nav-link-icon" data-tone="gold"><i data-lucide="briefcase"></i></span>Services</a></li>
           <li class="nav-group-label" style="--i:14">More</li>
           <li><a href="/whats-new/" class="nav-link" style="--i:15"><span class="nav-link-icon" data-tone="pink"><i data-lucide="sparkles"></i></span>What's New</a></li>
@@ -290,6 +291,12 @@
         <input type="checkbox" id="notify-sea-events-toggle">
         <span class="toggle-slider"></span>
       </label>
+    </div>
+
+    <div class="panel" id="sea-event-types-panel" style="margin-top:12px;">
+      <h3 style="font-size:1rem; margin-bottom:4px;">Sea Event Types</h3>
+      <p class="muted" style="margin:0 0 10px; font-size:0.85rem;">Choose which sea events you get notified about. Leave them all checked to hear about every type.</p>
+      <div id="sea-event-types-list" style="display:flex; flex-wrap:wrap; gap:8px 16px;"></div>
     </div>
 
     <div class="panel" style="margin-top:12px; display:flex; align-items:center; justify-content:space-between; gap:16px;">

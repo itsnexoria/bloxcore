@@ -46,7 +46,7 @@
 
     <div class="nav-bar-links" style="display:none;">
       <a href="/" class="nav-bar-link"><i data-lucide="home" class="icon-sm"></i>Home</a>
-      <a href="/sea-events/" class="nav-bar-link"><i data-lucide="target" class="icon-sm"></i>Bounties</a>
+      <a href="/sea-events/" class="nav-bar-link"><i data-lucide="waves" class="icon-sm"></i>Sea Events</a>
       <a href="/trading/" class="nav-bar-link"><i data-lucide="repeat" class="icon-sm"></i>Trading</a>
       <a href="/crews/" class="nav-bar-link"><i data-lucide="users" class="icon-sm"></i>Crews</a>
       <a href="/feed/" class="nav-bar-link"><i data-lucide="rss" class="icon-sm"></i>Feed</a>
@@ -98,6 +98,7 @@
           <li><a href="/giveaways/" class="nav-link" style="--i:10"><span class="nav-link-icon" data-tone="purple"><i data-lucide="gift"></i></span>Giveaways</a></li>
           <li><a href="/crews/" class="nav-link" style="--i:11"><span class="nav-link-icon" data-tone="blue"><i data-lucide="users"></i></span>Crews</a></li>
           <li><a href="/trading/" class="nav-link" style="--i:12"><span class="nav-link-icon" data-tone="sea"><i data-lucide="repeat"></i></span>Trading</a></li>
+          <li><a href="/trade-calculator/" class="nav-link" style="--i:13"><span class="nav-link-icon" data-tone="gold"><i data-lucide="calculator"></i></span>Trade Calculator</a></li>
           <li><a href="/services/" class="nav-link" style="--i:13"><span class="nav-link-icon" data-tone="gold"><i data-lucide="briefcase"></i></span>Services</a></li>
           <li class="nav-group-label" style="--i:14">More</li>
           <li><a href="/whats-new/" class="nav-link" style="--i:15"><span class="nav-link-icon" data-tone="pink"><i data-lucide="sparkles"></i></span>What's New</a></li>
@@ -114,6 +115,7 @@
     <div style="display:flex; gap:8px;">
       <button type="button" class="btn btn-sm btn-primary" id="trading-tab-btn-browse">Browse Trades</button>
       <button type="button" class="btn btn-sm btn-ghost" id="trading-tab-btn-values">Value History</button>
+      <button type="button" class="btn btn-sm btn-ghost" id="trading-tab-btn-other">Other</button>
     </div>
     <button type="button" class="btn btn-ghost btn-sm" id="watchlist-btn" style="display:none;"><i data-lucide="eye" class="icon-sm icon-inline"></i>Watchlist</button>
     <button type="button" class="btn btn-ghost btn-sm" id="card-theme-btn" style="display:none;"><i data-lucide="palette" class="icon-sm icon-inline"></i>Card Theme</button>
@@ -159,6 +161,41 @@
       <div id="value-history-grid" class="grid" style="margin-top:20px; grid-template-columns:repeat(auto-fill, minmax(180px, 1fr));">
         <div class="skeleton" style="height:90px;"></div>
         <div class="skeleton" style="height:90px;"></div>
+      </div>
+    </div>
+
+    <div id="trading-tab-other" style="display:none; margin-top:24px;">
+      <div class="panel">
+        <h2 style="font-size:1.05rem; margin:0 0 6px;">Trade Type Icons</h2>
+        <p class="muted" style="margin:0 0 18px; font-size:0.85rem;">What traders mean when they use these terms in a listing note.</p>
+        <div class="grid" style="grid-template-columns:repeat(auto-fill, minmax(150px, 1fr)); gap:14px;">
+          <div class="panel panel-plain center" style="padding:16px;">
+            <img src="https://fantasyblox.com/assets/images/web/trade/upgrade2.png" alt="Upgrade" loading="lazy" style="height:48px; object-fit:contain;">
+            <p style="margin:10px 0 0; font-weight:700; font-size:0.85rem;">Upgrade</p>
+            <p class="muted" style="margin:4px 0 0; font-size:0.75rem;">Looking to trade for something more valuable, adding items or robux to make up the difference.</p>
+          </div>
+          <div class="panel panel-plain center" style="padding:16px;">
+            <img src="https://fantasyblox.com/assets/images/web/trade/downgrade2.png" alt="Downgrade" loading="lazy" style="height:48px; object-fit:contain;">
+            <p style="margin:10px 0 0; font-weight:700; font-size:0.85rem;">Downgrade</p>
+            <p class="muted" style="margin:4px 0 0; font-size:0.75rem;">Willing to trade for something less valuable, usually getting items or robux back in return.</p>
+          </div>
+          <div class="panel panel-plain center" style="padding:16px;">
+            <img src="https://fantasyblox.com/assets/images/web/trade/add2.png" alt="Add" loading="lazy" style="height:48px; object-fit:contain;">
+            <p style="margin:10px 0 0; font-weight:700; font-size:0.85rem;">Add</p>
+            <p class="muted" style="margin:4px 0 0; font-size:0.75rem;">Asking the other side to add one or more extra items to even out the trade.</p>
+          </div>
+          <div class="panel panel-plain center" style="padding:16px;">
+            <img src="https://fantasyblox.com/assets/images/web/trade/offer2.png" alt="Offer" loading="lazy" style="height:48px; object-fit:contain;">
+            <p style="margin:10px 0 0; font-weight:700; font-size:0.85rem;">Offer</p>
+            <p class="muted" style="margin:4px 0 0; font-size:0.75rem;">Open to hearing any offer for the listed item(s) — no fixed asking price.</p>
+          </div>
+          <div class="panel panel-plain center" style="padding:16px;">
+            <img src="https://fantasyblox.com/assets/images/web/trade/or2.png" alt="Or" loading="lazy" style="height:48px; object-fit:contain;">
+            <p style="margin:10px 0 0; font-weight:700; font-size:0.85rem;">Or</p>
+            <p class="muted" style="margin:4px 0 0; font-size:0.75rem;">Willing to accept any one of several listed alternatives, not all of them.</p>
+          </div>
+        </div>
+        <p class="muted" style="margin:18px 0 0; font-size:0.8rem;">These are just common shorthand — mention which one you mean in your listing's note so the other trader knows what you're after.</p>
       </div>
     </div>
   </div>

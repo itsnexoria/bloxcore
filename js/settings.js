@@ -72,6 +72,7 @@ onReady(async () => {
     document.getElementById('referral-link').placeholder = 'Sign in to get your link';
     document.getElementById('notify-giveaways-toggle').disabled = true;
     document.getElementById('notify-sea-events-toggle').disabled = true;
+    document.getElementById('sea-event-types-panel').style.display = 'none';
     document.getElementById('notify-chat-mentions-toggle').disabled = true;
     document.getElementById('notify-sea-event-joins-toggle').disabled = true;
     document.getElementById('notify-crew-wars-toggle').disabled = true;
@@ -152,6 +153,31 @@ onReady(async () => {
       return;
     }
     showToast(notifySeaEventsToggle.checked ? "You'll be notified about new sea events." : 'Sea event notifications turned off.');
+  });
+
+  // Per-type filter: profiles.sea_event_alert_types is NULL when every type is wanted.
+  const SEA_EVENT_TYPE_LABELS = {
+    sea_beast: 'Sea Beast', terror_shark: 'Terror Shark', leviathan: 'Leviathan',
+    prehistoric_island: 'Prehistoric Island', mirage: 'Mirage', kitsune_shrine: 'Kitsune Shrine',
+  };
+  const typesList = document.getElementById('sea-event-types-list');
+  const savedTypes = profile?.sea_event_alert_types;
+  typesList.innerHTML = Object.entries(SEA_EVENT_TYPE_LABELS).map(([key, label]) => `
+    <label style="display:flex; align-items:center; gap:6px; font-size:0.9rem; cursor:pointer;">
+      <input type="checkbox" value="${key}" ${!savedTypes || savedTypes.includes(key) ? 'checked' : ''}> ${label}
+    </label>`).join('');
+  typesList.addEventListener('change', async (e) => {
+    const boxes = [...typesList.querySelectorAll('input[type="checkbox"]')];
+    const checked = boxes.filter(b => b.checked).map(b => b.value);
+    if (!checked.length) {
+      e.target.checked = true;
+      showToast('Keep at least one type checked — or turn sea event notifications off above.', true);
+      return;
+    }
+    const value = checked.length === boxes.length ? null : checked;
+    const { error } = await sb.from('profiles').update({ sea_event_alert_types: value }).eq('id', user.id);
+    if (error) { showToast(error.message, true); e.target.checked = !e.target.checked; return; }
+    showToast(value ? 'Sea event types updated.' : "You'll hear about every sea event type.");
   });
 
   const notifyChatMentionsToggle = document.getElementById('notify-chat-mentions-toggle');

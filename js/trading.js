@@ -46,6 +46,7 @@ onReady(async () => {
     document.getElementById('alert-modal-clear-btn').addEventListener('click', clearAlert);
     document.getElementById('trading-tab-btn-browse').addEventListener('click', () => switchTradingTab('browse'));
     document.getElementById('trading-tab-btn-values').addEventListener('click', () => switchTradingTab('values'));
+    document.getElementById('trading-tab-btn-other').addEventListener('click', () => switchTradingTab('other'));
     document.getElementById('value-history-search').addEventListener('input', renderValueHistoryGrid);
     document.getElementById('value-history-sort').addEventListener('change', renderValueHistoryGrid);
     document.querySelectorAll('#value-history-category-tabs [data-category]').forEach(btn => {
@@ -156,8 +157,10 @@ async function openThemePicker() {
 function switchTradingTab(tab) {
   document.getElementById('trading-tab-btn-browse').className = `btn btn-sm ${tab === 'browse' ? 'btn-primary' : 'btn-ghost'}`;
   document.getElementById('trading-tab-btn-values').className = `btn btn-sm ${tab === 'values' ? 'btn-primary' : 'btn-ghost'}`;
+  document.getElementById('trading-tab-btn-other').className = `btn btn-sm ${tab === 'other' ? 'btn-primary' : 'btn-ghost'}`;
   document.getElementById('trading-tab-browse').style.display = tab === 'browse' ? '' : 'none';
   document.getElementById('trading-tab-values').style.display = tab === 'values' ? '' : 'none';
+  document.getElementById('trading-tab-other').style.display = tab === 'other' ? '' : 'none';
   if (tab === 'values') renderValueHistoryGrid();
 }
 
@@ -612,6 +615,8 @@ function renderListing(t) {
           <div>
             <a href="/player/?u=${encodeURIComponent(profile.username || '')}" style="color:var(--bone); font-weight:700; text-decoration:none; font-size:0.9rem;">${escapeHtml(displayNameFor(profile))}</a> ${titleBadge(profile)} <span data-rep-for="${t.user_id}"></span> <span data-verified-trader-for="${t.user_id}"></span>
             <p class="muted" style="margin:0; font-size:0.75rem;">${timeAgo(t.created_at)} · expires in ${hoursLeft(t.expires_at)}</p>
+            <span data-rep-for="${t.user_id}"></span>
+            <span data-verified-trader-for="${t.user_id}"></span>
             <span data-new-account-for="${t.user_id}"></span>
           </div>
         </div>

@@ -7,6 +7,7 @@
 
 import fs from 'node:fs';
 import path from 'node:path';
+import { loadShell } from './lib/shell.mjs';
 
 const SUPABASE_URL = 'https://hpvwxaubgiyqgqtyjofb.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_g14CxS8Kbu5hjGIpRGirQg_L5SY7ZWW';
@@ -67,6 +68,8 @@ function affiliateBlockHtml() {
   `;
 }
 
+let shell; // nav/footer read from the homepage at run time (see lib/shell.mjs)
+
 function pageHtml(item, related) {
   const categoryLabel = CATEGORY_LABEL[item.category] || item.category;
   const slug = slugify(item.name);
@@ -112,6 +115,7 @@ function pageHtml(item, related) {
 <link rel="dns-prefetch" href="https://unpkg.com">
 <link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
 <link rel="stylesheet" href="/css/style.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
 <link rel="stylesheet" href="/css/animations.css">
 <link rel="icon" type="image/png" href="/assets/logo.png">
 <link rel="manifest" href="/manifest.json">
@@ -141,47 +145,7 @@ function pageHtml(item, related) {
 </head>
 <body>
 
-<nav class="nav">
-  <div class="nav-inner">
-    <a href="/" class="brand"><img src="/assets/logo.png" alt="BloxCore" class="brand-logo"><span class="brand-name">Blox<span>Core</span></span></a>
-    <div class="nav-header-actions">
-      <div id="nav-messages-slot"></div>
-      <div id="nav-notif-slot"></div>
-      <button type="button" class="nav-toggle" aria-label="Open menu" aria-expanded="false"><i data-lucide="menu" class="icon-md nav-toggle-icon-menu"></i><i data-lucide="x" class="icon-md nav-toggle-icon-close"></i></button>
-      <div id="nav-profile-slot"></div>
-    </div>
-        <div class="nav-links">
-      <div class="nav-links-glow" aria-hidden="true"></div>
-      <div class="nav-drawer-header">
-        <span class="nav-drawer-title"><i data-lucide="compass" class="icon-sm"></i>Menu</span>
-        <button type="button" class="nav-drawer-close" aria-label="Close menu"><i data-lucide="x" class="icon-sm"></i></button>
-      </div>
-      <div class="nav-links-scroll">
-        <ul class="nav-link-list">
-          <li><a href="/" class="nav-link" style="--i:0"><span class="nav-link-icon" data-tone="gold"><i data-lucide="home"></i></span>Home</a></li>
-          <li><a href="/friends/" class="nav-link" style="--i:1"><span class="nav-link-icon" data-tone="blue"><i data-lucide="heart-handshake"></i></span>Friends</a></li>
-          <li><a href="/feed/" class="nav-link" style="--i:2"><span class="nav-link-icon" data-tone="pink"><i data-lucide="rss"></i></span>Feed</a></li>
-          <li class="nav-group-label" style="--i:3">Compete</li>
-          <li><a href="/pvp/" class="nav-link" style="--i:4"><span class="nav-link-icon" data-tone="blood"><i data-lucide="crosshair"></i></span>PvP</a></li>
-          <li><a href="/challenges/" class="nav-link" style="--i:5"><span class="nav-link-icon" data-tone="purple"><i data-lucide="swords"></i></span>Quests</a></li>
-          <li><a href="/combos/" class="nav-link" style="--i:6"><span class="nav-link-icon" data-tone="pink"><i data-lucide="flame"></i></span>Combos</a></li>
-          <li><a href="/leaderboard/" class="nav-link" style="--i:7"><span class="nav-link-icon" data-tone="gold"><i data-lucide="trophy"></i></span>Leaderboard</a></li>
-          <li class="nav-group-label" style="--i:8">Community</li>
-          <li><a href="/sea-events/" class="nav-link" style="--i:9"><span class="nav-link-icon" data-tone="sea"><i data-lucide="waves"></i></span>Sea Events</a></li>
-          <li><a href="/giveaways/" class="nav-link" style="--i:10"><span class="nav-link-icon" data-tone="purple"><i data-lucide="gift"></i></span>Giveaways</a></li>
-          <li><a href="/crews/" class="nav-link" style="--i:11"><span class="nav-link-icon" data-tone="blue"><i data-lucide="users"></i></span>Crews</a></li>
-          <li><a href="/trading/" class="nav-link" style="--i:12"><span class="nav-link-icon" data-tone="sea"><i data-lucide="repeat"></i></span>Trading</a></li>
-          <li><a href="/services/" class="nav-link" style="--i:13"><span class="nav-link-icon" data-tone="gold"><i data-lucide="briefcase"></i></span>Services</a></li>
-          <li class="nav-group-label" style="--i:14">More</li>
-          <li><a href="/whats-new/" class="nav-link" style="--i:15"><span class="nav-link-icon" data-tone="pink"><i data-lucide="sparkles"></i></span>What's New</a></li>
-          <li><a href="/notifications/" class="nav-link" style="--i:16"><span class="nav-link-icon" data-tone="blue"><i data-lucide="bell"></i></span>Notifications</a></li>
-        </ul>
-      </div>
-      <div id="nav-auth-slot" class="nav-auth-slot"></div>
-    </div>
-  </div>
-</nav>
-
+${shell.nav}
 <section class="section" style="padding-bottom:0;">
   <div class="container" style="max-width:820px;">
     <nav aria-label="Breadcrumb" style="margin-bottom:14px;">
@@ -232,49 +196,7 @@ function pageHtml(item, related) {
 </section>
 </main>
 
-<footer class="site-footer" style="padding:48px 0 24px;">
-  <div class="container">
-    <div class="grid" style="grid-template-columns:1.4fr repeat(3, 1fr); gap:28px; text-align:left; margin-bottom:28px;">
-      <div>
-        <a href="/" class="brand" style="display:inline-flex;"><img src="/assets/logo.png" alt="BloxCore" class="brand-logo"><span class="brand-name">Blox<span>Core</span></span></a>
-        <p class="muted" style="font-size:0.85rem; margin-top:10px; max-width:280px;">BloxCore is the #1 Blox Fruits community — trading, bounty hunting, crews, combos, sea events, giveaways, leaderboards, and a live feed, all in one place. Unofficial and fan-made; not affiliated with the game's developers.</p>
-      </div>
-      <div>
-        <p style="font-weight:700; font-size:0.85rem; margin-bottom:10px;">Blox Fruits Community</p>
-        <ul style="list-style:none; padding:0; margin:0; display:flex; flex-direction:column; gap:8px;">
-          <li><a href="/blox-fruits-trading/" class="muted" style="font-size:0.85rem;">Trading</a></li>
-          <li><a href="/blox-fruits-crews/" class="muted" style="font-size:0.85rem;">Crews</a></li>
-          <li><a href="/blox-fruits-bounties/" class="muted" style="font-size:0.85rem;">Bounty Hunting</a></li>
-          <li><a href="/blox-fruits-challenges/" class="muted" style="font-size:0.85rem;">Quests</a></li>
-          <li><a href="/blox-fruits-combos/" class="muted" style="font-size:0.85rem;">Combos</a></li>
-        </ul>
-      </div>
-      <div>
-        <p style="font-weight:700; font-size:0.85rem; margin-bottom:10px;">More on BloxCore</p>
-        <ul style="list-style:none; padding:0; margin:0; display:flex; flex-direction:column; gap:8px;">
-          <li><a href="/blox-fruits-sea-events/" class="muted" style="font-size:0.85rem;">Sea Events</a></li>
-          <li><a href="/blox-fruits-giveaways/" class="muted" style="font-size:0.85rem;">Giveaways</a></li>
-          <li><a href="/blox-fruits-leaderboards/" class="muted" style="font-size:0.85rem;">Leaderboards</a></li>
-          <li><a href="/blox-fruits-values/" class="muted" style="font-size:0.85rem;">Item Values</a></li>
-          <li><a href="/friends/" class="muted" style="font-size:0.85rem;">Friends</a></li>
-        </ul>
-      </div>
-      <div>
-        <p style="font-weight:700; font-size:0.85rem; margin-bottom:10px;">About &amp; Legal</p>
-        <ul style="list-style:none; padding:0; margin:0; display:flex; flex-direction:column; gap:8px;">
-          <li><a href="/#features-heading" class="muted" style="font-size:0.85rem;">About BloxCore</a></li>
-          <li><a href="/terms/" class="muted" style="font-size:0.85rem;">Terms of Service</a></li>
-          <li><a href="/privacy/" class="muted" style="font-size:0.85rem;">Privacy Policy</a></li>
-          <li><a href="mailto:contact@nexorealm.org" class="muted" style="font-size:0.85rem;">Contact</a></li>
-        </ul>
-      </div>
-    </div>
-    <div style="border-top:1px solid var(--glass-border); padding-top:18px;">
-      BloxCore is the #1 Blox Fruits community — your ultimate hub for trading, bounty hunting, crews, combos, sea events, giveaways, leaderboards, a live feed, and so much more! <a href="/terms/" style="color:inherit; text-decoration:underline;">Terms</a> · <a href="/privacy/" style="color:inherit; text-decoration:underline;">Privacy</a>
-    </div>
-  </div>
-</footer>
-
+${shell.footer}
 <script src="https://unpkg.com/lucide@1.34.0"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.112.4"></script>
 <script src="/js/animations.js"></script>
@@ -288,6 +210,7 @@ function pageHtml(item, related) {
 }
 
 async function main() {
+  shell = loadShell(SITE_ROOT);
   let items;
   if (LOCAL_JSON) {
     items = JSON.parse(fs.readFileSync(LOCAL_JSON, 'utf8'));
