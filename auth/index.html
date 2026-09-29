@@ -79,6 +79,7 @@
           <li><a href="/crews/" class="nav-link" style="--i:11"><span class="nav-link-icon" data-tone="blue"><i data-lucide="users"></i></span>Crews</a></li>
           <li><a href="/trading/" class="nav-link" style="--i:12"><span class="nav-link-icon" data-tone="sea"><i data-lucide="repeat"></i></span>Trading</a></li>
           <li><a href="/trade-calculator/" class="nav-link" style="--i:13"><span class="nav-link-icon" data-tone="gold"><i data-lucide="calculator"></i></span>Trade Calculator</a></li>
+          <li><a href="/blox-fruits-codes/" class="nav-link" style="--i:14"><span class="nav-link-icon" data-tone="gold"><i data-lucide="ticket"></i></span>Codes</a></li>
           <li><a href="/services/" class="nav-link" style="--i:13"><span class="nav-link-icon" data-tone="gold"><i data-lucide="briefcase"></i></span>Services</a></li>
           <li class="nav-group-label" style="--i:14">More</li>
           <li><a href="/whats-new/" class="nav-link" style="--i:15"><span class="nav-link-icon" data-tone="pink"><i data-lucide="sparkles"></i></span>What's New</a></li>
@@ -141,12 +142,53 @@
           <i data-lucide="message-circle" class="icon-sm icon-inline"></i>Continue with Discord
         </button>
         <p class="muted" style="font-size:0.78rem; margin:16px 0 0;">No separate BloxCore password to manage — sign in with Discord. You can connect your Roblox account afterward from Settings.</p>
-        <p class="muted" style="font-size:0.74rem; margin:8px 0 0;">By continuing, you agree to our <a href="/terms/">Terms of Service</a> and <a href="/privacy/">Privacy Policy</a>.</p>
         <p class="field-error" id="signin-error" style="display:none; text-align:left;"></p>
 
-        <div style="margin-top:24px; padding-top:20px; border-top:1px solid var(--navy-light); display:flex; align-items:center; gap:8px;">
-          <i data-lucide="users" class="icon-sm" style="color:var(--brass-bright); flex-shrink:0;"></i>
-          <p class="muted" style="font-size:0.8rem; margin:0;" id="auth-pirate-count">Pirates are already making their name.</p>
+        <div style="display:flex; align-items:center; gap:12px; margin:22px 0;" aria-hidden="true">
+          <div style="flex:1; height:1px; background:var(--navy-light);"></div>
+          <span class="muted" style="font-size:0.75rem; text-transform:uppercase; letter-spacing:0.05em;">or use email</span>
+          <div style="flex:1; height:1px; background:var(--navy-light);"></div>
+        </div>
+
+        <div style="display:flex; gap:6px; margin-bottom:16px;" id="email-auth-tabs">
+          <button type="button" class="btn btn-sm btn-primary" data-email-tab="signin" style="flex:1;">Sign In</button>
+          <button type="button" class="btn btn-sm btn-ghost" data-email-tab="signup" style="flex:1;">Sign Up</button>
+        </div>
+
+        <form id="email-signin-form" style="display:flex; flex-direction:column; gap:10px;">
+          <input type="email" id="signin-email" placeholder="Email" autocomplete="email" required>
+          <input type="password" id="signin-password" placeholder="Password" autocomplete="current-password" required>
+          <p class="field-error" id="email-signin-error" style="display:none; text-align:left;"></p>
+          <button type="submit" class="btn btn-primary btn-block" id="email-signin-btn">Sign In</button>
+          <button type="button" class="muted" id="forgot-password-btn" style="background:none; border:none; text-decoration:underline; font-size:0.8rem; cursor:pointer; align-self:center;">Forgot password?</button>
+        </form>
+
+        <form id="email-signup-form" style="display:none; flex-direction:column; gap:10px;">
+          <input type="email" id="signup-email" placeholder="Email" autocomplete="email" required>
+          <div>
+            <input type="text" id="signup-discord-username" placeholder="Discord Username" autocomplete="off" required>
+            <p class="muted" id="discord-username-status" style="font-size:0.75rem; margin:4px 0 0; min-height:1em;"></p>
+          </div>
+          <div>
+            <input type="password" id="signup-password" placeholder="Password" autocomplete="new-password" required minlength="8">
+            <div id="password-strength-meter" style="display:flex; gap:4px; margin-top:6px;">
+              <span class="password-strength-bar"></span><span class="password-strength-bar"></span><span class="password-strength-bar"></span>
+            </div>
+            <p class="muted" id="password-strength-label" style="font-size:0.75rem; margin:4px 0 0; min-height:1em;"></p>
+          </div>
+          <input type="password" id="signup-password-confirm" placeholder="Confirm Password" autocomplete="new-password" required>
+          <p class="field-error" id="email-signup-error" style="display:none; text-align:left;"></p>
+          <button type="submit" class="btn btn-primary btn-block" id="email-signup-btn">Sign Up</button>
+        </form>
+
+        <p class="muted" style="font-size:0.74rem; margin:14px 0 0;">By continuing, you agree to our <a href="/terms/">Terms of Service</a> and <a href="/privacy/">Privacy Policy</a>.</p>
+
+        <div style="margin-top:24px; padding-top:20px; border-top:1px solid var(--navy-light); display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap;">
+          <div style="display:flex; align-items:center; gap:10px; min-width:0;">
+            <div id="auth-recent-avatars" style="display:flex; flex-shrink:0;" aria-hidden="true"></div>
+            <p class="muted" style="font-size:0.8rem; margin:0;" id="auth-pirate-count">Pirates are already making their name.</p>
+          </div>
+          <p class="muted" style="font-size:0.78rem; margin:0; display:flex; align-items:center; gap:5px; flex-shrink:0;"><span style="width:7px; height:7px; border-radius:50%; background:#34d399; box-shadow:0 0 6px #34d399; flex-shrink:0;"></span><span id="auth-online-count"></span></p>
         </div>
       </div>
     </div>
