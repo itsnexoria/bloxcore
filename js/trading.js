@@ -46,7 +46,6 @@ onReady(async () => {
     document.getElementById('alert-modal-clear-btn').addEventListener('click', clearAlert);
     document.getElementById('trading-tab-btn-browse').addEventListener('click', () => switchTradingTab('browse'));
     document.getElementById('trading-tab-btn-values').addEventListener('click', () => switchTradingTab('values'));
-    document.getElementById('trading-tab-btn-other').addEventListener('click', () => switchTradingTab('other'));
     document.getElementById('value-history-search').addEventListener('input', renderValueHistoryGrid);
     document.getElementById('value-history-sort').addEventListener('change', renderValueHistoryGrid);
     document.querySelectorAll('#value-history-category-tabs [data-category]').forEach(btn => {
@@ -62,7 +61,7 @@ onReady(async () => {
     document.getElementById('trade-signed-out').style.display = 'block';
   }
 
-  allTradeItems = await fetchBfItemCatalog();
+  allTradeItems = await fetchBfItemCatalog(['fruit', 'limited', 'gamepass', 'other']);
 
   document.getElementById('trade-compose-close').addEventListener('click', closeComposeModal);
   document.getElementById('trade-post-btn').addEventListener('click', handlePost);
@@ -157,10 +156,8 @@ async function openThemePicker() {
 function switchTradingTab(tab) {
   document.getElementById('trading-tab-btn-browse').className = `btn btn-sm ${tab === 'browse' ? 'btn-primary' : 'btn-ghost'}`;
   document.getElementById('trading-tab-btn-values').className = `btn btn-sm ${tab === 'values' ? 'btn-primary' : 'btn-ghost'}`;
-  document.getElementById('trading-tab-btn-other').className = `btn btn-sm ${tab === 'other' ? 'btn-primary' : 'btn-ghost'}`;
   document.getElementById('trading-tab-browse').style.display = tab === 'browse' ? '' : 'none';
   document.getElementById('trading-tab-values').style.display = tab === 'values' ? '' : 'none';
-  document.getElementById('trading-tab-other').style.display = tab === 'other' ? '' : 'none';
   if (tab === 'values') renderValueHistoryGrid();
 }
 

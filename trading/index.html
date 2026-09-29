@@ -30,14 +30,6 @@
 </head>
 <body>
 
-<!-- Custom Cursor -->
-<div id="JFWebsiteWidget-01a0e2e3b14070008b4a6dff1cbeb79a0cc0"></div>
-<script src="https://www.jotform.com/website-widgets/embed/01a0e2e3b14070008b4a6dff1cbeb79a0cc0" defer></script>
-
-<!-- Skele Loader -->
-<div id="JFWebsiteWidget-01a0e2ebd73070008a1b287ea67df4d27050"></div>
-<script src="https://www.jotform.com/website-widgets/embed/01a0e2ebd73070008a1b287ea67df4d27050" defer></script>
-
 
 <nav class="nav nav-bar">
   <div class="nav-inner">
@@ -115,7 +107,6 @@
     <div style="display:flex; gap:8px;">
       <button type="button" class="btn btn-sm btn-primary" id="trading-tab-btn-browse">Browse Trades</button>
       <button type="button" class="btn btn-sm btn-ghost" id="trading-tab-btn-values">Value History</button>
-      <button type="button" class="btn btn-sm btn-ghost" id="trading-tab-btn-other">Other</button>
     </div>
     <button type="button" class="btn btn-ghost btn-sm" id="watchlist-btn" style="display:none;"><i data-lucide="eye" class="icon-sm icon-inline"></i>Watchlist</button>
     <button type="button" class="btn btn-ghost btn-sm" id="card-theme-btn" style="display:none;"><i data-lucide="palette" class="icon-sm icon-inline"></i>Card Theme</button>
@@ -164,40 +155,6 @@
       </div>
     </div>
 
-    <div id="trading-tab-other" style="display:none; margin-top:24px;">
-      <div class="panel">
-        <h2 style="font-size:1.05rem; margin:0 0 6px;">Trade Type Icons</h2>
-        <p class="muted" style="margin:0 0 18px; font-size:0.85rem;">What traders mean when they use these terms in a listing note.</p>
-        <div class="grid" style="grid-template-columns:repeat(auto-fill, minmax(150px, 1fr)); gap:14px;">
-          <div class="panel panel-plain center" style="padding:16px;">
-            <img src="https://fantasyblox.com/assets/images/web/trade/upgrade2.png" alt="Upgrade" loading="lazy" style="height:48px; object-fit:contain;">
-            <p style="margin:10px 0 0; font-weight:700; font-size:0.85rem;">Upgrade</p>
-            <p class="muted" style="margin:4px 0 0; font-size:0.75rem;">Looking to trade for something more valuable, adding items or robux to make up the difference.</p>
-          </div>
-          <div class="panel panel-plain center" style="padding:16px;">
-            <img src="https://fantasyblox.com/assets/images/web/trade/downgrade2.png" alt="Downgrade" loading="lazy" style="height:48px; object-fit:contain;">
-            <p style="margin:10px 0 0; font-weight:700; font-size:0.85rem;">Downgrade</p>
-            <p class="muted" style="margin:4px 0 0; font-size:0.75rem;">Willing to trade for something less valuable, usually getting items or robux back in return.</p>
-          </div>
-          <div class="panel panel-plain center" style="padding:16px;">
-            <img src="https://fantasyblox.com/assets/images/web/trade/add2.png" alt="Add" loading="lazy" style="height:48px; object-fit:contain;">
-            <p style="margin:10px 0 0; font-weight:700; font-size:0.85rem;">Add</p>
-            <p class="muted" style="margin:4px 0 0; font-size:0.75rem;">Asking the other side to add one or more extra items to even out the trade.</p>
-          </div>
-          <div class="panel panel-plain center" style="padding:16px;">
-            <img src="https://fantasyblox.com/assets/images/web/trade/offer2.png" alt="Offer" loading="lazy" style="height:48px; object-fit:contain;">
-            <p style="margin:10px 0 0; font-weight:700; font-size:0.85rem;">Offer</p>
-            <p class="muted" style="margin:4px 0 0; font-size:0.75rem;">Open to hearing any offer for the listed item(s) — no fixed asking price.</p>
-          </div>
-          <div class="panel panel-plain center" style="padding:16px;">
-            <img src="https://fantasyblox.com/assets/images/web/trade/or2.png" alt="Or" loading="lazy" style="height:48px; object-fit:contain;">
-            <p style="margin:10px 0 0; font-weight:700; font-size:0.85rem;">Or</p>
-            <p class="muted" style="margin:4px 0 0; font-size:0.75rem;">Willing to accept any one of several listed alternatives, not all of them.</p>
-          </div>
-        </div>
-        <p class="muted" style="margin:18px 0 0; font-size:0.8rem;">These are just common shorthand — mention which one you mean in your listing's note so the other trader knows what you're after.</p>
-      </div>
-    </div>
   </div>
 </section>
 
@@ -256,6 +213,7 @@
       <button type="button" class="btn btn-primary btn-sm" data-category="fruit">Fruits</button>
       <button type="button" class="btn btn-ghost btn-sm" data-category="limited">Limiteds</button>
       <button type="button" class="btn btn-ghost btn-sm" data-category="gamepass">Gamepasses</button>
+      <button type="button" class="btn btn-ghost btn-sm" data-category="other">Other</button>
     </div>
     <input type="text" id="item-picker-search" placeholder="Search…" aria-label="Search items" style="margin-bottom:16px;">
     <div id="item-picker-grid" class="build-modal-grid"></div>
