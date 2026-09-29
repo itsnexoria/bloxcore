@@ -200,7 +200,7 @@ async function loadListings() {
         if (Object.keys(participants).length) {
           rows.forEach(s => {
             const el = container.querySelector(`[data-listing-id="${s.id}"]`);
-            if (el && participants[s.id]) el.outerHTML = renderListing(s, participants[s.id]);
+            if (el && el.isConnected && participants[s.id]) el.outerHTML = renderListing(s, participants[s.id]);
           });
         }
         const ids = new Set(rows.map(r => String(r.id)));

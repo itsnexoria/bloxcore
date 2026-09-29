@@ -663,6 +663,10 @@ async function loadLinkPreviews(root) {
   }));
   const byUrl = new Map(results);
   slots.forEach(el => {
+    // The feed can re-render (new post, filter change) while these previews were in flight,
+    // detaching `el` from the document — writing outerHTML to a detached node throws
+    // NoModificationAllowedError, so skip anything that's no longer actually on the page.
+    if (!el.isConnected) return;
     const data = byUrl.get(el.dataset.previewUrl);
     if (data && data.embed_html) {
       el.outerHTML = `<div class="feed-tweet-embed" style="margin-top:12px;">${data.embed_html}</div>`;

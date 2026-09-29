@@ -485,8 +485,9 @@ function wireFramePicker() {
 }
 
 function openBuildModal(key) {
-  activeBuildKey = key;
   const field = BUILD_FIELDS.find(f => f.key === key);
+  if (!field) { logError('openBuildModal: unknown build key', key); return; }
+  activeBuildKey = key;
   document.getElementById('build-modal-title').textContent = `Choose ${field.label}`;
   document.getElementById('build-modal-search').value = '';
   renderModalGrid(key, '');
@@ -501,6 +502,7 @@ function closeBuildModal() {
 function renderModalGrid(key, filter) {
   const grid = document.getElementById('build-modal-grid');
   const field = BUILD_FIELDS.find(f => f.key === key);
+  if (!field) { logError('renderModalGrid: unknown build key', key); return; }
   const currentValue = document.getElementById(field.id).value;
   const query = filter.trim().toLowerCase();
 
