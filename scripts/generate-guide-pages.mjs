@@ -9,7 +9,7 @@
 
 import fs from 'node:fs';
 import path from 'node:path';
-import { loadShell, renderPage, esc, slugify, formatValue, breadcrumbLd, breadcrumbHtml, ctaSectionHtml } from './lib/shell.mjs';
+import { loadShell, renderPage, esc, slugify, formatValue, breadcrumbLd, breadcrumbHtml, ctaSectionHtml, adSlotTop, adSlotMiddle, adSlotBottom } from './lib/shell.mjs';
 
 const SUPABASE_URL = 'https://hpvwxaubgiyqgqtyjofb.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_g14CxS8Kbu5hjGIpRGirQg_L5SY7ZWW';
@@ -108,10 +108,13 @@ function tierListPage(shell, fruits) {
   const body = `${pageHead(crumbs, 'Blox Fruits Value Tier List', 'Every fruit ranked by current community trading value.')}
 ${wrapSection(`
     <p>This tier list ranks fruits by what they're worth on the trading market, not by how strong they are in a fight. Tiers are set by each fruit's physical trading value and update whenever the values do. Click any fruit for its full value page, or use the <a href="/trade-calculator/">trade calculator</a> to check a specific trade.</p>
+    ${adSlotTop()}
     ${rows}
+    ${adSlotMiddle()}
     <h2 style="font-size:1.3rem; margin-top:28px;">How the tiers work</h2>
     <p>S tier starts at ${formatValue(TIERS[0].min)}, A at ${formatValue(TIERS[1].min)}, B at ${formatValue(TIERS[2].min)} and C at ${formatValue(TIERS[3].min)}; everything below that is D. Values come from the community and shift with demand, so check the live <a href="/trading/">Trading board</a> before agreeing to a trade. You can also <a href="/blox-fruits-compare/">compare any two top fruits</a> side by side.</p>`)}
-${ctaSectionHtml({ heading: 'Know what your fruits are worth?', body: 'Create a free account to post trades, set price alerts, and track your own collection.' })}`;
+${ctaSectionHtml({ heading: 'Know what your fruits are worth?', body: 'Create a free account to post trades, set price alerts, and track your own collection.' })}
+${adSlotBottom()}`;
   write('blox-fruits-tier-list', renderPage(shell, { title, description, url, ld: [breadcrumbLd(crumbs)], body }));
 }
 
@@ -138,17 +141,20 @@ function comparePage(shell, a, b) {
   const answer = `${winner.name} is worth more by physical value (${formatValue(winner.regular_value)} vs ${formatValue(winner === a ? b.regular_value : a.regular_value)}).`;
   const body = `${pageHead(crumbs, `${a.name} vs ${b.name} Value`, 'Physical and permanent value, demand and trend side by side.')}
 ${wrapSection(`
+    ${adSlotTop()}
     <div class="panel" style="overflow-x:auto;">
       <table class="compare-table">
         <thead><tr><th></th><th><a href="/blox-fruits-values/${slugify(a.name)}/">${icon(a)}<br>${esc(a.name)}</a></th><th><a href="/blox-fruits-values/${slugify(b.name)}/">${icon(b)}<br>${esc(b.name)}</a></th></tr></thead>
         <tbody>${rowsDef.map(([label, k]) => `<tr><th scope="row">${label}</th><td>${cell(a, k)}</td><td>${cell(b, k)}</td></tr>`).join('')}</tbody>
       </table>
     </div>
+    ${adSlotMiddle()}
     <h2 style="font-size:1.3rem;">Which is worth more, ${esc(a.name)} or ${esc(b.name)}?</h2>
     <p>${esc(answer)} ${esc(ratioCopy(a, b, a.regular_value, b.regular_value, 'physical'))} ${esc(ratioCopy(a, b, a.permanent_value, b.permanent_value, 'permanent'))}</p>
     <p>Values are community estimates and don't include demand, so check the current going rate on the <a href="/trading/">Trading board</a> before you trade. Want to test a specific offer? <a href="/trade-calculator/?give=${encodeURIComponent(a.name)}&amp;get=${encodeURIComponent(b.name)}">Open ${esc(a.name)} for ${esc(b.name)} in the trade calculator</a>.</p>
     <p><a href="/blox-fruits-tier-list/">See the full value tier list</a> · <a href="/blox-fruits-compare/">More comparisons</a></p>`)}
-${ctaSectionHtml({ heading: `Trading one for the other?`, body: 'Create a free account to run it past other traders on the Trading board first.' })}`;
+${ctaSectionHtml({ heading: `Trading one for the other?`, body: 'Create a free account to run it past other traders on the Trading board first.' })}
+${adSlotBottom()}`;
   const faq = { '@context': 'https://schema.org', '@type': 'FAQPage', mainEntity: [{ '@type': 'Question', name: `Which is worth more, ${a.name} or ${b.name} in Blox Fruits?`, acceptedAnswer: { '@type': 'Answer', text: answer } }] };
   write(`blox-fruits-compare/${slug}`, renderPage(shell, { title, description, url, image: winner.icon_url, ld: [faq, breadcrumbLd(crumbs)], body }));
   return url;
@@ -166,8 +172,11 @@ function compareHub(shell, top, pairUrls) {
     }).join('')}</ul></div>`).join('');
   const body = `${pageHead(crumbs, 'Compare Blox Fruits Values', `Head-to-head value comparisons for the top ${top.length} fruits.`)}
 ${wrapSection(`<p>Pick any two of the most valuable fruits to see which is worth more. For anything else, the <a href="/trade-calculator/">trade calculator</a> handles any combination of items, and the <a href="/blox-fruits-tier-list/">tier list</a> ranks every fruit.</p>
-    <div class="grid" style="grid-template-columns:repeat(auto-fill, minmax(200px, 1fr)); gap:22px; margin-top:20px;">${lists}</div>`)}
-${ctaSectionHtml({ heading: 'Ready to trade?', body: 'Create a free account to post a listing and get real offers.' })}`;
+    ${adSlotTop()}
+    <div class="grid" style="grid-template-columns:repeat(auto-fill, minmax(200px, 1fr)); gap:22px; margin-top:20px;">${lists}</div>
+    ${adSlotMiddle()}`)}
+${ctaSectionHtml({ heading: 'Ready to trade?', body: 'Create a free account to post a listing and get real offers.' })}
+${adSlotBottom()}`;
   write('blox-fruits-compare', renderPage(shell, { title, description, url, ld: [breadcrumbLd(crumbs)], body }));
   return url;
 }
@@ -185,19 +194,22 @@ function guidePage(shell) {
   ];
   const body = `${pageHead(crumbs, 'Blox Fruits Trading Guide', 'Trade fairly, read the numbers, and stay safe.')}
 ${wrapSection(`
+    ${adSlotTop()}
     <h2 style="font-size:1.3rem;">1. Start from the value, then adjust</h2>
     <p>Every fruit, limited item and gamepass has a community-estimated value on its <a href="/blox-fruits-values/">value page</a>. Treat it as a starting point: the <a href="/blox-fruits-tier-list/">tier list</a> shows where a fruit sits overall, and the <a href="/blox-fruits-compare/">compare pages</a> show how two top fruits stack up.</p>
     <h2 style="font-size:1.3rem;">2. Read demand and trend</h2>
     <p>Demand is scored out of 10 — the higher it is, the easier the item should be to trade. Trend tells you which way the price is moving: <em>trending up</em> items are worth more than they were, <em>overpaid</em> items are trading above what most players consider fair and may cool off, <em>underpaid</em> items are trading below it, and <em>unstable</em> items have volatile pricing, so double-check the going rate.</p>
     <h2 style="font-size:1.3rem;">3. Check physical vs permanent</h2>
     <p>Permanent fruits carry a separate, usually much higher value than the physical copy. Make sure both players mean the same one before you agree.</p>
+    ${adSlotMiddle()}
     <h2 style="font-size:1.3rem;">4. Run the numbers</h2>
     <p>Put both sides into the <a href="/trade-calculator/">trade calculator</a>. If one side is more than about 8% ahead, ask yourself what the other side is getting — extra demand, or just a better deal.</p>
     <h2 style="font-size:1.3rem;">5. Stay safe</h2>
     <p>Never share your account password or login details with anyone. Check a player's profile and vouches before trading, and remember BloxCore doesn't verify or guarantee any trade. Trade listings on BloxCore automatically disappear after 24 hours, so old listings can be stale — confirm the offer is still on.</p>
     <h2 style="font-size:1.3rem;">Ready to trade?</h2>
     <p><a href="/trading/">Browse live trade listings</a> or post your own.</p>`)}
-${ctaSectionHtml({ heading: 'Put the guide into practice', body: 'Create a free account to post your first trade listing today.' })}`;
+${ctaSectionHtml({ heading: 'Put the guide into practice', body: 'Create a free account to post your first trade listing today.' })}
+${adSlotBottom()}`;
   const faq = { '@context': 'https://schema.org', '@type': 'FAQPage', mainEntity: qa.map(([q, a]) => ({ '@type': 'Question', name: q, acceptedAnswer: { '@type': 'Answer', text: a } })) };
   write('blox-fruits-trading-guide', renderPage(shell, { title, description, url, ld: [faq, breadcrumbLd(crumbs)], body }));
 }

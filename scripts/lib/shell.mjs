@@ -88,6 +88,31 @@ ${extraScripts.map(s => `<script src="${s}"></script>`).join('\n')}
 `;
 }
 
+// Ad placements for public SEO pages only — never used on the homepage or on any page that's
+// in the nav/drawer (those stay ad-free). Three varied slots: a leaderboard banner, a
+// mid-content rectangle, and the native banner already used elsewhere on the site.
+export function adSlotTop() {
+  return `<div class="ad-slot" style="margin:20px auto; max-width:728px; text-align:center;">
+  <span class="ad-slot-label">Advertisement</span>
+  <script>atOptions = { 'key':'3d822fd28f7e2dcb27760223dda2eb9c', 'format':'iframe', 'height':90, 'width':728, 'params':{} };</script>
+  <script src="https://www.highrevenueformat.com/3d822fd28f7e2dcb27760223dda2eb9c/invoke.js"></script>
+</div>`;
+}
+export function adSlotMiddle() {
+  return `<div class="ad-slot" style="margin:24px auto; max-width:300px; text-align:center;">
+  <span class="ad-slot-label">Advertisement</span>
+  <script>atOptions = { 'key':'8e6309b4097896ed979f562c5d09f06e', 'format':'iframe', 'height':250, 'width':300, 'params':{} };</script>
+  <script src="https://www.highrevenueformat.com/8e6309b4097896ed979f562c5d09f06e/invoke.js"></script>
+</div>`;
+}
+export function adSlotBottom() {
+  return `<div class="ad-slot ad-slot-native">
+  <span class="ad-slot-label">Advertisement</span>
+  <script async="async" data-cfasync="false" src="https://pl31528379.profitableratecpmnetwork.com/1dd0069cb22b02f6884ad8e7e72afcb2/invoke.js"></script>
+  <div id="container-1dd0069cb22b02f6884ad8e7e72afcb2"></div>
+</div>`;
+}
+
 export function ctaSectionHtml({ heading, body, label = 'Create Free Account', href = '/auth/' }) {
   return `<section class="section" style="padding-top:0;">
   <div class="container panel" style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:20px; max-width:820px;">

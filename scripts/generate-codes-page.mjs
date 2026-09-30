@@ -7,7 +7,7 @@
 
 import fs from 'node:fs';
 import path from 'node:path';
-import { loadShell, renderPage, esc, breadcrumbLd, breadcrumbHtml, ctaSectionHtml } from './lib/shell.mjs';
+import { loadShell, renderPage, esc, breadcrumbLd, breadcrumbHtml, ctaSectionHtml, adSlotTop, adSlotMiddle, adSlotBottom } from './lib/shell.mjs';
 
 const SITE_ROOT = process.argv[2] || '.';
 const SITE = 'https://bloxcores.com';
@@ -67,6 +67,7 @@ const body = `${breadcrumbHtml(crumbs).replace('<nav', '<nav style="margin:0 0 1
 </section>
 <section class="section">
   <div class="container" style="max-width:820px; line-height:1.75; font-size:0.96rem;">
+    ${adSlotTop()}
     <div class="panel" style="overflow-x:auto;">
       <table class="codes-table">
         <thead><tr><th>Code</th><th>Reward</th><th></th></tr></thead>
@@ -75,6 +76,7 @@ const body = `${breadcrumbHtml(crumbs).replace('<nav', '<nav style="margin:0 0 1
     </div>
     <p class="muted" style="font-size:0.8rem; margin-top:10px;">Codes expire without notice — if one shows "Code Invalid," it\u2019s no longer active. BloxCore isn\u2019t affiliated with Blox Fruits' developers; we just track codes here for convenience.</p>
 
+    ${adSlotMiddle()}
     <h2 style="font-size:1.3rem; margin-top:32px;">How to redeem a code</h2>
     <ol style="padding-left:20px;">
       <li>Launch Blox Fruits in Roblox.</li>
@@ -93,7 +95,8 @@ const body = `${breadcrumbHtml(crumbs).replace('<nav', '<nav style="margin:0 0 1
     <p>Check the <a href="/blox-fruits-tier-list/">value tier list</a> to see what your fruits are worth, run a trade through the <a href="/trade-calculator/">trade calculator</a> before you commit, or head to <a href="/trading/">Trading</a> to post a listing.</p>
   </div>
 </section>
-${ctaSectionHtml({ heading: 'Done redeeming?', body: 'Create a free BloxCore account to post trades, join giveaways, and climb the leaderboard.' })}`;
+${ctaSectionHtml({ heading: 'Done redeeming?', body: 'Create a free BloxCore account to post trades, join giveaways, and climb the leaderboard.' })}
+${adSlotBottom()}`;
 
 const shell = loadShell(SITE_ROOT);
 const faqLd = { '@context': 'https://schema.org', '@type': 'FAQPage', mainEntity: faqData.map(([q, a]) => ({ '@type': 'Question', name: q, acceptedAnswer: { '@type': 'Answer', text: a } })) };

@@ -41,7 +41,14 @@ function sortBfItems(items) {
 // by id itself — the catalog is small enough site-wide that there's no need for a shared
 // cache here.
 async function fetchBfItemCatalog(categories = ['fruit', 'limited', 'gamepass']) {
-  const { data } = await sb.from('bf_items').select('*').in('category', categories);
+  const { data, error } = await sb.from('bf_items').select('*').in('category', categories);
+  if (error) {
+    // Previously silently discarded — a real failure here (RLS, network) looked exactly like
+    // "no items have values yet" to every caller, with nothing to debug from.
+    window.__bloxcoreLastCatalogError = error.message;
+    logError('fetchBfItemCatalog failed:', error);
+    return [];
+  }
   return sortBfItems(data);
 }
 
