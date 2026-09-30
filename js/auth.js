@@ -201,7 +201,12 @@ onReady(async () => {
     });
     btn.disabled = false;
     if (error) {
-      errorEl.textContent = error.message;
+      // The client-side check above already caught the common case; this only fires on the
+      // rare race where someone else grabbed the same name in between — the database itself
+      // enforces uniqueness (case-insensitive) so this is a real, not just cosmetic, failure.
+      errorEl.textContent = error.message.includes('profiles_discord_username_unique_idx')
+        ? 'That Discord username was just taken by someone else — try another.'
+        : error.message;
       errorEl.style.display = 'block';
       return;
     }

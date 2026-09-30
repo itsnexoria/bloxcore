@@ -7,7 +7,7 @@
 
 import fs from 'node:fs';
 import path from 'node:path';
-import { loadShell, renderPage, esc, breadcrumbLd, breadcrumbHtml } from './lib/shell.mjs';
+import { loadShell, renderPage, esc, breadcrumbLd, breadcrumbHtml, ctaSectionHtml } from './lib/shell.mjs';
 
 const SITE_ROOT = process.argv[2] || '.';
 const SITE = 'https://bloxcores.com';
@@ -92,7 +92,8 @@ const body = `${breadcrumbHtml(crumbs).replace('<nav', '<nav style="margin:0 0 1
     <h2 style="font-size:1.3rem; margin-top:28px;">While you're stocking up on freebies</h2>
     <p>Check the <a href="/blox-fruits-tier-list/">value tier list</a> to see what your fruits are worth, run a trade through the <a href="/trade-calculator/">trade calculator</a> before you commit, or head to <a href="/trading/">Trading</a> to post a listing.</p>
   </div>
-</section>`;
+</section>
+${ctaSectionHtml({ heading: 'Done redeeming?', body: 'Create a free BloxCore account to post trades, join giveaways, and climb the leaderboard.' })}`;
 
 const shell = loadShell(SITE_ROOT);
 const faqLd = { '@context': 'https://schema.org', '@type': 'FAQPage', mainEntity: faqData.map(([q, a]) => ({ '@type': 'Question', name: q, acceptedAnswer: { '@type': 'Answer', text: a } })) };
