@@ -744,9 +744,6 @@ section.section h2.center::after { margin-left: auto; margin-right: auto; }
 .crew-card-banner {
   height: 56px;
   margin: 0 0 -28px;
-  background:
-    radial-gradient(circle at 30% 0%, rgb(var(--purple-rgb) / 0.35), transparent 65%),
-    linear-gradient(120deg, rgb(var(--purple-rgb) / 0.22), var(--navy) 80%);
 }
 .crew-card-top { display: flex; align-items: flex-end; gap: 14px; margin: 0 20px 14px; position: relative; z-index: 1; }
 .crew-card-logo-ring { padding: 3px; border-radius: calc(var(--radius-sm) + 3px); background: linear-gradient(140deg, var(--purple), rgb(var(--purple-rgb) / 0.25)); flex-shrink: 0; box-shadow: 0 6px 16px rgb(6 15 26 / 0.5); }
@@ -3967,3 +3964,21 @@ html.compact-mode .grid { gap: 12px; }
 .password-strength-medium .password-strength-bar:nth-child(1),
 .password-strength-medium .password-strength-bar:nth-child(2) { background: #fbbf24; }
 .password-strength-strong .password-strength-bar { background: #34d399; }
+
+/* ---- Crew compare ---- */
+.crew-compare-pickers { display: flex; align-items: flex-end; gap: 16px; }
+.crew-compare-picker { flex: 1; min-width: 0; position: relative; }
+.crew-compare-picker label { display: block; font-size: 0.82rem; margin-bottom: 6px; color: var(--bone); opacity: 0.75; }
+.crew-compare-vs { flex-shrink: 0; padding-bottom: 10px; color: var(--brass-bright); opacity: 0.7; }
+.crew-compare-results { position: absolute; z-index: 5; top: 100%; left: 0; right: 0; margin-top: 4px;
+  background: var(--navy); border: 1px solid rgba(255,255,255,0.1); border-radius: 10px; overflow: hidden; max-height: 260px; overflow-y: auto; }
+.crew-compare-result-row { display: flex; align-items: center; gap: 8px; width: 100%; padding: 8px 10px; text-align: left; cursor: pointer;
+  background: none; border: none; color: inherit; font-size: 0.85rem; }
+.crew-compare-result-row:hover { background: rgba(255,255,255,0.06); }
+.crew-compare-result-row img, .crew-compare-result-row .crew-card-logo-fallback { width: 26px; height: 26px; border-radius: 8px; object-fit: cover; flex-shrink: 0; }
+.crew-compare-card { padding: 20px; }
+.crew-compare-card-head { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
+.crew-compare-logo { width: 56px; height: 56px; border-radius: 14px; object-fit: cover; flex-shrink: 0; }
+.crew-compare-stat-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.06); font-size: 0.9rem; }
+.crew-compare-stat-row:last-child { border-bottom: none; }
+.crew-compare-stat-winner { color: var(--brass-bright); font-weight: 700; }

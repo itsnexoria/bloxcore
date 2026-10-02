@@ -158,10 +158,33 @@ async function fetchCrewsPage(offset, pageSize) {
   return data;
 }
 
+// Crews that haven't set a banner or accent color all used to get the same flat purple —
+// ugly and made every card look identical. Mirrors the full crew page's own fallback (which
+// already uses crew.accent_color) and adds a deterministic pseudo-random color on top of that
+// for crews that haven't customized anything yet, so cards are visually distinct without
+// re-rolling color on every reload (hashed from the crew's own id, not Math.random()).
+const CREW_CARD_PALETTE = ['167 139 250', '56 189 248', '251 191 36', '52 211 153', '248 113 113', '37 99 235', '244 114 182', '45 212 191'];
+function crewCardBannerStyle(c) {
+  if (c.banner_url) return `background:url('${c.banner_url.replace(/'/g, '%27')}') center/cover;`;
+  let rgb;
+  if (c.accent_color) {
+    rgb = c.accent_color;
+  } else {
+    let hash = 0;
+    const key = String(c.id || c.name || '');
+    for (let i = 0; i < key.length; i++) hash = (hash * 31 + key.charCodeAt(i)) >>> 0;
+    rgb = CREW_CARD_PALETTE[hash % CREW_CARD_PALETTE.length];
+  }
+  const isHex = typeof rgb === 'string' && rgb.startsWith('#');
+  const c1 = isHex ? `${rgb}59` : `rgb(${rgb} / 0.35)`;
+  const c2 = isHex ? `${rgb}38` : `rgb(${rgb} / 0.22)`;
+  return `background: radial-gradient(circle at 30% 0%, ${c1}, transparent 65%), linear-gradient(120deg, ${c2}, var(--navy) 80%);`;
+}
+
 function renderCrewCard(c) {
   return `
     <div class="panel crew-card hover-lift-card">
-      <div class="crew-card-banner"></div>
+      <div class="crew-card-banner" style="${crewCardBannerStyle(c)}"></div>
       <div class="crew-card-top">
         <div class="crew-card-logo-ring">
           ${c.logo_url
@@ -182,7 +205,10 @@ function renderCrewCard(c) {
       <p class="muted crew-card-desc">${escapeHtml(c.description)}</p>
       <div class="crew-card-footer">
         <span class="muted crew-card-members"><i data-lucide="users" class="icon-sm icon-inline"></i>${c._memberCount} member${c._memberCount === 1 ? '' : 's'}</span>
-        <a href="/crew/?name=${encodeURIComponent(c.name)}" class="btn btn-primary btn-sm">View Crew</a>
+        <div style="display:flex; gap:6px;">
+          <a href="/crew-compare/?a=${encodeURIComponent(c.name)}" class="btn btn-ghost btn-sm" title="Compare this crew" aria-label="Compare"><i data-lucide="swords" class="icon-sm"></i></a>
+          <a href="/crew/?name=${encodeURIComponent(c.name)}" class="btn btn-primary btn-sm">View Crew</a>
+        </div>
       </div>
     </div>
   `;

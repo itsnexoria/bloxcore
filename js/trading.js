@@ -13,6 +13,7 @@ let myWatchlist = new Set(); // item ids
 let myWatchlistAlerts = new Map(); // item_id -> { direction, target_value, triggered_at }
 let watchlistCategory = 'fruit';
 let listingLookup = new Map(); // id -> full listing row, for the Relist quick-duplicate action
+let reportingListingId = null;
 let valueHistoryCategory = 'fruit';
 
 onReady(async () => {
@@ -43,6 +44,13 @@ onReady(async () => {
       if (e.target.id === 'alert-modal') document.getElementById('alert-modal').classList.remove('open');
     });
     document.getElementById('alert-modal-save-btn').addEventListener('click', saveAlert);
+    document.getElementById('report-listing-close').addEventListener('click', () => {
+      document.getElementById('report-listing-modal').classList.remove('open');
+    });
+    document.getElementById('report-listing-modal').addEventListener('click', (e) => {
+      if (e.target.id === 'report-listing-modal') document.getElementById('report-listing-modal').classList.remove('open');
+    });
+    document.getElementById('report-listing-submit').addEventListener('click', submitListingReport);
     document.getElementById('alert-modal-clear-btn').addEventListener('click', clearAlert);
     document.getElementById('trading-tab-btn-browse').addEventListener('click', () => switchTradingTab('browse'));
     document.getElementById('trading-tab-btn-values').addEventListener('click', () => switchTradingTab('values'));
@@ -647,6 +655,7 @@ function renderListing(t) {
       <div class="trade-card-footer">
         <a href="/friends/?tab=messages&u=${encodeURIComponent(profile.username || '')}" class="btn btn-ghost btn-sm"><i data-lucide="mail" class="icon-sm icon-inline"></i>Message</a>
         <button type="button" class="btn btn-ghost btn-sm" data-repost-trade="${t.id}" title="Share to Feed" aria-label="Share to Feed"><i data-lucide="share-2" class="icon-sm icon-inline"></i></button>
+        ${!isOwner ? `<button type="button" class="btn btn-ghost btn-sm" data-report-listing="${t.id}" title="Report this listing" aria-label="Report"><i data-lucide="flag" class="icon-sm"></i></button>` : ''}
         <a href="/player/?u=${encodeURIComponent(profile.username || '')}" class="btn btn-primary btn-sm"><i data-lucide="repeat" class="icon-sm icon-inline"></i>Trade</a>
       </div>
     </div>
@@ -655,6 +664,9 @@ function renderListing(t) {
 
 function wireListingActions(root) {
   root = root || document;
+  root.querySelectorAll('[data-report-listing]').forEach(btn => {
+    btn.addEventListener('click', () => openReportModal(btn.dataset.reportListing));
+  });
   root.querySelectorAll('[data-relist-listing]').forEach(btn => {
     btn.addEventListener('click', () => {
       const t = listingLookup.get(btn.dataset.relistListing);
@@ -695,4 +707,46 @@ function wireListingActions(root) {
   root.querySelectorAll('[data-repost-trade]').forEach(btn => {
     btn.addEventListener('click', () => { window.location.href = `/feed/?repost_trade=${btn.dataset.repostTrade}`; });
   });
+}
+
+// Feeds the existing admin Reports queue (reports table, already fully built on the admin
+// side — target_type 'trade_listing' already has a recognized label/deep-link there). This
+// was the missing half: nothing anywhere on the site actually created a report row before.
+function openReportModal(listingId) {
+  if (!currentUser) { window.location.href = '/auth/'; return; }
+  reportingListingId = listingId;
+  document.getElementById('report-listing-reason').value = 'Scam attempt';
+  document.getElementById('report-listing-details').value = '';
+  document.getElementById('report-listing-error').style.display = 'none';
+  document.getElementById('report-listing-modal').classList.add('open');
+}
+
+async function submitListingReport() {
+  const errorEl = document.getElementById('report-listing-error');
+  errorEl.style.display = 'none';
+  const listing = listingLookup.get(reportingListingId);
+  const reason = document.getElementById('report-listing-reason').value;
+  const details = document.getElementById('report-listing-details').value.trim();
+
+  // Trade listings auto-expire/delete, so bake in enough context (poster + items) now —
+  // the report should still make sense to a mod even after the listing itself is gone.
+  const posterName = listing?.profiles?.username ? `@${listing.profiles.username}` : 'unknown poster';
+  const summary = `Reported listing by ${posterName} (id ${reportingListingId}). Reason: ${reason}.${details ? ` Details: ${details}` : ''}`;
+
+  const btn = document.getElementById('report-listing-submit');
+  btn.disabled = true;
+  const { error } = await sb.from('reports').insert({
+    reporter_id: currentUser.id,
+    target_type: 'trade_listing',
+    target_id: reportingListingId,
+    reason: summary,
+  });
+  btn.disabled = false;
+  if (error) {
+    errorEl.textContent = error.message;
+    errorEl.style.display = 'block';
+    return;
+  }
+  document.getElementById('report-listing-modal').classList.remove('open');
+  showToast('Report submitted — a mod will take a look.');
 }

@@ -136,6 +136,7 @@ async function render() {
         ${robloxUsername ? `<a href="https://www.roblox.com/users/profile?username=${encodeURIComponent(robloxUsername)}" target="_blank" rel="noopener noreferrer" class="btn btn-ghost btn-sm"><i data-lucide="external-link" class="icon-sm icon-inline"></i>${robloxUsername} on Roblox</a>` : ''}
         ${crew.discord_invite ? `<a href="${safeUrl(crew.discord_invite)}" target="_blank" rel="noopener noreferrer" class="btn btn-ghost btn-sm"><i data-lucide="message-circle" class="icon-sm icon-inline"></i>Join Discord</a>` : ''}
         ${actionHtml}
+        <a href="/crew-compare/?a=${encodeURIComponent(crew.name)}" class="btn btn-ghost btn-sm"><i data-lucide="swords" class="icon-sm icon-inline"></i>Compare</a>
         ${currentUser && !isLeader ? `<button type="button" class="btn btn-ghost btn-sm" id="report-crew-btn" title="Report"><i data-lucide="flag" class="icon-sm icon-inline"></i>Report</button>` : ''}
       </div>
     </div>
