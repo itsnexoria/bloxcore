@@ -108,6 +108,7 @@ function tierListPage(shell, fruits) {
   const body = `${pageHead(crumbs, 'Blox Fruits Value Tier List', 'Every fruit ranked by current community trading value.')}
 ${wrapSection(`
     <p>This tier list ranks fruits by what they're worth on the trading market, not by how strong they are in a fight. Tiers are set by each fruit's physical trading value and update whenever the values do. Click any fruit for its full value page, or use the <a href="/trade-calculator/">trade calculator</a> to check a specific trade.</p>
+    <p class="muted" style="font-size:0.85rem;">Also see the <a href="/blox-fruits-limited-tier-list/">limited</a> and <a href="/blox-fruits-gamepass-tier-list/">gamepass</a> tier lists.</p>
     ${adSlotTop()}
     ${rows}
     ${adSlotMiddle()}
@@ -116,6 +117,46 @@ ${wrapSection(`
 ${ctaSectionHtml({ heading: 'Know what your fruits are worth?', body: 'Create a free account to post trades, set price alerts, and track your own collection.' })}
 ${adSlotBottom()}`;
   write('blox-fruits-tier-list', renderPage(shell, { title, description, url, ld: [breadcrumbLd(crumbs)], body }));
+}
+
+// Limiteds and gamepasses have very different value ranges than fruits (a mid-tier limited is
+// worth more than a top-tier fruit), so the fruit-calibrated TIERS thresholds above don't
+// transfer. Bucket into 5 roughly-equal-sized groups by rank instead — scales to any category.
+function quintileTiers(items) {
+  const keys = ['S', 'A', 'B', 'C', 'D'];
+  const n = items.length;
+  const size = Math.ceil(n / 5);
+  return keys.map((key, i) => {
+    const slice = items.slice(i * size, Math.min(n, (i + 1) * size));
+    return { key, min: slice.length ? slice[slice.length - 1].regular_value : 0, items: slice };
+  }).filter(t => t.items.length);
+}
+
+function categoryTierListPage(shell, items, { urlSlug, title, description, pageTitle, pageSub, itemLabel }) {
+  const url = `${SITE}/${urlSlug}/`;
+  const crumbs = [{ name: 'Home', url: `${SITE}/` }, { name: 'Values', url: `${SITE}/blox-fruits-values/` }, { name: pageTitle, url }];
+  const tiers = quintileTiers(items);
+  const rows = tiers.map(t => `
+    <div class="tier-row">
+      <div class="tier-label tier-${t.key.toLowerCase()}">${t.key}</div>
+      <div class="tier-body">
+        <p class="muted" style="margin:0 0 8px; font-size:0.82rem;">${formatValue(t.min)}+ each.</p>
+        <div class="tier-chips">${t.items.map(chip).join('')}</div>
+      </div>
+    </div>`).join('');
+  const body = `${pageHead(crumbs, pageTitle, pageSub)}
+${wrapSection(`
+    <p>Ranked by current community trading value, split into five roughly equal tiers — not a measure of in-game usefulness. Click any ${itemLabel} for its full value page, or use the <a href="/trade-calculator/">trade calculator</a> to check a specific trade.</p>
+    <p class="muted" style="font-size:0.85rem;">Also see the <a href="/blox-fruits-tier-list/">fruit</a>, <a href="/blox-fruits-limited-tier-list/">limited</a> and <a href="/blox-fruits-gamepass-tier-list/">gamepass</a> tier lists.</p>
+    ${adSlotTop()}
+    ${rows}
+    ${adSlotMiddle()}
+    <h2 style="font-size:1.3rem; margin-top:28px;">How the tiers work</h2>
+    <p>Each tier holds about a fifth of all ${items.length} ${itemLabel}s with a known value, ranked highest to lowest — S is the top fifth, D the bottom. Values come from the community and shift with demand, so check the live <a href="/trading/">Trading board</a> before agreeing to a trade. You can also <a href="/blox-fruits-compare/">compare two items</a> side by side.</p>`)}
+${ctaSectionHtml({ heading: 'Know what your items are worth?', body: 'Create a free account to post trades, set price alerts, and track your own collection.' })}
+${adSlotBottom()}`;
+  write(urlSlug, renderPage(shell, { title, description, url, ld: [breadcrumbLd(crumbs)], body }));
+  return url;
 }
 
 // ---------------- Compare pages ----------------
@@ -128,17 +169,21 @@ function ratioCopy(a, b, av, bv, label) {
   return `By ${label} value, ${hi.name} is worth about ${r >= 10 ? Math.round(r) : r.toFixed(1)}× ${lo.name}${each}.`;
 }
 
-function comparePage(shell, a, b) {
-  const slug = `${slugify(a.name)}-vs-${slugify(b.name)}`;
+function comparePage(shell, a, b, opts = {}) {
+  const prefix = opts.urlPrefix || ''; // 'limited-' / 'gamepass-' — keeps every category's slugs collision-proof
+  const slug = `${prefix}${slugify(a.name)}-vs-${slugify(b.name)}`;
   const url = `${SITE}/blox-fruits-compare/${slug}/`;
-  const winner = a.regular_value >= b.regular_value ? a : b;
+  const tied = a.regular_value === b.regular_value;
+  const winner = tied ? null : (a.regular_value > b.regular_value ? a : b);
   const title = `${a.name} vs ${b.name} Value in Blox Fruits (2026) — Which Is Worth More? | BloxCore`;
-  const description = `${a.name} (${formatValue(a.regular_value)}) vs ${b.name} (${formatValue(b.regular_value)}) in Blox Fruits: compare physical and permanent value, demand and trend. ${winner.name} is worth more.`;
+  const description = `${a.name} (${formatValue(a.regular_value)}) vs ${b.name} (${formatValue(b.regular_value)}) in Blox Fruits: compare physical and permanent value, demand and trend. ${tied ? "They're worth the same." : `${winner.name} is worth more.`}`;
   const crumbs = [{ name: 'Home', url: `${SITE}/` }, { name: 'Compare', url: `${SITE}/blox-fruits-compare/` }, { name: `${a.name} vs ${b.name}`, url }];
   const cell = (f, k) => k === 'reg' ? formatValue(f.regular_value) : k === 'perm' ? formatValue(f.permanent_value) : k === 'rar' ? esc(f.rarity || '—') : k === 'dem' ? (f.demand != null ? `${f.demand}/10` : '—') : esc(TREND_LABEL[f.trend] || '—');
   const rowsDef = [['Physical value', 'reg'], ['Permanent value', 'perm'], ['Rarity', 'rar'], ['Demand', 'dem'], ['Trend', 'trend']];
   const icon = f => f.icon_url ? `<img src="${esc(f.icon_url)}" alt="${esc(f.name)}" width="56" height="56" style="object-fit:contain;">` : '';
-  const answer = `${winner.name} is worth more by physical value (${formatValue(winner.regular_value)} vs ${formatValue(winner === a ? b.regular_value : a.regular_value)}).`;
+  const answer = tied
+    ? `${a.name} and ${b.name} are worth the same by physical value (${formatValue(a.regular_value)}).`
+    : `${winner.name} is worth more by physical value (${formatValue(winner.regular_value)} vs ${formatValue(winner === a ? b.regular_value : a.regular_value)}).`;
   const body = `${pageHead(crumbs, `${a.name} vs ${b.name} Value`, 'Physical and permanent value, demand and trend side by side.')}
 ${wrapSection(`
     ${adSlotTop()}
@@ -156,24 +201,32 @@ ${wrapSection(`
 ${ctaSectionHtml({ heading: `Trading one for the other?`, body: 'Create a free account to run it past other traders on the Trading board first.' })}
 ${adSlotBottom()}`;
   const faq = { '@context': 'https://schema.org', '@type': 'FAQPage', mainEntity: [{ '@type': 'Question', name: `Which is worth more, ${a.name} or ${b.name} in Blox Fruits?`, acceptedAnswer: { '@type': 'Answer', text: answer } }] };
-  write(`blox-fruits-compare/${slug}`, renderPage(shell, { title, description, url, image: winner.icon_url, ld: [faq, breadcrumbLd(crumbs)], body }));
+  write(`blox-fruits-compare/${slug}`, renderPage(shell, { title, description, url, image: (winner || a).icon_url, ld: [faq, breadcrumbLd(crumbs)], body }));
   return url;
 }
 
-function compareHub(shell, top, pairUrls) {
-  const url = `${SITE}/blox-fruits-compare/`;
-  const title = 'Compare Blox Fruits Values (2026) — Fruit vs Fruit | BloxCore';
-  const description = `Compare the value of the top ${top.length} Blox Fruits side by side — physical and permanent value, demand and trend for every pairing.`;
-  const crumbs = [{ name: 'Home', url: `${SITE}/` }, { name: 'Compare', url }];
+function categorySectionHtml(sectionLabel, top, urlPrefix) {
   const lists = top.map(f => `<div><p style="font-weight:700; margin:0 0 6px;">${esc(f.name)}</p><ul style="list-style:none; padding:0; margin:0; display:flex; flex-direction:column; gap:4px;">${
     top.filter(o => o !== f).map(o => {
       const [x, y] = top.indexOf(f) < top.indexOf(o) ? [f, o] : [o, f];
-      return `<li><a href="/blox-fruits-compare/${slugify(x.name)}-vs-${slugify(y.name)}/" class="muted" style="font-size:0.85rem;">${esc(f.name)} vs ${esc(o.name)}</a></li>`;
+      return `<li><a href="/blox-fruits-compare/${urlPrefix}${slugify(x.name)}-vs-${slugify(y.name)}/" class="muted" style="font-size:0.85rem;">${esc(f.name)} vs ${esc(o.name)}</a></li>`;
     }).join('')}</ul></div>`).join('');
-  const body = `${pageHead(crumbs, 'Compare Blox Fruits Values', `Head-to-head value comparisons for the top ${top.length} fruits.`)}
-${wrapSection(`<p>Pick any two of the most valuable fruits to see which is worth more. For anything else, the <a href="/trade-calculator/">trade calculator</a> handles any combination of items, and the <a href="/blox-fruits-tier-list/">tier list</a> ranks every fruit.</p>
+  return `<h2 style="font-size:1.2rem; margin:28px 0 12px;">${esc(sectionLabel)}</h2>
+    <div class="grid" style="grid-template-columns:repeat(auto-fill, minmax(200px, 1fr)); gap:22px;">${lists}</div>`;
+}
+
+// sections: [{ label, items, urlPrefix }, ...] — one grid per category (fruits/limiteds/gamepasses)
+function compareHub(shell, sections) {
+  const url = `${SITE}/blox-fruits-compare/`;
+  const totalItems = sections.reduce((n, s) => n + s.items.length, 0);
+  const title = 'Compare Blox Fruits Values (2026) — Fruits, Limiteds & Gamepasses | BloxCore';
+  const description = `Compare the value of the top ${totalItems} Blox Fruits items side by side — fruits, limiteds and gamepasses, with physical/permanent value, demand and trend.`;
+  const crumbs = [{ name: 'Home', url: `${SITE}/` }, { name: 'Compare', url }];
+  const sectionsHtml = sections.map(s => categorySectionHtml(s.label, s.items, s.urlPrefix)).join('\n');
+  const body = `${pageHead(crumbs, 'Compare Blox Fruits Values', `Head-to-head value comparisons for the top items in each category.`)}
+${wrapSection(`<p>Pick any two of the most valuable items to see which is worth more. For anything else, the <a href="/trade-calculator/">trade calculator</a> handles any combination of items, and the <a href="/blox-fruits-tier-list/">tier list</a> ranks every fruit.</p>
     ${adSlotTop()}
-    <div class="grid" style="grid-template-columns:repeat(auto-fill, minmax(200px, 1fr)); gap:22px; margin-top:20px;">${lists}</div>
+    ${sectionsHtml}
     ${adSlotMiddle()}`)}
 ${ctaSectionHtml({ heading: 'Ready to trade?', body: 'Create a free account to post a listing and get real offers.' })}
 ${adSlotBottom()}`;
@@ -214,29 +267,71 @@ ${adSlotBottom()}`;
   write('blox-fruits-trading-guide', renderPage(shell, { title, description, url, ld: [faq, breadcrumbLd(crumbs)], body }));
 }
 
+async function fetchCategory(category) {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/bf_items?category=eq.${category}&regular_value=not.is.null&select=id,name,category,rarity,regular_value,permanent_value,icon_url,demand,trend&order=regular_value.desc`, {
+    headers: { apikey: SUPABASE_ANON_KEY, Authorization: `Bearer ${SUPABASE_ANON_KEY}` },
+  });
+  if (!res.ok) throw new Error(`Supabase fetch failed (${category}): ${res.status} ${await res.text()}`);
+  return res.json();
+}
+
+function pairUpTo(items, n) {
+  const top = items.slice(0, n);
+  const pairs = [];
+  for (let i = 0; i < top.length; i++) for (let j = i + 1; j < top.length; j++) pairs.push([top[i], top[j]]);
+  return { top, pairs };
+}
+
 async function main() {
   const shell = loadShell(SITE_ROOT);
   let items;
   if (LOCAL_JSON) items = JSON.parse(fs.readFileSync(LOCAL_JSON, 'utf8'));
-  else {
-    const res = await fetch(`${SUPABASE_URL}/rest/v1/bf_items?category=eq.fruit&regular_value=not.is.null&select=id,name,category,rarity,regular_value,permanent_value,icon_url,demand,trend&order=regular_value.desc`, {
-      headers: { apikey: SUPABASE_ANON_KEY, Authorization: `Bearer ${SUPABASE_ANON_KEY}` },
-    });
-    if (!res.ok) throw new Error(`Supabase fetch failed: ${res.status} ${await res.text()}`);
-    items = await res.json();
-  }
-  const fruits = items.filter(i => i.category === 'fruit' && i.regular_value).sort((x, y) => y.regular_value - x.regular_value);
-  console.log(`${fruits.length} fruits with values.`);
+  else items = [...await fetchCategory('fruit'), ...await fetchCategory('limited'), ...await fetchCategory('gamepass')];
+
+  const byCategory = cat => items.filter(i => i.category === cat && i.regular_value).sort((x, y) => y.regular_value - x.regular_value);
+  const fruits = byCategory('fruit');
+  const limiteds = byCategory('limited');
+  const gamepasses = byCategory('gamepass');
+  console.log(`${fruits.length} fruits, ${limiteds.length} limiteds, ${gamepasses.length} gamepasses with values.`);
 
   const urls = [];
   calculatorPage(shell); urls.push(`${SITE}/trade-calculator/`);
-  tierListPage(shell, fruits); urls.push(`${SITE}/blox-fruits-tier-list/`);
   guidePage(shell); urls.push(`${SITE}/blox-fruits-trading-guide/`);
 
-  const top = fruits.slice(0, COMPARE_TOP_N);
-  const pairUrls = [];
-  for (let i = 0; i < top.length; i++) for (let j = i + 1; j < top.length; j++) pairUrls.push(comparePage(shell, top[i], top[j]));
-  urls.push(compareHub(shell, top, pairUrls), ...pairUrls);
+  tierListPage(shell, fruits); urls.push(`${SITE}/blox-fruits-tier-list/`);
+  urls.push(categoryTierListPage(shell, limiteds, {
+    urlSlug: 'blox-fruits-limited-tier-list',
+    title: 'Blox Fruits Limited Items Tier List (2026) — Skins & Limiteds Ranked | BloxCore',
+    description: `Blox Fruits limited items ranked S to D by current community trading value — all ${limiteds.length} tracked skins and limiteds.`,
+    pageTitle: 'Blox Fruits Limited Items Tier List',
+    pageSub: 'Every tracked limited/skin ranked by current community trading value.',
+    itemLabel: 'limited',
+  }));
+  urls.push(categoryTierListPage(shell, gamepasses, {
+    urlSlug: 'blox-fruits-gamepass-tier-list',
+    title: 'Blox Fruits Gamepasses Tier List (2026) — Ranked by Value | BloxCore',
+    description: `Blox Fruits gamepasses ranked S to D by current community trading value — all ${gamepasses.length} tracked gamepasses.`,
+    pageTitle: 'Blox Fruits Gamepasses Tier List',
+    pageSub: 'Every tracked gamepass ranked by current community trading value.',
+    itemLabel: 'gamepass',
+  }));
+
+  // Fruits keep their existing top-12/66-pair footprint untouched (same URLs as before).
+  // Limiteds get top 10 (45 pairs); gamepasses are few enough (10) to compare all of them.
+  const fruitSet = pairUpTo(fruits, COMPARE_TOP_N);
+  const limitedSet = pairUpTo(limiteds, 10);
+  const gamepassSet = pairUpTo(gamepasses, gamepasses.length);
+
+  const pairUrls = [
+    ...fruitSet.pairs.map(([a, b]) => comparePage(shell, a, b)),
+    ...limitedSet.pairs.map(([a, b]) => comparePage(shell, a, b, { urlPrefix: 'limited-' })),
+    ...gamepassSet.pairs.map(([a, b]) => comparePage(shell, a, b, { urlPrefix: 'gamepass-' })),
+  ];
+  urls.push(compareHub(shell, [
+    { label: 'Fruits', items: fruitSet.top, urlPrefix: '' },
+    { label: 'Limiteds', items: limitedSet.top, urlPrefix: 'limited-' },
+    { label: 'Gamepasses', items: gamepassSet.top, urlPrefix: 'gamepass-' },
+  ]), ...pairUrls);
 
   fs.writeFileSync(path.join(SITE_ROOT, 'guide-page-sitemap-urls.txt'), urls.join('\n') + '\n');
   console.log(`Wrote ${urls.length} pages. URL list: guide-page-sitemap-urls.txt`);
