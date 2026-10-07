@@ -234,7 +234,9 @@ async function reportContent(targetType, targetId) {
   if (!reason || !reason.trim()) return;
   const { data: { session } } = await sb.auth.getSession();
   if (!session) { showToast('Sign in to report content.', true); return; }
-  const { error } = await sb.from('reports').insert({ target_type: targetType, target_id: targetId, reason: reason.trim(), reporter_id: session.user.id });
+  // Goes through the submit_report RPC (not a raw insert) so every caller gets the same
+  // rate limit (5/hour) and banned-user check, in one place.
+  const { error } = await sb.rpc('submit_report', { p_target_type: targetType, p_target_id: targetId, p_reason: reason.trim() });
   if (error) { showToast(error.message, true); return; }
   showToast('Reported — staff will take a look.');
 }

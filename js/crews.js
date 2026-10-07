@@ -139,8 +139,13 @@ async function loadCrews() {
 // just those crews — scoped per page instead of pulling every crew's members at once.
 async function fetchCrewsPage(offset, pageSize) {
   let query = sb.from('crews').select('*').order('created_at', { ascending: false });
+  // Recruiting crews are sorted by fewest members (neediest first) once counts are known
+  // below, which only makes sense across the full recruiting set — so fetch them all in one
+  // go rather than one page at a time (a recruitment board is for scanning, not paging).
   if (recruitingOnly) query = query.eq('recruiting', true);
-  const { data, error } = await query.range(offset, offset + pageSize - 1);
+  const { data, error } = recruitingOnly
+    ? await query.limit(200)
+    : await query.range(offset, offset + pageSize - 1);
   if (error) {
     logError(error);
     return null;
@@ -155,6 +160,7 @@ async function fetchCrewsPage(offset, pageSize) {
     countByCrew[m.crew_id] = (countByCrew[m.crew_id] || 0) + 1;
   });
   data.forEach(c => { c._bounty = bountyByCrew[c.id] || 0; c._memberCount = countByCrew[c.id] || 0; });
+  if (recruitingOnly) data.sort((a, b) => a._memberCount - b._memberCount);
   return data;
 }
 
@@ -203,6 +209,7 @@ function renderCrewCard(c) {
         </div>
       </div>
       <p class="muted crew-card-desc">${escapeHtml(c.description)}</p>
+      ${c.recruiting && (c.recruit_message || c.min_level) ? `<p style="margin:0 0 10px; font-size:0.8rem; color:var(--sea);">${c.min_level ? `Min level ${c.min_level}${c.recruit_message ? ' · ' : ''}` : ''}${c.recruit_message ? escapeHtml(c.recruit_message) : ''}</p>` : ''}
       <div class="crew-card-footer">
         <span class="muted crew-card-members"><i data-lucide="users" class="icon-sm icon-inline"></i>${c._memberCount} member${c._memberCount === 1 ? '' : 's'}</span>
         <div style="display:flex; gap:6px;">

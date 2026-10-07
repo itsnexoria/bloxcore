@@ -1,0 +1,61 @@
+# Keeps the static value/tier-list/compare/calculator pages in sync with the live database.
+#
+# These pages (blox-fruits-values/*, blox-fruits-*-tier-list/, blox-fruits-compare/*,
+# trade-calculator/, blox-fruits-trading-guide/) are plain static HTML baked by the generator
+# scripts in scripts/ — they do NOT read the database at request time, so nothing updates them
+# unless something re-runs those scripts and the result gets deployed. This workflow is that
+# "something": on a schedule, it re-runs the generators against the live bf_items table and,
+# only if the output actually changed, commits and pushes the result. Since Cloudflare is
+# already watching this repo and deploys on every push (see the build log — "Cloning
+# repository..." → "npx wrangler deploy"), a push from here triggers a real redeploy with no
+# extra Cloudflare-side setup.
+#
+# Runs daily at 06:00 UTC by default — Blox Fruits values don't move minute to minute, so this
+# is a starting point, not a hard requirement; adjust the cron line below freely. Can also be
+# triggered manually any time from the Actions tab ("Run workflow").
+#
+# Requires nothing beyond what's already in this repo: the generator scripts call the public
+# Supabase REST API with the anon key that's already hardcoded in them (the same key already
+# shipped to every visitor's browser in js/supabase-client.js, so this isn't a new secret).
+# The one repo setting worth checking once: Settings → Actions → General → Workflow permissions
+# → "Read and write permissions", so this workflow is allowed to push its own commits.
+
+name: Regenerate value pages
+
+on:
+  schedule:
+    - cron: '0 6 * * *'
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+jobs:
+  regenerate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repo
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Regenerate item value pages
+        run: node scripts/generate-item-pages.mjs .
+
+      - name: Regenerate tier-list, compare, calculator & guide pages
+        run: node scripts/generate-guide-pages.mjs .
+
+      - name: Commit and push if anything changed
+        run: |
+          git config user.name "bloxcore-bot"
+          git config user.email "actions@users.noreply.github.com"
+          if git diff --quiet; then
+            echo "No value changes — nothing to deploy."
+            exit 0
+          fi
+          git add -A
+          git commit -m "chore: auto-regenerate value pages [skip ci]"
+          git push

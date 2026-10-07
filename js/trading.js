@@ -735,12 +735,7 @@ async function submitListingReport() {
 
   const btn = document.getElementById('report-listing-submit');
   btn.disabled = true;
-  const { error } = await sb.from('reports').insert({
-    reporter_id: currentUser.id,
-    target_type: 'trade_listing',
-    target_id: reportingListingId,
-    reason: summary,
-  });
+  const { error } = await sb.rpc('submit_report', { p_target_type: 'trade_listing', p_target_id: reportingListingId, p_reason: summary });
   btn.disabled = false;
   if (error) {
     errorEl.textContent = error.message;

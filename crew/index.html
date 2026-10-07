@@ -205,6 +205,13 @@
         <span>Recruiting — show this crew on the "Looking for Crew" board</span>
       </label>
 
+      <div id="edit-crew-recruit-fields" style="display:none; margin-top:10px;">
+        <label for="edit-crew-min-level">Recommended Min Level (optional)</label>
+        <input type="number" id="edit-crew-min-level" min="0" max="9999" placeholder="e.g. 200">
+        <label for="edit-crew-recruit-message" style="margin-top:10px;">Recruitment Pitch (optional)</label>
+        <input type="text" id="edit-crew-recruit-message" maxlength="150" placeholder="e.g. Active PvPers welcome, daily wars">
+      </div>
+
       <p class="field-error" id="edit-crew-error" style="display:none;"></p>
       <div style="display:flex; gap:10px;">
         <button type="button" class="btn btn-ghost" id="edit-crew-cancel">Cancel</button>

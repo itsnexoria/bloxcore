@@ -5,7 +5,11 @@
 //   /blox-fruits-trading-guide/
 //
 // Usage: node scripts/generate-guide-pages.mjs <siteRoot> [local-items.json]
-// Re-run whenever item values change, then redeploy the output. Pure static generator.
+//
+// These pages are plain static HTML — nothing re-runs this automatically on its own.
+// .github/workflows/regenerate-value-pages.yml runs it on a schedule (and on manual
+// dispatch) and pushes the result, which triggers a real Cloudflare redeploy; that's the
+// "automatic" part. You can still run it by hand any time for an immediate refresh.
 
 import fs from 'node:fs';
 import path from 'node:path';
@@ -77,6 +81,7 @@ function calculatorPage(shell) {
     <div style="display:flex; gap:8px; justify-content:center; flex-wrap:wrap; margin-top:14px;">
       <button type="button" class="btn btn-ghost btn-sm" id="calc-swap"><i data-lucide="arrow-left-right" class="icon-sm icon-inline"></i>Swap sides</button>
       <button type="button" class="btn btn-ghost btn-sm" id="calc-share"><i data-lucide="link" class="icon-sm icon-inline"></i>Copy link</button>
+      <button type="button" class="btn btn-ghost btn-sm" id="calc-copy-text"><i data-lucide="clipboard" class="icon-sm icon-inline"></i>Copy as Text</button>
       <button type="button" class="btn btn-ghost btn-sm" id="calc-clear">Clear</button>
     </div>
     <p class="muted" style="text-align:center; font-size:0.8rem; margin-top:18px;">Values are community estimates and only compare raw value — demand and trend aren't priced in. Within ±8% counts as roughly fair. BloxCore doesn't verify or guarantee any trade. See the <a href="/blox-fruits-trading-guide/">trading guide</a> and the <a href="/blox-fruits-tier-list/">value tier list</a>.</p>

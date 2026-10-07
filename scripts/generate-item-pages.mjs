@@ -2,8 +2,10 @@
 // /blox-fruits-values/<slug>/index.html — each targets an exact-match search like
 // "blox fruits dragon fruit value". Run with: node generate-item-pages.mjs
 //
-// Re-run this any time item values change in the DB and redeploy the output —
-// it's a plain static generator, not a build step wired into anything else.
+// These pages are plain static HTML — nothing re-runs this automatically on its own.
+// .github/workflows/regenerate-value-pages.yml runs it on a schedule (and on manual
+// dispatch) and pushes the result, which triggers a real Cloudflare redeploy; that's the
+// "automatic" part. You can still run it by hand any time for an immediate refresh.
 
 import fs from 'node:fs';
 import path from 'node:path';

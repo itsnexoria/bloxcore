@@ -72,6 +72,22 @@ function calcUpdate() {
   calcSyncUrl();
 }
 
+// Plain-text summary for pasting into Discord or a trade chat — a link only works for people
+// already on BloxCore; this works anywhere the deal is actually being discussed.
+function buildShareText() {
+  const give = calcTotal('give'), get = calcTotal('get');
+  if (!calcSides.give.length || !calcSides.get.length) return null;
+  const side = s => calcSides[s].map(e => `${e.item.name}${e.item.category === 'fruit' ? ` (${e.valueType === 'permanent' ? 'Permanent' : 'Physical'})` : ''}`).join(', ');
+  let verdict;
+  if (!give || !get) verdict = 'Unpriced item(s) included — can\'t judge fairness.';
+  else {
+    const diff = Math.round(((get - give) / give) * 100);
+    verdict = Math.abs(diff) <= FAIR_THRESHOLD_PCT ? 'Roughly fair.'
+      : diff > 0 ? `In your favor by ${diff}%.` : `You'd be overpaying by ${Math.abs(diff)}%.`;
+  }
+  return `BloxCore Trade Check\nGive: ${side('give')} (${formatValue(give)})\nGet: ${side('get')} (${formatValue(get)})\nVerdict: ${verdict}\n${location.href}`;
+}
+
 function calcSyncUrl() {
   const params = new URLSearchParams();
   if (calcSides.give.length) params.set('give', calcSides.give.map(e => e.item.name + (e.valueType === 'permanent' ? ':p' : '')).join(','));
@@ -150,5 +166,12 @@ document.addEventListener('DOMContentLoaded', async () => {
   document.getElementById('calc-share').addEventListener('click', async () => {
     try { await navigator.clipboard.writeText(location.href); showToast('Link copied!'); }
     catch { showToast('Copy the address bar to share this trade.'); }
+  });
+
+  document.getElementById('calc-copy-text').addEventListener('click', async () => {
+    const text = buildShareText();
+    if (!text) { showToast('Add items to both sides first.', true); return; }
+    try { await navigator.clipboard.writeText(text); showToast('Copied — paste it in Discord or a trade chat.'); }
+    catch { showToast('Clipboard access blocked — try copying manually.', true); }
   });
 });

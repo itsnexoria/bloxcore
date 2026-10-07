@@ -127,6 +127,11 @@ async function render() {
               <span style="opacity:0.5;">·</span>
               <i data-lucide="calendar" class="icon-sm"></i>founded ${formatDate(crew.created_at)}
             </p>
+            ${crew.recruiting ? `<div style="margin-top:8px; padding:10px 14px; background:rgb(52 211 153 / 0.08); border:1px solid rgb(52 211 153 / 0.25); border-radius:10px; max-width:420px;">
+              ${members.length < 30 ? `<p style="margin:0; font-size:0.82rem; font-weight:700; color:var(--sea);">${30 - members.length} spot${30 - members.length === 1 ? '' : 's'} open</p>` : ''}
+              ${crew.min_level ? `<p class="muted" style="margin:2px 0 0; font-size:0.8rem;">Recommended min level: ${crew.min_level}</p>` : ''}
+              ${crew.recruit_message ? `<p style="margin:4px 0 0; font-size:0.85rem;">${escapeHtml(crew.recruit_message)}</p>` : ''}
+            </div>` : ''}
           </div>
         </div>
         ${bountyHtml}
@@ -181,6 +186,9 @@ async function render() {
   document.getElementById('delete-crew-btn')?.addEventListener('click', handleDelete);
   document.getElementById('report-crew-btn')?.addEventListener('click', () => reportContent('crew', crew.id));
   document.getElementById('edit-crew-btn')?.addEventListener('click', openEditModal);
+  document.getElementById('edit-crew-recruiting')?.addEventListener('change', (e) => {
+    document.getElementById('edit-crew-recruit-fields').style.display = e.target.checked ? 'block' : 'none';
+  });
   document.getElementById('edit-crew-logo-file')?.addEventListener('change', handleCrewLogoSelect);
   document.getElementById('edit-crew-banner-file')?.addEventListener('change', handleCrewBannerSelect);
   document.getElementById('add-member-form')?.addEventListener('submit', handleAddMember);
@@ -486,6 +494,9 @@ function openEditModal() {
   document.getElementById('edit-crew-roblox').value = crew.roblox_username || '';
   document.getElementById('edit-crew-discord').value = crew.discord_invite || '';
   document.getElementById('edit-crew-recruiting').checked = !!crew.recruiting;
+  document.getElementById('edit-crew-min-level').value = crew.min_level ?? '';
+  document.getElementById('edit-crew-recruit-message').value = crew.recruit_message || '';
+  document.getElementById('edit-crew-recruit-fields').style.display = crew.recruiting ? 'block' : 'none';
   document.getElementById('edit-crew-error').style.display = 'none';
   document.getElementById('edit-crew-modal').style.display = 'flex';
 }
@@ -576,6 +587,10 @@ async function handleEditCrew(e) {
     roblox_username: document.getElementById('edit-crew-roblox').value.trim() || null,
     discord_invite: document.getElementById('edit-crew-discord').value.trim() || null,
     recruiting: document.getElementById('edit-crew-recruiting').checked,
+    min_level: document.getElementById('edit-crew-recruiting').checked && document.getElementById('edit-crew-min-level').value
+      ? parseInt(document.getElementById('edit-crew-min-level').value, 10) : null,
+    recruit_message: document.getElementById('edit-crew-recruiting').checked
+      ? (document.getElementById('edit-crew-recruit-message').value.trim() || null) : null,
   };
 
   if (updates.discord_invite && safeUrl(updates.discord_invite) === '#') {
