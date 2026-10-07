@@ -6,6 +6,7 @@ Disallow: /profile/
 Disallow: /settings/
 Disallow: /auth/
 Disallow: /messages/
+Disallow: /chat/
 Disallow: /onboarding/
 Disallow: /appeal/
 Disallow: /notifications/

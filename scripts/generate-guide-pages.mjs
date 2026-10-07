@@ -50,7 +50,11 @@ const pageHead = (crumbs, h1, sub) => `
 
 const wrapSection = inner => `<section class="section"><div class="container" style="max-width:820px; line-height:1.75; font-size:0.96rem;">${inner}</div></section>`;
 
-const chip = f => `<a href="/blox-fruits-values/${slugify(f.name)}/" class="tier-chip">${f.icon_url ? `<img src="${esc(f.icon_url)}" alt="" loading="lazy" width="34" height="34">` : ''}<span>${esc(f.name)}</span><small class="muted">${formatValue(f.regular_value)}</small></a>`;
+// Item pages are generated under /blox-fruits-values/<slug>/ from the items table, where the fruit is "Magnet Fruit" —
+// compare data calls it "Magnet", so alias it for value-page links only (compare slugs stay as-is).
+const VALUE_SLUG_ALIAS = { magnet: 'magnet-fruit' };
+const valueSlug = n => VALUE_SLUG_ALIAS[slugify(n)] || slugify(n);
+const chip = f => `<a href="/blox-fruits-values/${valueSlug(f.name)}/" class="tier-chip">${f.icon_url ? `<img src="${esc(f.icon_url)}" alt="" loading="lazy" width="34" height="34">` : ''}<span>${esc(f.name)}</span><small class="muted">${formatValue(f.regular_value)}</small></a>`;
 
 // ---------------- Trade calculator ----------------
 function calculatorPage(shell) {
@@ -194,7 +198,7 @@ ${wrapSection(`
     ${adSlotTop()}
     <div class="panel" style="overflow-x:auto;">
       <table class="compare-table">
-        <thead><tr><th></th><th><a href="/blox-fruits-values/${slugify(a.name)}/">${icon(a)}<br>${esc(a.name)}</a></th><th><a href="/blox-fruits-values/${slugify(b.name)}/">${icon(b)}<br>${esc(b.name)}</a></th></tr></thead>
+        <thead><tr><th></th><th><a href="/blox-fruits-values/${valueSlug(a.name)}/">${icon(a)}<br>${esc(a.name)}</a></th><th><a href="/blox-fruits-values/${valueSlug(b.name)}/">${icon(b)}<br>${esc(b.name)}</a></th></tr></thead>
         <tbody>${rowsDef.map(([label, k]) => `<tr><th scope="row">${label}</th><td>${cell(a, k)}</td><td>${cell(b, k)}</td></tr>`).join('')}</tbody>
       </table>
     </div>

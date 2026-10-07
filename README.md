@@ -40,7 +40,6 @@ bloxcore/
     ├── dashboard.js                  dashboard page logic
     ├── challenges.js                 challenges page logic
     ├── leaderboard.js                leaderboard page logic
-    ├── activity.js                   home page live activity feed (realtime)
     ├── chat.js                       global chat logic (realtime)
     ├── giveaways.js                  public giveaways page logic
     ├── crews.js                      crews browse + team leaderboard + create
