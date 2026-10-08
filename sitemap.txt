@@ -65,6 +65,7 @@ https://bloxcores.com/blox-fruits-values/lime-blade/
 https://bloxcores.com/blox-fruits-values/love/
 https://bloxcores.com/blox-fruits-values/magma/
 https://bloxcores.com/blox-fruits-values/magnet-fruit/
+https://bloxcores.com/blox-fruits-values/magnet/
 https://bloxcores.com/blox-fruits-values/mammoth/
 https://bloxcores.com/blox-fruits-values/matrix-eagle/
 https://bloxcores.com/blox-fruits-values/meme-fruit/
@@ -128,6 +129,7 @@ https://bloxcores.com/blox-fruits-compare/east-dragon-vs-dough/
 https://bloxcores.com/blox-fruits-compare/east-dragon-vs-gas/
 https://bloxcores.com/blox-fruits-compare/east-dragon-vs-kitsune/
 https://bloxcores.com/blox-fruits-compare/east-dragon-vs-lightning/
+https://bloxcores.com/blox-fruits-compare/east-dragon-vs-magnet-fruit/
 https://bloxcores.com/blox-fruits-compare/east-dragon-vs-magnet/
 https://bloxcores.com/blox-fruits-compare/east-dragon-vs-t-rex/
 https://bloxcores.com/blox-fruits-compare/east-dragon-vs-tiger/
@@ -148,11 +150,20 @@ https://bloxcores.com/blox-fruits-compare/kitsune-vs-yeti/
 https://bloxcores.com/blox-fruits-compare/lightning-vs-dough/
 https://bloxcores.com/blox-fruits-compare/lightning-vs-t-rex/
 https://bloxcores.com/blox-fruits-compare/lightning-vs-venom/
+https://bloxcores.com/blox-fruits-compare/magnet-fruit-vs-control/
+https://bloxcores.com/blox-fruits-compare/magnet-fruit-vs-dough/
+https://bloxcores.com/blox-fruits-compare/magnet-fruit-vs-gas/
+https://bloxcores.com/blox-fruits-compare/magnet-fruit-vs-kitsune/
+https://bloxcores.com/blox-fruits-compare/magnet-fruit-vs-lightning/
+https://bloxcores.com/blox-fruits-compare/magnet-fruit-vs-tiger/
+https://bloxcores.com/blox-fruits-compare/magnet-fruit-vs-venom/
+https://bloxcores.com/blox-fruits-compare/magnet-fruit-vs-yeti/
 https://bloxcores.com/blox-fruits-compare/magnet-vs-control/
 https://bloxcores.com/blox-fruits-compare/magnet-vs-dough/
 https://bloxcores.com/blox-fruits-compare/magnet-vs-gas/
 https://bloxcores.com/blox-fruits-compare/magnet-vs-kitsune/
 https://bloxcores.com/blox-fruits-compare/magnet-vs-lightning/
+https://bloxcores.com/blox-fruits-compare/magnet-vs-magnet-fruit/
 https://bloxcores.com/blox-fruits-compare/magnet-vs-t-rex/
 https://bloxcores.com/blox-fruits-compare/magnet-vs-tiger/
 https://bloxcores.com/blox-fruits-compare/magnet-vs-venom/
@@ -169,6 +180,7 @@ https://bloxcores.com/blox-fruits-compare/west-dragon-vs-east-dragon/
 https://bloxcores.com/blox-fruits-compare/west-dragon-vs-gas/
 https://bloxcores.com/blox-fruits-compare/west-dragon-vs-kitsune/
 https://bloxcores.com/blox-fruits-compare/west-dragon-vs-lightning/
+https://bloxcores.com/blox-fruits-compare/west-dragon-vs-magnet-fruit/
 https://bloxcores.com/blox-fruits-compare/west-dragon-vs-magnet/
 https://bloxcores.com/blox-fruits-compare/west-dragon-vs-t-rex/
 https://bloxcores.com/blox-fruits-compare/west-dragon-vs-tiger/
