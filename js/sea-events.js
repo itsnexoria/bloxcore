@@ -14,12 +14,19 @@ const EVENT_TYPES = {
   kitsune_shrine: { label: 'Kitsune Shrine', icon: 'https://static.wikia.nocookie.net/roblox-blox-piece/images/8/89/Kitsune_Shrine_Full.png/revision/latest/scale-to-width-down/268?cb=20240812005020' },
 };
 
+let viewerIsAdmin = false;
+
 onReady(async () => {
+  initPinButtons(loadEvents);
   const { data: { session } } = await sb.auth.getSession();
   currentUser = session?.user ?? null;
 
   if (currentUser) {
     document.getElementById('post-event-btn').style.display = 'inline-flex';
+    getCurrentProfile().then(({ profile }) => {
+      addNoExpiryOption('se-duration', profile);
+      if (profile?.role === 'admin') { viewerIsAdmin = true; renderEvents(); }
+    });
   }
 
   document.getElementById('post-event-btn').addEventListener('click', () => {
@@ -83,7 +90,8 @@ function renderEvents() {
   const now = Date.now();
   const visible = allEvents
     .filter(ev => new Date(ev.expires_at).getTime() > now)
-    .filter(ev => currentFilter === 'all' || ev.type === currentFilter);
+    .filter(ev => currentFilter === 'all' || ev.type === currentFilter)
+    .sort((a, b) => (b.pinned ? 1 : 0) - (a.pinned ? 1 : 0)); // pinned first, otherwise keep newest-first order
 
   container.innerHTML = visible.length
     ? visible.map(renderEventCard).join('')
@@ -104,8 +112,9 @@ function renderEventCard(ev) {
 
   const totalMs = new Date(ev.expires_at).getTime() - new Date(ev.created_at).getTime();
   const leftMs = new Date(ev.expires_at).getTime() - Date.now();
-  const pctLeft = Math.max(0, Math.min(100, (leftMs / totalMs) * 100));
-  const urgent = pctLeft < 25;
+  const noExpiry = isNoExpiry(ev.expires_at);
+  const pctLeft = noExpiry ? 100 : Math.max(0, Math.min(100, (leftMs / totalMs) * 100));
+  const urgent = !noExpiry && pctLeft < 25;
 
   let actionHtml;
   if (isHost) {
@@ -123,15 +132,17 @@ function renderEventCard(ev) {
   const avatarStack = ev.participants.slice(0, 5).map(p => avatarHtml(p.profiles || {}, 26, 'margin-left:-8px;')).join('');
   const extraCount = ev.participants.length > 5 ? `<span class="muted" style="font-size:0.72rem; margin-left:8px;">+${ev.participants.length - 5}</span>` : '';
 
-  const cornerBtn = isHost
+  const pinBtn = adminPinButtonHtml('sea_event', ev, viewerIsAdmin, 'se-corner-btn se-pin-btn');
+  const cornerBtn = pinBtn + (isHost
     ? `<button class="se-corner-btn" data-delete-event="${ev.id}" title="Delete event"><i data-lucide="x" class="icon-sm"></i></button>`
-    : (currentUser ? `<button class="se-corner-btn" data-report-event="${ev.id}" title="Report"><i data-lucide="flag" class="icon-sm"></i></button>` : '');
+    : (currentUser ? `<button class="se-corner-btn" data-report-event="${ev.id}" title="Report"><i data-lucide="flag" class="icon-sm"></i></button>` : ''));
 
   return `
-    <div class="panel se-card hover-lift-card sea-event-card">
+    <div class="panel se-card hover-lift-card sea-event-card${ev.pinned ? ' is-pinned' : ''}">
       <div class="se-banner" style="background-image:url('${type.icon || ''}');">
         <div class="se-banner-scrim"></div>
         <span class="se-type-pill">${type.icon ? `<img src="${type.icon}" alt="">` : `<i data-lucide="triangle-alert" class="icon-sm"></i>`}${type.label}</span>
+        ${ev.pinned ? pinnedTagHtml() : ''}
         ${cornerBtn}
         <div class="se-host-row">
           ${avatarHtml(ev.profiles || {}, 28, 'box-shadow:0 0 0 2px rgba(10,14,23,0.9);')}
@@ -180,7 +191,7 @@ async function handlePostEvent(e) {
     link: document.getElementById('se-link').value.trim(),
     notes: notes || null,
     max_players: Math.min(12, Math.max(1, Number(document.getElementById('se-max').value) || 12)),
-    duration_hours: Number(document.getElementById('se-duration').value) || 1,
+    duration_hours: readDurationHours('se-duration', 1),
   };
 
   if (!isRobloxLink(payload.link)) {
@@ -199,7 +210,7 @@ async function handlePostEvent(e) {
   document.getElementById('post-event-form').reset();
   document.getElementById('se-max').value = 12;
   document.getElementById('post-event-modal').classList.remove('open');
-  showToast(`Event posted — it auto-deletes in ${payload.duration_hours}h.`);
+  showToast(payload.duration_hours === 0 ? 'Event posted — it never expires.' : `Event posted — it auto-deletes in ${payload.duration_hours}h.`);
   await loadEvents();
 }
 

@@ -130,6 +130,11 @@
         <a href="/auth/" class="btn btn-primary btn-sm">Sign in to post a listing</a>
       </div>
 
+      <div id="trade-confirmations" style="display:none; margin-top:24px;">
+        <h2 style="font-size:1.05rem; margin:0 0 12px;"><i data-lucide="handshake" class="icon-sm icon-inline"></i>Confirm your trades</h2>
+        <div id="trade-confirmations-list" style="display:grid; gap:12px;"></div>
+      </div>
+
       <div id="trade-listings" style="display:flex; flex-direction:column; gap:16px; margin-top:28px;">
         <div class="skeleton" style="height:180px;"></div>
         <div class="skeleton" style="height:180px;"></div>
@@ -218,6 +223,19 @@
     </div>
     <input type="text" id="item-picker-search" placeholder="Search…" aria-label="Search items" style="margin-bottom:16px;">
     <div id="item-picker-grid" class="build-modal-grid"></div>
+  </div>
+</div>
+
+<div id="trade-complete-modal" class="build-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="trade-complete-title">
+  <div class="panel build-modal" style="max-width:420px;">
+    <div class="flex-between" style="margin-bottom:4px;">
+      <h2 id="trade-complete-title" style="font-size:1.05rem; margin:0;">Mark trade completed</h2>
+      <button type="button" class="btn btn-ghost btn-sm" id="trade-complete-close" aria-label="Close"><i data-lucide="x" class="icon-md"></i></button>
+    </div>
+    <p class="muted" style="margin:0 0 14px; font-size:0.8rem;">Who did you trade with? They'll get a request to confirm, and the trade counts as <strong>confirmed</strong> for both of you. Leave blank to just close the listing.</p>
+    <label for="trade-complete-partner">Their username (optional)</label>
+    <input type="text" id="trade-complete-partner" maxlength="40" placeholder="username" autocomplete="off">
+    <button type="button" class="btn btn-primary btn-block" id="trade-complete-submit" style="margin-top:14px;">Mark completed</button>
   </div>
 </div>
 

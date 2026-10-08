@@ -121,6 +121,30 @@ function scrollToQueryTarget(param, attr) {
 
 // ---- Countdown formatting ---------------------------------------------------------------
 
+// ---- "No expiry" (admin-only) -----------------------------------------------------------
+// duration_hours = 0 → the DB stores expires_at = 2100-01-01, so every expires_at filter/cron keeps working.
+function isNoExpiry(iso) {
+  return !!iso && new Date(iso).getUTCFullYear() >= 2090;
+}
+// Adds a "No expiry" choice to a duration <select> — admins only (the DB enforces this too).
+function addNoExpiryOption(selectId, profile) {
+  const sel = document.getElementById(selectId);
+  if (!sel || profile?.role !== 'admin' || sel.querySelector('option[value="0"]')) return;
+  const opt = document.createElement('option');
+  opt.value = '0';
+  opt.textContent = 'No expiry (admin)';
+  sel.appendChild(opt);
+}
+// Reads a duration <select>; unlike `Number(v) || fallback`, keeps 0 (= no expiry).
+function readDurationHours(selectId, fallback) {
+  const n = Number(document.getElementById(selectId)?.value);
+  return Number.isFinite(n) && n >= 0 ? n : fallback;
+}
+// "expires in 5h" / "no expiry" for trading + services cards.
+function expiryLabel(expiresAt) {
+  return isNoExpiry(expiresAt) ? 'no expiry' : `expires in ${hoursLeft(expiresAt)}`;
+}
+
 // Short-lived listings (trading, services): hours/minutes only, no "ends"/"expires" verb.
 function hoursLeft(expiresAt) {
   const ms = new Date(expiresAt).getTime() - Date.now();
@@ -145,6 +169,7 @@ function timeRemaining(iso) {
 // Sea events run much shorter than pvp/giveaways, so this reads "Expires in ...", down to
 // the minute, and reports "Expired" rather than "Ending soon" once it's past.
 function timeRemainingCompact(iso) {
+  if (isNoExpiry(iso)) return 'No expiry';
   const ms = new Date(iso).getTime() - Date.now();
   if (ms <= 0) return 'Expired';
   const minutes = Math.floor(ms / 60000);
@@ -184,4 +209,28 @@ async function uploadScreenshot(userId, file, key) {
 
 function hideModalById(id) {
   document.getElementById(id).style.display = 'none';
+}
+
+// ---- Pinned / featured listings (admin only) --------------------------------------------
+// DB: pinned + pinned_at columns, locked to admins by a trigger; set via set_listing_pinned() (max 3 per kind).
+function pinnedTagHtml() {
+  return '<span class="tag tag-pinned"><i data-lucide="pin" class="icon-sm icon-inline"></i>Pinned</span>';
+}
+function adminPinButtonHtml(kind, row, viewerIsAdmin, cls = 'btn btn-ghost btn-sm') {
+  if (!viewerIsAdmin) return '';
+  const on = !!row.pinned;
+  return `<button class="${cls} pin-btn${on ? ' pin-btn-on' : ''}" data-pin-kind="${kind}" data-pin-id="${row.id}" data-pinned="${on ? '1' : '0'}" title="${on ? 'Unpin' : 'Pin to top'}" aria-label="${on ? 'Unpin' : 'Pin to top'}"><i data-lucide="${on ? 'pin-off' : 'pin'}" class="icon-sm"></i></button>`;
+}
+// One delegated listener per page; `reload` re-fetches + re-renders the page's list.
+function initPinButtons(reload) {
+  document.addEventListener('click', async (e) => {
+    const btn = e.target.closest('[data-pin-kind]');
+    if (!btn) return;
+    btn.disabled = true;
+    const { error } = await sb.rpc('set_listing_pinned', { p_kind: btn.dataset.pinKind, p_id: btn.dataset.pinId, p_pinned: btn.dataset.pinned !== '1' });
+    btn.disabled = false;
+    if (error) { showToast(error.message, true); return; }
+    showToast(btn.dataset.pinned === '1' ? 'Unpinned.' : 'Pinned to the top.');
+    reload();
+  });
 }

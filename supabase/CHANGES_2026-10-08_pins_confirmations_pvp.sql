@@ -1,0 +1,7 @@
+-- APPLIED to live BloxCore project on 2026-10-08 (migration: pinned_listings_trade_confirmations_pvp_streak). Tested in rolled-back transactions.
+-- 1) Pinned listings (admin only): pinned/pinned_at on trade_listings, service_listings, sea_events.
+--    guard_pinned() trigger stops non-admins setting them (insert or update); set_listing_pinned(kind, id, pinned) RPC is admin-only, max 3 pinned per kind.
+-- 2) Two-sided trade confirmation: table trade_confirmations (RLS: owner/partner read only), RPCs propose_trade_confirmation(listing_id, partner_username),
+--    respond_trade_confirmation(id, accept), get_confirmed_trade_counts(user_ids). Confirming also writes the partner's trade_history row.
+-- 3) get_pvp_leaderboard() now also returns `streak` (current consecutive approved 1v1 wins).
+-- Full SQL is in the Supabase migration history (supabase_migrations) under the name above.

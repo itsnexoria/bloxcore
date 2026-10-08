@@ -12,14 +12,18 @@ let maxActiveTrades = 3;
 let myWatchlist = new Set(); // item ids
 let myWatchlistAlerts = new Map(); // item_id -> { direction, target_value, triggered_at }
 let watchlistCategory = 'fruit';
+let viewerIsAdmin = false;
 let listingLookup = new Map(); // id -> full listing row, for the Relist quick-duplicate action
 let reportingListingId = null;
 let valueHistoryCategory = 'fruit';
 
 onReady(async () => {
   initFirstVisitBanner('trading-tips-banner', 'trading-tips-dismiss', 'bc_seen_tips_trading');
-  const { user } = await getCurrentProfile();
+  const { user, profile } = await getCurrentProfile();
   currentUser = user;
+  viewerIsAdmin = profile?.role === 'admin';
+  addNoExpiryOption('trade-duration', profile);
+  initPinButtons(loadListings);
 
   const settings = await getSiteSettings();
   maxActiveTrades = settings.maxActiveTrades;
@@ -111,6 +115,10 @@ onReady(async () => {
   document.getElementById('watchlist-search').addEventListener('input', renderWatchlistGrid);
 
   await loadListings();
+  document.getElementById('trade-complete-close').addEventListener('click', closeCompleteModal);
+  document.getElementById('trade-complete-submit').addEventListener('click', submitCompleteModal);
+  document.getElementById('trade-complete-modal').addEventListener('click', (e) => { if (e.target.id === 'trade-complete-modal') closeCompleteModal(); });
+  if (currentUser) await loadTradeConfirmations();
 });
 
 // --- Watchlist -----------------------------------------------------------
@@ -433,15 +441,22 @@ function renderSlotList(side) {
 // catalog already loaded for the picker, so it updates instantly as items are added,
 // removed, or toggled physical/permanent. Not a recommendation, just a value comparison;
 // demand/trend aren't priced in since those are judgment calls, not hard numbers.
-function fairValueBadgeHtml(offerTotal, requestTotal) {
+// Viewer-aware verdict. Taker gives the requested items and gets the offered ones; owner is the reverse.
+function fairValueBadgeHtml(offerTotal, requestTotal, isOwner = false) {
   if (!offerTotal || !requestTotal) return '';
-  const diffPct = Math.round(((requestTotal - offerTotal) / offerTotal) * 100);
-  if (Math.abs(diffPct) <= 8) {
-    return `<span class="tag tag-easy"><i data-lucide="scale" class="icon-sm icon-inline"></i>Roughly Fair</span>`;
-  } else if (diffPct > 0) {
-    return `<span class="tag tag-hard"><i data-lucide="trending-up" class="icon-sm icon-inline"></i>Requesting +${diffPct}%</span>`;
+  const takerGainPct = Math.round(((offerTotal - requestTotal) / requestTotal) * 100); // + = taker wins
+  if (Math.abs(takerGainPct) <= 8) {
+    return `<span class="tag tag-easy" title="Both sides are within ~8% of each other by community value"><i data-lucide="scale" class="icon-sm icon-inline"></i>Fair trade</span>`;
   }
-  return `<span class="tag tag-medium"><i data-lucide="trending-down" class="icon-sm icon-inline"></i>Offering +${Math.abs(diffPct)}%</span>`;
+  const pct = Math.abs(takerGainPct);
+  if (isOwner) {
+    return takerGainPct > 0
+      ? `<span class="tag tag-medium" title="You're offering more value than you're asking for"><i data-lucide="trending-down" class="icon-sm icon-inline"></i>You're overpaying ${pct}%</span>`
+      : `<span class="tag tag-hard" title="You're asking for more value than you're offering — may be slow to fill"><i data-lucide="trending-up" class="icon-sm icon-inline"></i>You're asking +${pct}%</span>`;
+  }
+  return takerGainPct > 0
+    ? `<span class="tag tag-easy" title="You'd receive more value than you give"><i data-lucide="thumbs-up" class="icon-sm icon-inline"></i>W for you +${pct}%</span>`
+    : `<span class="tag tag-hard" title="You'd give more value than you receive"><i data-lucide="thumbs-down" class="icon-sm icon-inline"></i>L for you -${pct}%</span>`;
 }
 
 function updateFairValueIndicator() {
@@ -513,7 +528,7 @@ async function handlePost() {
     offering_item_ids: offeringEntries,
     requesting_item_ids: requestingEntries,
     note: note || null,
-    duration_hours: Number(document.getElementById('trade-duration').value) || 24,
+    duration_hours: readDurationHours('trade-duration', 24),
   });
   btn.disabled = false;
 
@@ -527,21 +542,39 @@ async function handlePost() {
 
 const TRADE_LISTINGS_PAGE_SIZE = 40;
 
+const TRADE_LISTING_SELECT = 'id, user_id, offering_item_ids, requesting_item_ids, note, created_at, expires_at, pinned, profiles(username, display_name, avatar_url, avatar_frame, title_color_override, titles(name, color), created_at, trade_card_themes(gradient_from, gradient_to))';
+
 async function fetchTradeListingsPage(offset, pageSize) {
   const { data, error } = await sb
     .from('trade_listings')
-    .select('id, user_id, offering_item_ids, requesting_item_ids, note, created_at, expires_at, profiles(username, display_name, avatar_url, avatar_frame, title_color_override, titles(name, color), created_at, trade_card_themes(gradient_from, gradient_to))')
+    .select(TRADE_LISTING_SELECT)
     .eq('active', true)
-    .gt('created_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString())
+    .eq('pinned', false)
+    .gt('expires_at', new Date().toISOString())
     .order('created_at', { ascending: false })
     .range(offset, offset + pageSize - 1);
   if (error) { logError(error); return null; }
   return data;
 }
 
+// Admin-pinned listings sit above the paged feed (the feed itself excludes them).
+async function fetchPinnedTradeListings() {
+  const { data, error } = await sb
+    .from('trade_listings')
+    .select(TRADE_LISTING_SELECT)
+    .eq('active', true)
+    .eq('pinned', true)
+    .gt('expires_at', new Date().toISOString())
+    .order('pinned_at', { ascending: false });
+  if (error) { logError(error); return []; }
+  return data || [];
+}
+
 async function loadListings() {
   const container = document.getElementById('trade-listings');
-  const data = await fetchTradeListingsPage(0, TRADE_LISTINGS_PAGE_SIZE);
+  const page = await fetchTradeListingsPage(0, TRADE_LISTINGS_PAGE_SIZE);
+  const pinned = page === null ? [] : await fetchPinnedTradeListings();
+  const data = page === null ? null : [...pinned, ...page];
 
   if (data === null) {
     container.innerHTML = errorStateHtml("Couldn't load listings right now.", 'loadListings()');
@@ -565,11 +598,11 @@ async function loadListings() {
   scrollToHashTarget('data-listing-id');
   scrollToQueryTarget('listing', 'data-listing-id');
 
-  if (data.length === TRADE_LISTINGS_PAGE_SIZE) {
+  if (page.length === TRADE_LISTINGS_PAGE_SIZE) {
     attachLoadMore(container, {
       wrapId: 'trade-listings-load-more-wrap',
       pageSize: TRADE_LISTINGS_PAGE_SIZE,
-      initialOffset: data.length,
+      initialOffset: page.length,
       fetchPage: async (offset, pageSize) => (await fetchTradeListingsPage(offset, pageSize)) || [],
       renderItem: renderListing,
       onAppend: (rows) => {
@@ -613,24 +646,27 @@ function renderListing(t) {
     : '';
 
   return `
-    <div class="panel trade-card hover-lift-card" data-listing-id="${t.id}" style="${themeStyle}">
+    <div class="panel trade-card hover-lift-card${t.pinned ? ' is-pinned' : ''}" data-listing-id="${t.id}" style="${themeStyle}">
+      ${t.pinned ? `<div style="margin-bottom:8px;">${pinnedTagHtml()}</div>` : ''}
       <div class="flex-between">
         <div style="display:flex; align-items:center; gap:10px;">
           ${avatarHtml(profile, 34)}
           <div>
             <a href="/player/?u=${encodeURIComponent(profile.username || '')}" style="color:var(--bone); font-weight:700; text-decoration:none; font-size:0.9rem;">${escapeHtml(displayNameFor(profile))}</a> ${titleBadge(profile)} <span data-rep-for="${t.user_id}"></span> <span data-verified-trader-for="${t.user_id}"></span>
-            <p class="muted" style="margin:0; font-size:0.75rem;">${timeAgo(t.created_at)} · expires in ${hoursLeft(t.expires_at)}</p>
+            <span data-confirmed-trades-for="${t.user_id}"></span>
+            <p class="muted" style="margin:0; font-size:0.75rem;">${timeAgo(t.created_at)} · ${expiryLabel(t.expires_at)}</p>
             <span data-rep-for="${t.user_id}"></span>
             <span data-verified-trader-for="${t.user_id}"></span>
             <span data-new-account-for="${t.user_id}"></span>
           </div>
         </div>
+        ${adminPinButtonHtml('trade', t, viewerIsAdmin)}
         <button class="btn btn-ghost btn-sm" data-share-listing="${t.id}" title="Copy link to this listing" aria-label="Copy link"><i data-lucide="link" class="icon-sm"></i></button>
         ${isOwner ? `<div style="display:flex; gap:6px;"><button class="btn btn-ghost btn-sm" data-relist-listing="${t.id}" title="Relist (duplicate as a fresh listing)" aria-label="Relist"><i data-lucide="repeat" class="icon-sm"></i></button><button class="btn btn-ghost btn-sm" data-complete-listing="${t.id}" title="Mark completed" aria-label="Mark completed"><i data-lucide="check" class="icon-sm"></i></button><button class="btn btn-ghost btn-sm" data-delete-listing="${t.id}" aria-label="Delete listing"><i data-lucide="x" class="icon-sm"></i></button></div>` : (currentUser ? `<button class="btn btn-ghost btn-sm" data-report-listing="${t.id}" title="Report" aria-label="Report listing"><i data-lucide="flag" class="icon-sm"></i></button>` : '')}
       </div>
 
       ${t.note ? `<p class="muted" style="margin:12px 0 0; font-size:0.85rem;">${escapeHtml(t.note)}</p>` : ''}
-      ${fairValueBadgeHtml(offer.total, request.total) ? `<div style="margin-top:10px;">${fairValueBadgeHtml(offer.total, request.total)}</div>` : ''}
+      ${fairValueBadgeHtml(offer.total, request.total, isOwner) ? `<div style="margin-top:10px;">${fairValueBadgeHtml(offer.total, request.total, isOwner)}</div>` : ''}
 
       <div class="trade-columns-wrap">
         <div class="trade-columns">
@@ -675,12 +711,7 @@ function wireListingActions(root) {
     });
   });
   root.querySelectorAll('[data-complete-listing]').forEach(btn => {
-    btn.addEventListener('click', async () => {
-      const { error } = await sb.from('trade_listings').update({ active: false }).eq('id', btn.dataset.completeListing);
-      if (error) { showToast(error.message, true); return; }
-      showToast('Marked as completed.');
-      document.querySelector(`[data-listing-id="${btn.dataset.completeListing}"]`)?.remove();
-    });
+    btn.addEventListener('click', () => openCompleteModal(btn.dataset.completeListing));
   });
   root.querySelectorAll('[data-delete-listing]').forEach(btn => {
     btn.addEventListener('click', async () => {
@@ -744,4 +775,88 @@ async function submitListingReport() {
   }
   document.getElementById('report-listing-modal').classList.remove('open');
   showToast('Report submitted — a mod will take a look.');
+}
+
+// --- Two-sided trade confirmation ------------------------------------------------------
+// Owner marks a listing done and (optionally) names who they traded with; that person gets a
+// notification + a "confirm" card here. Both sides then count as a confirmed trade.
+let completingListingId = null;
+
+function openCompleteModal(listingId) {
+  completingListingId = listingId;
+  document.getElementById('trade-complete-partner').value = '';
+  document.getElementById('trade-complete-modal').classList.add('open');
+  document.getElementById('trade-complete-partner').focus();
+}
+function closeCompleteModal() {
+  document.getElementById('trade-complete-modal').classList.remove('open');
+  completingListingId = null;
+}
+
+async function submitCompleteModal() {
+  const id = completingListingId;
+  if (!id) return;
+  const partner = document.getElementById('trade-complete-partner').value.trim().replace(/^@/, '');
+  const btn = document.getElementById('trade-complete-submit');
+  btn.disabled = true;
+  let error;
+  if (partner) {
+    ({ error } = await sb.rpc('propose_trade_confirmation', { p_listing_id: id, p_partner_username: partner }));
+  } else {
+    ({ error } = await sb.from('trade_listings').update({ active: false }).eq('id', id));
+  }
+  btn.disabled = false;
+  if (error) { showToast(error.message, true); return; }
+  showToast(partner ? `Marked completed — ${partner} will be asked to confirm.` : 'Marked as completed.');
+  document.querySelector(`[data-listing-id="${id}"]`)?.remove();
+  closeCompleteModal();
+}
+
+async function loadTradeConfirmations() {
+  const section = document.getElementById('trade-confirmations');
+  const list = document.getElementById('trade-confirmations-list');
+  if (!section || !list || !currentUser) return;
+  const { data, error } = await sb
+    .from('trade_confirmations')
+    .select('id, offering_item_ids, requesting_item_ids, created_at, owner:profiles!trade_confirmations_owner_id_fkey(username, display_name, avatar_url, avatar_frame)')
+    .eq('partner_id', currentUser.id)
+    .eq('status', 'pending')
+    .order('created_at', { ascending: false });
+  if (error || !data || !data.length) { section.style.display = 'none'; return; }
+  section.style.display = '';
+  list.innerHTML = data.map(c => {
+    const gave = sideSummary(c.requesting_item_ids); // what the owner requested = what you handed over
+    const got = sideSummary(c.offering_item_ids);
+    return `
+      <div class="panel confirm-card" data-confirm-id="${c.id}">
+        <div style="display:flex; align-items:center; gap:10px;">
+          ${avatarHtml(c.owner || {}, 34)}
+          <div style="flex:1; min-width:0;">
+            <p style="margin:0; font-weight:700;">${escapeHtml(displayNameFor(c.owner || {}))} says you traded with them</p>
+            <p class="muted" style="margin:0; font-size:0.75rem;">${timeAgo(c.created_at)}</p>
+          </div>
+        </div>
+        <div class="confirm-card-items">
+          <div><span class="muted" style="font-size:0.72rem;">You gave</span><div class="confirm-card-tiles">${gave.tiles || '<span class="muted">—</span>'}</div></div>
+          <div><span class="muted" style="font-size:0.72rem;">You got</span><div class="confirm-card-tiles">${got.tiles || '<span class="muted">—</span>'}</div></div>
+        </div>
+        <div style="display:flex; gap:8px; margin-top:12px;">
+          <button class="btn btn-primary btn-sm" data-confirm-trade="${c.id}"><i data-lucide="check" class="icon-sm icon-inline"></i>Yes, that was me</button>
+          <button class="btn btn-ghost btn-sm" data-decline-trade="${c.id}">Not me</button>
+        </div>
+      </div>`;
+  }).join('');
+  refreshIcons();
+  list.querySelectorAll('[data-confirm-trade],[data-decline-trade]').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const accept = !!btn.dataset.confirmTrade;
+      const id = btn.dataset.confirmTrade || btn.dataset.declineTrade;
+      btn.closest('.confirm-card').querySelectorAll('button').forEach(b => { b.disabled = true; });
+      const { error: err } = await sb.rpc('respond_trade_confirmation', { p_id: id, p_accept: accept });
+      if (err) { showToast(err.message, true); loadTradeConfirmations(); return; }
+      showToast(accept ? 'Trade confirmed — thanks!' : 'Got it, marked as not you.');
+      loadTradeConfirmations();
+    });
+  });
+  if (location.hash === '#confirmations') section.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }

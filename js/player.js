@@ -327,7 +327,7 @@ function renderProfile(p, crew, isOwnProfile) {
         <div class="icon-badge" data-tone="sea"><i data-lucide="swords"></i></div>
         <p class="muted" style="margin:0 0 6px; font-size:0.8rem; text-transform:uppercase; letter-spacing:0.05em;">PvP Record</p>
         <p style="margin:0; font-family:var(--font-stamp); font-size:1.3rem;"><span style="color:#34d399;">${p.pvp_wins ?? 0}W</span> <span class="muted" style="font-size:0.9rem;">—</span> <span style="color:var(--blood-dim);">${p.pvp_losses ?? 0}L</span></p>
-        ${(p.pvp_wins ?? 0) + (p.pvp_losses ?? 0) >= 3 ? `<p class="muted" style="margin:2px 0 0; font-size:0.76rem;">${p.pvp_rating ?? 1000} rating</p>` : ''}
+        ${(p.pvp_wins ?? 0) + (p.pvp_losses ?? 0) >= 3 ? `<p class="muted" style="margin:2px 0 0; font-size:0.76rem;">${p.pvp_rating ?? 1000} rating ${pvpTierTagHtml(p.pvp_rating ?? 1000)}</p>` : ''}
       </div>
     </div>
 

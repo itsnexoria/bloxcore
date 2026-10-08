@@ -291,10 +291,12 @@ async function loadReputationBadges(container, posters) {
   if (!ids.length) return;
   const createdAtById = new Map(list.map(p => [p.id, p.createdAt]));
 
-  const [{ data }, { data: verifiedRows }] = await Promise.all([
+  const [{ data }, { data: verifiedRows }, { data: confirmedRows }] = await Promise.all([
     sb.from('vouches').select('target_id, direction').in('target_id', ids),
     sb.rpc('get_verified_traders', { p_user_ids: ids }),
+    sb.rpc('get_confirmed_trade_counts', { p_user_ids: ids }),
   ]);
+  const confirmedById = new Map((confirmedRows || []).map(r => [r.user_id, Number(r.n)]));
   const scores = {};
   (data || []).forEach(v => {
     scores[v.target_id] = scores[v.target_id] || { positive: 0, negative: 0 };
@@ -312,6 +314,12 @@ async function loadReputationBadges(container, posters) {
     const userId = el.dataset.newAccountFor;
     const s = scores[userId] || { positive: 0, negative: 0 };
     el.innerHTML = newAccountBadge({ created_at: createdAtById.get(userId) }, s.positive, s.negative);
+  });
+
+  container.querySelectorAll('[data-confirmed-trades-for]').forEach(el => {
+    const n = confirmedById.get(el.dataset.confirmedTradesFor);
+    if (!n) return;
+    el.innerHTML = `<span class="rep-badge" style="color:var(--brass-bright);" title="${n} trade${n === 1 ? '' : 's'} confirmed by both sides"><i data-lucide="handshake" class="icon-sm icon-inline"></i>${n} confirmed</span>`;
   });
 
   container.querySelectorAll('[data-verified-trader-for]').forEach(el => {
@@ -1039,4 +1047,22 @@ function initFirstVisitBanner(bannerId, dismissBtnId, storageKey) {
     banner.style.display = 'none';
     localStorage.setItem(storageKey, '1');
   });
+}
+
+// ---- PvP rating tiers (1v1 Elo, everyone starts at 1000) ---------------------------------
+const PVP_TIERS = [
+  { name: 'Master',   min: 1650, icon: 'crown',   color: '#f472b6' },
+  { name: 'Diamond',  min: 1500, icon: 'gem',     color: '#60a5fa' },
+  { name: 'Platinum', min: 1350, icon: 'shield',  color: '#2dd4bf' },
+  { name: 'Gold',     min: 1200, icon: 'medal',   color: '#fbbf24' },
+  { name: 'Silver',   min: 1050, icon: 'award',   color: '#cbd5e1' },
+  { name: 'Bronze',   min: 0,    icon: 'swords',  color: '#d9895a' },
+];
+function pvpTier(rating) {
+  const r = Number(rating) || 1000;
+  return PVP_TIERS.find(t => r >= t.min) || PVP_TIERS[PVP_TIERS.length - 1];
+}
+function pvpTierTagHtml(rating) {
+  const t = pvpTier(rating);
+  return `<span class="pvp-tier" style="--tier-color:${t.color};" title="${t.name} tier"><i data-lucide="${t.icon}" class="icon-sm icon-inline"></i>${t.name}</span>`;
 }

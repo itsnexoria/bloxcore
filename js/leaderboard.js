@@ -364,11 +364,11 @@ async function loadPvpLeaderboard() {
         <div style="display:flex; align-items:center; gap:16px;">
           <span class="${podium ? 'lb-podium-rank' : ''}" style="font-family:var(--font-mono); color:var(--ash); width:28px;">${podium ? `<i data-lucide="${rank === 1 ? 'crown' : 'medal'}" class="icon-sm"></i>` : `#${rank}`}</span>
           ${avatarHtml(p, 36)}
-          <span style="color:var(--bone); font-weight:700;">${escapeHtml(displayNameFor(p))}</span>
+          <span style="color:var(--bone); font-weight:700;">${escapeHtml(displayNameFor(p))}</span> ${pvpTierTagHtml(p.rating)}
         </div>
         <div style="text-align:right;">
           <p style="margin:0; font-family:var(--font-mono); color:var(--brass-bright);">${p.rating} rating</p>
-          <p class="muted" style="margin:0; font-size:0.78rem;">${p.wins}W – ${p.losses}L</p>
+          <p class="muted" style="margin:0; font-size:0.78rem;">${p.wins}W – ${p.losses}L${p.streak >= 3 ? ` <span class="streak-chip" title="${p.streak} wins in a row"><i data-lucide="flame" class="icon-sm icon-inline"></i>${p.streak}</span>` : ''}</p>
         </div>
       </div>
     </a>

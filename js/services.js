@@ -2,6 +2,7 @@
 
 let currentUser = null;
 let currentProfile = null;
+let viewerIsAdmin = false;
 let activeTab = 'raid';
 let myActiveListingCount = 0;
 let maxActiveServices = 5;
@@ -15,6 +16,9 @@ onReady(async () => {
   const { user, profile } = await getCurrentProfile();
   currentUser = user;
   currentProfile = profile;
+  viewerIsAdmin = profile?.role === 'admin';
+  addNoExpiryOption('service-duration', profile);
+  initPinButtons(loadListings);
 
   const settings = await getSiteSettings();
   maxActiveServices = settings.maxActiveServices;
@@ -221,6 +225,7 @@ async function fetchServiceListingsPage(offset, pageSize) {
     .select('*, profiles(username, display_name, avatar_url, avatar_frame, title_color_override, titles(name, color), roblox_username, roblox_verified, roblox_user_id, discord_username, created_at)')
     .eq('category', activeTab)
     .eq('status', 'open')
+    .order('pinned', { ascending: false })
     .order('created_at', { ascending: false })
     .range(offset, offset + pageSize - 1);
   if (error) { logError('Failed to load service listings', error); return null; }
@@ -271,10 +276,12 @@ function renderListing(s, participants) {
   const catMeta = SERVICE_CATEGORY_META[s.category] || { label: s.category, image: null, tone: 'gold' };
 
   return `
-    <div class="panel services-card hover-lift-card" data-listing-id="${s.id}" data-category="${s.category}">
+    <div class="panel services-card hover-lift-card${s.pinned ? ' is-pinned' : ''}" data-listing-id="${s.id}" data-category="${s.category}">
       <div class="services-card-hero">
         <span class="services-card-hero-pill">${catMeta.image ? `<img src="${catMeta.image}" alt="" style="width:14px; height:14px; object-fit:contain;">` : ''}${escapeHtml(catMeta.label)}</span>
+        ${s.pinned ? pinnedTagHtml() : ''}
         <div class="services-card-hero-actions">
+          ${adminPinButtonHtml('service', s, viewerIsAdmin, 'services-card-icon-btn')}
           ${isOwner
             ? `<button class="services-card-icon-btn" data-close-listing="${s.id}" aria-label="Mark closed" title="Mark closed"><i data-lucide="check" class="icon-sm"></i></button>
                <button class="services-card-icon-btn" data-delete-listing="${s.id}" aria-label="Delete listing" title="Delete"><i data-lucide="x" class="icon-sm"></i></button>`
@@ -287,7 +294,7 @@ function renderListing(s, participants) {
       <div class="services-card-body">
         <div class="services-card-title-row">
           <a href="/player/?u=${encodeURIComponent(profile.username || '')}" class="services-card-poster-name">${escapeHtml(displayNameFor(profile))}</a> ${titleBadge(profile)} <span data-rep-for="${s.user_id}"></span>
-          <p class="muted services-card-poster-meta">${timeAgo(s.created_at)} · expires in ${hoursLeft(s.expires_at)}</p>
+          <p class="muted services-card-poster-meta">${timeAgo(s.created_at)} · ${expiryLabel(s.expires_at)}</p>
           <span data-new-account-for="${s.user_id}"></span>
         </div>
 
@@ -331,10 +338,11 @@ function renderDungeonListing(s, profile, isOwner, participants) {
     : `<button class="btn btn-primary btn-sm" data-join-dungeon="${s.id}">Join</button>`;
 
   return `
-    <div class="panel services-card hover-lift-card" data-listing-id="${s.id}" data-category="dungeon">
+    <div class="panel services-card hover-lift-card${s.pinned ? ' is-pinned' : ''}" data-listing-id="${s.id}" data-category="dungeon">
       <div class="services-card-hero">
         <span class="services-card-hero-pill"><img src="${SERVICE_CATEGORY_META.dungeon.image}" alt="" style="width:14px; height:14px; object-fit:contain;">Dungeon</span>
-        <div class="services-card-hero-actions">${isOwner ? joinAction : ''}</div>
+        ${s.pinned ? pinnedTagHtml() : ''}
+        <div class="services-card-hero-actions">${adminPinButtonHtml('service', s, viewerIsAdmin, 'services-card-icon-btn')}${isOwner ? joinAction : ''}</div>
         <img src="${SERVICE_CATEGORY_META.dungeon.image}" alt="" class="services-card-hero-icon">
         <span class="services-card-hero-badge">${avatarHtml(profile, 44, 'border:2px solid var(--brass);')}</span>
       </div>
@@ -342,7 +350,7 @@ function renderDungeonListing(s, profile, isOwner, participants) {
       <div class="services-card-body">
         <div class="services-card-title-row">
           <a href="/player/?u=${encodeURIComponent(profile.username || '')}" class="services-card-poster-name">${escapeHtml(displayNameFor(profile))}</a> ${titleBadge(profile)}
-          <p class="muted services-card-poster-meta">${timeAgo(s.created_at)} · Host · expires in ${hoursLeft(s.expires_at)}</p>
+          <p class="muted services-card-poster-meta">${timeAgo(s.created_at)} · Host · ${expiryLabel(s.expires_at)}</p>
           <span data-new-account-for="${s.user_id}"></span>
         </div>
 
@@ -460,7 +468,7 @@ async function handlePost(e) {
       price_item_ids: [],
       mode,
       max_players: maxPlayers,
-      duration_hours: Number(document.getElementById('service-duration').value) || 24,
+      duration_hours: readDurationHours('service-duration', 24),
     });
     if (error) { showToast(error.message, true); return; }
     showToast('Dungeon posted!');
@@ -482,7 +490,7 @@ async function handlePost(e) {
     title,
     description: description || null,
     price_item_ids: priceEntries,
-    duration_hours: Number(document.getElementById('service-duration').value) || 24,
+    duration_hours: readDurationHours('service-duration', 24),
   });
   if (error) { showToast(error.message, true); return; }
 
