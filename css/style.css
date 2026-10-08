@@ -3551,9 +3551,49 @@ reusing existing tokens (.panel,
 .crew-compare-stat-row:last-child { border-bottom: none; }
 .crew-compare-stat-winner { color: var(--brass-bright); font-weight: 700; }
 
-/* ---- Homepage trending widget ---- */
-.trending-tile { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 4px; padding: 12px 8px; text-decoration: none; color: inherit; }
-.trending-tile img { width: 40px; height: 40px; object-fit: contain; }
-.trending-tile-name { font-size: 0.82rem; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%; }
-.trending-tile-value { font-family: var(--font-mono); font-size: 0.78rem; color: var(--brass-bright); }
-.trending-tile-badge { font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.03em; }
+/* ---- Homepage: section headers, live strip, trending ---- */
+.section-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 18px; }
+.section-title { font-size: 1.3rem; margin: 0; } /* block (not flex) so the global h2 underline sits beneath the text */
+.section-head-link { font-size: 0.85rem; color: var(--ash); text-decoration: none; white-space: nowrap; transition: color .2s; }
+.section-head-link:hover { color: var(--brass-bright); }
+.live-strip-section, .trending-section { padding-bottom: 28px; }
+.trending-section { padding-top: 12px; }
+
+.live-dot { display: inline-block; vertical-align: middle; margin: -3px 10px 0 0; width: 10px; height: 10px; border-radius: 50%; background: var(--sea); box-shadow: 0 0 0 0 rgb(52 211 153 / 0.6); animation: liveDotPulse 2s infinite; flex: none; }
+@keyframes liveDotPulse { 70% { box-shadow: 0 0 0 9px rgb(52 211 153 / 0); } 100% { box-shadow: 0 0 0 0 rgb(52 211 153 / 0); } }
+.reduce-motion .live-dot { animation: none; }
+@media (prefers-reduced-motion: reduce) { .live-dot { animation: none; } }
+
+.live-strip-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+.live-card { display: flex; align-items: center; gap: 14px; padding: 16px 18px; text-decoration: none; color: inherit; min-width: 0; }
+.live-card-icon { flex: none; width: 42px; height: 42px; border-radius: 12px; display: grid; place-items: center; background: rgb(var(--brass-rgb) / 0.14); color: var(--brass-bright); }
+.live-card[data-tone="sea"] .live-card-icon { background: rgb(52 211 153 / 0.14); color: var(--sea); }
+.live-card[data-tone="gold"] .live-card-icon { background: rgb(var(--gold-rgb) / 0.14); color: var(--gold); }
+.live-card[data-tone="purple"] .live-card-icon { background: rgb(var(--purple-rgb) / 0.14); color: var(--purple); }
+.live-card-body { display: flex; flex-direction: column; min-width: 0; gap: 1px; }
+.live-card-count { font-family: var(--font-display); font-size: 1.55rem; line-height: 1.1; }
+.live-card-label { font-size: 0.82rem; font-weight: 600; }
+.live-card-sub { font-size: 0.74rem; color: var(--ash); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.live-card-empty .live-card-count { color: var(--ash); }
+
+.trending-grid { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 12px; }
+.trending-tile { position: relative; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 6px; padding: 18px 10px 14px; text-decoration: none; color: inherit; min-width: 0; }
+.trending-tile-rank { position: absolute; top: 10px; left: 12px; font-family: var(--font-mono); font-size: 0.7rem; color: var(--ash); }
+.trending-tile-img { width: 60px; height: 60px; display: grid; place-items: center; border-radius: 16px; background: radial-gradient(circle at 50% 40%, rgb(var(--brass-rgb) / 0.20), transparent 70%); margin-bottom: 2px; }
+.trending-tile-img img { width: 46px; height: 46px; object-fit: contain; filter: drop-shadow(0 4px 8px rgb(0 0 0 / 0.45)); transition: transform .25s; }
+.trending-tile:hover .trending-tile-img img { transform: scale(1.1) rotate(-4deg); }
+.trending-tile-name { font-size: 0.86rem; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%; }
+.trending-tile-value { font-family: var(--font-mono); font-size: 0.82rem; color: var(--brass-bright); }
+.trending-tile-badge { display: inline-flex; align-items: center; gap: 5px; font-size: 0.66rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; padding: 3px 10px 3px 8px; border-radius: 999px; color: var(--tile-accent, var(--ash)); background: color-mix(in srgb, var(--tile-accent, var(--ash)) 14%, transparent); }
+.trending-tile-badge svg { width: 12px; height: 12px; stroke-width: 2.4; }
+/* Trend-coloured accent: top bar + icon glow + hover ring follow the tile's trend colour */
+.trending-tile { overflow: hidden; transition: transform .2s, border-color .2s, box-shadow .2s; }
+.trending-tile::before { background: linear-gradient(90deg, transparent, var(--tile-accent, var(--brass)), transparent); opacity: 0.9; }
+.trending-tile-img { width: 68px; height: 68px; background: radial-gradient(circle at 50% 45%, color-mix(in srgb, var(--tile-accent, var(--brass)) 26%, transparent), transparent 72%); }
+.trending-tile-img img { width: 52px; height: 52px; }
+.trending-tile-rank { padding: 1px 7px; border-radius: 999px; background: rgb(255 255 255 / 0.06); color: var(--ash); }
+.trending-tile:hover { border-color: color-mix(in srgb, var(--tile-accent, var(--brass)) 55%, transparent); box-shadow: 0 8px 28px -10px color-mix(in srgb, var(--tile-accent, var(--brass)) 60%, transparent); }
+
+@media (max-width: 1100px) { .trending-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } .live-strip-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 560px) { .trending-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; } .live-strip-grid { grid-template-columns: 1fr; } .live-card { padding: 14px; } }
+

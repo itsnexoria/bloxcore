@@ -70,6 +70,10 @@ function affiliateBlockHtml() {
   `;
 }
 
+const TODAY = new Date().toISOString().slice(0, 10); // YYYY-MM-DD — pages are rebuilt daily by the workflow
+const stripTags = h => h.replace(/<[^>]+>/g, '').replace(/\s+/g, ' ').trim();
+const escAttr = t => String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
 let shell; // nav/footer read from the homepage at run time (see lib/shell.mjs)
 
 function pageHtml(item, related) {
@@ -92,6 +96,15 @@ function pageHtml(item, related) {
 
   const relatedHtml = related.map(r => `<li><a href="/blox-fruits-values/${slugify(r.name)}/" class="muted" style="font-size:0.85rem;">${r.name}</a></li>`).join('');
 
+  const demandTrend = `${demandCopy(item.demand)}${item.trend && TREND_COPY[item.trend] ? ` It's also ${TREND_COPY[item.trend]}.` : ''}`;
+  const faq = [
+    [`What is ${item.name} worth in Blox Fruits?`, stripTags(valueSentence)],
+    [`Is ${item.name} in demand right now?`, demandTrend],
+    [`How do I trade ${item.name}?`, `Check the live Trading board on BloxCore for active listings involving ${item.name}, or post your own offer. Values shift with the trend, so confirm the current going rate before agreeing to a trade.`],
+  ];
+  const faqLd = { '@context': 'https://schema.org', '@type': 'FAQPage', mainEntity: faq.map(([q, a]) => ({ '@type': 'Question', name: q, acceptedAnswer: { '@type': 'Answer', text: a } })) };
+  const faqHtml = faq.map(([q, a]) => `<h3 style="font-size:1.05rem; margin:18px 0 4px;">${escAttr(q)}</h3><p style="margin:0;">${escAttr(a)}</p>`).join('');
+
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -108,6 +121,7 @@ function pageHtml(item, related) {
 <meta property="og:description" content="${description}">
 <meta property="og:image" content="${item.icon_url || 'https://bloxcores.com/assets/og-banner.jpg'}">
 <meta property="og:url" content="${url}">
+<meta property="article:modified_time" content="${TODAY}">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="${title}">
 <meta name="twitter:description" content="${description}">
@@ -130,6 +144,7 @@ function pageHtml(item, related) {
   "name": ${JSON.stringify(title)},
   "description": ${JSON.stringify(description)},
   "url": ${JSON.stringify(url)},
+  "dateModified": "${TODAY}",
   "isPartOf": { "@type": "WebSite", "name": "BloxCore", "url": "https://bloxcores.com/" }
 }
 </script>
@@ -144,6 +159,7 @@ function pageHtml(item, related) {
   ]
 }
 </script>
+<script type="application/ld+json">${JSON.stringify(faqLd)}</script>
 </head>
 <body>
 
@@ -164,6 +180,7 @@ ${shell.nav}
       <div>
         <h1 style="font-size:1.8rem; line-height:1.15; margin:0;">${item.name} Value in Blox Fruits</h1>
         <p class="muted" style="margin:4px 0 0;">${rarity ? rarity + ' ' : ''}${categoryLabel} · updated regularly by the BloxCore community</p>
+        <p class="muted" style="margin:2px 0 0; font-size:0.78rem;">Last updated <time datetime="${TODAY}">${TODAY}</time></p>
       </div>
     </div>
   </div>
@@ -183,6 +200,8 @@ ${shell.nav}
     <p>${demandCopy(item.demand)}${item.trend && TREND_COPY[item.trend] ? ` It's also ${TREND_COPY[item.trend]}.` : ''}</p>
     <h2 style="font-size:1.3rem;">How to Trade ${item.name}</h2>
     <p>Values shift with the trend above, so always confirm the current going rate before agreeing to a trade — check the live <a href="/trading/">Trading board</a> for active listings involving ${item.name}, or post your own offer if you're looking to buy or sell. See our <a href="/blox-fruits-values/">full guide to how Blox Fruits values work</a> for more on reading physical vs. permanent pricing, rarity tiers, and spotting inflated value claims.</p>
+    <h2 style="font-size:1.3rem;">${escAttr(item.name)} FAQ</h2>
+    ${faqHtml}
     ${related.length ? `<h2 style="font-size:1.3rem;">Other ${categoryLabel} Values</h2><ul style="padding-left:20px; columns:2; column-gap:24px;">${relatedHtml}</ul>` : ''}
   </div>
 </section>

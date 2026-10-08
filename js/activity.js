@@ -1,0 +1,179 @@
+// BloxCore — index.html activity feed
+
+const ACTIVITY_LIMIT = 15;
+
+onReady(async () => {
+  await loadActivity();
+  subscribeToActivity();
+  initHeroPosterRotation();
+});
+
+// Hero poster rotates through whatever's actually live — a sea event, a PvP
+// match, or a giveaway — so the homepage always leads with real community
+// activity instead of a fixed quest pitch. Falls back to a generic join pitch
+// if nothing's live (new site / quiet period).
+async function initHeroPosterRotation() {
+  const poster = document.getElementById('hero-poster');
+  if (!poster) return;
+
+  const now = Date.now();
+  const [{ data: events }, { data: matches }, { data: giveaways }] = await Promise.all([
+    sb.from('sea_events').select('type, notes, expires_at').order('created_at', { ascending: false }).limit(10),
+    sb.from('pvp_matches').select('match_type, expires_at').order('created_at', { ascending: false }).limit(10),
+    sb.from('giveaways').select('title, prize, ends_at').eq('status', 'active').order('ends_at', { ascending: true }).limit(10),
+  ]);
+
+  const pool = [];
+  (events || []).filter(ev => new Date(ev.expires_at).getTime() > now).forEach(ev => pool.push({
+    tier: 'medium', icon: 'waves',
+    title: `${SEA_EVENT_LABELS[ev.type] || ev.type} — Live Server`,
+    body: ev.notes || 'A server is up and taking pirates right now.',
+    reward: 'Open', tag: timeRemainingCompact(ev.expires_at),
+  }));
+  (matches || []).filter(m => new Date(m.expires_at).getTime() > now).forEach(m => pool.push({
+    tier: 'hard', icon: 'crosshair',
+    title: `${m.match_type} Match — Open`,
+    body: 'A PvP match is looking for opponents right now.',
+    reward: 'Open', tag: timeRemainingCompact(m.expires_at),
+  }));
+  (giveaways || []).forEach(g => pool.push({
+    tier: 'legendary', icon: 'gift',
+    title: g.title, body: `Prize: ${g.prize}`,
+    reward: 'Entries Open', tag: timeRemaining(g.ends_at),
+  }));
+
+  if (!pool.length) {
+    pool.push({
+      tier: 'medium', icon: 'compass',
+      title: 'Be the First to Post', body: 'Nothing live yet — post a sea event, PvP match, or giveaway to get things going.',
+      reward: 'Get Started', tag: 'Join free',
+    });
+  }
+
+  // Shuffle so it doesn't cycle in the same order every page load
+  pool.sort(() => Math.random() - 0.5);
+  let index = 0;
+  showHeroPoster(pool[index]);
+
+  if (pool.length > 1) {
+    setInterval(() => {
+      index = (index + 1) % pool.length;
+      poster.style.opacity = '0';
+      setTimeout(() => {
+        showHeroPoster(pool[index]);
+        poster.style.opacity = '1';
+      }, 400);
+    }, 12000);
+  }
+}
+
+function showHeroPoster(item) {
+  document.getElementById('hero-poster-title').textContent = item.title;
+  document.getElementById('hero-poster-body').textContent = item.body;
+  document.getElementById('hero-poster-reward').textContent = item.reward;
+  document.getElementById('hero-poster').dataset.difficulty = item.tier;
+  document.getElementById('hero-poster-tag').textContent = item.tag;
+  document.getElementById('hero-poster-icon-wrap').innerHTML = `<i data-lucide="${item.icon}" class="quest-card-hero-icon"></i>`;
+  document.getElementById('hero-poster-badge').innerHTML = `<i data-lucide="${item.icon}" class="icon-md"></i>`;
+  refreshIcons();
+}
+
+async function loadActivity() {
+  const feed = document.getElementById('activity-feed');
+  if (!feed) return;
+
+  const { data, error } = await sb
+    .from('activity_log')
+    .select('id, user_id, username, type, detail, xp_awarded, created_at, profiles(display_name)')
+    .order('created_at', { ascending: false })
+    .limit(ACTIVITY_LIMIT);
+
+  if (error) {
+    feed.innerHTML = errorStateHtml("Couldn't load recent activity right now.", 'loadActivity()');
+    refreshIcons();
+    logError(error);
+    return;
+  }
+
+  if (!data.length) {
+    feed.innerHTML = `<div class="empty-state">No activity yet — be the first to claim a bounty.</div>`;
+    return;
+  }
+
+  feed.innerHTML = data.map((a, i) => renderActivityRow(withDisplayName(a), i === data.length - 1)).join('');
+  refreshIcons();
+}
+
+function withDisplayName(a) {
+  return { ...a, displayName: a.profiles?.display_name || a.username };
+}
+
+function renderActivityRow(a, isLast) {
+  const icon = a.type === 'rank_up'
+    ? '<div class="icon-badge" data-tone="gold" style="width:30px; height:30px; margin:0;"><i data-lucide="star" style="width:15px;height:15px;"></i></div>'
+    : '<div class="icon-badge" data-tone="sea" style="width:30px; height:30px; margin:0;"><i data-lucide="check-circle" style="width:15px;height:15px;"></i></div>';
+  const text = a.type === 'rank_up'
+    ? `ranked up to <span style="color:var(--brass-bright);">${escapeHtml(a.detail)}</span>`
+    : `completed <span style="color:var(--brass-bright);">${escapeHtml(a.detail)}</span>${a.xp_awarded ? ` · +${a.xp_awarded} XP` : ''}`;
+
+  return `
+    <div class="flex-between" data-activity-id="${a.id}" style="padding:14px 20px; ${isLast ? '' : 'border-bottom:1px solid var(--navy-light);'}">
+      <div style="display:flex; align-items:center; gap:12px; min-width:0;">
+        ${icon}
+        <p style="margin:0; font-size:0.9rem;">
+          <a href="/player/?u=${encodeURIComponent(a.username)}" style="color:var(--bone); font-weight:700; text-decoration:none;">${escapeHtml(a.displayName)}</a>
+          ${text}
+        </p>
+      </div>
+      <span class="muted" style="font-size:0.78rem; flex-shrink:0; font-family:var(--font-mono);">${timeAgo(a.created_at)}</span>
+    </div>
+  `;
+}
+
+let _activityChannel = null;
+
+function subscribeToActivity() {
+  const dot = document.getElementById('activity-live-dot');
+
+  _activityChannel = sb.channel('public:activity_log')
+    .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'activity_log' }, async (payload) => {
+      const { data: profile } = await sb.from('profiles').select('display_name').eq('id', payload.new.user_id).single();
+      prependActivity({ ...payload.new, displayName: profile?.display_name || payload.new.username });
+      if (dot) {
+        dot.style.transform = 'scale(1.6)';
+        setTimeout(() => { dot.style.transform = 'scale(1)'; }, 300);
+      }
+    })
+    .subscribe();
+}
+
+// Explicitly tear the channel down when leaving the page instead of relying on the
+// browser to close the socket — matters if the page is bfcache-restored later, since a
+// stale channel would otherwise sit open and never get cleared by fresh JS state.
+window.addEventListener('pagehide', () => {
+  if (_activityChannel) sb.removeChannel(_activityChannel);
+});
+
+function prependActivity(a) {
+  const feed = document.getElementById('activity-feed');
+  if (!feed) return;
+  if (feed.querySelector('.empty-state') || feed.querySelector('.skeleton')) {
+    feed.innerHTML = '';
+  }
+
+  const rows = feed.querySelectorAll('[data-activity-id]');
+  rows.forEach((row, i) => {
+    if (i === rows.length - 1) row.style.borderBottom = '1px solid var(--navy-light)';
+  });
+
+  feed.insertAdjacentHTML('afterbegin', renderActivityRow(a, false));
+  refreshIcons();
+
+  // Trim to the display limit
+  const all = feed.querySelectorAll('[data-activity-id]');
+  if (all.length > ACTIVITY_LIMIT) {
+    for (let i = ACTIVITY_LIMIT; i < all.length; i++) all[i].remove();
+  }
+  const remaining = feed.querySelectorAll('[data-activity-id]');
+  if (remaining.length) remaining[remaining.length - 1].style.borderBottom = 'none';
+}

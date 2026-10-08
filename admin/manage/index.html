@@ -697,6 +697,7 @@
         <button type="button" class="site-subtab-btn" data-site-subtab="content-filter">Content Filter</button>
         <button type="button" class="site-subtab-btn" data-site-subtab="duplicates">Duplicates</button>
         <button type="button" class="site-subtab-btn" data-site-subtab="client-errors">Client Errors</button>
+        <button type="button" class="site-subtab-btn" data-site-subtab="cron-health">Cron Health</button>
       </div>
 
       <div data-site-subpanel="settings" class="panel" id="site-settings" style="margin-top:16px; scroll-margin-top:90px;">
@@ -1025,6 +1026,20 @@
           <h3 style="font-size:1.1rem;"><i data-lucide="users" class="icon-sm icon-inline"></i>Referral Burst Clusters</h3>
           <p class="muted" style="font-size:0.85rem; margin-top:-8px;">A referrer with several new accounts signing up in a tight window — the classic alt-farming loop. Flags 3+ referrals within 30 minutes of each other.</p>
           <div id="referral-bursts-list" style="margin-top:14px; display:flex; flex-direction:column; gap:10px;">
+            <div class="skeleton" style="height:60px;"></div>
+          </div>
+        </div>
+      </div>
+
+      <div data-site-subpanel="cron-health" style="display:none;">
+        <div class="panel" id="site-cron-health" style="margin-top:16px; scroll-margin-top:90px;">
+          <div class="flex-between" style="gap:12px; flex-wrap:wrap;">
+            <h3 style="font-size:1.1rem; margin:0;"><i data-lucide="activity" class="icon-sm icon-inline"></i>Scheduled Jobs</h3>
+            <button type="button" class="btn btn-ghost btn-sm" id="cron-health-refresh">Refresh</button>
+          </div>
+          <p class="muted" style="font-size:0.85rem;">Every pg_cron job: last result, runs and failures in the last 24h. A job is flagged <strong>Stale</strong> when it hasn't run within ~3x its schedule. Admins only.</p>
+          <div id="cron-health-summary" style="margin-top:6px;"></div>
+          <div id="cron-health-list" style="margin-top:14px; display:flex; flex-direction:column; gap:8px;">
             <div class="skeleton" style="height:60px;"></div>
           </div>
         </div>

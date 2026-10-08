@@ -170,13 +170,22 @@
 
 <main>
 
-<section class="section" id="trending-section" style="display:none; padding-bottom:0;">
+<section class="section live-strip-section" id="live-strip" style="display:none;" aria-label="Live on BloxCore">
   <div class="container">
-    <div class="flex-between" style="margin-bottom:16px;">
-      <h2 style="font-size:1.3rem; margin:0;"><i data-lucide="trending-up" class="icon-sm icon-inline"></i>Trending Right Now</h2>
-      <a href="/blox-fruits-tier-list/" class="muted" style="font-size:0.85rem;">Full tier list →</a>
+    <div class="section-head">
+      <h2 class="section-title"><span class="live-dot" aria-hidden="true"></span>Live on BloxCore</h2>
     </div>
-    <div id="trending-grid" class="grid" style="grid-template-columns:repeat(auto-fill, minmax(150px, 1fr)); gap:10px;"></div>
+    <div id="live-strip-grid" class="live-strip-grid"></div>
+  </div>
+</section>
+
+<section class="section trending-section" id="trending-section" style="display:none;">
+  <div class="container">
+    <div class="section-head">
+      <h2 class="section-title"><i data-lucide="trending-up" class="icon-sm icon-inline"></i>Trending Right Now</h2>
+      <a href="/blox-fruits-tier-list/" class="section-head-link">Full tier list <i data-lucide="arrow-right" class="icon-sm icon-inline"></i></a>
+    </div>
+    <div id="trending-grid" class="trending-grid"></div>
   </div>
 </section>
 

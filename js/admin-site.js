@@ -37,6 +37,8 @@ async function initSiteTab() {
     await loadFlaggedPosts();
     await loadDuplicateAccountChecks();
     await loadClientErrors();
+    loadCronHealth();
+    document.getElementById('cron-health-refresh')?.addEventListener('click', loadCronHealth);
     initWebhookPanel();
 
     document.getElementById('broadcast-form').addEventListener('submit', handleCreateBroadcast);
@@ -175,6 +177,46 @@ async function loadClientErrors() {
       <p class="muted" style="margin:6px 0 0; font-size:0.7rem;">${escapeHtml(e.user_agent || '')}</p>
     </details>
   `).join('');
+}
+
+async function loadCronHealth() {
+  const list = document.getElementById('cron-health-list');
+  const summary = document.getElementById('cron-health-summary');
+  if (!list) return;
+  const { data, error } = await sb.rpc('get_cron_health');
+  if (error) {
+    const denied = /not authorized/i.test(error.message || '');
+    list.innerHTML = denied
+      ? `<p class="muted" style="font-size:0.85rem;">Only admins can view scheduled job health.</p>`
+      : errorStateHtml("Couldn't load cron health.", 'loadCronHealth()');
+    if (summary) summary.innerHTML = '';
+    return;
+  }
+  const bad = data.filter(j => j.stale || j.fails_24h > 0 || !j.active || j.last_status === 'failed');
+  if (summary) {
+    summary.innerHTML = bad.length
+      ? `<p style="margin:0; color:#f87171; font-weight:600; font-size:0.9rem;">${bad.length} of ${data.length} jobs need attention</p>`
+      : `<p style="margin:0; color:var(--sea); font-weight:600; font-size:0.9rem;">All ${data.length} jobs healthy</p>`;
+  }
+  // problems first, then by name
+  const rank = j => (j.stale || j.last_status === 'failed' || !j.active ? 0 : j.fails_24h > 0 ? 1 : 2);
+  data.sort((a, b) => rank(a) - rank(b) || a.jobname.localeCompare(b.jobname));
+  list.innerHTML = data.map(j => {
+    let label = 'OK', color = 'var(--sea)';
+    if (!j.active) { label = 'Paused'; color = 'var(--ash)'; }
+    else if (j.last_status === 'failed') { label = 'Failed'; color = '#f87171'; }
+    else if (j.stale) { label = 'Stale'; color = '#fbbf24'; }
+    else if (j.fails_24h > 0) { label = `${j.fails_24h} fail${j.fails_24h > 1 ? 's' : ''}/24h`; color = '#fbbf24'; }
+    return `
+    <div class="panel panel-plain" style="margin:0; padding:10px 14px; display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap;">
+      <div style="min-width:0;">
+        <strong style="font-size:0.88rem;">${escapeHtml(j.jobname.replace(/^bloxcore-/, ''))}</strong>
+        <p class="muted" style="margin:2px 0 0; font-size:0.74rem;"><code>${escapeHtml(j.schedule)}</code> · ${j.last_run ? `last run ${timeAgo(j.last_run)}` : 'no run on record'} · ${j.runs_24h} runs/24h</p>
+        ${j.last_status === 'failed' && j.last_message ? `<p style="margin:4px 0 0; font-size:0.74rem; color:#f87171; overflow-wrap:anywhere;">${escapeHtml(j.last_message)}</p>` : ''}
+      </div>
+      <span style="font-size:0.7rem; font-weight:700; text-transform:uppercase; letter-spacing:0.04em; color:${color};">${label}</span>
+    </div>`;
+  }).join('');
 }
 
 function activateSiteSubtab(name) {

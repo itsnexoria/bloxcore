@@ -48,6 +48,9 @@ jobs:
       - name: Regenerate tier-list, compare, calculator & guide pages
         run: node scripts/generate-guide-pages.mjs .
 
+      - name: Rebuild sitemap (adds lastmod)
+        run: node scripts/generate-sitemap.mjs .
+
       - name: Commit and push if anything changed
         run: |
           git config user.name "bloxcore-bot"
