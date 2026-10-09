@@ -13,6 +13,7 @@ let myWatchlist = new Set(); // item ids
 let myWatchlistAlerts = new Map(); // item_id -> { direction, target_value, triggered_at }
 let watchlistCategory = 'fruit';
 let viewerIsAdmin = false;
+let composeMode = null; // null = new listing; { kind: 'offer'|'counter', listingId, offerId } = answering a listing/offer
 let listingLookup = new Map(); // id -> full listing row, for the Relist quick-duplicate action
 let reportingListingId = null;
 let valueHistoryCategory = 'fruit';
@@ -118,7 +119,7 @@ onReady(async () => {
   document.getElementById('trade-complete-close').addEventListener('click', closeCompleteModal);
   document.getElementById('trade-complete-submit').addEventListener('click', submitCompleteModal);
   document.getElementById('trade-complete-modal').addEventListener('click', (e) => { if (e.target.id === 'trade-complete-modal') closeCompleteModal(); });
-  if (currentUser) await loadTradeConfirmations();
+  if (currentUser) { await loadTradeConfirmations(); await loadOffers(); }
 });
 
 // --- Watchlist -----------------------------------------------------------
@@ -393,20 +394,34 @@ function itemById(id) {
 
 // --- Compose modal -----------------------------------------------------
 
-function openComposeModal(prefill) {
-  if (myActiveListingCount >= maxActiveTrades) {
-    showToast(`You've hit the ${maxActiveTrades} active listing limit — close one first.`, true);
+function openComposeModal(prefill, mode = null) {
+  composeMode = mode;
+  if (!mode && myActiveListingCount >= maxActiveTrades) {
+    showToast(`You've hit the ${maxActiveTrades} active listing limit -- close one first.`, true);
     return;
   }
   offeringEntries = prefill?.offering ? prefill.offering.map(e => ({ ...e })) : [];
   requestingEntries = prefill?.requesting ? prefill.requesting.map(e => ({ ...e })) : [];
   document.getElementById('trade-note').value = prefill?.note || '';
+  applyComposeModeUi();
   renderSlotList('offering');
   renderSlotList('requesting');
   document.getElementById('trade-compose-modal').classList.add('open');
 }
 function closeComposeModal() {
   document.getElementById('trade-compose-modal').classList.remove('open');
+}
+
+// The same composer doubles as the offer / counter-offer form: labels flip to "You give / You get",
+// the auto-delete picker is hidden, and the note becomes a message to the other trader.
+function applyComposeModeUi() {
+  const m = composeMode;
+  document.getElementById('trade-compose-title').textContent = !m ? 'New Trade Listing' : m.kind === 'counter' ? 'Counter-offer' : 'Make an offer';
+  document.getElementById('compose-label-offering').textContent = m ? 'You give' : 'Offering';
+  document.getElementById('compose-label-requesting').textContent = m ? 'You get' : 'Requesting';
+  document.getElementById('trade-note-label').textContent = m ? 'Message (optional)' : 'Note (optional)';
+  document.getElementById('trade-duration-wrap').style.display = m ? 'none' : '';
+  document.getElementById('trade-post-btn').textContent = !m ? 'Post Listing' : m.kind === 'counter' ? 'Send counter-offer' : 'Send offer';
 }
 
 function renderSlotList(side) {
@@ -522,6 +537,21 @@ async function handlePost() {
   const note = document.getElementById('trade-note').value.trim();
   const btn = document.getElementById('trade-post-btn');
   btn.disabled = true;
+
+  if (composeMode) {
+    const m = composeMode;
+    const args = { p_gives: offeringEntries, p_gets: requestingEntries, p_message: note || null };
+    const { error: offerErr } = m.kind === 'counter'
+      ? await sb.rpc('counter_trade_offer', { p_id: m.offerId, ...args })
+      : await sb.rpc('make_trade_offer', { p_listing_id: m.listingId, ...args });
+    btn.disabled = false;
+    if (offerErr) { showToast(offerErr.message, true); return; }
+    closeComposeModal();
+    showToast(m.kind === 'counter' ? 'Counter-offer sent.' : 'Offer sent — you\'ll be notified when they answer.');
+    composeMode = null;
+    loadOffers();
+    return;
+  }
 
   const { error } = await sb.from('trade_listings').insert({
     user_id: currentUser.id,
@@ -667,6 +697,7 @@ function renderListing(t) {
 
       ${t.note ? `<p class="muted" style="margin:12px 0 0; font-size:0.85rem;">${escapeHtml(t.note)}</p>` : ''}
       ${fairValueBadgeHtml(offer.total, request.total, isOwner) ? `<div style="margin-top:10px;">${fairValueBadgeHtml(offer.total, request.total, isOwner)}</div>` : ''}
+      ${!isOwner && currentUser ? `<div style="margin-top:12px;"><button class="btn btn-primary btn-sm" data-make-offer="${t.id}"><i data-lucide="handshake" class="icon-sm icon-inline"></i>Make offer</button></div>` : ''}
 
       <div class="trade-columns-wrap">
         <div class="trade-columns">
@@ -708,6 +739,14 @@ function wireListingActions(root) {
       const t = listingLookup.get(btn.dataset.relistListing);
       if (!t) return;
       openComposeModal({ offering: t.offering_item_ids, requesting: t.requesting_item_ids, note: t.note });
+    });
+  });
+  root.querySelectorAll('[data-make-offer]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const listing = listingLookup.get(btn.dataset.makeOffer);
+      if (!listing) return;
+      // pre-fill "as listed": I give what they request, I get what they offer — then edit to haggle
+      openComposeModal({ offering: listing.requesting_item_ids, requesting: listing.offering_item_ids }, { kind: 'offer', listingId: listing.id });
     });
   });
   root.querySelectorAll('[data-complete-listing]').forEach(btn => {
@@ -859,4 +898,87 @@ async function loadTradeConfirmations() {
     });
   });
   if (location.hash === '#confirmations') section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+// --- Offers & counter-offers -------------------------------------------------------------
+// Anyone can answer a listing with an offer (pre-filled "as listed"); the owner can accept, decline or counter.
+async function loadOffers() {
+  const section = document.getElementById('trade-offers');
+  const list = document.getElementById('trade-offers-list');
+  if (!section || !list || !currentUser) return;
+  const prof = 'username, display_name, avatar_url, avatar_frame';
+  const { data, error } = await sb
+    .from('trade_offers')
+    .select(`id, listing_id, from_id, to_id, from_gives, from_gets, message, status, parent_offer_id, created_at, from_profile:profiles!trade_offers_from_id_fkey(${prof}), to_profile:profiles!trade_offers_to_id_fkey(${prof})`)
+    .or(`from_id.eq.${currentUser.id},to_id.eq.${currentUser.id}`)
+    .order('created_at', { ascending: false })
+    .limit(40);
+  if (error || !data) { section.style.display = 'none'; if (error) logError('trade_offers load failed:', error); return; }
+  const incoming = data.filter(o => o.to_id === currentUser.id && o.status === 'pending');
+  const outgoing = data.filter(o => o.from_id === currentUser.id && o.status === 'pending');
+  const accepted = data.filter(o => o.status === 'accepted').slice(0, 5);
+  if (!incoming.length && !outgoing.length && !accepted.length) { section.style.display = 'none'; return; }
+  section.style.display = '';
+
+  const cardHtml = (o, kind) => {
+    const mine = o.from_id === currentUser.id;
+    const other = mine ? o.to_profile : o.from_profile;
+    const gives = sideSummary(mine ? o.from_gives : o.from_gets);   // what *I* give
+    const gets = sideSummary(mine ? o.from_gets : o.from_gives);    // what *I* get
+    const val = gives.total && gets.total ? fairValueBadgeHtml(gets.total, gives.total, false) : '';
+    const head = kind === 'incoming' ? `${o.parent_offer_id ? 'Counter-offer' : 'Offer'} from` : kind === 'outgoing' ? `Waiting on` : 'Accepted with';
+    const actions = kind === 'incoming'
+      ? `<button class="btn btn-primary btn-sm" data-offer-accept="${o.id}"><i data-lucide="check" class="icon-sm icon-inline"></i>Accept</button>
+         <button class="btn btn-ghost btn-sm" data-offer-counter="${o.id}">Counter</button>
+         <button class="btn btn-ghost btn-sm" data-offer-decline="${o.id}">Decline</button>`
+      : kind === 'outgoing'
+        ? `<button class="btn btn-ghost btn-sm" data-offer-withdraw="${o.id}">Withdraw</button>`
+        : `<a class="btn btn-ghost btn-sm" href="/messages/?u=${encodeURIComponent(other?.username || '')}">Message</a>
+           <a class="btn btn-ghost btn-sm" href="/player/?u=${encodeURIComponent(other?.username || '')}">Profile</a>`;
+    return `
+      <div class="panel confirm-card" data-offer-id="${o.id}">
+        <div style="display:flex; align-items:center; gap:10px;">
+          ${avatarHtml(other || {}, 34)}
+          <div style="flex:1; min-width:0;">
+            <p style="margin:0; font-weight:700;">${head} ${escapeHtml(displayNameFor(other || {}))}</p>
+            <p class="muted" style="margin:0; font-size:0.75rem;">${timeAgo(o.created_at)}</p>
+          </div>
+          ${val}
+        </div>
+        <div class="confirm-card-items">
+          <div><span class="muted" style="font-size:0.72rem;">You give</span><div class="confirm-card-tiles">${gives.tiles || '<span class="muted">—</span>'}</div></div>
+          <div><span class="muted" style="font-size:0.72rem;">You get</span><div class="confirm-card-tiles">${gets.tiles || '<span class="muted">—</span>'}</div></div>
+        </div>
+        ${o.message ? `<p class="muted" style="margin:10px 0 0; font-size:0.85rem;">“${escapeHtml(o.message)}”</p>` : ''}
+        ${kind === 'accepted' ? '<p class="muted" style="margin:10px 0 0; font-size:0.8rem;">Agree on the details, trade in-game, then use <strong>Mark completed</strong> on the listing so it counts for both of you.</p>' : ''}
+        <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:12px;">${actions}</div>
+      </div>`;
+  };
+
+  list.innerHTML = [
+    ...incoming.map(o => cardHtml(o, 'incoming')),
+    ...outgoing.map(o => cardHtml(o, 'outgoing')),
+    ...accepted.map(o => cardHtml(o, 'accepted')),
+  ].join('');
+  refreshIcons();
+
+  const byId = new Map(data.map(o => [o.id, o]));
+  const lock = (btn) => btn.closest('.confirm-card').querySelectorAll('button').forEach(b => { b.disabled = true; });
+  const act = async (btn, fn, okMsg) => {
+    lock(btn);
+    const { error: err } = await fn();
+    if (err) { showToast(err.message, true); loadOffers(); return; }
+    showToast(okMsg);
+    loadOffers();
+  };
+  list.querySelectorAll('[data-offer-accept]').forEach(b => b.addEventListener('click', () => act(b, () => sb.rpc('respond_trade_offer', { p_id: b.dataset.offerAccept, p_accept: true }), 'Offer accepted — arrange the trade with them.')));
+  list.querySelectorAll('[data-offer-decline]').forEach(b => b.addEventListener('click', () => act(b, () => sb.rpc('respond_trade_offer', { p_id: b.dataset.offerDecline, p_accept: false }), 'Offer declined.')));
+  list.querySelectorAll('[data-offer-withdraw]').forEach(b => b.addEventListener('click', () => act(b, () => sb.rpc('withdraw_trade_offer', { p_id: b.dataset.offerWithdraw }), 'Offer withdrawn.')));
+  list.querySelectorAll('[data-offer-counter]').forEach(b => b.addEventListener('click', () => {
+    const o = byId.get(b.dataset.offerCounter);
+    if (!o) return;
+    // I (the owner) give what they wanted to get, and get what they offered to give
+    openComposeModal({ offering: o.from_gets, requesting: o.from_gives }, { kind: 'counter', offerId: o.id });
+  }));
+  if (location.hash === '#offers') section.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }

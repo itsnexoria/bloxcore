@@ -130,6 +130,11 @@
         <a href="/auth/" class="btn btn-primary btn-sm">Sign in to post a listing</a>
       </div>
 
+      <div id="trade-offers" style="display:none; margin-top:24px;">
+        <h2 style="font-size:1.05rem; margin:0 0 12px;"><i data-lucide="handshake" class="icon-sm icon-inline"></i>Your offers</h2>
+        <div id="trade-offers-list" style="display:grid; gap:12px;"></div>
+      </div>
+
       <div id="trade-confirmations" style="display:none; margin-top:24px;">
         <h2 style="font-size:1.05rem; margin:0 0 12px;"><i data-lucide="handshake" class="icon-sm icon-inline"></i>Confirm your trades</h2>
         <div id="trade-confirmations-list" style="display:grid; gap:12px;"></div>
@@ -175,14 +180,14 @@
     <div class="two-col-grid" style="gap:20px;">
       <div>
         <div class="flex-between" style="margin-bottom:8px;">
-          <label style="margin:0;">Offering</label>
+          <label id="compose-label-offering" style="margin:0;">Offering</label>
           <button type="button" class="btn btn-ghost btn-sm" data-open-item-picker="offering" title="Add" aria-label="Add item you're offering"><i data-lucide="plus" class="icon-sm"></i></button>
         </div>
         <div id="offering-items" class="trade-slot-list"></div>
       </div>
       <div>
         <div class="flex-between" style="margin-bottom:8px;">
-          <label style="margin:0;">Requesting</label>
+          <label id="compose-label-requesting" style="margin:0;">Requesting</label>
           <button type="button" class="btn btn-ghost btn-sm" data-open-item-picker="requesting" title="Add" aria-label="Add item you're requesting"><i data-lucide="plus" class="icon-sm"></i></button>
         </div>
         <div id="requesting-items" class="trade-slot-list"></div>
@@ -192,8 +197,9 @@
     <div id="trade-fair-value" style="display:none; margin-top:14px; padding:10px 14px; border-radius:var(--radius-sm,8px); background:var(--navy-light); text-align:center; font-size:0.85rem;"></div>
 
     <div class="trade-compose-extra">
-      <label for="trade-note">Note (optional)</label>
+      <label for="trade-note" id="trade-note-label">Note (optional)</label>
       <textarea id="trade-note" rows="2" maxlength="200" placeholder="Roblox username to reach you, extra detail, etc." style="resize:vertical; min-height:60px;"></textarea>
+      <div id="trade-duration-wrap">
       <label for="trade-duration">Auto-Delete After</label>
       <select id="trade-duration" required>
         <option value="1">1 hour</option>
@@ -203,6 +209,7 @@
         <option value="12">12 hours</option>
         <option value="24" selected>24 hours</option>
       </select>
+      </div>
     </div>
     <button type="button" class="btn btn-primary btn-block" id="trade-post-btn">Post Listing</button>
   </div>

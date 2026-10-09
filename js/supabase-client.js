@@ -1021,6 +1021,7 @@ async function claimDailyLoginIfNeeded() {
     localStorage.setItem('bc_login_streak_date', todayUtc);
 
     const row = data?.[0];
+    window.dispatchEvent(new CustomEvent('bc:login-claimed', { detail: row || null }));
     if (row && !row.already_claimed && row.xp_awarded > 0) {
       showToast(`Day ${row.streak} login streak — +${row.xp_awarded} XP!`);
     }

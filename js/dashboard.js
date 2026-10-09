@@ -86,6 +86,9 @@ onReady(async () => {
   dashMaxCombosPerUser = settings.maxCombosPerUser;
 
   renderProfileCard(profile, membership?.crews);
+  renderLoginStreakCard(profile);
+  // the daily claim can finish after the first render — refresh the card when it does
+  window.addEventListener('bc:login-claimed', async () => { const fresh = await getCurrentProfile(); if (fresh?.profile) renderLoginStreakCard(fresh.profile); }, { once: true });
   initMyListingsTabs(profile.role);
   loadOnboardingChecklist(profile, membership, user.id);
   loadOnThisDay(user.id);
@@ -406,6 +409,36 @@ function renderProfileCard(profile, crew) {
       </div>
     </div>
   `;
+  refreshIcons();
+}
+
+// Daily login streak (claim_daily_login RPC runs automatically on page load, see supabase-client.js).
+// Bonus is 5 XP x streak day, capped at day 7 — so a full week is worth 35 XP a day.
+function renderLoginStreakCard(profile) {
+  const card = document.getElementById('login-streak-card');
+  if (!card) return;
+  const streak = profile.login_streak || 0;
+  const today = new Date().toISOString().slice(0, 10);
+  const claimedToday = profile.last_login_date === today;
+  const now = new Date();
+  const msLeft = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + 1) - now.getTime();
+  const hLeft = Math.floor(msLeft / 3600000), mLeft = Math.floor((msLeft % 3600000) / 60000);
+  const inWeek = streak === 0 ? 0 : ((streak - 1) % 7) + 1;
+  const nextBonus = Math.min(streak + (claimedToday ? 1 : 0), 7) * 5 || 5;
+  const dots = Array.from({ length: 7 }, (_, i) => `<span class="ls-dot${i < inWeek ? ' on' : ''}${i === inWeek && !claimedToday ? ' next' : ''}" title="Day ${i + 1}: +${(i + 1) * 5} XP">${i + 1}</span>`).join('');
+  card.style.display = '';
+  card.innerHTML = `
+    <div class="ls-head">
+      <div style="display:flex; align-items:center; gap:10px;">
+        <span class="ls-flame ${streak > 0 ? 'on' : ''}"><i data-lucide="flame"></i></span>
+        <div>
+          <p style="margin:0; font-weight:700; font-size:1.05rem;">${streak}-day login streak</p>
+          <p class="muted" style="margin:0; font-size:0.78rem;">Best: ${profile.longest_login_streak || 0} days · ${claimedToday ? `claimed today — next bonus in ${hLeft}h ${mLeft}m (+${nextBonus} XP)` : 'visit any page to claim today\'s bonus'}</p>
+        </div>
+      </div>
+      <a href="/challenges/" class="btn btn-ghost btn-sm"><i data-lucide="target" class="icon-sm icon-inline"></i>Today's quests</a>
+    </div>
+    <div class="ls-dots" aria-label="Week progress">${dots}</div>`;
   refreshIcons();
 }
 

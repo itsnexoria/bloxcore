@@ -107,6 +107,28 @@
       <div class="skeleton" style="height:200px;"></div>
     </div>
 
+    <div id="crew-events-section" style="display:none; margin-top:20px;">
+      <div class="flex-between" style="margin:24px 0 10px;">
+        <h2 style="font-size:1.05rem; margin:0;"><i data-lucide="calendar-days" class="icon-sm icon-inline"></i>Crew Events</h2>
+        <button type="button" class="btn btn-primary btn-sm" id="event-new-btn" style="display:none;"><i data-lucide="plus" class="icon-sm icon-inline"></i>Schedule event</button>
+      </div>
+      <form id="event-form" class="panel" style="display:none; padding:14px; margin-bottom:12px; gap:10px;">
+        <div class="clip-form-grid">
+          <div><label for="event-title">Title</label><input type="text" id="event-title" maxlength="80" minlength="3" placeholder="e.g. Leviathan raid night" required></div>
+          <div><label for="event-kind">Type</label>
+            <select id="event-kind"><option value="raid">Raid</option><option value="war">Crew war</option><option value="training">Training / PvP practice</option><option value="other">Other</option></select></div>
+        </div>
+        <div class="clip-form-grid">
+          <div><label for="event-start">Starts <span class="muted" style="font-weight:400; text-transform:none;">(your local time)</span></label><input type="datetime-local" id="event-start" required></div>
+          <div><label for="event-duration">Length</label>
+            <select id="event-duration"><option value="30">30 minutes</option><option value="60" selected>1 hour</option><option value="90">1.5 hours</option><option value="120">2 hours</option><option value="180">3 hours</option></select></div>
+        </div>
+        <div><label for="event-desc">Details (optional)</label><textarea id="event-desc" rows="2" maxlength="500" placeholder="Server link, what to bring, who to meet…"></textarea></div>
+        <div style="display:flex; gap:8px;"><button type="submit" class="btn btn-primary btn-sm" id="event-submit">Schedule &amp; notify crew</button><button type="button" class="btn btn-ghost btn-sm" id="event-cancel">Cancel</button></div>
+      </form>
+      <div id="crew-events-list"></div>
+    </div>
+
     <div id="crew-wars-section" style="display:none; margin-top:20px;">
       <div class="flex-between" style="margin:24px 0 10px;">
         <h2 style="font-size:1.05rem; margin:0;"><i data-lucide="swords" class="icon-sm icon-inline"></i>Crew Wars</h2>

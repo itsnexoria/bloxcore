@@ -181,6 +181,7 @@ async function render() {
   document.getElementById('crew-wars-section').style.display = 'block';
   refreshIcons();
   loadCrewWeeklyStats();
+  initCrewEvents(!!(isMember), !!(isLeader || isOfficer));
 
   document.getElementById('leave-crew-btn')?.addEventListener('click', () => handleLeave(currentUser.id));
   document.getElementById('delete-crew-btn')?.addEventListener('click', handleDelete);
@@ -860,4 +861,149 @@ async function handleWarCall(e) {
   closeWarCallModal();
   showToast('War call sent.');
   await loadWars();
+}
+
+// --- Crew events calendar ----------------------------------------------------------------
+// Members see upcoming events and RSVP; leaders/officers schedule them. Everyone going gets a reminder ~30 min
+// before start (cron job send_crew_event_reminders), and the whole crew is notified when one is scheduled.
+const EVENT_KIND = {
+  raid: { label: 'Raid', icon: 'skull', color: '#a78bfa' },
+  war: { label: 'Crew war', icon: 'swords', color: '#f87171' },
+  training: { label: 'Training', icon: 'dumbbell', color: '#34d399' },
+  other: { label: 'Event', icon: 'calendar', color: '#60a5fa' },
+};
+let crewEventsStaff = false;
+let crewEventsWired = false;
+
+function initCrewEvents(isMember, isStaff) {
+  const section = document.getElementById('crew-events-section');
+  if (!section) return;
+  if (!isMember) { section.style.display = 'none'; return; }
+  crewEventsStaff = isStaff;
+  section.style.display = 'block';
+  document.getElementById('event-new-btn').style.display = isStaff ? 'inline-flex' : 'none';
+  if (!crewEventsWired) {
+    crewEventsWired = true;
+    const form = document.getElementById('event-form');
+    document.getElementById('event-new-btn').addEventListener('click', () => {
+      form.style.display = form.style.display === 'none' ? 'grid' : 'none';
+      const start = document.getElementById('event-start');
+      if (!start.value) { const d = new Date(Date.now() + 2 * 3600000); d.setMinutes(0, 0, 0); start.value = new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 16); }
+    });
+    document.getElementById('event-cancel').addEventListener('click', () => { form.style.display = 'none'; });
+    form.addEventListener('submit', submitCrewEvent);
+  }
+  loadCrewEvents();
+}
+
+async function submitCrewEvent(e) {
+  e.preventDefault();
+  const btn = document.getElementById('event-submit');
+  btn.disabled = true;
+  const { error } = await sb.from('crew_events').insert({
+    crew_id: crew.id,
+    created_by: currentUser.id,
+    title: document.getElementById('event-title').value.trim(),
+    kind: document.getElementById('event-kind').value,
+    starts_at: new Date(document.getElementById('event-start').value).toISOString(),
+    duration_minutes: Number(document.getElementById('event-duration').value),
+    description: document.getElementById('event-desc').value.trim(),
+  });
+  btn.disabled = false;
+  if (error) { showToast(error.message, true); return; }
+  showToast('Event scheduled — your crew has been notified.');
+  document.getElementById('event-form').reset();
+  document.getElementById('event-form').style.display = 'none';
+  loadCrewEvents();
+}
+
+function eventIcs(ev) {
+  const fmt = (d) => new Date(d).toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, '');
+  const end = new Date(new Date(ev.starts_at).getTime() + ev.duration_minutes * 60000);
+  const lines = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//BloxCore//Crew Events//EN', 'BEGIN:VEVENT', `UID:${ev.id}@bloxcores.com`, `DTSTAMP:${fmt(new Date())}`,
+    `DTSTART:${fmt(ev.starts_at)}`, `DTEND:${fmt(end)}`, `SUMMARY:${(`[${crew.name}] ` + ev.title).replace(/[\n,;]/g, ' ')}`, `DESCRIPTION:${(ev.description || '').replace(/[\n,;]/g, ' ')}`, 'END:VEVENT', 'END:VCALENDAR'];
+  return new Blob([lines.join('\r\n')], { type: 'text/calendar' });
+}
+
+async function loadCrewEvents() {
+  const list = document.getElementById('crew-events-list');
+  const since = new Date(Date.now() - 12 * 3600000).toISOString();
+  const { data, error } = await sb
+    .from('crew_events')
+    .select('id, title, description, kind, starts_at, duration_minutes, created_by, crew_event_rsvps(user_id, status, profiles(username, display_name))')
+    .eq('crew_id', crew.id)
+    .gt('starts_at', since)
+    .order('starts_at', { ascending: true })
+    .limit(30);
+  if (error) { logError('crew_events load failed:', error); list.innerHTML = '<p class="muted">Couldn\'t load events.</p>'; return; }
+  const upcoming = (data || []).filter(ev => new Date(ev.starts_at).getTime() + ev.duration_minutes * 60000 > Date.now());
+  if (!upcoming.length) {
+    list.innerHTML = `<div class="panel" style="padding:22px; text-align:center;"><p class="muted" style="margin:0;">No events scheduled.${crewEventsStaff ? ' Use <strong>Schedule event</strong> to plan a raid or training night.' : ''}</p></div>`;
+    return;
+  }
+  list.innerHTML = upcoming.map(ev => {
+    const k = EVENT_KIND[ev.kind] || EVENT_KIND.other;
+    const start = new Date(ev.starts_at);
+    const live = start.getTime() <= Date.now();
+    const mine = ev.crew_event_rsvps.find(r => r.user_id === currentUser.id)?.status || null;
+    const going = ev.crew_event_rsvps.filter(r => r.status === 'going');
+    const maybe = ev.crew_event_rsvps.filter(r => r.status === 'maybe');
+    const names = going.slice(0, 5).map(r => escapeHtml(r.profiles?.display_name || r.profiles?.username || '?')).join(', ');
+    return `
+      <div class="panel event-card" style="--ev:${k.color};" data-event-id="${ev.id}">
+        <div class="event-date"><strong>${start.toLocaleDateString(undefined, { day: 'numeric' })}</strong><span>${start.toLocaleDateString(undefined, { month: 'short' })}</span></div>
+        <div style="flex:1; min-width:0;">
+          <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+            <span class="event-kind"><i data-lucide="${k.icon}" class="icon-sm icon-inline"></i>${k.label}</span>
+            ${live ? '<span class="tag tag-hard">Happening now</span>' : `<span class="muted" style="font-size:0.78rem;">${timeUntilLabel(start)}</span>`}
+          </div>
+          <p style="margin:4px 0 2px; font-weight:700;">${escapeHtml(ev.title)}</p>
+          <p class="muted" style="margin:0; font-size:0.8rem;">${start.toLocaleString(undefined, { weekday: 'short', hour: 'numeric', minute: '2-digit' })} · ${ev.duration_minutes >= 60 ? `${ev.duration_minutes / 60}h` : `${ev.duration_minutes}m`}</p>
+          ${ev.description ? `<p class="muted" style="margin:6px 0 0; font-size:0.85rem; white-space:pre-wrap;">${escapeHtml(ev.description)}</p>` : ''}
+          <p class="muted" style="margin:8px 0 0; font-size:0.78rem;">${going.length} going${maybe.length ? `, ${maybe.length} maybe` : ''}${names ? ` — ${names}${going.length > 5 ? '…' : ''}` : ''}</p>
+          <div style="display:flex; gap:6px; flex-wrap:wrap; margin-top:10px;">
+            <button class="btn btn-sm ${mine === 'going' ? 'btn-primary' : 'btn-ghost'}" data-rsvp="going" data-event="${ev.id}">Going</button>
+            <button class="btn btn-sm ${mine === 'maybe' ? 'btn-primary' : 'btn-ghost'}" data-rsvp="maybe" data-event="${ev.id}">Maybe</button>
+            <button class="btn btn-ghost btn-sm" data-ics="${ev.id}" title="Add to calendar"><i data-lucide="calendar-plus" class="icon-sm"></i></button>
+            ${crewEventsStaff ? `<button class="btn btn-ghost btn-sm" data-event-delete="${ev.id}" aria-label="Cancel event"><i data-lucide="trash-2" class="icon-sm"></i></button>` : ''}
+          </div>
+        </div>
+      </div>`;
+  }).join('');
+  refreshIcons();
+  const byId = new Map(upcoming.map(ev => [ev.id, ev]));
+  list.querySelectorAll('[data-rsvp]').forEach(btn => btn.addEventListener('click', async () => {
+    const id = btn.dataset.event, status = btn.dataset.rsvp;
+    const current = byId.get(id).crew_event_rsvps.find(r => r.user_id === currentUser.id)?.status;
+    btn.disabled = true;
+    const q = current === status ? sb.from('crew_event_rsvps').delete().eq('event_id', id).eq('user_id', currentUser.id)
+      : current ? sb.from('crew_event_rsvps').update({ status }).eq('event_id', id).eq('user_id', currentUser.id)
+      : sb.from('crew_event_rsvps').insert({ event_id: id, user_id: currentUser.id, status });
+    const { error: err } = await q;
+    if (err) { showToast(err.message, true); btn.disabled = false; return; }
+    loadCrewEvents();
+  }));
+  list.querySelectorAll('[data-ics]').forEach(btn => btn.addEventListener('click', () => {
+    const ev = byId.get(btn.dataset.ics);
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(eventIcs(ev));
+    a.download = `${ev.title.replace(/[^a-z0-9]+/gi, '-').toLowerCase()}.ics`;
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+  }));
+  list.querySelectorAll('[data-event-delete]').forEach(btn => btn.addEventListener('click', async () => {
+    if (!confirm('Cancel this event?')) return;
+    const { error: err } = await sb.from('crew_events').delete().eq('id', btn.dataset.eventDelete);
+    if (err) { showToast(err.message, true); return; }
+    loadCrewEvents();
+  }));
+}
+
+function timeUntilLabel(date) {
+  const ms = date.getTime() - Date.now();
+  const m = Math.round(ms / 60000);
+  if (m < 60) return `in ${Math.max(1, m)} min`;
+  const h = Math.round(m / 60);
+  if (h < 48) return `in ${h}h`;
+  return `in ${Math.round(h / 24)} days`;
 }

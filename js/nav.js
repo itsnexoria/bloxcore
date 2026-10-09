@@ -133,6 +133,7 @@ document.addEventListener('DOMContentLoaded', () => {
     desktopQuery.addEventListener ? desktopQuery.addEventListener('change', syncForViewport) : desktopQuery.addListener(syncForViewport);
   }
 
+  injectExtraNavLinks();
   refreshIcons();
   highlightActiveLink();
   populateAuthArea();
@@ -260,6 +261,32 @@ function initHeroTilt() {
     poster.style.setProperty('--tilt-x', '0deg');
     poster.style.setProperty('--tilt-y', '0deg');
   });
+}
+
+// New sections are injected here (once, de-duplicated by href) so every page's static nav picks them up
+// without editing each HTML file. Role-gated items reuse data-requires-role.
+function injectExtraNavLinks() {
+  const list = document.querySelector('.nav-links .nav-link-list');
+  if (!list) return;
+  const place = (anchorHref, items) => {
+    let ref = list.querySelector(`a[href="${anchorHref}"]`)?.closest('li');
+    items.forEach(({ href, icon, tone, label, role }) => {
+      if (list.querySelector(`a[href="${href}"]`)) return;
+      const li = document.createElement('li');
+      if (role) li.dataset.requiresRole = role;
+      li.innerHTML = `<a href="${href}" class="nav-link" style="--i:13"><span class="nav-link-icon" data-tone="${tone}"><i data-lucide="${icon}"></i></span>${label}</a>`;
+      if (ref) { ref.after(li); ref = li; } else { list.appendChild(li); }
+    });
+  };
+  place('/trade-calculator/', [
+    { href: '/blox-fruits-value-changes/', icon: 'activity', tone: 'gold', label: 'Value Changes' },
+    { href: '/scam-check/', icon: 'shield-alert', tone: 'blue', label: 'Scam Checker' },
+  ]);
+  place('/whats-new/', [
+    { href: '/clips/', icon: 'clapperboard', tone: 'pink', label: 'Clip of the Week' },
+    { href: '/blox-fruits-updates/', icon: 'newspaper', tone: 'sea', label: 'Update Guides' },
+  ]);
+  place('/admin/', [{ href: '/admin/overview/', icon: 'layout-dashboard', tone: 'gold', label: 'Overview', role: 'mod' }]);
 }
 
 function highlightActiveLink() {

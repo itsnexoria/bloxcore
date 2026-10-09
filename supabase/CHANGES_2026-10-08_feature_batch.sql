@@ -1,0 +1,17 @@
+-- APPLIED to the live BloxCore project on 2026-10-08 (all tested in rolled-back transactions). Migration names in supabase_migrations:
+--   value_changes_game_updates_trust_card, fix_trust_card_array_append, trade_offers_checkin_streak_crew_events,
+--   fix_profile_protection_and_daily_login, clips_mod_flags_admin_overview
+--
+-- NEW: get_value_changes(days); game_updates + snapshot_update_tiers(); get_trust_card(username);
+--      trade_offers + make/respond/counter/withdraw_trade_offer (auto-withdrawn when a listing closes);
+--      crew_events + crew_event_rsvps (staff create, members RSVP, announce trigger, 30-min reminder cron every 5 min);
+--      clips + clip_votes + clip_winners + get_clips/toggle_clip_vote/get_clip_hall + Monday 00:10 UTC winner cron;
+--      mod_flags + mod_scan() triggers on listings/events/comments/posts/combos/giveaways/pvp/clips + review_mod_flag();
+--      get_admin_overview(); site_pages rows for the 4 new public pages.
+--
+-- BUG FIXES (pre-existing):
+--  1. protect_profile_columns reverted xp/level/streak writes made by our own SECURITY DEFINER functions whenever a normal
+--     user triggered them, so activity XP (listings, vouches, quests...) silently never landed. The trigger now only fires
+--     for direct API-role writes: `for each row when (current_user in ('authenticated','anon'))`.
+--  2. login_streak / longest_login_streak / last_login_date were client-writable; now protected like xp.
+--  3. claim_daily_login() inserted into a non-existent activity_log.description column, so it always errored. Fixed.
