@@ -550,6 +550,7 @@ async function handlePost() {
     showToast(m.kind === 'counter' ? 'Counter-offer sent.' : 'Offer sent — you\'ll be notified when they answer.');
     composeMode = null;
     loadOffers();
+    promptForPush('Get an alert the moment they accept, decline or counter your offer.');
     return;
   }
 
@@ -565,6 +566,7 @@ async function handlePost() {
   if (error) { showToast(error.message, true); return; }
   closeComposeModal();
   showToast('Listing posted.');
+  promptForPush('Get an alert the moment someone sends you an offer on this listing.');
   loadListings();
 }
 
@@ -980,5 +982,6 @@ async function loadOffers() {
     // I (the owner) give what they wanted to get, and get what they offered to give
     openComposeModal({ offering: o.from_gets, requesting: o.from_gives }, { kind: 'counter', offerId: o.id });
   }));
+  if (incoming.length) promptForPush('You have a trade offer waiting — turn on alerts so you never miss one.');
   if (location.hash === '#offers') section.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }

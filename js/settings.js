@@ -81,6 +81,8 @@ onReady(async () => {
     document.getElementById('notify-crew-join-requests-toggle').disabled = true;
     document.getElementById('notify-friend-requests-toggle').disabled = true;
     document.getElementById('notify-tournament-updates-toggle').disabled = true;
+    document.getElementById('notify-trade-offers-toggle').disabled = true;
+    document.getElementById('notify-crew-events-toggle').disabled = true;
     document.getElementById('connections-list').innerHTML = `<span class="muted" style="font-size:0.85rem;">Sign in to view.</span>`;
     return;
   }
@@ -232,6 +234,10 @@ onReady(async () => {
     "You'll be notified about friend requests.", 'Friend request notifications turned off.');
   wireSimpleNotifyToggle('notify-tournament-updates-toggle', 'notify_tournament_updates', user.id, profile,
     "You'll be notified about tournament match updates.", 'Tournament update notifications turned off.');
+  wireSimpleNotifyToggle('notify-trade-offers-toggle', 'notify_trade_offers', user.id, profile,
+    "You'll be notified about trade offers and confirmations.", 'Trade offer notifications turned off.');
+  wireSimpleNotifyToggle('notify-crew-events-toggle', 'notify_crew_events', user.id, profile,
+    "You'll be notified about crew events.", 'Crew event notifications turned off.');
 
   document.getElementById('settings-signout-btn').addEventListener('click', async () => {
     await sb.auth.signOut();

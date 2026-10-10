@@ -59,3 +59,28 @@ async function unsubscribeFromPush() {
     await sub.unsubscribe();
   }
 }
+
+// One-time, dismissible nudge to turn on push — shown right after the moments it matters (posting a listing,
+// sending/receiving an offer). Never shown if push is unsupported, already on, blocked, or dismissed in the last 14 days.
+async function promptForPush(message) {
+  try {
+    if (!('serviceWorker' in navigator) || !('PushManager' in window) || typeof Notification === 'undefined') return;
+    if (Notification.permission !== 'default') return;
+    if (Number(localStorage.getItem('bc_push_prompt_until') || 0) > Date.now()) return;
+    if (document.getElementById('push-prompt')) return;
+    if ((await getPushSubscriptionState()) !== 'unsubscribed') return;
+  } catch { return; }
+  const el = document.createElement('div');
+  el.id = 'push-prompt'; el.className = 'push-prompt'; el.setAttribute('role', 'dialog'); el.setAttribute('aria-label', 'Turn on notifications');
+  el.innerHTML = `<i data-lucide="bell-ring" class="icon-md" style="color:var(--brass-bright); flex:none;"></i>
+    <p>${escapeHtml(message)}</p>
+    <div style="display:flex; gap:6px; flex:none;"><button type="button" class="btn btn-primary btn-sm" data-push-yes>Turn on</button><button type="button" class="btn btn-ghost btn-sm" data-push-no aria-label="Not now">Not now</button></div>`;
+  document.body.appendChild(el);
+  if (typeof refreshIcons === 'function') refreshIcons();
+  const dismiss = () => { try { localStorage.setItem('bc_push_prompt_until', String(Date.now() + 14 * 86400000)); } catch { /* ignore */ } el.remove(); };
+  el.querySelector('[data-push-no]').addEventListener('click', dismiss);
+  el.querySelector('[data-push-yes]').addEventListener('click', async () => {
+    try { await subscribeToPush(); showToast('Push alerts are on for this device.'); el.remove(); }
+    catch (e) { showToast(e.message || 'Couldn\'t turn on notifications.', true); dismiss(); }
+  });
+}

@@ -1,0 +1,12 @@
+-- APPLIED to the live BloxCore project on 2026-10-08 (tested in rolled-back transactions).
+-- Migration: tier_lists_builds_push_prefs; edge function send-push redeployed as version 2.
+--
+-- NEW: tier_lists (+ validate_tier_list trigger, get_community_tiers(category) RPC: average of each player's latest list, S=5..D=1);
+--      saved_builds (+ validate_build trigger, max 12 per user); both rate-limited and scanned by mod_scan_on_insert
+--      (mod_flags.target_type now also allows 'tier_list' and 'build'; review_mod_flag can remove them).
+-- PUSH: profiles.notify_trade_offers + notify_crew_events (notify() maps trade_offer*/trade_confirm* and crew_event* to them);
+--       trigger_push_notification() now sends a readable title per notification type ("New trade offer", ...)
+--       and an x-push-secret header; send-push rejects requests without it.
+-- SECURITY FIX: send-push had verify_jwt=false with no other auth, so anyone could POST {user_id, title, body, url} and push
+--       arbitrary text/links (phishing) to any subscribed user. It now requires app_secrets.push_webhook_secret.
+--       (An unauthenticated call now returns 401; the database trigger's call returns 200.)

@@ -285,6 +285,8 @@ function injectExtraNavLinks() {
   place('/whats-new/', [
     { href: '/clips/', icon: 'clapperboard', tone: 'pink', label: 'Clip of the Week' },
     { href: '/blox-fruits-updates/', icon: 'newspaper', tone: 'sea', label: 'Update Guides' },
+    { href: '/tier-maker/', icon: 'layout-list', tone: 'purple', label: 'Tier List Maker' },
+    { href: '/build-planner/', icon: 'sliders-horizontal', tone: 'blue', label: 'Build Planner' },
   ]);
   place('/admin/', [{ href: '/admin/overview/', icon: 'layout-dashboard', tone: 'gold', label: 'Overview', role: 'mod' }]);
 }

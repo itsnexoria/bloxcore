@@ -88,6 +88,73 @@ function buildShareText() {
   return `BloxCore Trade Check\nGive: ${side('give')} (${formatValue(give)})\nGet: ${side('get')} (${formatValue(get)})\nVerdict: ${verdict}\n${location.href}`;
 }
 
+// ---- Shareable result card (1200x630 PNG for Discord / Reddit) ------------------------------------
+function calcVerdict() {
+  const give = calcTotal('give'), get = calcTotal('get');
+  if (!give || !get) return { tone: 'fair', label: 'UNPRICED', pct: 0, color: SC.muted };
+  const diff = Math.round(((get - give) / give) * 100);
+  if (Math.abs(diff) <= FAIR_THRESHOLD_PCT) return { tone: 'fair', label: 'FAIR TRADE', pct: diff, color: SC.fair };
+  return diff > 0 ? { tone: 'win', label: `WIN  +${diff}%`, pct: diff, color: SC.win } : { tone: 'loss', label: `LOSS  ${diff}%`, pct: diff, color: SC.lose };
+}
+
+async function renderTradeCard(canvas) {
+  const W = 1200, H = 630;
+  canvas.width = W; canvas.height = H;
+  const ctx = canvas.getContext('2d');
+  const imgs = new Map();
+  await Promise.all([...calcSides.give, ...calcSides.get].map(async (e) => imgs.set(e.item.id, await scLoadImage(e.item.icon_url))));
+
+  scBackground(ctx, W, H);
+  await scBrandHeader(ctx, W, 'Trade Check');
+
+  const v = calcVerdict();
+  const colW = 480, topY = 104;
+  const maxN = Math.min(6, Math.max(calcSides.give.length, calcSides.get.length, 1));
+  const rowH = maxN <= 2 ? 92 : maxN <= 4 ? 72 : 46;          // fewer items → bigger rows so the card never looks empty
+  const iconS = rowH - 12, nameFont = rowH >= 90 ? 28 : rowH >= 70 ? 24 : 20, valFont = rowH >= 90 ? 24 : 18;
+  const drawSide = (heading, entries, x, accent) => {
+    ctx.textBaseline = 'middle'; ctx.textAlign = 'left';
+    ctx.fillStyle = accent; ctx.font = '700 18px system-ui, sans-serif';
+    ctx.fillText(heading, x, topY + 10);
+    entries.slice(0, 6).forEach((e, i) => {
+      const y = topY + 36 + i * (rowH + 8);
+      scRoundRect(ctx, x, y, colW, rowH, 14); ctx.fillStyle = SC.panel; ctx.fill();
+      scIconTile(ctx, imgs.get(e.item.id), e.item.name, x + 6, y + 6, iconS, accent);
+      ctx.fillStyle = SC.text; ctx.font = `600 ${nameFont}px system-ui, sans-serif`;
+      const label = e.item.name + (e.item.category === 'fruit' && e.valueType === 'permanent' ? ' (Perm)' : '');
+      ctx.fillText(scFit(ctx, label, colW - iconS - 120), x + iconS + 18, y + rowH / 2);
+      ctx.fillStyle = SC.muted; ctx.font = `600 ${valFont}px ui-monospace, monospace`; ctx.textAlign = 'right';
+      ctx.fillText(formatValue(valueFor(e.item, e.valueType)), x + colW - 16, y + rowH / 2);
+      ctx.textAlign = 'left';
+    });
+    if (entries.length > 6) { ctx.fillStyle = SC.muted; ctx.font = '600 17px system-ui, sans-serif'; ctx.fillText(`+${entries.length - 6} more`, x + 6, topY + 36 + 6 * (rowH + 8) + 6); }
+  };
+  drawSide('YOU GIVE', calcSides.give, 36, SC.lose);
+  drawSide('YOU GET', calcSides.get, W - 36 - colW, SC.win);
+
+  // centre swap badge
+  const midY = topY + 36 + (maxN * (rowH + 8) - 8) / 2;
+  ctx.beginPath(); ctx.arc(W / 2, midY, 30, 0, Math.PI * 2); ctx.fillStyle = 'rgba(255,255,255,0.08)'; ctx.fill();
+  ctx.fillStyle = SC.text; ctx.font = '700 28px system-ui, sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  ctx.fillText('⇄', W / 2, midY + 1);
+
+  // verdict bar
+  const barY = 508, barH = 88;
+  scRoundRect(ctx, 36, barY, W - 72, barH, 18);
+  const g = ctx.createLinearGradient(36, 0, W - 36, 0);
+  g.addColorStop(0, v.color + '33'); g.addColorStop(1, v.color + '11');
+  ctx.fillStyle = g; ctx.fill(); ctx.strokeStyle = v.color + '88'; ctx.lineWidth = 2; ctx.stroke();
+  ctx.textAlign = 'left'; ctx.fillStyle = v.color; ctx.font = '800 42px system-ui, sans-serif';
+  ctx.fillText(v.label, 66, barY + 36);
+  ctx.fillStyle = SC.muted; ctx.font = '600 20px system-ui, sans-serif';
+  ctx.fillText(`${formatValue(calcTotal('give'))} given  →  ${formatValue(calcTotal('get'))} received`, 66, barY + 68);
+  ctx.textAlign = 'right'; ctx.fillStyle = SC.text; ctx.font = '600 20px system-ui, sans-serif';
+  ctx.fillText('bloxcores.com/trade-calculator', W - 66, barY + 36);
+  ctx.fillStyle = SC.muted; ctx.font = '500 16px system-ui, sans-serif';
+  ctx.fillText('Community values, not official prices', W - 66, barY + 66);
+  ctx.textAlign = 'left';
+}
+
 function calcSyncUrl() {
   const params = new URLSearchParams();
   if (calcSides.give.length) params.set('give', calcSides.give.map(e => e.item.name + (e.valueType === 'permanent' ? ':p' : '')).join(','));
@@ -166,6 +233,11 @@ document.addEventListener('DOMContentLoaded', async () => {
   document.getElementById('calc-share').addEventListener('click', async () => {
     try { await navigator.clipboard.writeText(location.href); showToast('Link copied!'); }
     catch { showToast('Copy the address bar to share this trade.'); }
+  });
+
+  document.getElementById('calc-share-image').addEventListener('click', () => {
+    if (!calcSides.give.length || !calcSides.get.length) { showToast('Add items to both sides first.', true); return; }
+    scOpenPreview({ title: 'Trade result card', filename: 'bloxcore-trade.png', shareText: buildShareText(), render: renderTradeCard });
   });
 
   document.getElementById('calc-copy-text').addEventListener('click', async () => {
