@@ -14,8 +14,8 @@ node_modules/
 !.env.example
 
 # Build output
+# (not `build/` — /build/ is a real site page: the Build Planner + Tier List Maker hub)
 dist/
-build/
 out/
 .next/
 .cache/
