@@ -1,0 +1,6 @@
+-- APPLIED to the live BloxCore project (tested in rolled-back transactions).
+-- Migrations: admin_overview_extras, admin_overview_extras_fix_submissions_column
+--   get_admin_overview_extras()  (mod/admin only): 14-day series (signups/trades/offers/reports/clips), hourly client errors,
+--   recent activity feed, push subscriber counts, DB size, oldest open report/flag age. Powers the new /admin/overview/.
+-- site_pages registry: removed rows for pages that became tabs (/blox-fruits-value-changes/, /scam-check/, /blox-fruits-updates/,
+--   /tier-maker/, /build-planner/) and added /build/. (Maintenance mode / page blocks target /trading/, /build/, /whats-new/ now.)

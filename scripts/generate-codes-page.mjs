@@ -92,7 +92,7 @@ const body = `${breadcrumbHtml(crumbs).replace('<nav', '<nav style="margin:0 0 1
     </div>
 
     <h2 style="font-size:1.3rem; margin-top:28px;">While you're stocking up on freebies</h2>
-    <p>Check the <a href="/blox-fruits-tier-list/">value tier list</a> to see what your fruits are worth, run a trade through the <a href="/trade-calculator/">trade calculator</a> before you commit, or head to <a href="/trading/">Trading</a> to post a listing.</p>
+    <p>Check the <a href="/blox-fruits-tier-list/">value tier list</a> to see what your fruits are worth, run a trade through the <a href="/trading/?tab=calculator">trade calculator</a> before you commit, or head to <a href="/trading/">Trading</a> to post a listing.</p>
   </div>
 </section>
 ${ctaSectionHtml({ heading: 'Done redeeming?', body: 'Create a free BloxCore account to post trades, join giveaways, and climb the leaderboard.' })}

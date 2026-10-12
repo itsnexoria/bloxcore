@@ -268,6 +268,11 @@ function initHeroTilt() {
 function injectExtraNavLinks() {
   const list = document.querySelector('.nav-links .nav-link-list');
   if (!list) return;
+  // These tools now live as tabs inside /trading/, /build/ and /whats-new/ — drop any stale drawer entries
+  // (older cached/static pages may still carry them).
+  ['/trade-calculator/', '/blox-fruits-value-changes/', '/scam-check/', '/blox-fruits-updates/', '/tier-maker/', '/build-planner/'].forEach(href => {
+    list.querySelectorAll(`a[href="${href}"]`).forEach(a => a.closest('li')?.remove());
+  });
   const place = (anchorHref, items) => {
     let ref = list.querySelector(`a[href="${anchorHref}"]`)?.closest('li');
     items.forEach(({ href, icon, tone, label, role }) => {
@@ -278,16 +283,8 @@ function injectExtraNavLinks() {
       if (ref) { ref.after(li); ref = li; } else { list.appendChild(li); }
     });
   };
-  place('/trade-calculator/', [
-    { href: '/blox-fruits-value-changes/', icon: 'activity', tone: 'gold', label: 'Value Changes' },
-    { href: '/scam-check/', icon: 'shield-alert', tone: 'blue', label: 'Scam Checker' },
-  ]);
-  place('/whats-new/', [
-    { href: '/clips/', icon: 'clapperboard', tone: 'pink', label: 'Clip of the Week' },
-    { href: '/blox-fruits-updates/', icon: 'newspaper', tone: 'sea', label: 'Update Guides' },
-    { href: '/tier-maker/', icon: 'layout-list', tone: 'purple', label: 'Tier List Maker' },
-    { href: '/build-planner/', icon: 'sliders-horizontal', tone: 'blue', label: 'Build Planner' },
-  ]);
+  place('/trading/', [{ href: '/build/', icon: 'hammer', tone: 'blue', label: 'Build' }]);
+  place('/whats-new/', [{ href: '/clips/', icon: 'clapperboard', tone: 'pink', label: 'Clip of the Week' }]);
   place('/admin/', [{ href: '/admin/overview/', icon: 'layout-dashboard', tone: 'gold', label: 'Overview', role: 'mod' }]);
 }
 

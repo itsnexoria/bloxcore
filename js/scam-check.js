@@ -1,4 +1,4 @@
-// BloxCore — /scam-check/ : public trust lookup (get_trust_card RPC — counts only, no reporter identities).
+// BloxCore — Scam Checker tab on /trading/ (?tab=scam) : public trust lookup (get_trust_card RPC — counts only, no reporter identities).
 
 const RISK_META = {
   trusted: { label: 'Looks trusted', icon: 'shield-check', color: 'var(--sea)', blurb: 'Good track record on BloxCore. Still use common sense — never share passwords or trade outside the game.' },
@@ -7,19 +7,20 @@ const RISK_META = {
   high: { label: 'High risk', icon: 'shield-x', color: '#f87171', blurb: 'Serious warning signs on record. We recommend not trading with this account.' },
 };
 
-onReady(async () => {
+window.hubInit = window.hubInit || {};
+window.hubInit.scam = async () => {
   const form = document.getElementById('sc-form');
   const input = document.getElementById('sc-input');
   form.addEventListener('submit', (e) => { e.preventDefault(); lookup(input.value); });
   const initial = new URLSearchParams(location.search).get('u');
   if (initial) { input.value = initial; lookup(initial); }
-});
+};
 
 async function lookup(raw) {
   const name = (raw || '').trim().replace(/^@/, '');
   const out = document.getElementById('sc-result');
   if (!name) return;
-  history.replaceState(null, '', `?u=${encodeURIComponent(name)}`);
+  history.replaceState(null, '', `?tab=scam&u=${encodeURIComponent(name)}`);
   out.innerHTML = '<div class="skeleton" style="height:220px;"></div>';
   const { data, error } = await sb.rpc('get_trust_card', { p_username: name });
   if (error) { logError('get_trust_card failed:', error); out.innerHTML = '<div class="panel" style="padding:22px;"><p class="muted" style="margin:0;">Lookup failed — try again.</p></div>'; return; }

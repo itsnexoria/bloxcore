@@ -6,7 +6,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Overview — BloxCore Admin</title>
 <meta name="robots" content="noindex, nofollow">
-<meta name="description" content="Staff overview: queues, site health and auto-moderation flags.">
+<meta name="description" content="Staff overview: queues, site health, trends and auto-moderation flags.">
 <meta name="keywords" content="Roblox, Blox Fruits, BloxCore, Nexoria, Nexus, trading, perms, fruits, One Piece game, anime game, PvP, crews, best Roblox game, bounty hunting, giveaways, leaderboard, sea events, combos, quests">
 <link rel="stylesheet" href="/css/style.css">
 <link rel="stylesheet" href="/css/animations.css">
@@ -48,26 +48,75 @@
   </div>
 </nav>
 
-<section class="section">
-  <div class="container" style="max-width:1000px;">
-    <p class="muted" style="margin:0 0 10px;"><a href="/admin/" style="color:var(--brass-bright);"><i data-lucide="chevron-left" class="icon-sm"></i> Back to Admin</a></p>
-    <div class="flex-between" style="gap:12px; flex-wrap:wrap; align-items:flex-end;">
-      <div><h1 style="font-size:1.8rem; margin-bottom:2px;">Overview</h1><p class="muted" style="margin:0;" id="ov-updated">Loading…</p></div>
-      <div style="display:flex; gap:8px;">
-        <a class="btn btn-ghost btn-sm" href="/admin/updates/" data-requires-role="admin"><i data-lucide="newspaper" class="icon-sm icon-inline"></i>Update guides</a>
-        <button type="button" class="btn btn-ghost btn-sm" id="ov-refresh"><i data-lucide="refresh-cw" class="icon-sm icon-inline"></i>Refresh</button>
+<section class="section ov-page">
+  <div class="container" style="max-width:1180px;">
+    <div class="ov-hero">
+      <div class="ov-hero-main">
+        <p class="ov-eyebrow"><i data-lucide="layout-dashboard" class="icon-sm icon-inline"></i>Staff overview</p>
+        <h1 id="ov-greeting" class="ov-title">Welcome back</h1>
+        <p id="ov-status" class="ov-status"><span class="ov-dot"></span>Checking the site…</p>
+      </div>
+      <div class="ov-hero-actions">
+        <span id="ov-updated" class="ov-updated">Loading…</span>
+        <button type="button" class="ov-btn on" id="ov-auto" aria-pressed="true" title="Refresh automatically every minute"><i data-lucide="radio" class="icon-sm icon-inline"></i><span>Live</span></button>
+        <button type="button" class="ov-btn" id="ov-refresh" title="Refresh now (R)"><i data-lucide="refresh-cw" class="icon-sm icon-inline"></i>Refresh</button>
+        <a class="ov-btn" href="/admin/updates/" data-admin-only hidden><i data-lucide="newspaper" class="icon-sm icon-inline"></i>Update guides</a>
+        <a class="ov-btn" href="/admin/" ><i data-lucide="inbox" class="icon-sm icon-inline"></i>Review board</a>
       </div>
     </div>
-    <div id="overview-content" style="display:none;">
-      <h2 class="ov-h">Needs attention</h2>
-      <div id="ov-queues" class="ov-grid"></div>
-      <h2 class="ov-h">Site health · last 24h</h2>
-      <div id="ov-health" class="ov-grid"></div>
-      <h2 class="ov-h">Activity</h2>
-      <div id="ov-activity" class="ov-grid"></div>
-      <h2 class="ov-h" id="ov-flags">Auto-moderation flags</h2>
-      <p class="muted" style="margin:0 0 12px; font-size:0.85rem;">New posts are scanned for scam phrases, real-money trading, Discord invites, off-site links and copy-paste spam. Flags never block a post — they just land here for review.</p>
-      <div id="ov-flag-list" style="display:grid; gap:10px;"></div>
+
+    <div id="overview-content" hidden>
+      <div id="ov-health" class="ov-health"></div>
+
+      <h2 class="ov-h"><i data-lucide="siren" class="icon-sm icon-inline"></i>Needs attention</h2>
+      <div id="ov-attention" class="ov-attention"></div>
+
+      <h2 class="ov-h"><i data-lucide="gauge" class="icon-sm icon-inline"></i>At a glance</h2>
+      <div id="ov-kpis" class="ov-kpis"></div>
+
+      <div class="ov-two">
+        <div class="ov-panel">
+          <div class="ov-panel-head">
+            <div><h3>Last 14 days</h3><p id="ov-chart-sub" class="muted"></p></div>
+            <div class="ov-metrics" role="group" aria-label="Metric">
+              <button type="button" class="btn btn-primary btn-sm" data-ov-metric="signups">Signups</button>
+              <button type="button" class="btn btn-ghost btn-sm" data-ov-metric="trades">Trades</button>
+              <button type="button" class="btn btn-ghost btn-sm" data-ov-metric="offers">Offers</button>
+              <button type="button" class="btn btn-ghost btn-sm" data-ov-metric="reports">Reports</button>
+              <button type="button" class="btn btn-ghost btn-sm" data-ov-metric="clips">Clips</button>
+            </div>
+          </div>
+          <div id="ov-chart-main"></div>
+        </div>
+        <div class="ov-panel">
+          <div class="ov-panel-head"><div><h3>Client errors</h3><p id="ov-errors-sub" class="muted"></p></div></div>
+          <div id="ov-chart-errors"></div>
+          <div data-admin-only hidden class="ov-cron-wrap">
+            <h3 style="margin:18px 0 8px; font-size:0.95rem;">Scheduled jobs</h3>
+            <div id="ov-cron" class="ov-cron"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="ov-two ov-two-flags">
+        <div class="ov-panel" id="ov-flags">
+          <div class="ov-panel-head">
+            <div><h3><i data-lucide="shield-alert" class="icon-sm icon-inline"></i>Auto-moderation queue</h3><p class="muted">Posts are scanned for scams, real-money trading, invites and spam. Flags never block a post.</p></div>
+            <div class="ov-metrics" role="group" aria-label="Severity">
+              <button type="button" class="btn btn-primary btn-sm" data-ov-sev="all">All <b>0</b></button>
+              <button type="button" class="btn btn-ghost btn-sm" data-ov-sev="high">High <b>0</b></button>
+              <button type="button" class="btn btn-ghost btn-sm" data-ov-sev="medium">Medium <b>0</b></button>
+              <button type="button" class="btn btn-ghost btn-sm" data-ov-sev="low">Low <b>0</b></button>
+            </div>
+          </div>
+          <div style="margin-bottom:10px;"><button type="button" class="btn btn-ghost btn-sm" id="ov-dismiss-low" hidden><i data-lucide="check-check" class="icon-sm icon-inline"></i>Dismiss all low-severity</button></div>
+          <div id="ov-flag-list" class="ov-flag-list"></div>
+        </div>
+        <div class="ov-panel">
+          <div class="ov-panel-head"><div><h3><i data-lucide="activity" class="icon-sm icon-inline"></i>Recent activity</h3><p class="muted">Newest events across the site.</p></div></div>
+          <div id="ov-feed" class="ov-feed"></div>
+        </div>
+      </div>
     </div>
   </div>
 </section>

@@ -1,4 +1,4 @@
-// BloxCore — /blox-fruits-value-changes/ : public log of community value changes (get_value_changes RPC).
+// BloxCore — Value Changes tab on /trading/ (?tab=values) : public log of community value changes (get_value_changes RPC).
 
 let vcDays = 14;
 let vcDir = 'all';
@@ -16,7 +16,8 @@ function vcSetActive(selector, active) {
   });
 }
 
-onReady(async () => {
+window.hubInit = window.hubInit || {};
+window.hubInit.values = async () => {
   document.querySelectorAll('[data-vc-days]').forEach(b => b.addEventListener('click', () => {
     vcDays = Number(b.dataset.vcDays);
     vcSetActive('[data-vc-days]', b);
@@ -28,7 +29,7 @@ onReady(async () => {
     renderValueChanges();
   }));
   await loadValueChanges();
-});
+};
 
 async function loadValueChanges() {
   const list = document.getElementById('vc-list');

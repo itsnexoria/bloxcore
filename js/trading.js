@@ -57,24 +57,26 @@ onReady(async () => {
     });
     document.getElementById('report-listing-submit').addEventListener('click', submitListingReport);
     document.getElementById('alert-modal-clear-btn').addEventListener('click', clearAlert);
-    document.getElementById('trading-tab-btn-browse').addEventListener('click', () => switchTradingTab('browse'));
-    document.getElementById('trading-tab-btn-values').addEventListener('click', () => switchTradingTab('values'));
-    document.getElementById('value-history-search').addEventListener('input', renderValueHistoryGrid);
-    document.getElementById('value-history-sort').addEventListener('change', renderValueHistoryGrid);
-    document.querySelectorAll('#value-history-category-tabs [data-category]').forEach(btn => {
-      btn.addEventListener('click', () => {
-        valueHistoryCategory = btn.dataset.category;
-        document.querySelectorAll('#value-history-category-tabs [data-category]').forEach(b => {
-          b.className = `btn btn-sm ${b.dataset.category === valueHistoryCategory ? 'btn-primary' : 'btn-ghost'}`;
-        });
-        renderValueHistoryGrid();
-      });
-    });
   } else {
     document.getElementById('trade-signed-out').style.display = 'block';
   }
 
   allTradeItems = await fetchBfItemCatalog(['fruit', 'limited', 'gamepass', 'other']);
+
+  // Price history lives under Values → Price history; works for signed-out visitors too
+  document.getElementById('value-history-search').addEventListener('input', renderValueHistoryGrid);
+  document.getElementById('value-history-sort').addEventListener('change', renderValueHistoryGrid);
+  document.querySelectorAll('#value-history-category-tabs [data-category]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      valueHistoryCategory = btn.dataset.category;
+      document.querySelectorAll('#value-history-category-tabs [data-category]').forEach(b => {
+        b.className = `btn btn-sm ${b.dataset.category === valueHistoryCategory ? 'btn-primary' : 'btn-ghost'}`;
+      });
+      renderValueHistoryGrid();
+    });
+  });
+  renderValueHistoryGrid();
+  window.addEventListener('hub:seg', (e) => { if (e.detail.group === 'values' && e.detail.seg === 'history') renderValueHistoryGrid(); });
 
   document.getElementById('trade-compose-close').addEventListener('click', closeComposeModal);
   document.getElementById('trade-post-btn').addEventListener('click', handlePost);
@@ -168,14 +170,6 @@ async function openThemePicker() {
       loadListings();
     });
   });
-}
-
-function switchTradingTab(tab) {
-  document.getElementById('trading-tab-btn-browse').className = `btn btn-sm ${tab === 'browse' ? 'btn-primary' : 'btn-ghost'}`;
-  document.getElementById('trading-tab-btn-values').className = `btn btn-sm ${tab === 'values' ? 'btn-primary' : 'btn-ghost'}`;
-  document.getElementById('trading-tab-browse').style.display = tab === 'browse' ? '' : 'none';
-  document.getElementById('trading-tab-values').style.display = tab === 'values' ? '' : 'none';
-  if (tab === 'values') renderValueHistoryGrid();
 }
 
 function renderValueHistoryGrid() {

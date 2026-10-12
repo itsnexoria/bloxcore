@@ -1,5 +1,5 @@
 // Generates the data-driven SEO/tool pages:
-//   /trade-calculator/                     (interactive; items load client-side)
+//   (the trade calculator is a tab on the hand-written /trading/ page now, so it is no longer generated here)
 //   /blox-fruits-tier-list/                (fruits grouped into value tiers)
 //   /blox-fruits-compare/                  (hub) + /blox-fruits-compare/<a>-vs-<b>/ for the top fruits
 //   /blox-fruits-trading-guide/
@@ -56,50 +56,6 @@ const VALUE_SLUG_ALIAS = { magnet: 'magnet-fruit' };
 const valueSlug = n => VALUE_SLUG_ALIAS[slugify(n)] || slugify(n);
 const chip = f => `<a href="/blox-fruits-values/${valueSlug(f.name)}/" class="tier-chip">${f.icon_url ? `<img src="${esc(f.icon_url)}" alt="" loading="lazy" width="34" height="34">` : ''}<span>${esc(f.name)}</span><small class="muted">${formatValue(f.regular_value)}</small></a>`;
 
-// ---------------- Trade calculator ----------------
-function calculatorPage(shell) {
-  const url = `${SITE}/trade-calculator/`;
-  const title = 'Blox Fruits Trade Calculator (2026) — Is Your Trade Fair? | BloxCore';
-  const description = 'Free Blox Fruits trade calculator. Add the fruits, limiteds and gamepasses on each side and instantly see whether the trade is fair, using community values.';
-  const crumbs = [{ name: 'Home', url: `${SITE}/` }, { name: 'Trade Calculator', url }];
-  const body = `${pageHead(crumbs, 'Blox Fruits Trade Calculator', 'Add items to each side and see whether the trade is fair, using community-estimated values.')}
-<section class="section">
-  <div class="container" style="max-width:960px;">
-    <div class="calc-grid">
-      <div class="panel calc-side">
-        <h2>You give</h2>
-        <input type="text" id="calc-give-search" placeholder="Search items to add…" autocomplete="off">
-        <div id="calc-give-results" class="calc-results"></div>
-        <div id="calc-give-list"></div>
-        <p class="calc-total">Total: <strong id="calc-give-total">—</strong></p>
-      </div>
-      <div class="panel calc-side">
-        <h2>You get</h2>
-        <input type="text" id="calc-get-search" placeholder="Search items to add…" autocomplete="off">
-        <div id="calc-get-results" class="calc-results"></div>
-        <div id="calc-get-list"></div>
-        <p class="calc-total">Total: <strong id="calc-get-total">—</strong></p>
-      </div>
-    </div>
-    <div id="calc-verdict" class="panel calc-verdict"><p class="muted" style="margin:0;">Loading item values…</p></div>
-    <div style="display:flex; gap:8px; justify-content:center; flex-wrap:wrap; margin-top:14px;">
-      <button type="button" class="btn btn-ghost btn-sm" id="calc-swap"><i data-lucide="arrow-left-right" class="icon-sm icon-inline"></i>Swap sides</button>
-      <button type="button" class="btn btn-ghost btn-sm" id="calc-share"><i data-lucide="link" class="icon-sm icon-inline"></i>Copy link</button>
-      <button type="button" class="btn btn-ghost btn-sm" id="calc-copy-text"><i data-lucide="clipboard" class="icon-sm icon-inline"></i>Copy as Text</button>
-      <button type="button" class="btn btn-ghost btn-sm" id="calc-clear">Clear</button>
-    </div>
-    <p class="muted" style="text-align:center; font-size:0.8rem; margin-top:18px;">Values are community estimates and only compare raw value — demand and trend aren't priced in. Within ±8% counts as roughly fair. BloxCore doesn't verify or guarantee any trade. See the <a href="/blox-fruits-trading-guide/">trading guide</a> and the <a href="/blox-fruits-tier-list/">value tier list</a>.</p>
-  </div>
-</section>
-${ctaSectionHtml({ heading: 'Found a fair trade?', body: 'Create a free account to post it on the Trading board and get it in front of real traders.' })}`;
-  write('trade-calculator', renderPage(shell, {
-    title, description, url,
-    ld: [{ '@context': 'https://schema.org', '@type': 'WebApplication', name: 'Blox Fruits Trade Calculator', url, applicationCategory: 'GameApplication', operatingSystem: 'Any', offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' } }, breadcrumbLd(crumbs)],
-    body, extraScripts: ['/js/build-options.js', '/js/listings.js', '/js/trade-calculator.js'],
-  }));
-}
-
-// ---------------- Tier list ----------------
 function tierListPage(shell, fruits) {
   const url = `${SITE}/blox-fruits-tier-list/`;
   const title = 'Blox Fruits Value Tier List (2026) — Fruits Ranked by Trading Value | BloxCore';
@@ -116,7 +72,7 @@ function tierListPage(shell, fruits) {
     </div>`).join('');
   const body = `${pageHead(crumbs, 'Blox Fruits Value Tier List', 'Every fruit ranked by current community trading value.')}
 ${wrapSection(`
-    <p>This tier list ranks fruits by what they're worth on the trading market, not by how strong they are in a fight. Tiers are set by each fruit's physical trading value and update whenever the values do. Click any fruit for its full value page, or use the <a href="/trade-calculator/">trade calculator</a> to check a specific trade.</p>
+    <p>This tier list ranks fruits by what they're worth on the trading market, not by how strong they are in a fight. Tiers are set by each fruit's physical trading value and update whenever the values do. Click any fruit for its full value page, or use the <a href="/trading/?tab=calculator">trade calculator</a> to check a specific trade.</p>
     <p class="muted" style="font-size:0.85rem;">Also see the <a href="/blox-fruits-limited-tier-list/">limited</a> and <a href="/blox-fruits-gamepass-tier-list/">gamepass</a> tier lists.</p>
     ${adSlotTop()}
     ${rows}
@@ -155,7 +111,7 @@ function categoryTierListPage(shell, items, { urlSlug, title, description, pageT
     </div>`).join('');
   const body = `${pageHead(crumbs, pageTitle, pageSub)}
 ${wrapSection(`
-    <p>Ranked by current community trading value, split into five roughly equal tiers — not a measure of in-game usefulness. Click any ${itemLabel} for its full value page, or use the <a href="/trade-calculator/">trade calculator</a> to check a specific trade.</p>
+    <p>Ranked by current community trading value, split into five roughly equal tiers — not a measure of in-game usefulness. Click any ${itemLabel} for its full value page, or use the <a href="/trading/?tab=calculator">trade calculator</a> to check a specific trade.</p>
     <p class="muted" style="font-size:0.85rem;">Also see the <a href="/blox-fruits-tier-list/">fruit</a>, <a href="/blox-fruits-limited-tier-list/">limited</a> and <a href="/blox-fruits-gamepass-tier-list/">gamepass</a> tier lists.</p>
     ${adSlotTop()}
     ${rows}
@@ -205,7 +161,7 @@ ${wrapSection(`
     ${adSlotMiddle()}
     <h2 style="font-size:1.3rem;">Which is worth more, ${esc(a.name)} or ${esc(b.name)}?</h2>
     <p>${esc(answer)} ${esc(ratioCopy(a, b, a.regular_value, b.regular_value, 'physical'))} ${esc(ratioCopy(a, b, a.permanent_value, b.permanent_value, 'permanent'))}</p>
-    <p>Values are community estimates and don't include demand, so check the current going rate on the <a href="/trading/">Trading board</a> before you trade. Want to test a specific offer? <a href="/trade-calculator/?give=${encodeURIComponent(a.name)}&amp;get=${encodeURIComponent(b.name)}">Open ${esc(a.name)} for ${esc(b.name)} in the trade calculator</a>.</p>
+    <p>Values are community estimates and don't include demand, so check the current going rate on the <a href="/trading/">Trading board</a> before you trade. Want to test a specific offer? <a href="/trading/?tab=calculator&give=${encodeURIComponent(a.name)}&amp;get=${encodeURIComponent(b.name)}">Open ${esc(a.name)} for ${esc(b.name)} in the trade calculator</a>.</p>
     <p><a href="/blox-fruits-tier-list/">See the full value tier list</a> · <a href="/blox-fruits-compare/">More comparisons</a></p>`)}
 ${ctaSectionHtml({ heading: `Trading one for the other?`, body: 'Create a free account to run it past other traders on the Trading board first.' })}
 ${adSlotBottom()}`;
@@ -233,7 +189,7 @@ function compareHub(shell, sections) {
   const crumbs = [{ name: 'Home', url: `${SITE}/` }, { name: 'Compare', url }];
   const sectionsHtml = sections.map(s => categorySectionHtml(s.label, s.items, s.urlPrefix)).join('\n');
   const body = `${pageHead(crumbs, 'Compare Blox Fruits Values', `Head-to-head value comparisons for the top items in each category.`)}
-${wrapSection(`<p>Pick any two of the most valuable items to see which is worth more. For anything else, the <a href="/trade-calculator/">trade calculator</a> handles any combination of items, and the <a href="/blox-fruits-tier-list/">tier list</a> ranks every fruit.</p>
+${wrapSection(`<p>Pick any two of the most valuable items to see which is worth more. For anything else, the <a href="/trading/?tab=calculator">trade calculator</a> handles any combination of items, and the <a href="/blox-fruits-tier-list/">tier list</a> ranks every fruit.</p>
     ${adSlotTop()}
     ${sectionsHtml}
     ${adSlotMiddle()}`)}
@@ -265,7 +221,7 @@ ${wrapSection(`
     <p>Permanent fruits carry a separate, usually much higher value than the physical copy. Make sure both players mean the same one before you agree.</p>
     ${adSlotMiddle()}
     <h2 style="font-size:1.3rem;">4. Run the numbers</h2>
-    <p>Put both sides into the <a href="/trade-calculator/">trade calculator</a>. If one side is more than about 8% ahead, ask yourself what the other side is getting — extra demand, or just a better deal.</p>
+    <p>Put both sides into the <a href="/trading/?tab=calculator">trade calculator</a>. If one side is more than about 8% ahead, ask yourself what the other side is getting — extra demand, or just a better deal.</p>
     <h2 style="font-size:1.3rem;">5. Stay safe</h2>
     <p>Never share your account password or login details with anyone. Check a player's profile and vouches before trading, and remember BloxCore doesn't verify or guarantee any trade. Trade listings on BloxCore automatically disappear after 24 hours, so old listings can be stale — confirm the offer is still on.</p>
     <h2 style="font-size:1.3rem;">Ready to trade?</h2>
@@ -304,7 +260,7 @@ async function main() {
   console.log(`${fruits.length} fruits, ${limiteds.length} limiteds, ${gamepasses.length} gamepasses with values.`);
 
   const urls = [];
-  calculatorPage(shell); urls.push(`${SITE}/trade-calculator/`);
+  calculatorPage(shell); urls.push(`${SITE}/trading/`);
   guidePage(shell); urls.push(`${SITE}/blox-fruits-trading-guide/`);
 
   tierListPage(shell, fruits); urls.push(`${SITE}/blox-fruits-tier-list/`);

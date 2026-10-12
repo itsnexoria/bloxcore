@@ -1,4 +1,4 @@
-// BloxCore — /build-planner/ : plan Blox Fruits stat points + a loadout, share by link or image, save to your account.
+// BloxCore — Build Planner tab on /build/ (?tab=planner) : plan Blox Fruits stat points + a loadout, share by link or image, save to your account.
 // Stat maths: points = level × POINTS_PER_LEVEL, each stat capped at `cap`. Defaults match the 2550 level / 2550 stat cap;
 // both caps are editable on the page in case the game changes. Saved builds live in saved_builds (public by default).
 
@@ -33,7 +33,8 @@ let bpById = new Map();
 let bpViewer = null;
 let bpEditingId = null;
 
-onReady(async () => {
+window.hubInit = window.hubInit || {};
+window.hubInit.planner = async () => {
   const { user } = await getCurrentProfile();
   bpViewer = user;
   const { data, error } = await sb.from('bf_items').select('id, name, category, icon_url, regular_value').in('category', BP_SLOTS.map(s => s.category)).order('name');
@@ -46,7 +47,7 @@ onReady(async () => {
   if (params.get('b')) await loadSavedBuild(params.get('b')); else loadFromUrl(params);
   await loadMyBuilds();
   renderAll();
-});
+};
 
 function bpTotalPoints() { return bp.level * BP_POINTS_PER_LEVEL; }
 function bpUsed() { return Object.values(bp.stats).reduce((a, b) => a + b, 0); }
@@ -164,8 +165,8 @@ function renderSummary() {
 
 // ---- URL state ---------------------------------------------------------------------------------
 function syncUrl() {
-  if (bpEditingId) { history.replaceState(null, '', `?b=${bpEditingId}`); return; }
-  const p = new URLSearchParams();
+  if (bpEditingId) { history.replaceState(null, '', `?tab=planner&b=${bpEditingId}`); return; }
+  const p = new URLSearchParams({ tab: 'planner' });
   p.set('lv', bp.level); if (bp.cap !== 2550) p.set('c', bp.cap);
   p.set('st', BP_STATS.map(s => bp.stats[s.key]).join('.'));
   if (BP_SLOTS.some(s => bp.loadout[s.key])) p.set('lo', BP_SLOTS.map(s => bp.loadout[s.key] || 0).join('.'));
@@ -199,7 +200,7 @@ async function loadSavedBuild(id) {
   bp.cap = Math.max(bp.cap, ...Object.values(bp.stats));
   bp.loadout = {}; BP_SLOTS.forEach(s => { const v = data.loadout?.[s.key]; bp.loadout[s.key] = bpById.has(v) ? v : null; });
   bpEditingId = bpViewer && data.user_id === bpViewer.id ? data.id : null; // someone else's build opens as an editable copy
-  if (!bpEditingId) history.replaceState(null, '', location.pathname);
+  if (!bpEditingId) history.replaceState(null, '', `${location.pathname}?tab=planner`);
 }
 
 async function saveBuild() {

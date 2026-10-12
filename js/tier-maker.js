@@ -1,4 +1,4 @@
-// BloxCore — /tier-maker/ : drag-and-drop tier list builder + community average.
+// BloxCore — Tier List Maker tab on /build/ (?tab=tiers) : drag-and-drop tier list builder + community average.
 // DB: tier_lists (public, one row per saved list; trigger validates shape), get_community_tiers(category) RPC
 // (average of each player's most recent list, S=5 … D=1). Works with drag & drop or tap-an-item-then-tap-a-tier.
 
@@ -19,24 +19,25 @@ let tmViewer = null;
 let tmSearch = '';
 let tmViewMeta = null;
 
-onReady(async () => {
+window.hubInit = window.hubInit || {};
+window.hubInit.tiers = async () => {
   const { user } = await getCurrentProfile();
   tmViewer = user;
   document.querySelectorAll('[data-tm-cat]').forEach(b => b.addEventListener('click', () => switchCategory(b.dataset.tmCat)));
   document.querySelectorAll('[data-tm-mode]').forEach(b => b.addEventListener('click', () => switchMode(b.dataset.tmMode)));
   document.getElementById('tm-search').addEventListener('input', (e) => { tmSearch = e.target.value.trim().toLowerCase(); renderPool(); });
   document.getElementById('tm-save').addEventListener('click', saveList);
-  document.getElementById('tm-reset').addEventListener('click', () => { if (confirm('Clear all placements?')) { tmPlacement.clear(); tmEditingId = null; document.getElementById('tm-title').value = ''; persistDraft(); renderAll(); } });
+  document.getElementById('tm-reset').addEventListener('click', () => { if (confirm('Clear all placements?')) { tmPlacement.clear(); tmEditingId = null; document.getElementById('tm-title').value = ''; persistDraft(); tmRenderAll(); } });
   ['tm-export', 'tm-export-view', 'tm-export-community'].forEach(id => document.getElementById(id)?.addEventListener('click', exportImage));
   document.getElementById('tm-saved').addEventListener('change', (e) => { if (e.target.value) loadSavedList(e.target.value); });
   document.getElementById('tm-delete').addEventListener('click', deleteList);
   document.getElementById('tm-remix').addEventListener('click', remixView);
   document.getElementById('tm-copy-link').addEventListener('click', copyShareLink);
-  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') { tmSelected = null; renderAll(); } });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') { tmSelected = null; tmRenderAll(); } });
 
   const shared = new URLSearchParams(location.search).get('l');
   if (shared) await openSharedList(shared); else await switchCategory('fruit');
-});
+};
 
 function setActive(selector, attr, value) {
   document.querySelectorAll(selector).forEach(b => {
@@ -55,7 +56,7 @@ async function loadItems(cat) {
 
 async function switchCategory(cat) {
   tmCat = cat; tmSelected = null; tmEditingId = null; tmViewMeta = null;
-  if (location.search.includes('l=')) history.replaceState(null, '', location.pathname);
+  if (new URLSearchParams(location.search).has('l')) history.replaceState(null, '', `${location.pathname}?tab=tiers`);
   setActive('[data-tm-cat]', 'tmCat', cat);
   document.getElementById('tm-title').value = '';
   if (!(await loadItems(cat))) return;
@@ -63,7 +64,7 @@ async function switchCategory(cat) {
   if (tmMode === 'view') tmMode = 'mine';
   if (tmMode === 'community') await loadCommunity(); else restoreDraft();
   await loadMyLists();
-  renderAll();
+  tmRenderAll();
 }
 
 async function switchMode(mode) {
@@ -71,7 +72,7 @@ async function switchMode(mode) {
   tmMode = mode; tmSelected = null;
   if (mode === 'community') await loadCommunity();
   else { tmViewMeta = null; tmPlacement = new Map(); restoreDraft(); }
-  renderAll();
+  tmRenderAll();
 }
 
 // ---- persistence -------------------------------------------------------------------------------
@@ -106,7 +107,7 @@ async function loadSavedList(id) {
   tmEditingId = data.id;
   document.getElementById('tm-title').value = data.title;
   showShareLink(data.id);
-  renderAll();
+  tmRenderAll();
 }
 
 function applyTiers(tiers) {
@@ -140,10 +141,10 @@ async function deleteList() {
   const { error } = await sb.from('tier_lists').delete().eq('id', tmEditingId);
   if (error) { showToast(error.message, true); return; }
   tmEditingId = null; document.getElementById('tm-share').style.display = 'none';
-  showToast('Deleted.'); loadMyLists(); renderAll();
+  showToast('Deleted.'); loadMyLists(); tmRenderAll();
 }
 
-function shareUrl(id) { return `${location.origin}/tier-maker/?l=${id}`; }
+function shareUrl(id) { return `${location.origin}/build/?tab=tiers&l=${id}`; }
 function showShareLink(id) {
   const box = document.getElementById('tm-share');
   box.style.display = '';
@@ -164,15 +165,15 @@ async function openSharedList(id) {
   if (!(await loadItems(tmCat))) return;
   applyTiers(data.tiers);
   document.title = `${data.title} — Blox Fruits Tier List | BloxCore`;
-  renderAll();
+  tmRenderAll();
 }
 
 function remixView() {
   tmMode = 'mine'; tmEditingId = null;
   document.getElementById('tm-title').value = tmViewMeta ? `${tmViewMeta.title} (remix)`.slice(0, 60) : '';
   tmViewMeta = null;
-  history.replaceState(null, '', location.pathname);
-  persistDraft(); loadMyLists(); renderAll();
+  history.replaceState(null, '', `${location.pathname}?tab=tiers`);
+  persistDraft(); loadMyLists(); tmRenderAll();
 }
 
 async function loadCommunity() {
@@ -195,7 +196,7 @@ function itemChip(item) {
   </button>`;
 }
 
-function renderAll() {
+function tmRenderAll() {
   setActive('[data-tm-mode]', 'tmMode', tmMode === 'view' ? 'mine' : tmMode);
   const viewing = tmMode === 'view', community = tmMode === 'community';
   document.getElementById('tm-editor-bar').style.display = readOnly() ? 'none' : '';
@@ -248,14 +249,14 @@ function placeItem(id, tier) {
   if (tier) tmPlacement.set(id, tier); else tmPlacement.delete(id);
   tmSelected = null;
   persistDraft();
-  renderAll();
+  tmRenderAll();
 }
 
 function wireInteractions(root) {
   if (readOnly()) return;
   root.querySelectorAll('.tm-item').forEach(el => {
     const id = Number(el.dataset.item);
-    el.addEventListener('click', (e) => { e.stopPropagation(); tmSelected = tmSelected === id ? null : id; renderAll(); });
+    el.addEventListener('click', (e) => { e.stopPropagation(); tmSelected = tmSelected === id ? null : id; tmRenderAll(); });
     el.addEventListener('dragstart', (e) => { e.dataTransfer.setData('text/plain', String(id)); e.dataTransfer.effectAllowed = 'move'; el.classList.add('dragging'); });
     el.addEventListener('dragend', () => el.classList.remove('dragging'));
   });

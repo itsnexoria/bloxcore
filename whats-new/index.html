@@ -4,9 +4,9 @@
 <meta charset="UTF-8">
 <script>(function(){try{var a=localStorage.getItem('bc_accent');if(a==='custom'){var c=JSON.parse(localStorage.getItem('bc_custom_theme')||'null');if(c){var s=document.documentElement.style;s.setProperty('--ink',c.ink);s.setProperty('--navy',c.navy);s.setProperty('--navy-light',c['navy-light']);s.setProperty('--brass',c.brass);s.setProperty('--brass-bright',c['brass-bright']);s.setProperty('--ink-glow',c.navy);var h=c.brass.replace('#','');s.setProperty('--brass-rgb',parseInt(h.substring(0,2),16)+' '+parseInt(h.substring(2,4),16)+' '+parseInt(h.substring(4,6),16));document.documentElement.setAttribute('data-accent','custom');}}else if(a){document.documentElement.setAttribute('data-accent',a);}if(localStorage.getItem('bc_reduce_motion')==='1')document.documentElement.classList.add('reduce-motion');if(localStorage.getItem('bc_compact_mode')==='1')document.documentElement.classList.add('compact-mode');}catch(e){}})();</script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>What's New — BloxCore</title>
+<title>What's New — Site Updates &amp; Blox Fruits Update Guides | BloxCore</title>
 <meta name="robots" content="index, follow">
-<meta name="description" content="Everything new on BloxCore — features, fixes, and events.">
+<meta name="description" content="Everything new on BloxCore — features, fixes and events — plus Blox Fruits update guides with a frozen tier list for each game update.">
 <meta name="keywords" content="Roblox, Blox Fruits, BloxCore, Nexoria, Nexus, trading, perms, fruits, One Piece game, anime game, PvP, crews, best Roblox game, bounty hunting, giveaways, leaderboard, sea events, combos, quests">
 <link rel="canonical" href="https://bloxcores.com/whats-new/">
 <meta property="og:type" content="website">
@@ -89,7 +89,6 @@
           <li><a href="/giveaways/" class="nav-link" style="--i:10"><span class="nav-link-icon" data-tone="purple"><i data-lucide="gift"></i></span>Giveaways</a></li>
           <li><a href="/crews/" class="nav-link" style="--i:11"><span class="nav-link-icon" data-tone="blue"><i data-lucide="users"></i></span>Crews</a></li>
           <li><a href="/trading/" class="nav-link" style="--i:12"><span class="nav-link-icon" data-tone="sea"><i data-lucide="repeat"></i></span>Trading</a></li>
-          <li><a href="/trade-calculator/" class="nav-link" style="--i:13"><span class="nav-link-icon" data-tone="gold"><i data-lucide="calculator"></i></span>Trade Calculator</a></li>
           <li><a href="https://ugc.bloxcores.com/" class="nav-link" style="--i:14" target="_blank" rel="noopener noreferrer"><span class="nav-link-icon" data-tone="gold"><i data-lucide="shirt"></i></span>Create UGC</a></li>
           <li><a href="/services/" class="nav-link" style="--i:13"><span class="nav-link-icon" data-tone="gold"><i data-lucide="briefcase"></i></span>Services</a></li>
           <li class="nav-group-label" style="--i:14">More</li>
@@ -102,7 +101,12 @@
   </div>
 </nav>
 <section class="section">
-  <div class="container" style="max-width:760px;">
+  <div class="container" style="max-width:860px;">
+    <div class="hub-tabs" role="tablist" aria-label="Updates" data-hub-default="site">
+      <button type="button" class="hub-tab" role="tab" data-hub-tab="site" data-title="What's New on BloxCore — Features, Fixes & Events"><i data-lucide="sparkles"></i><span>Site updates</span></button>
+      <button type="button" class="hub-tab" role="tab" data-hub-tab="game" data-title="Blox Fruits Update Guides & Tier Lists | BloxCore"><i data-lucide="newspaper"></i><span>Blox Fruits updates</span></button>
+    </div>
+    <div data-hub-panel="site" role="tabpanel" style="max-width:760px; margin:0 auto;">
     <div class="flex-between">
       <div>
         <h1 style="font-size:1.8rem; margin-bottom:2px;">What's New</h1>
@@ -140,6 +144,16 @@
     <div id="entry-list" style="margin-top:28px; display:flex; flex-direction:column; gap:16px;">
       <div class="skeleton" style="height:90px;"></div>
       <div class="skeleton" style="height:90px;"></div>
+    </div>
+    </div>
+
+    <div data-hub-panel="game" role="tabpanel" hidden>
+<div id="upd-list-view">
+      <h2 style="font-size:1.35rem; margin-bottom:2px;">Update Guides</h2>
+      <p class="muted" style="margin:0 0 18px;">What changed in each Blox Fruits update, with the fruit tier list as it stood at launch — and how values moved afterwards.</p>
+      <div id="upd-list" style="display:grid; gap:12px;"><div class="skeleton" style="height:90px;"></div></div>
+    </div>
+    <div id="upd-detail-view" style="display:none;"></div>
     </div>
   </div>
 </section>
@@ -246,6 +260,9 @@
 <script src="/js/supabase-client.js"></script>
 <script src="/js/nav.js"></script>
 <script src="/js/search.js"></script>
+<script src="/js/listings.js"></script>
 <script src="/js/whats-new.js"></script>
+<script src="/js/updates.js"></script>
+<script src="/js/tabs-hub.js"></script>
 </body>
 </html>

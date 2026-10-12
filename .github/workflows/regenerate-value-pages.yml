@@ -1,7 +1,7 @@
 # Keeps the static value/tier-list/compare/calculator pages in sync with the live database.
 #
 # These pages (blox-fruits-values/*, blox-fruits-*-tier-list/, blox-fruits-compare/*,
-# trade-calculator/, blox-fruits-trading-guide/) are plain static HTML baked by the generator
+# blox-fruits-trading-guide/) are plain static HTML baked by the generator
 # scripts in scripts/ — they do NOT read the database at request time, so nothing updates them
 # unless something re-runs those scripts and the result gets deployed. This workflow is that
 # "something": on a schedule, it re-runs the generators against the live bf_items table and,

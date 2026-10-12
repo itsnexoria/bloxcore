@@ -370,9 +370,33 @@ async function handleOgTradeImage(request, env, url) {
   }
 }
 
+// Pages that were folded into tabs of other pages — permanent redirects keep old links, bookmarks and search results working.
+// Existing query params (e.g. ?give=…&get=… on the calculator, ?u=… on the scam checker, ?l=… on shared tier lists) are preserved.
+const MOVED_PAGES = {
+  '/trade-calculator/': ['/trading/', 'calculator'],
+  '/blox-fruits-value-changes/': ['/trading/', 'values'],
+  '/scam-check/': ['/trading/', 'scam'],
+  '/blox-fruits-updates/': ['/whats-new/', 'game'],
+  '/tier-maker/': ['/build/', 'tiers'],
+  '/build-planner/': ['/build/', 'planner'],
+};
+
+function movedPageRedirect(url) {
+  const key = url.pathname.endsWith('/') ? url.pathname : `${url.pathname}/`;
+  const target = MOVED_PAGES[key];
+  if (!target) return null;
+  const dest = new URL(target[0], url.origin);
+  const params = new URLSearchParams({ tab: target[1] });
+  for (const [k, v] of url.searchParams) if (k !== 'tab') params.append(k, v);
+  dest.search = params.toString();
+  return Response.redirect(dest.toString(), 301);
+}
+
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
+    const moved = movedPageRedirect(url);
+    if (moved) return moved;
     try {
       if (url.pathname === '/player/') return await handlePlayer(request, env, url);
       if (url.pathname === '/auth/') return await handleAuth(request, env, url);

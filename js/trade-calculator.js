@@ -1,6 +1,6 @@
 // Trade calculator — compares the community value of two sides of a trade. Client-side only,
 // reads the same bf_items catalog the Trading board uses (fetchBfItemCatalog / valueFor in
-// listings.js). Supports deep links: /trade-calculator/?give=Kitsune:p,Dough&get=Buddha
+// listings.js). Supports deep links: /trading/?tab=calculator&give=Kitsune:p,Dough&get=Buddha
 // (":p" = permanent value; names are matched case-insensitively).
 
 const calcSides = { give: [], get: [] };
@@ -156,11 +156,10 @@ async function renderTradeCard(canvas) {
 }
 
 function calcSyncUrl() {
-  const params = new URLSearchParams();
+  const params = new URLSearchParams({ tab: 'calculator' });
   if (calcSides.give.length) params.set('give', calcSides.give.map(e => e.item.name + (e.valueType === 'permanent' ? ':p' : '')).join(','));
   if (calcSides.get.length) params.set('get', calcSides.get.map(e => e.item.name + (e.valueType === 'permanent' ? ':p' : '')).join(','));
-  const qs = params.toString();
-  history.replaceState(null, '', qs ? `?${qs}` : location.pathname);
+  history.replaceState(null, '', `?${params.toString()}`);
 }
 
 function calcAdd(side, item) {
@@ -204,7 +203,8 @@ function calcLoadFromUrl() {
   }
 }
 
-document.addEventListener('DOMContentLoaded', async () => {
+window.hubInit = window.hubInit || {};
+window.hubInit.calculator = async () => {
   try {
     calcCatalog = await fetchBfItemCatalog();
   } catch (e) {
@@ -246,4 +246,4 @@ document.addEventListener('DOMContentLoaded', async () => {
     try { await navigator.clipboard.writeText(text); showToast('Copied — paste it in Discord or a trade chat.'); }
     catch { showToast('Clipboard access blocked — try copying manually.', true); }
   });
-});
+};

@@ -47,7 +47,7 @@ async function loadAdminUpdates() {
   list.innerHTML = data.map(u => `
     <div class="panel" style="padding:12px 14px; display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
       <div style="flex:1; min-width:180px;"><strong>${escapeHtml(u.name)}</strong><div class="muted" style="font-size:0.78rem;">${u.released_on} · ${u.snapshot_at ? `tier list saved ${new Date(u.snapshot_at).toLocaleDateString()}` : 'no tier list'}</div></div>
-      <a class="btn btn-ghost btn-sm" href="/blox-fruits-updates/?u=${encodeURIComponent(u.slug)}" target="_blank" rel="noopener">View</a>
+      <a class="btn btn-ghost btn-sm" href="/whats-new/?tab=game&u=${encodeURIComponent(u.slug)}" target="_blank" rel="noopener">View</a>
       <button class="btn btn-ghost btn-sm" data-snap="${u.id}">Re-snapshot tiers</button>
       <button class="btn btn-ghost btn-sm" data-del="${u.id}" aria-label="Delete"><i data-lucide="trash-2" class="icon-sm"></i></button>
     </div>`).join('');
