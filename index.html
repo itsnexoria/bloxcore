@@ -149,15 +149,12 @@
   </div>
 </nav>
 
-
-
+```html
 <header class="section hero-simple hero-fullbleed bc-hero">
   <div class="hero-bg" aria-hidden="true"></div>
   <div class="hero-bg-shade" aria-hidden="true"></div>
 
   <div class="hero-fullbleed-inner bc-hero-inner">
-
-    <!-- LEFT: BLOXCORE HERO CONTENT -->
     <div class="hero-fullbleed-copy bc-hero-copy">
       <p class="muted bc-hero-eyebrow">
         The ultimate Blox Fruits community
@@ -186,9 +183,7 @@
       </div>
     </div>
 
-    <!-- RIGHT: TWITCH STREAM -->
     <aside class="bc-stream-card" aria-label="Clxxdy4869 Twitch stream">
-
       <div class="bc-stream-video">
         <iframe
           src="https://player.twitch.tv/?channel=clxxdy4869&parent=bloxcores.com&parent=www.bloxcores.com&autoplay=true&muted=true"
@@ -212,17 +207,11 @@
           Watch on Twitch <span>↗</span>
         </a>
       </div>
-
     </aside>
-
   </div>
 </header>
 
 <style>
-  /* ============================
-     BLOXCORE HERO LAYOUT
-     ============================ */
-
   .bc-hero {
     position: relative;
     overflow: hidden;
@@ -272,14 +261,10 @@
 
   .bc-hero-actions {
     display: flex;
+    flex-wrap: wrap;
     gap: 14px;
     margin-top: 24px;
-    flex-wrap: wrap;
   }
-
-  /* ============================
-     TWITCH CARD
-     ============================ */
 
   .bc-stream-card,
   .bc-stream-card * {
@@ -302,88 +287,6 @@
     box-shadow: 0 18px 45px #0004;
   }
 
-  .bc-stream-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 10px;
-    margin-bottom: 14px;
-  }
-
-  .bc-stream-identity {
-    display: flex;
-    align-items: center;
-    gap: 11px;
-    min-width: 0;
-  }
-
-  .bc-stream-avatar {
-    display: grid;
-    place-items: center;
-    flex-shrink: 0;
-    width: 42px;
-    height: 42px;
-    color: #fff;
-    background: linear-gradient(145deg, #438cff, #1745bc);
-    border: 1px solid #6caaff;
-    border-radius: 7px;
-    font-size: 20px;
-    font-weight: 850;
-  }
-
-  .bc-stream-info {
-    min-width: 0;
-  }
-
-  .bc-stream-eyebrow {
-    display: block;
-    margin-bottom: 4px;
-    color: #75baff;
-    font-family: var(--font-mono, monospace);
-    font-size: 9px;
-    font-weight: 800;
-    letter-spacing: 1px;
-  }
-
-  .bc-stream-info h2 {
-    margin: 0;
-    color: #f4f7ff;
-    font-size: 17px;
-    font-weight: 750;
-    overflow-wrap: anywhere;
-  }
-
-  .bc-stream-subtitle {
-    display: block;
-    margin-top: 3px;
-    color: #8fa4c4;
-    font-size: 10px;
-  }
-
-  .bc-stream-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    flex-shrink: 0;
-    padding: 6px 8px;
-    color: #83c2ff;
-    background: #347dff1a;
-    border: 1px solid #347dff55;
-    border-radius: 4px;
-    font-family: var(--font-mono, monospace);
-    font-size: 10px;
-    font-weight: 800;
-  }
-
-  .bc-stream-badge span {
-    width: 6px;
-    height: 6px;
-    background: #65b5ff;
-    border-radius: 50%;
-    box-shadow: 0 0 8px #3984ff;
-  }
-
-  /* Fixed aspect ratio prevents the iframe filling the page */
   .bc-stream-video {
     position: relative;
     width: 100%;
@@ -449,10 +352,6 @@
     background: #3984ff;
   }
 
-  /* ============================
-     RESPONSIVE
-     ============================ */
-
   @media (max-width: 800px) {
     .bc-hero .bc-hero-inner {
       grid-template-columns: minmax(0, 1fr);
@@ -487,7 +386,7 @@
     }
   }
 </style>
-
+```
 
 <main>
 
