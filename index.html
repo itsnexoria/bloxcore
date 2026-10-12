@@ -150,60 +150,12 @@
 </nav>
 
 
-
 <header class="section hero-simple hero-fullbleed bc-hero">
   <div class="hero-bg" aria-hidden="true"></div>
   <div class="hero-bg-shade" aria-hidden="true"></div>
 
   <div class="hero-fullbleed-inner bc-hero-inner">
-
-    <!-- LEFT: BLOXCORE HERO CONTENT -->
-    <div class="hero-fullbleed-copy bc-hero-copy">
-      <p class="muted bc-hero-eyebrow">
-        The ultimate Blox Fruits community
-      </p>
-
-      <h1 class="bc-hero-title">
-        Make your <span>name.</span>
-      </h1>
-
-      <p class="muted bc-hero-description">
-        Bounties. Trading. Crews. Community.<br>
-        BloxCore brings together everything you need to rise, fight,
-        and build your legacy on the seas.
-      </p>
-
-      <div class="bc-hero-actions">
-        <a href="/auth/" class="btn btn-primary glow-pulse">
-          <i data-lucide="users" class="icon-sm icon-inline"></i>
-          Join BloxCore
-        </a>
-
-        <a href="/sea-events/" class="btn btn-ghost">
-          <i data-lucide="target" class="icon-sm icon-inline"></i>
-          Explore Bounties
-        </a>
-      </div>
-    </div>
-
-    <!-- RIGHT: TWITCH STREAM -->
-    <aside class="bc-stream-card" aria-label="Clxxdy4869 Twitch stream">
-
-      <div class="bc-stream-header">
-        <div class="bc-stream-identity">
-          <div class="bc-stream-avatar">C</div>
-          <div class="bc-stream-info">
-            <span class="bc-stream-eyebrow">BLOXCORE COMMUNITY</span>
-            <h2>Clxxdy4869</h2>
-            <span class="bc-stream-subtitle">Live on Twitch</span>
-          </div>
-        </div>
-
-        <span class="bc-stream-badge">
-          <span></span> LIVE
-        </span>
-      </div>
-
+    <div class="bc-stream-card">
       <div class="bc-stream-video">
         <iframe
           src="https://player.twitch.tv/?channel=clxxdy4869&parent=bloxcores.com&parent=www.bloxcores.com&autoplay=true&muted=true"
@@ -212,32 +164,11 @@
           allowfullscreen>
         </iframe>
       </div>
-
-      <div class="bc-stream-footer">
-        <div class="bc-stream-caption">
-          <strong>Watch the action</strong>
-          <span>Streaming from Twitch</span>
-        </div>
-
-        <a
-          class="bc-stream-button"
-          href="https://www.twitch.tv/clxxdy4869"
-          target="_blank"
-          rel="noopener noreferrer">
-          Watch on Twitch <span>↗</span>
-        </a>
-      </div>
-
-    </aside>
-
+    </div>
   </div>
 </header>
 
 <style>
-  /* ============================
-     BLOXCORE HERO LAYOUT
-     ============================ */
-
   .bc-hero {
     position: relative;
     overflow: hidden;
@@ -246,166 +177,34 @@
   .bc-hero .bc-hero-inner {
     position: relative;
     z-index: 1;
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(0, 460px);
+    display: flex;
+    justify-content: center;
     align-items: center;
-    gap: clamp(24px, 4vw, 54px);
     width: 100%;
     max-width: 1200px;
     margin-inline: auto;
     padding: clamp(36px, 5vw, 72px) 24px;
   }
 
-  .bc-hero-copy {
-    min-width: 0;
-    width: 100%;
-  }
-
-  .bc-hero-eyebrow {
-    font-family: var(--font-mono, monospace);
-    text-transform: uppercase;
-    letter-spacing: .08em;
-    font-size: .85rem;
-  }
-
-  .bc-hero-title {
-    font-size: clamp(2.3rem, 4.5vw, 3.6rem);
-    line-height: 1.05;
-    text-transform: uppercase;
-    overflow-wrap: anywhere;
-  }
-
-  .bc-hero-title span {
-    color: var(--brass-bright, #65aaff);
-  }
-
-  .bc-hero-description {
-    max-width: 480px;
-    font-size: 1.05rem;
-    line-height: 1.7;
-  }
-
-  .bc-hero-actions {
-    display: flex;
-    gap: 14px;
-    margin-top: 24px;
-    flex-wrap: wrap;
-  }
-
-  /* ============================
-     TWITCH CARD
-     ============================ */
-
-  .bc-stream-card,
-  .bc-stream-card * {
-    box-sizing: border-box;
-  }
-
   .bc-stream-card {
     width: 100%;
     max-width: 460px;
     min-width: 0;
-    justify-self: end;
-    padding: 15px;
+    padding: 12px;
     overflow: hidden;
-    color: #eef4ff;
-    background:
-      radial-gradient(ellipse at 100% 0%, #1d4c8833, transparent 60%),
-      #0b1220;
+    background: #0b1220;
     border: 1px solid #29456c;
     border-radius: 9px;
     box-shadow: 0 18px 45px #0004;
+    box-sizing: border-box;
   }
 
-  .bc-stream-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 10px;
-    margin-bottom: 14px;
-  }
-
-  .bc-stream-identity {
-    display: flex;
-    align-items: center;
-    gap: 11px;
-    min-width: 0;
-  }
-
-  .bc-stream-avatar {
-    display: grid;
-    place-items: center;
-    flex-shrink: 0;
-    width: 42px;
-    height: 42px;
-    color: #fff;
-    background: linear-gradient(145deg, #438cff, #1745bc);
-    border: 1px solid #6caaff;
-    border-radius: 7px;
-    font-size: 20px;
-    font-weight: 850;
-  }
-
-  .bc-stream-info {
-    min-width: 0;
-  }
-
-  .bc-stream-eyebrow {
-    display: block;
-    margin-bottom: 4px;
-    color: #75baff;
-    font-family: var(--font-mono, monospace);
-    font-size: 9px;
-    font-weight: 800;
-    letter-spacing: 1px;
-  }
-
-  .bc-stream-info h2 {
-    margin: 0;
-    color: #f4f7ff;
-    font-size: 17px;
-    font-weight: 750;
-    overflow-wrap: anywhere;
-  }
-
-  .bc-stream-subtitle {
-    display: block;
-    margin-top: 3px;
-    color: #8fa4c4;
-    font-size: 10px;
-  }
-
-  .bc-stream-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    flex-shrink: 0;
-    padding: 6px 8px;
-    color: #83c2ff;
-    background: #347dff1a;
-    border: 1px solid #347dff55;
-    border-radius: 4px;
-    font-family: var(--font-mono, monospace);
-    font-size: 10px;
-    font-weight: 800;
-  }
-
-  .bc-stream-badge span {
-    width: 6px;
-    height: 6px;
-    background: #65b5ff;
-    border-radius: 50%;
-    box-shadow: 0 0 8px #3984ff;
-  }
-
-  /* Fixed aspect ratio prevents the iframe filling the page */
   .bc-stream-video {
     position: relative;
     width: 100%;
     aspect-ratio: 16 / 9;
     overflow: hidden;
     background: #050912;
-    border: 1px solid #29456c;
     border-radius: 5px;
   }
 
@@ -418,91 +217,17 @@
     border: 0;
   }
 
-  .bc-stream-footer {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 10px;
-    margin-top: 13px;
-  }
-
-  .bc-stream-caption {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-    min-width: 0;
-  }
-
-  .bc-stream-caption strong {
-    color: #eaf2ff;
-    font-size: 11px;
-  }
-
-  .bc-stream-caption > span {
-    color: #8fa4c4;
-    font-size: 10px;
-  }
-
-  .bc-stream-button {
-    display: inline-flex;
-    justify-content: center;
-    align-items: center;
-    gap: 8px;
-    flex-shrink: 0;
-    padding: 10px 11px;
-    color: #fff !important;
-    background: #2868dc;
-    border: 1px solid #5590ff;
-    border-radius: 4px;
-    font-size: 10px;
-    font-weight: 800;
-    text-decoration: none !important;
-    transition: background .2s ease;
-  }
-
-  .bc-stream-button:hover {
-    background: #3984ff;
-  }
-
-  /* ============================
-     RESPONSIVE
-     ============================ */
-
-  @media (max-width: 800px) {
+  @media (max-width: 600px) {
     .bc-hero .bc-hero-inner {
-      grid-template-columns: minmax(0, 1fr);
-      gap: 30px;
-      padding: 38px 20px;
+      padding: 28px 16px;
     }
 
     .bc-stream-card {
-      max-width: 480px;
-      justify-self: start;
-    }
-  }
-
-  @media (max-width: 420px) {
-    .bc-stream-card {
-      padding: 11px;
-    }
-
-    .bc-stream-footer {
-      align-items: flex-start;
-    }
-
-    .bc-stream-button {
-      padding: 9px;
-      font-size: 9px;
-    }
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    .bc-stream-button {
-      transition: none;
+      max-width: 100%;
+      padding: 8px;
     }
   }
 </style>
-
 
 
 <main>
