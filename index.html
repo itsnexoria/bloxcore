@@ -149,245 +149,307 @@
   </div>
 </nav>
 
-<header class="section hero-simple hero-fullbleed"
-  style="position:relative; overflow:hidden;">
 
-  <div class="hero-bg" aria-hidden="true"></div>
-  <div class="hero-bg-shade" aria-hidden="true"></div>
+<!-- BLOXCORE | TWITCH LIVE PANEL -->
+<aside id="blox-twitch-panel" class="bc-twitch">
 
-  <div class="hero-fullbleed-inner blox-hero-layout"
-    style="position:relative; z-index:1;">
-
-    <!-- LEFT: Existing BloxCore hero -->
-    <div class="hero-fullbleed-copy">
-      <p class="muted"
-        style="font-family:var(--font-mono); text-transform:uppercase;
-        letter-spacing:0.08em; font-size:0.85rem;">
-        The ultimate Blox Fruits community
-      </p>
-
-      <h1 style="font-size:clamp(2.3rem, 5vw + 1rem, 3.6rem);
-        line-height:1.05; text-transform:uppercase;">
-        Make your <span style="color:var(--brass-bright);">name.</span>
-      </h1>
-
-      <p class="muted" style="font-size:1.05rem; max-width:480px;">
-        Bounties. Trading. Crews. Community.<br>
-        BloxCore brings together everything you need to rise, fight,
-        and build your legacy on the seas.
-      </p>
-
-      <div style="display:flex; gap:14px; margin-top:24px; flex-wrap:wrap;">
-        <a href="/auth/" class="btn btn-primary glow-pulse">
-          <i data-lucide="users" class="icon-sm icon-inline"></i>
-          Join BloxCore
-        </a>
-
-        <a href="/sea-events/" class="btn btn-ghost">
-          <i data-lucide="target" class="icon-sm icon-inline"></i>
-          Explore Bounties
-        </a>
+  <div class="bc-twitch-top">
+    <div class="bc-streamer">
+      <div class="bc-avatar">C</div>
+      <div class="bc-streamer-info">
+        <span class="bc-eyebrow">BLOXCORE EXCLUSIVE</span>
+        <h2>Clxxdy4869</h2>
+        <span class="bc-subtitle">Community streamer</span>
       </div>
     </div>
 
-    <!-- RIGHT: Twitch stream (hidden until live) -->
-    <aside id="blox-twitch-panel" class="blox-twitch-panel"
-      aria-label="Clxxdy4869 Twitch livestream" hidden>
-
-      <div class="blox-twitch-heading">
-        <div>
-          <div class="blox-twitch-kicker">BLOXCORE COMMUNITY</div>
-          <h2>Clxxdy4869</h2>
-        </div>
-        <span class="blox-twitch-live">
-          <span></span> LIVE
-        </span>
-      </div>
-
-      <div class="blox-twitch-video">
-        <div id="blox-twitch-player"></div>
-      </div>
-
-      <a href="https://www.twitch.tv/clxxdy4869"
-        target="_blank" rel="noopener noreferrer"
-        class="blox-twitch-link">
-        Watch on Twitch ↗
-      </a>
-    </aside>
-
+    <span class="bc-live-badge">
+      <span class="bc-live-dot"></span>
+      LIVE
+    </span>
   </div>
-</header>
+
+  <div class="bc-player-wrap">
+    <iframe
+      id="bc-twitch-player"
+      src="https://player.twitch.tv/?channel=clxxdy4869&parent=bloxcores.com&parent=www.bloxcores.com&autoplay=true&muted=true"
+      allow="autoplay; fullscreen"
+      allowfullscreen
+      loading="eager"
+      title="Clxxdy4869 Twitch livestream">
+    </iframe>
+
+    <div class="bc-player-label">
+      <span class="bc-label-dot"></span>
+      WATCHING ON BLOXCORE
+    </div>
+  </div>
+
+  <div class="bc-twitch-bottom">
+    <div class="bc-bottom-copy">
+      <span class="bc-bottom-title">Join the stream</span>
+      <span class="bc-bottom-desc">Watch the action unfold live.</span>
+    </div>
+
+    <a class="bc-twitch-button"
+       href="https://www.twitch.tv/clxxdy4869"
+       target="_blank"
+       rel="noopener noreferrer">
+      Watch on Twitch <span>↗</span>
+    </a>
+  </div>
+
+</aside>
 
 <style>
-  .blox-hero-layout {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(320px, 0.85fr);
-    align-items: center;
-    gap: clamp(28px, 4vw, 64px);
-  }
+  .bc-twitch {
+    --bc-blue: #3984ff;
+    --bc-cyan: #65caff;
+    --bc-bg: #0b1220;
+    --bc-border: rgba(75, 137, 255, .25);
 
-  .blox-hero-layout .hero-fullbleed-copy {
-    min-width: 0;
-  }
-
-  .blox-twitch-panel {
-    min-width: 0;
+    position: relative;
     width: 100%;
-    padding: 16px;
-    background: rgba(10, 14, 23, 0.94);
-    border: 1px solid rgba(239, 48, 56, 0.4);
-    border-radius: 8px;
-    box-shadow: 0 16px 50px rgba(0, 0, 0, 0.3);
+    min-width: 0;
+    padding: 18px;
+    overflow: hidden;
+    color: #edf4ff;
+    background:
+      radial-gradient(ellipse at 100% 0%, rgba(42, 106, 255, .13), transparent 55%),
+      var(--bc-bg);
+    border: 1px solid var(--bc-border);
+    border-radius: 12px;
+    box-shadow:
+      0 18px 55px rgba(0, 0, 0, .32),
+      0 0 35px rgba(39, 109, 255, .06);
+    font-family: inherit;
   }
 
-  .blox-twitch-panel[hidden] {
-    display: none !important;
+  .bc-twitch *,
+  .bc-twitch *::before,
+  .bc-twitch *::after {
+    box-sizing: border-box;
   }
 
-  .blox-twitch-heading {
+  .bc-twitch-top,
+  .bc-streamer,
+  .bc-twitch-bottom {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 12px;
-    margin-bottom: 14px;
+    gap: 14px;
   }
 
-  .blox-twitch-kicker {
-    color: #ef3038;
+  .bc-twitch-top {
+    margin-bottom: 17px;
+  }
+
+  .bc-streamer {
+    justify-content: flex-start;
+    min-width: 0;
+  }
+
+  .bc-avatar {
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+    width: 47px;
+    height: 47px;
+    color: white;
+    background: linear-gradient(145deg, #438cff, #1745bc);
+    border: 1px solid rgba(129, 177, 255, .65);
+    border-radius: 10px;
+    font-size: 22px;
+    font-weight: 850;
+    box-shadow: 0 0 22px rgba(57, 132, 255, .2);
+  }
+
+  .bc-streamer-info {
+    min-width: 0;
+  }
+
+  .bc-eyebrow {
+    display: block;
+    margin-bottom: 4px;
+    color: var(--bc-cyan);
     font-family: var(--font-mono, monospace);
-    font-size: 10px;
-    font-weight: 700;
-    letter-spacing: 0.12em;
+    font-size: 9px;
+    font-weight: 800;
+    letter-spacing: 1.6px;
   }
 
-  .blox-twitch-heading h2 {
-    margin: 5px 0 0;
-    color: #f1f5f9;
-    font-size: 20px;
+  .bc-streamer-info h2 {
+    margin: 0;
+    overflow-wrap: anywhere;
+    color: #f2f7ff;
+    font-size: 19px;
+    font-weight: 750;
+    letter-spacing: -.4px;
   }
 
-  .blox-twitch-live {
-    display: flex;
+  .bc-subtitle {
+    display: block;
+    margin-top: 3px;
+    color: #8598b7;
+    font-size: 11px;
+  }
+
+  .bc-live-badge {
+    display: inline-flex;
     align-items: center;
     gap: 7px;
-    padding: 6px 9px;
-    color: #ff5b63;
-    background: rgba(239, 48, 56, 0.12);
-    border: 1px solid rgba(239, 48, 56, 0.3);
-    border-radius: 4px;
+    flex-shrink: 0;
+    padding: 7px 9px;
+    color: #fff;
+    background: rgba(43, 108, 255, .15);
+    border: 1px solid rgba(79, 145, 255, .38);
+    border-radius: 5px;
     font-family: var(--font-mono, monospace);
-    font-size: 11px;
-    font-weight: 800;
+    font-size: 10px;
+    font-weight: 850;
+    letter-spacing: 1px;
   }
 
-  .blox-twitch-live span {
+  .bc-live-dot {
     width: 7px;
     height: 7px;
+    background: #51a0ff;
     border-radius: 50%;
-    background: #ef3038;
-    box-shadow: 0 0 10px #ef3038;
+    box-shadow: 0 0 10px #3984ff;
+    animation: bc-pulse 1.8s ease-in-out infinite;
   }
 
-  .blox-twitch-video {
+  @keyframes bc-pulse {
+    50% { opacity: .4; }
+  }
+
+  .bc-player-wrap {
+    position: relative;
     width: 100%;
     aspect-ratio: 16 / 9;
     overflow: hidden;
-    background: #05070b;
-    border-radius: 4px;
+    background: #050912;
+    border: 1px solid rgba(84, 143, 255, .23);
+    border-radius: 7px;
   }
 
-  #blox-twitch-player {
-    width: 100%;
-    height: 100%;
-  }
-
-  #blox-twitch-player iframe {
+  #bc-twitch-player {
+    position: absolute;
+    inset: 0;
     display: block;
     width: 100%;
     height: 100%;
     border: 0;
   }
 
-  .blox-twitch-link {
-    display: inline-block;
-    margin-top: 12px;
-    color: #f87178;
+  .bc-player-label {
+    position: absolute;
+    right: 10px;
+    bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 8px;
+    color: #e4edff;
+    background: rgba(5, 12, 26, .88);
+    border: 1px solid rgba(111, 164, 255, .2);
+    border-radius: 4px;
+    font-family: var(--font-mono, monospace);
+    font-size: 8px;
+    font-weight: 750;
+    letter-spacing: .7px;
+    pointer-events: none;
+  }
+
+  .bc-label-dot {
+    width: 6px;
+    height: 6px;
+    background: var(--bc-cyan);
+    border-radius: 50%;
+  }
+
+  .bc-twitch-bottom {
+    margin-top: 16px;
+  }
+
+  .bc-bottom-copy {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 0;
+  }
+
+  .bc-bottom-title {
+    color: #eaf2ff;
     font-size: 12px;
-    font-weight: 700;
-    text-decoration: none;
+    font-weight: 750;
   }
 
-  .blox-twitch-link:hover {
-    color: #fff;
+  .bc-bottom-desc {
+    color: #8598b7;
+    font-size: 10px;
+    line-height: 1.5;
   }
 
-  @media (max-width: 800px) {
-    .blox-hero-layout {
-      grid-template-columns: minmax(0, 1fr);
-      gap: 30px;
+  .bc-twitch-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    flex-shrink: 0;
+    padding: 11px 13px;
+    color: #fff !important;
+    background: linear-gradient(135deg, #367dff, #2254db);
+    border: 1px solid rgba(143, 184, 255, .4);
+    border-radius: 5px;
+    box-shadow: 0 4px 18px rgba(35, 97, 255, .17);
+    font-size: 11px;
+    font-weight: 800;
+    text-decoration: none !important;
+    transition: transform .2s, filter .2s;
+  }
+
+  .bc-twitch-button:hover {
+    transform: translateY(-1px);
+    filter: brightness(1.15);
+  }
+
+  @media (max-width: 480px) {
+    .bc-twitch {
+      padding: 12px;
     }
 
-    .blox-twitch-panel {
-      max-width: 560px;
+    .bc-avatar {
+      width: 40px;
+      height: 40px;
+    }
+
+    .bc-streamer-info h2 {
+      font-size: 16px;
+    }
+
+    .bc-twitch-bottom {
+      align-items: flex-start;
+    }
+
+    .bc-twitch-button {
+      padding: 10px;
+      font-size: 10px;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .bc-live-dot {
+      animation: none;
+    }
+
+    .bc-twitch-button {
+      transition: none;
     }
   }
 </style>
+<!-- END BLOXCORE TWITCH PANEL -->
 
-<script src="https://player.twitch.tv/js/embed/v1.js"></script>
-<script>
-(() => {
-  const CHANNEL = "clxxdy4869";
-  const panel = document.getElementById("blox-twitch-panel");
-  const playerContainer = document.getElementById("blox-twitch-player");
-
-  // Twitch requires the actual hostname of your website.
-  const parents = ["bloxcores.com", "www.bloxcores.com"];
-
-  let player = null;
-
-  function initializeTwitch() {
-    if (!window.Twitch || player) return;
-
-    try {
-      player = new Twitch.Player(playerContainer, {
-        channel: CHANNEL,
-        width: "100%",
-        height: "100%",
-        parent: parents,
-        autoplay: false,
-        muted: true
-      });
-
-      // Hidden until Twitch confirms that the channel is live.
-      panel.hidden = true;
-
-      player.addEventListener(Twitch.Player.ONLINE, () => {
-        panel.hidden = false;
-      });
-
-      player.addEventListener(Twitch.Player.OFFLINE, () => {
-        panel.hidden = true;
-      });
-    } catch (error) {
-      panel.hidden = true;
-      console.error("BloxCore Twitch embed failed:", error);
-    }
-  }
-
-  if (window.Twitch) {
-    initializeTwitch();
-  } else {
-    const script = document.querySelector(
-      'script[src="https://player.twitch.tv/js/embed/v1.js"]'
-    );
-
-    if (script) {
-      script.addEventListener("load", initializeTwitch, { once: true });
-    }
-  }
-})();
-</script>
->
 
 <main>
 
