@@ -91,7 +91,7 @@ async function loadWarLeaderboard() {
       <div style="display:flex; align-items:center; gap:16px;">
         <span style="font-family:var(--font-mono); color:var(--ash); width:28px;">#${i + 1}</span>
         ${c.logo_url
-          ? `<img src="${c.logo_url}" alt="" loading="lazy" style="width:36px; height:36px; border-radius:8px; object-fit:cover; flex-shrink:0;" onerror="this.style.visibility='hidden';">`
+          ? `<img src="${safeImgUrl(c.logo_url)}" alt="" loading="lazy" style="width:36px; height:36px; border-radius:8px; object-fit:cover; flex-shrink:0;" onerror="this.style.visibility='hidden';">`
           : `<div style="width:36px; height:36px; border-radius:8px; background:var(--navy-light); display:flex; align-items:center; justify-content:center; font-size:0.85rem; flex-shrink:0; color:var(--ash);">${escapeHtml((c.name[0] || '?').toUpperCase())}</div>`}
         <a href="/crew/?name=${encodeURIComponent(c.name)}" style="color:var(--bone); font-weight:700; text-decoration:none;">
           ${c.tag ? `[${escapeHtml(c.tag)}] ` : ''}${escapeHtml(c.name)}
@@ -145,7 +145,7 @@ function crewChip(c) {
   return `
     <a href="/crew/?name=${encodeURIComponent(c.name)}" class="war-chip">
       ${c.logo_url
-        ? `<img src="${c.logo_url}" alt="" loading="lazy" style="width:34px; height:34px; border-radius:8px; object-fit:cover; box-shadow:0 0 0 1px var(--glass-border);" onerror="this.style.visibility='hidden';">`
+        ? `<img src="${safeImgUrl(c.logo_url)}" alt="" loading="lazy" style="width:34px; height:34px; border-radius:8px; object-fit:cover; box-shadow:0 0 0 1px var(--glass-border);" onerror="this.style.visibility='hidden';">`
         : `<span style="width:34px; height:34px; border-radius:8px; background:var(--navy-light); display:inline-flex; align-items:center; justify-content:center; font-size:0.85rem; color:var(--ash); box-shadow:0 0 0 1px var(--glass-border);">${escapeHtml((c.name[0] || '?').toUpperCase())}</span>`}
       <span style="font-weight:700; font-size:0.92rem;">${c.tag ? `[${escapeHtml(c.tag)}] ` : ''}${escapeHtml(c.name)}</span>
     </a>

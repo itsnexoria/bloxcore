@@ -138,6 +138,16 @@ function safeUrl(raw) {
   }
 }
 
+// For user-supplied image/background URLs placed in src="", href="" or CSS url('') contexts:
+// http(s) only (see safeUrl) AND quote/paren/whitespace characters percent-encoded, because
+// escapeHtml() does not escape quotes and a stray ' or " would let a URL break out of the
+// attribute or CSS string. Returns '' for anything unusable.
+function safeImgUrl(raw) {
+  const u = safeUrl(raw);
+  if (u === '#') return '';
+  return u.replace(/['"()<>`\\\s]/g, c => '%' + c.charCodeAt(0).toString(16).toUpperCase().padStart(2, '0'));
+}
+
 // Small, dependency-free markdown -> HTML for admin-authored content (changelog posts). Escapes
 // first, then only ever adds tags itself — so even if something raw-HTML-shaped is in the
 // source text, it's already neutralized before any markdown syntax is applied. Supports the
@@ -377,7 +387,7 @@ function avatarHtml(profile, size, extraStyle = '', presence = null) {
   const fallback = `<div style="width:${size}px;height:${size}px;border-radius:50%;background:linear-gradient(150deg, var(--navy-light), var(--navy));display:flex;align-items:center;justify-content:center;font-size:${Math.round(size * 0.4)}px;flex-shrink:0;color:var(--ash);font-family:var(--font-stamp);${ring}${avatarExtra}">${initial}</div>`;
   const avatarInner = (!profile?.avatar_url) ? fallback : (() => {
     const escapedFallback = fallback.replace(/"/g, '&quot;');
-    return `<img src="${profile.avatar_url}" alt="" loading="lazy" style="width:${size}px;height:${size}px;border-radius:50%;object-fit:cover;flex-shrink:0;${ring}${avatarExtra}" onerror="this.outerHTML='${escapedFallback}';">`;
+    return `<img src="${safeImgUrl(profile.avatar_url)}" alt="" loading="lazy" style="width:${size}px;height:${size}px;border-radius:50%;object-fit:cover;flex-shrink:0;${ring}${avatarExtra}" onerror="this.onerror=null; if (this.parentNode) this.outerHTML='${escapedFallback}';">`;
   })();
 
   // Image-based frame: an oversized decorative PNG centered over the avatar,

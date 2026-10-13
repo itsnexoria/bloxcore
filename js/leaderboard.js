@@ -239,7 +239,7 @@ async function loadCrewLeaderboard() {
         <div style="display:flex; align-items:center; gap:16px;">
           <span class="${podium ? 'lb-podium-rank' : ''}" style="font-family:var(--font-mono); color:var(--ash); width:28px;">${podium ? `<i data-lucide="${rank === 1 ? 'crown' : 'medal'}" class="icon-sm"></i>` : `#${rank}`}</span>
           ${c.logo_url
-            ? `<img src="${c.logo_url}" alt="" loading="lazy" style="width:36px; height:36px; border-radius:8px; object-fit:cover; flex-shrink:0;" onerror="this.style.visibility='hidden';">`
+            ? `<img src="${safeImgUrl(c.logo_url)}" alt="" loading="lazy" style="width:36px; height:36px; border-radius:8px; object-fit:cover; flex-shrink:0;" onerror="this.style.visibility='hidden';">`
             : `<div style="width:36px; height:36px; border-radius:8px; background:var(--navy-light); display:flex; align-items:center; justify-content:center; font-size:0.85rem; flex-shrink:0; color:var(--ash);">${escapeHtml((c.name[0] || '?').toUpperCase())}</div>`}
           <a href="/crew/?name=${encodeURIComponent(c.name)}" style="color:var(--bone); font-weight:700; text-decoration:none;">
             ${c.tag ? `[${escapeHtml(c.tag)}] ` : ''}${escapeHtml(c.name)}
@@ -279,7 +279,7 @@ async function loadCrewLeaderboard() {
       <div style="display:flex; align-items:center; gap:16px;">
         <span class="${podium ? 'lb-podium-rank' : ''}" style="font-family:var(--font-mono); color:var(--ash); width:28px;">${podium ? `<i data-lucide="${rank === 1 ? 'crown' : 'medal'}" class="icon-sm"></i>` : `#${rank}`}</span>
         ${c.logo_url
-          ? `<img src="${c.logo_url}" alt="" loading="lazy" style="width:36px; height:36px; border-radius:8px; object-fit:cover; flex-shrink:0;" onerror="this.style.visibility='hidden';">`
+          ? `<img src="${safeImgUrl(c.logo_url)}" alt="" loading="lazy" style="width:36px; height:36px; border-radius:8px; object-fit:cover; flex-shrink:0;" onerror="this.style.visibility='hidden';">`
           : `<div style="width:36px; height:36px; border-radius:8px; background:var(--navy-light); display:flex; align-items:center; justify-content:center; font-size:0.85rem; flex-shrink:0; color:var(--ash);">${escapeHtml((c.name[0] || '?').toUpperCase())}</div>`}
         <a href="/crew/?name=${encodeURIComponent(c.name)}" style="color:var(--bone); font-weight:700; text-decoration:none;">
           ${c.tag ? `[${escapeHtml(c.tag)}] ` : ''}${escapeHtml(c.name)}
@@ -403,7 +403,7 @@ async function loadCrewWarLeaderboard() {
       <div style="display:flex; align-items:center; gap:16px;">
         <span class="${podium ? 'lb-podium-rank' : ''}" style="font-family:var(--font-mono); color:var(--ash); width:28px;">${podium ? `<i data-lucide="${rank === 1 ? 'crown' : 'medal'}" class="icon-sm"></i>` : `#${rank}`}</span>
         ${c.logo_url
-          ? `<img src="${c.logo_url}" alt="" loading="lazy" style="width:36px; height:36px; border-radius:8px; object-fit:cover; flex-shrink:0;" onerror="this.style.visibility='hidden';">`
+          ? `<img src="${safeImgUrl(c.logo_url)}" alt="" loading="lazy" style="width:36px; height:36px; border-radius:8px; object-fit:cover; flex-shrink:0;" onerror="this.style.visibility='hidden';">`
           : `<div style="width:36px; height:36px; border-radius:8px; background:var(--navy-light); display:flex; align-items:center; justify-content:center; font-size:0.85rem; flex-shrink:0; color:var(--ash);">${escapeHtml((c.name[0] || '?').toUpperCase())}</div>`}
         <a href="/crew/?name=${encodeURIComponent(c.name)}" style="color:var(--bone); font-weight:700; text-decoration:none;">
           ${c.tag ? `[${escapeHtml(c.tag)}] ` : ''}${escapeHtml(c.name)}

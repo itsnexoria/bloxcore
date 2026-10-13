@@ -8,7 +8,7 @@ const compareSelected = { a: null, b: null };
 // and its own page — same palette, same hash, so a given crew is always the same color.
 const CREW_CARD_PALETTE = ['167 139 250', '56 189 248', '251 191 36', '52 211 153', '248 113 113', '37 99 235', '244 114 182', '45 212 191'];
 function crewBannerStyle(c) {
-  if (c.banner_url) return `background:url('${c.banner_url.replace(/'/g, '%27')}') center/cover;`;
+  if (c.banner_url) return `background:url('${safeImgUrl(c.banner_url)}') center/cover;`;
   let rgb = c.accent_color;
   if (!rgb) {
     let hash = 0;
@@ -42,7 +42,7 @@ function setupPicker(side) {
       if (input.value.trim() !== q) return;
       results.innerHTML = (data || []).map(c => `
         <button type="button" class="crew-compare-result-row" data-id="${c.id}" data-name="${escapeHtml(c.name)}">
-          ${c.logo_url ? `<img src="${c.logo_url}" alt="" loading="lazy" onerror="this.style.display='none';">` : `<div class="crew-card-logo-fallback" style="display:flex; align-items:center; justify-content:center; font-weight:700;">${escapeHtml((c.name[0] || '?').toUpperCase())}</div>`}
+          ${c.logo_url ? `<img src="${safeImgUrl(c.logo_url)}" alt="" loading="lazy" onerror="this.style.display='none';">` : `<div class="crew-card-logo-fallback" style="display:flex; align-items:center; justify-content:center; font-weight:700;">${escapeHtml((c.name[0] || '?').toUpperCase())}</div>`}
           <span>${escapeHtml(c.name)}</span>${c.tag ? `<small class="muted">[${escapeHtml(c.tag)}]</small>` : ''}
         </button>`).join('') || '<p class="muted" style="margin:8px 10px; font-size:0.82rem;">No crews found.</p>';
       results.querySelectorAll('[data-id]').forEach(btn => btn.addEventListener('click', () => {
@@ -85,7 +85,7 @@ function crewColumnHtml(c) {
   return `
     <div class="panel crew-compare-card">
       <div class="crew-compare-card-head">
-        ${c.logo_url ? `<img src="${c.logo_url}" alt="" loading="lazy" class="crew-compare-logo">` : `<div class="crew-compare-logo crew-card-logo-fallback" style="display:flex; align-items:center; justify-content:center; font-weight:700; font-size:1.4rem;">${escapeHtml((c.name[0] || '?').toUpperCase())}</div>`}
+        ${c.logo_url ? `<img src="${safeImgUrl(c.logo_url)}" alt="" loading="lazy" class="crew-compare-logo">` : `<div class="crew-compare-logo crew-card-logo-fallback" style="display:flex; align-items:center; justify-content:center; font-weight:700; font-size:1.4rem;">${escapeHtml((c.name[0] || '?').toUpperCase())}</div>`}
         <div style="min-width:0;">
           <h3 style="margin:0; font-size:1.1rem;" title="${escapeHtml(c.name)}">${escapeHtml(c.name)}</h3>
           ${c.tag ? `<span class="tag tag-legendary">${escapeHtml(c.tag)}</span>` : ''}

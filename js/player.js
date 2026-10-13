@@ -243,7 +243,7 @@ function renderProfile(p, crew, isOwnProfile) {
   return `
     <div class="profile-hero">
       <div class="profile-hero-banner-wrap">
-        ${p.banner_url ? `<img src="${p.banner_url}" alt="" loading="lazy" onerror="this.remove();">` : ''}
+        ${p.banner_url ? `<img src="${safeImgUrl(p.banner_url)}" alt="" loading="lazy" onerror="this.remove();">` : ''}
         <div class="profile-hero-actions">
           ${socialLinks.map(s => `<a href="${safeUrl(social[s.key])}" target="_blank" rel="noopener noreferrer" class="profile-hero-icon-btn" title="${s.label}" aria-label="${s.label}">${SOCIAL_ICONS[s.key] || ''}</a>`).join('')}
           ${p.roblox_username ? `
@@ -282,7 +282,7 @@ function renderProfile(p, crew, isOwnProfile) {
         <div class="profile-hero-body-content">
           <div id="social-actions" style="display:flex; gap:8px; flex-wrap:wrap;"></div>
           ${crew ? `<a href="/crew/?name=${encodeURIComponent(crew.name)}" class="profile-hero-crew-chip">
-            ${crew.logo_url ? `<img src="${crew.logo_url}" alt="" loading="lazy" style="width:20px; height:20px; border-radius:5px; object-fit:cover;" onerror="this.style.display='none';">` : '<i data-lucide=\"shield\" class=\"icon-sm\" style=\"color:var(--ash);\"></i>'}
+            ${crew.logo_url ? `<img src="${safeImgUrl(crew.logo_url)}" alt="" loading="lazy" style="width:20px; height:20px; border-radius:5px; object-fit:cover;" onerror="this.style.display='none';">` : '<i data-lucide=\"shield\" class=\"icon-sm\" style=\"color:var(--ash);\"></i>'}
             <span class="info-chip-label">Crew</span><span class="info-chip-value">${crew.tag ? `[${escapeHtml(crew.tag)}] ` : ''}${escapeHtml(crew.name)}</span>
             <i data-lucide="chevron-right" class="icon-sm"></i>
           </a>` : ''}
@@ -514,7 +514,7 @@ async function loadPlayerGiveaways(userId, viewerId) {
 
   container.innerHTML = data.map(g => `
     <a href="/giveaways/" class="panel hover-lift-card" style="display:flex; align-items:center; gap:12px; text-decoration:none; color:inherit;">
-      ${g.image_url ? `<img src="${g.image_url}" alt="" loading="lazy" style="width:36px; height:36px; object-fit:contain; border-radius:var(--radius-sm, 8px); border:1px solid var(--glass-border); background:rgba(255,255,255,0.03); padding:4px; flex-shrink:0;">` : ''}
+      ${g.image_url ? `<img src="${safeImgUrl(g.image_url)}" alt="" loading="lazy" style="width:36px; height:36px; object-fit:contain; border-radius:var(--radius-sm, 8px); border:1px solid var(--glass-border); background:rgba(255,255,255,0.03); padding:4px; flex-shrink:0;">` : ''}
       <div style="flex:1; min-width:0;">
         <div class="flex-between">
           <h3 style="margin:0; font-size:0.95rem;">${escapeHtml(g.title)}</h3>
@@ -828,7 +828,7 @@ async function loadPlayerPinnedPost(userId) {
   container.innerHTML = `
     <a href="/feed/#post-${p.id}" class="panel hover-lift-card" style="display:block; text-decoration:none; color:inherit;">
       <p style="margin:0; white-space:pre-wrap; font-size:0.92rem; color:var(--bone);">${escapeHtml(p.content)}</p>
-      ${p.image_url ? `<img src="${p.image_url}" alt="" loading="lazy" style="max-width:100%; border-radius:var(--radius-sm,8px); margin-top:10px; border:1px solid var(--glass-border);">` : ''}
+      ${p.image_url ? `<img src="${safeImgUrl(p.image_url)}" alt="" loading="lazy" style="max-width:100%; border-radius:var(--radius-sm,8px); margin-top:10px; border:1px solid var(--glass-border);">` : ''}
       <div style="display:flex; gap:16px; margin-top:12px; padding-top:10px; border-top:1px solid var(--glass-border); font-size:0.8rem; color:var(--ash);">
         <span><i data-lucide="heart" class="icon-sm icon-inline"></i>${p.like_count}</span>
         <span><i data-lucide="message-square" class="icon-sm icon-inline"></i>${p.comment_count}</span>

@@ -3467,6 +3467,7 @@ reusing existing tokens (.panel,
 .ad-slot iframe, .ad-slot > div { max-width: 100%; }
 
 /* Page name lives in the nav bar, right after the logo. */
+h1.nav-page-title { margin-block: 0; line-height: 1.2; font-family: inherit; color: inherit; text-shadow: none; }
 .nav-page-title {
   margin-left: 14px; padding-left: 14px; border-left: 1px solid rgba(255,255,255,0.14);
   font-weight: 700; font-size: 0.95rem; text-transform: uppercase; letter-spacing: 0.04em;

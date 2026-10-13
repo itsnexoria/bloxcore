@@ -67,7 +67,7 @@ async function loadWeeklyCrewLeaderboard() {
       <div style="display:flex; align-items:center; gap:14px;">
         <span class="${podium ? 'lb-podium-rank' : ''}" style="font-family:var(--font-mono); color:var(--ash); width:22px;">${podium ? `<i data-lucide="${rank === 1 ? 'crown' : 'medal'}" class="icon-sm"></i>` : `#${rank}`}</span>
         ${c.logo_url
-          ? `<img src="${c.logo_url}" alt="" loading="lazy" style="width:32px; height:32px; border-radius:8px; object-fit:cover; flex-shrink:0;" onerror="this.style.visibility='hidden';">`
+          ? `<img src="${safeImgUrl(c.logo_url)}" alt="" loading="lazy" style="width:32px; height:32px; border-radius:8px; object-fit:cover; flex-shrink:0;" onerror="this.style.visibility='hidden';">`
           : `<div style="width:32px; height:32px; border-radius:8px; background:var(--navy-light); display:flex; align-items:center; justify-content:center; font-size:0.8rem; flex-shrink:0; color:var(--ash);">${escapeHtml((c.name[0] || '?').toUpperCase())}</div>`}
         <div>
           <a href="/crew/?name=${encodeURIComponent(c.name)}" style="color:var(--bone); font-weight:700; text-decoration:none;">${c.tag ? `[${escapeHtml(c.tag)}] ` : ''}${escapeHtml(c.name)}</a>
@@ -171,7 +171,7 @@ async function fetchCrewsPage(offset, pageSize) {
 // re-rolling color on every reload (hashed from the crew's own id, not Math.random()).
 const CREW_CARD_PALETTE = ['167 139 250', '56 189 248', '251 191 36', '52 211 153', '248 113 113', '37 99 235', '244 114 182', '45 212 191'];
 function crewCardBannerStyle(c) {
-  if (c.banner_url) return `background:url('${c.banner_url.replace(/'/g, '%27')}') center/cover;`;
+  if (c.banner_url) return `background:url('${safeImgUrl(c.banner_url)}') center/cover;`;
   let rgb;
   if (c.accent_color) {
     rgb = c.accent_color;
@@ -194,7 +194,7 @@ function renderCrewCard(c) {
       <div class="crew-card-top">
         <div class="crew-card-logo-ring">
           ${c.logo_url
-            ? `<img src="${c.logo_url}" alt="" loading="lazy" class="crew-card-logo" onerror="this.style.display='none';">`
+            ? `<img src="${safeImgUrl(c.logo_url)}" alt="" loading="lazy" class="crew-card-logo" onerror="this.style.display='none';">`
             : `<div class="crew-card-logo crew-card-logo-fallback">${escapeHtml((c.name[0] || '?').toUpperCase())}</div>`}
         </div>
         <div style="min-width:0; flex:1;">

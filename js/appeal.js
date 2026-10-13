@@ -11,15 +11,21 @@ onReady(async () => {
     return;
   }
 
-  document.getElementById('appeal-signout-btn').addEventListener('click', async () => {
-    await sb.auth.signOut();
-    window.location.href = '/';
-  });
-
   const { data: appeals } = await sb.from('ban_appeals').select('*').eq('user_id', user.id).order('created_at', { ascending: false }).limit(1);
   const latest = appeals?.[0];
 
   render(profile, latest);
+
+  // The page never had a sign-out control (the listener used to target a button that doesn't exist,
+  // which threw and stopped render() from running at all), so add one under the appeal content.
+  const wrap = document.createElement('div');
+  wrap.style.cssText = 'margin-top:18px; text-align:center;';
+  wrap.innerHTML = '<button type="button" id="appeal-signout-btn" class="btn btn-ghost btn-sm">Sign out</button>';
+  document.getElementById('appeal-content')?.after(wrap);
+  document.getElementById('appeal-signout-btn').addEventListener('click', async () => {
+    await sb.auth.signOut();
+    window.location.href = '/';
+  });
 });
 
 function render(profile, latest) {

@@ -55,10 +55,10 @@ jobs:
         run: |
           git config user.name "bloxcore-bot"
           git config user.email "actions@users.noreply.github.com"
-          if git diff --quiet; then
+          if [ -z "$(git status --porcelain)" ]; then
             echo "No value changes — nothing to deploy."
             exit 0
           fi
           git add -A
-          git commit -m "chore: auto-regenerate value pages [skip ci]"
+          git commit -m "chore: auto-regenerate value pages"
           git push

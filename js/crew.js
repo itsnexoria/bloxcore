@@ -109,12 +109,12 @@ async function render() {
   document.getElementById('crew-content').innerHTML = `
     <div class="panel" style="overflow:hidden; padding-top:0; border-color:${accent}55;">
       ${crew.banner_url
-        ? `<div style="margin:0 -28px 20px; height:130px; background:url('${crew.banner_url}') center/cover; position:relative;"><div style="position:absolute; inset:0; background:linear-gradient(180deg, transparent 40%, var(--navy) 100%);"></div></div>`
+        ? `<div style="margin:0 -28px 20px; height:130px; background:url('${safeImgUrl(crew.banner_url)}') center/cover; position:relative;"><div style="position:absolute; inset:0; background:linear-gradient(180deg, transparent 40%, var(--navy) 100%);"></div></div>`
         : `<div style="margin:0 -28px 20px; height:56px; background:linear-gradient(120deg, ${accent}33, var(--navy) 85%);"></div>`}
       <div class="flex-between" style="align-items:flex-start; margin-top:${crew.banner_url ? '-56px' : '0'}; position:relative; z-index:1;">
         <div style="display:flex; align-items:center; gap:16px;">
           ${crew.logo_url
-            ? `<img src="${crew.logo_url}" alt="" loading="lazy" style="width:68px; height:68px; border-radius:var(--radius); object-fit:cover; flex-shrink:0; box-shadow:0 0 0 3px var(--navy), 0 6px 20px rgb(var(--shadow-rgb) / 0.4), 0 0 24px ${accent}55;" onerror="this.style.display='none';">`
+            ? `<img src="${safeImgUrl(crew.logo_url)}" alt="" loading="lazy" style="width:68px; height:68px; border-radius:var(--radius); object-fit:cover; flex-shrink:0; box-shadow:0 0 0 3px var(--navy), 0 6px 20px rgb(var(--shadow-rgb) / 0.4), 0 0 24px ${accent}55;" onerror="this.style.display='none';">`
             : `<div style="width:68px; height:68px; border-radius:var(--radius); background:linear-gradient(150deg, var(--navy-light), var(--navy)); display:flex; align-items:center; justify-content:center; color:var(--ash); font-family:var(--font-stamp); font-size:1.5rem; flex-shrink:0; box-shadow:0 0 0 3px var(--navy);">${escapeHtml((crew.name[0] || '?').toUpperCase())}</div>`}
           <div>
             <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">

@@ -305,7 +305,7 @@ function renderActiveCard(g, entryCount) {
 
   return `
     <div class="panel hover-lift-card giveaway-card">
-      ${g.image_url ? `<img src="${g.image_url}" alt="" loading="lazy" style="width:56px; height:56px; object-fit:contain; margin-bottom:12px;">` : ''}
+      ${g.image_url ? `<img src="${safeImgUrl(g.image_url)}" alt="" loading="lazy" style="width:56px; height:56px; object-fit:contain; margin-bottom:12px;">` : ''}
       <h3 style="font-size:1.1rem; margin-bottom:4px;">${escapeHtml(g.title)}</h3>
       <p class="rank-title" style="font-size:1.1rem; margin:0 0 10px;">${escapeHtml(g.prize)}</p>
       <p class="muted" style="font-size:0.88rem; margin:0 0 14px;">${escapeHtml(g.description)}</p>
@@ -331,11 +331,11 @@ function renderEndedRow(g) {
   return `
     <div class="panel flex-between" style="margin-bottom:12px; flex-wrap:wrap; gap:10px;">
       <div style="display:flex; align-items:center; gap:12px;">
-        ${g.image_url ? `<img src="${g.image_url}" alt="" loading="lazy" style="width:40px; height:40px; object-fit:contain; border-radius:var(--radius-sm, 8px); border:1px solid var(--glass-border); background:rgba(255,255,255,0.03); padding:4px; flex-shrink:0;">` : ''}
+        ${g.image_url ? `<img src="${safeImgUrl(g.image_url)}" alt="" loading="lazy" style="width:40px; height:40px; object-fit:contain; border-radius:var(--radius-sm, 8px); border:1px solid var(--glass-border); background:rgba(255,255,255,0.03); padding:4px; flex-shrink:0;">` : ''}
         <div>
           <p style="margin:0; font-weight:700;">${escapeHtml(g.title)}</p>
           <p class="muted" style="margin:2px 0 0; font-size:0.82rem;">${escapeHtml(g.prize)}</p>
-          ${proofTag ? `<div style="margin-top:4px; display:flex; align-items:center; gap:8px;">${proofTag}${g.proof_url ? `<a href="${g.proof_url}" target="_blank" rel="noopener noreferrer" style="font-size:0.76rem; color:var(--brass-bright); text-decoration:underline;">View delivery proof</a>` : ''}</div>` : ''}
+          ${proofTag ? `<div style="margin-top:4px; display:flex; align-items:center; gap:8px;">${proofTag}${g.proof_url ? `<a href="${safeImgUrl(g.proof_url) || '#'}" target="_blank" rel="noopener noreferrer" style="font-size:0.76rem; color:var(--brass-bright); text-decoration:underline;">View delivery proof</a>` : ''}</div>` : ''}
         </div>
       </div>
       <p style="margin:0; font-family:var(--font-mono); color:var(--brass-bright);">

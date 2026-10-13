@@ -394,7 +394,7 @@ function renderProfileCard(profile, crew) {
       <div class="xp-bar" style="margin-top:4px;"><div class="xp-bar-fill" style="width:${progress.pct}%;"></div></div>
       <div class="flex-between" style="margin-top:16px; padding-top:14px; border-top:1px solid var(--glass-border);">
         ${crew ? `<a href="/crew/?name=${encodeURIComponent(crew.name)}" class="info-chip" style="text-decoration:none;">
-          ${crew.logo_url ? `<img src="${crew.logo_url}" alt="" loading="lazy" style="width:16px; height:16px; border-radius:4px; object-fit:cover;" onerror="this.style.display='none';">` : '<i data-lucide="users" class="icon-sm"></i>'}
+          ${crew.logo_url ? `<img src="${safeImgUrl(crew.logo_url)}" alt="" loading="lazy" style="width:16px; height:16px; border-radius:4px; object-fit:cover;" onerror="this.style.display='none';">` : '<i data-lucide="users" class="icon-sm"></i>'}
           <span class="info-chip-label">Crew</span><span class="info-chip-value">${crew.tag ? `[${escapeHtml(crew.tag)}] ` : ''}${escapeHtml(crew.name)}</span>
         </a>` : `<p class="muted" style="margin:0; font-size:0.85rem;">You're not in a crew yet.</p>`}
         ${crew ? '' : `<a href="/crews/" class="btn btn-ghost btn-sm">Find a Crew</a>`}

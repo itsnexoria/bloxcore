@@ -514,7 +514,7 @@ function buildTradeEmbedHtml(p) {
 function crewChipMini(crew) {
   if (!crew || !crew.name) return `<span class="muted" style="font-size:0.8rem;">Unknown crew</span>`;
   return `
-    ${crew.logo_url ? `<img src="${crew.logo_url}" alt="" style="width:32px; height:32px; border-radius:8px; object-fit:cover;">` : `<div style="width:32px; height:32px; border-radius:8px; background:var(--navy-light); display:flex; align-items:center; justify-content:center; color:var(--ash); margin:0 auto;">${escapeHtml((crew.name[0] || '?').toUpperCase())}</div>`}
+    ${crew.logo_url ? `<img src="${safeImgUrl(crew.logo_url)}" alt="" style="width:32px; height:32px; border-radius:8px; object-fit:cover;">` : `<div style="width:32px; height:32px; border-radius:8px; background:var(--navy-light); display:flex; align-items:center; justify-content:center; color:var(--ash); margin:0 auto;">${escapeHtml((crew.name[0] || '?').toUpperCase())}</div>`}
     <p style="margin:4px 0 0; font-size:0.76rem; color:var(--bone);">${crew.tag ? `[${escapeHtml(crew.tag)}] ` : ''}${escapeHtml(crew.name)}</p>
   `;
 }
@@ -707,7 +707,7 @@ function renderPost(p) {
       </div>
       ${isPinned ? `<p class="muted" style="margin:10px 0 0; font-size:0.72rem;"><i data-lucide="pin" class="icon-sm icon-inline"></i>Pinned to profile</p>` : ''}
       <p style="margin:12px 0 0; white-space:pre-wrap; font-size:0.94rem;">${linkifyHashtags(p.content)}</p>
-      ${p.image_url ? `<a href="${p.image_url}" target="_blank" rel="noopener noreferrer"><img src="${p.image_url}" alt="" loading="lazy" style="max-width:100%; border-radius:var(--radius-sm,8px); margin-top:12px; border:1px solid var(--glass-border);"></a>` : ''}
+      ${p.image_url ? `<a href="${safeImgUrl(p.image_url) || '#'}" target="_blank" rel="noopener noreferrer"><img src="${safeImgUrl(p.image_url)}" alt="" loading="lazy" style="max-width:100%; border-radius:var(--radius-sm,8px); margin-top:12px; border:1px solid var(--glass-border);"></a>` : ''}
       ${!p.image_url ? embedHtml(embed) : ''}
       ${p.tagged_item_id ? taggedItemEmbedHtml(p) : ''}
       ${p.repost_trade_listing_id ? `<div style="margin-top:12px;">${buildTradeEmbedHtml(p)}</div>` : ''}
