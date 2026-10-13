@@ -1,4 +1,4 @@
-// BloxCore — auth/index.html logic (Discord-only sign in)
+// BloxCore — auth/index.html logic (Discord OAuth + email sign in / sign up, Turnstile-protected)
 
 onReady(async () => {
   // Referral capture: a ref code only ever arrives as a query param here, but the
@@ -50,6 +50,57 @@ onReady(async () => {
     }
   });
 
+  // ---- Cloudflare Turnstile (captcha on email sign in / sign up / password reset) ----
+  // The site key is public. The SECRET key must only ever live in Supabase Auth settings
+  // (Authentication → Attack Protection → CAPTCHA) — never in this repo. Tokens are single-use,
+  // so each widget is reset after every attempt. Discord OAuth doesn't need a captcha.
+  const TURNSTILE_SITE_KEY = '0x4AAAAAAFVHp69ss5mGSm6E';
+  const captcha = { signin: { id: null, token: null }, signup: { id: null, token: null } };
+  let turnstileLoading = null;
+  function loadTurnstile() {
+    if (window.turnstile) return Promise.resolve(true);
+    if (!turnstileLoading) {
+      turnstileLoading = new Promise(resolve => {
+        const s = document.createElement('script');
+        s.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit';
+        s.async = true;
+        s.onload = () => resolve(!!window.turnstile);
+        s.onerror = () => resolve(false); // blocked by an extension / network — server decides
+        document.head.appendChild(s);
+      });
+    }
+    return turnstileLoading;
+  }
+  async function mountCaptcha(which) {
+    if (captcha[which].id !== null) return;
+    const slot = document.getElementById(`${which}-captcha`);
+    if (!slot || !(await loadTurnstile())) return;
+    if (captcha[which].id !== null) return; // another call mounted it while we awaited
+    captcha[which].id = window.turnstile.render(slot, {
+      sitekey: TURNSTILE_SITE_KEY,
+      theme: 'dark',
+      size: 'flexible',
+      callback: (t) => { captcha[which].token = t; },
+      'expired-callback': () => { captcha[which].token = null; },
+      'error-callback': () => { captcha[which].token = null; },
+    });
+  }
+  function resetCaptcha(which) {
+    captcha[which].token = null;
+    if (captcha[which].id !== null && window.turnstile) window.turnstile.reset(captcha[which].id);
+  }
+  // true = fine to submit. If the widget mounted but isn't solved yet, tell the user.
+  function captchaReady(which, errorEl) {
+    if (captcha[which].id !== null && !captcha[which].token) {
+      errorEl.textContent = 'Please complete the verification check first.';
+      errorEl.style.display = 'block';
+      return false;
+    }
+    return true;
+  }
+  const captchaOptions = (which) => (captcha[which].token ? { captchaToken: captcha[which].token } : {});
+  const friendlyAuthError = (msg) => /captcha/i.test(msg || '') ? 'Verification failed — please try the check again.' : msg;
+
   // ---- Email sign in / sign up tabs ----
   const signinForm = document.getElementById('email-signin-form');
   const signupForm = document.getElementById('email-signup-form');
@@ -61,23 +112,27 @@ onReady(async () => {
       });
       signinForm.style.display = tab === 'signin' ? 'flex' : 'none';
       signupForm.style.display = tab === 'signup' ? 'flex' : 'none';
+      mountCaptcha(tab);
     });
   });
+  mountCaptcha('signin');
 
   // ---- Sign in with email ----
   signinForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     const errorEl = document.getElementById('email-signin-error');
     errorEl.style.display = 'none';
+    if (!captchaReady('signin', errorEl)) return;
     const btn = document.getElementById('email-signin-btn');
     btn.disabled = true;
     const email = document.getElementById('signin-email').value.trim();
     const password = document.getElementById('signin-password').value;
 
-    const { error } = await sb.auth.signInWithPassword({ email, password });
+    const { error } = await sb.auth.signInWithPassword({ email, password, options: captchaOptions('signin') });
     btn.disabled = false;
     if (error) {
-      errorEl.textContent = error.message === 'Invalid login credentials' ? 'Wrong email or password.' : error.message;
+      resetCaptcha('signin');
+      errorEl.textContent = error.message === 'Invalid login credentials' ? 'Wrong email or password.' : friendlyAuthError(error.message);
       errorEl.style.display = 'block';
       return;
     }
@@ -93,9 +148,11 @@ onReady(async () => {
       errorEl.style.display = 'block';
       return;
     }
-    const { error } = await sb.auth.resetPasswordForEmail(email, { redirectTo: window.location.origin + '/settings/' });
+    if (!captchaReady('signin', errorEl)) return;
+    const { error } = await sb.auth.resetPasswordForEmail(email, { redirectTo: window.location.origin + '/settings/', ...captchaOptions('signin') });
+    resetCaptcha('signin');
     if (error) {
-      errorEl.textContent = error.message;
+      errorEl.textContent = friendlyAuthError(error.message);
       errorEl.style.display = 'block';
     } else {
       showToast('Password reset link sent — check your email.');
@@ -181,6 +238,7 @@ onReady(async () => {
       return;
     }
 
+    if (!captchaReady('signup', errorEl)) return;
     const btn = document.getElementById('email-signup-btn');
     btn.disabled = true;
 
@@ -197,16 +255,17 @@ onReady(async () => {
 
     const { data, error } = await sb.auth.signUp({
       email, password,
-      options: { data: { user_name: discordUsername } }
+      options: { data: { user_name: discordUsername }, ...captchaOptions('signup') }
     });
     btn.disabled = false;
+    resetCaptcha('signup');
     if (error) {
       // The client-side check above already caught the common case; this only fires on the
       // rare race where someone else grabbed the same name in between — the database itself
       // enforces uniqueness (case-insensitive) so this is a real, not just cosmetic, failure.
       errorEl.textContent = error.message.includes('profiles_discord_username_unique_idx')
         ? 'That Discord username was just taken by someone else — try another.'
-        : error.message;
+        : friendlyAuthError(error.message);
       errorEl.style.display = 'block';
       return;
     }

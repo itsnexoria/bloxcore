@@ -157,6 +157,7 @@
         <form id="email-signin-form" style="display:flex; flex-direction:column; gap:10px;">
           <input type="email" id="signin-email" placeholder="Email" autocomplete="email" required>
           <input type="password" id="signin-password" placeholder="Password" autocomplete="current-password" required>
+          <div id="signin-captcha" style="min-height:65px;"></div>
           <p class="field-error" id="email-signin-error" style="display:none; text-align:left;"></p>
           <button type="submit" class="btn btn-primary btn-block" id="email-signin-btn">Sign In</button>
           <button type="button" class="muted" id="forgot-password-btn" style="background:none; border:none; text-decoration:underline; font-size:0.8rem; cursor:pointer; align-self:center;">Forgot password?</button>
@@ -176,6 +177,7 @@
             <p class="muted" id="password-strength-label" style="font-size:0.75rem; margin:4px 0 0; min-height:1em;"></p>
           </div>
           <input type="password" id="signup-password-confirm" placeholder="Confirm Password" autocomplete="new-password" required>
+          <div id="signup-captcha" style="min-height:65px;"></div>
           <p class="field-error" id="email-signup-error" style="display:none; text-align:left;"></p>
           <button type="submit" class="btn btn-primary btn-block" id="email-signup-btn">Sign Up</button>
         </form>

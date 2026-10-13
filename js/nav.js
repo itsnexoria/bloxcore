@@ -692,3 +692,42 @@ function subscribeToNotifications(userId) {
 window.addEventListener('pagehide', () => {
   if (_notifChannel) sb.removeChannel(_notifChannel);
 });
+
+// ---- Cloudflare Web Analytics (free, cookieless) ----
+// Option A (no code): Cloudflare dashboard → Analytics & Logs → Web Analytics → your hostname →
+//   enable "Automatic setup". Cloudflare then injects the beacon itself — leave CF_BEACON_TOKEN empty.
+// Option B: add the site in Web Analytics, copy its beacon token, and paste it below.
+// Use ONE of the two, otherwise visits are counted twice.
+const CF_BEACON_TOKEN = '';
+(function () {
+  if (!CF_BEACON_TOKEN || location.pathname.startsWith('/admin')) return;
+  const s = document.createElement('script');
+  s.defer = true;
+  s.src = 'https://static.cloudflareinsights.com/beacon.min.js';
+  s.setAttribute('data-cf-beacon', JSON.stringify({ token: CF_BEACON_TOKEN }));
+  document.head.appendChild(s);
+})();
+
+// ---- "Inventory" link in the More menu + mobile drawer ----
+// Added at runtime (cloned from the Notifications entry) so it shows on every page without
+// editing the nav markup in each static page.
+document.addEventListener('DOMContentLoaded', () => {
+  if (document.querySelector('a[href="/inventory/"]')) return;
+  let added = false;
+  document.querySelectorAll('a[href="/notifications/"]').forEach(a => {
+    const host = a.closest('li') || a;
+    const clone = host.cloneNode(true);
+    const link = clone.tagName === 'A' ? clone : clone.querySelector('a');
+    if (!link) return;
+    link.setAttribute('href', '/inventory/');
+    const icon = link.querySelector('[data-lucide], svg');
+    if (icon) { const i = document.createElement('i'); i.setAttribute('data-lucide', 'package'); if (icon.getAttribute('class')) i.setAttribute('class', icon.getAttribute('class').replace(/\blucide\b\S*/g, '').trim()); icon.replaceWith(i); }
+    const textNode = [...link.childNodes].reverse().find(n => n.nodeType === 3 && n.textContent.trim());
+    if (textNode) textNode.textContent = 'Inventory';
+    const idx = link.style.getPropertyValue('--i');
+    if (idx) link.style.setProperty('--i', String(Number(idx) + 1));
+    host.after(clone);
+    added = true;
+  });
+  if (added && typeof refreshIcons === 'function') refreshIcons();
+});

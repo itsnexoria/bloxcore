@@ -3898,3 +3898,39 @@ a.ov-kpi:hover { border-color: color-mix(in srgb, var(--c) 60%, transparent); }
 .value-history-v { margin: 2px 0 0; font-family: var(--font-mono); font-size: 1.05rem; color: var(--brass-bright); }
 .value-history-v.is-up { color: #34d399; }
 .value-history-v.is-down { color: #f87171; }
+
+/* ── Inventory & net worth (/inventory/) ── */
+.inv-summary { display: grid; grid-template-columns: 1.6fr 1fr 1fr 0.7fr; gap: 12px; }
+.inv-stat { padding: 14px 16px; margin: 0; }
+.inv-stat-k { margin: 0; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted, #8b95a8); }
+.inv-stat-v { margin: 4px 0 0; font-family: var(--font-mono); font-size: 1.35rem; color: var(--brass-bright); }
+.inv-stat-main .inv-stat-v { font-size: 2rem; }
+.inv-stat-delta { margin: 4px 0 0; font-size: 0.78rem; color: var(--muted, #8b95a8); min-height: 1em; }
+.inv-stat-delta.is-up { color: #34d399; }
+.inv-stat-delta.is-down { color: #f87171; }
+.inv-list { display: flex; flex-direction: column; gap: 8px; }
+.inv-row { display: grid; grid-template-columns: 52px minmax(0, 1fr) auto 72px auto; align-items: center; gap: 12px; padding: 10px 14px; margin: 0; }
+.inv-row-icon { width: 48px; height: 48px; padding: 4px; cursor: default; }
+.inv-row-name { margin: 0; font-weight: 600; font-size: 0.95rem; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.inv-row-sub { margin: 2px 0 4px; font-size: 0.74rem; }
+.inv-share { height: 4px; border-radius: 4px; background: rgb(var(--brass-rgb) / 0.12); overflow: hidden; }
+.inv-share span { display: block; height: 100%; background: var(--brass-bright); }
+.inv-qty { display: flex; align-items: center; gap: 4px; }
+.inv-qty input { width: 56px; text-align: center; padding: 6px 4px; }
+.inv-row-total { margin: 0; text-align: right; font-family: var(--font-mono); color: var(--brass-bright); }
+@media (max-width: 720px) {
+  .inv-summary { grid-template-columns: 1fr 1fr; }
+  .inv-stat-main { grid-column: 1 / -1; }
+  .inv-row { grid-template-columns: 44px minmax(0, 1fr) auto; }
+  .inv-row-total { grid-column: 2; text-align: left; }
+  .inv-qty { grid-column: 3; grid-row: 1; }
+  .inv-row > button[data-act="remove"] { grid-column: 3; grid-row: 2; justify-self: end; }
+}
+
+/* ── Value converter (/blox-fruits-value-converter/) ── */
+.conv-grid { display: grid; grid-template-columns: 1fr auto 1fr; gap: 14px; align-items: start; }
+.conv-label { margin: 0 0 6px; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted, #8b95a8); }
+.conv-out { margin-top: 16px; padding: 14px 16px; border-radius: 10px; background: rgb(var(--brass-rgb) / 0.08); border: 1px solid var(--glass-border); }
+.conv-big { margin: 0; font-size: 1.15rem; }
+.conv-big strong { color: var(--brass-bright); }
+@media (max-width: 640px) { .conv-grid { grid-template-columns: 1fr; } #conv-swap { justify-self: center; transform: rotate(90deg); } }
