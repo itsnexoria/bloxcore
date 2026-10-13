@@ -621,6 +621,7 @@ async function loadListings() {
   wireListingActions(container);
   refreshIcons();
   loadReputationBadges(container, data.map(t => ({ id: t.user_id, createdAt: t.profiles?.created_at })));
+  loadTradeVotes(container, data.map(t => t.id));
   scrollToHashTarget('data-listing-id');
   scrollToQueryTarget('listing', 'data-listing-id');
 
@@ -638,6 +639,7 @@ async function loadListings() {
         newEls.forEach(el => wireListingActions(el));
         refreshIcons();
         loadReputationBadges(container, rows.map(t => ({ id: t.user_id, createdAt: t.profiles?.created_at })));
+        loadTradeVotes(container, rows.map(t => t.id));
       },
     });
   }
@@ -648,6 +650,49 @@ function updateNewListingButton() {
   if (!currentUser || !btn) return;
   btn.innerHTML = `<i data-lucide="plus" class="icon-sm icon-inline"></i>New Listing (${myActiveListingCount}/${maxActiveTrades})`;
   refreshIcons();
+}
+
+// Community W/L/Fair votes — always from the TAKER's side (W = good deal for whoever accepts).
+const VOTE_DEFS = [
+  { key: 'w', label: 'W', icon: 'thumbs-up', title: 'W for the taker — the poster is overpaying' },
+  { key: 'fair', label: 'Fair', icon: 'scale', title: 'Fair — both sides are balanced' },
+  { key: 'l', label: 'L', icon: 'thumbs-down', title: 'L for the taker — the poster is asking too much' },
+];
+
+function renderVoteRow(slot, counts) {
+  const readOnly = !!slot.dataset.voteOwner;
+  const total = counts.w + counts.l + counts.fair;
+  slot.innerHTML = `<span class="trade-vote-label">Community</span>` + VOTE_DEFS.map(d => `
+    <button type="button" class="trade-vote-btn${counts.my_vote === d.key ? ' is-active' : ''}" data-vote="${d.key}" title="${d.title}" aria-pressed="${counts.my_vote === d.key}" ${readOnly ? 'disabled' : ''}>
+      <i data-lucide="${d.icon}" class="icon-sm icon-inline"></i>${d.label} <span class="trade-vote-count">${counts[d.key]}</span>
+    </button>`).join('') + (total === 0 ? `<span class="muted trade-vote-hint">${readOnly ? 'No votes yet' : 'Be the first to vote'}</span>` : '');
+  refreshIcons();
+}
+
+async function loadTradeVotes(root, ids) {
+  const slots = [...root.querySelectorAll('[data-vote-slot]')].filter(el => ids.includes(el.dataset.voteSlot));
+  if (!slots.length) return;
+  const byId = new Map();
+  for (let i = 0; i < ids.length; i += 100) {
+    const { data, error } = await sb.rpc('get_trade_vote_counts', { p_listing_ids: ids.slice(i, i + 100) });
+    if (error) { logError(error); continue; }
+    (data || []).forEach(r => byId.set(r.listing_id, r));
+  }
+  slots.forEach(slot => {
+    const r = byId.get(slot.dataset.voteSlot) || {};
+    const counts = { w: r.w || 0, l: r.l || 0, fair: r.fair || 0, my_vote: r.my_vote || null };
+    renderVoteRow(slot, counts);
+    slot.addEventListener('click', async (e) => {
+      const btn = e.target.closest('[data-vote]');
+      if (!btn || btn.disabled) return;
+      if (!currentUser) { showToast('Sign in to vote on trades.', true); return; }
+      const choice = btn.dataset.vote === counts.my_vote ? null : btn.dataset.vote; // tap again to remove
+      const { data, error } = await sb.rpc('cast_trade_vote', { p_listing_id: slot.dataset.voteSlot, p_vote: choice });
+      if (error) { showToast(error.message, true); return; }
+      Object.assign(counts, { w: data.w, l: data.l, fair: data.fair, my_vote: data.my_vote });
+      renderVoteRow(slot, counts);
+    });
+  });
 }
 
 function sideSummary(entries) {
@@ -681,8 +726,6 @@ function renderListing(t) {
             <a href="/player/?u=${encodeURIComponent(profile.username || '')}" style="color:var(--bone); font-weight:700; text-decoration:none; font-size:0.9rem;">${escapeHtml(displayNameFor(profile))}</a> ${titleBadge(profile)} <span data-rep-for="${t.user_id}"></span> <span data-verified-trader-for="${t.user_id}"></span>
             <span data-confirmed-trades-for="${t.user_id}"></span>
             <p class="muted" style="margin:0; font-size:0.75rem;">${timeAgo(t.created_at)} · ${expiryLabel(t.expires_at)}</p>
-            <span data-rep-for="${t.user_id}"></span>
-            <span data-verified-trader-for="${t.user_id}"></span>
             <span data-new-account-for="${t.user_id}"></span>
           </div>
         </div>
@@ -693,6 +736,7 @@ function renderListing(t) {
 
       ${t.note ? `<p class="muted" style="margin:12px 0 0; font-size:0.85rem;">${escapeHtml(t.note)}</p>` : ''}
       ${fairValueBadgeHtml(offer.total, request.total, isOwner) ? `<div style="margin-top:10px;">${fairValueBadgeHtml(offer.total, request.total, isOwner)}</div>` : ''}
+      <div class="trade-vote-row" data-vote-slot="${t.id}" data-vote-owner="${isOwner ? '1' : ''}"></div>
       ${!isOwner && currentUser ? `<div style="margin-top:12px;"><button class="btn btn-primary btn-sm" data-make-offer="${t.id}"><i data-lucide="handshake" class="icon-sm icon-inline"></i>Make offer</button></div>` : ''}
 
       <div class="trade-columns-wrap">
@@ -755,9 +799,6 @@ function wireListingActions(root) {
       if (error) { showToast(error.message, true); return; }
       document.querySelector(`[data-listing-id="${btn.dataset.deleteListing}"]`)?.remove();
     });
-  });
-  root.querySelectorAll('[data-report-listing]').forEach(btn => {
-    btn.addEventListener('click', () => reportContent('trade_listing', btn.dataset.reportListing));
   });
   root.querySelectorAll('[data-share-listing]').forEach(btn => {
     btn.addEventListener('click', async () => {

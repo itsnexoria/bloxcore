@@ -10,11 +10,14 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { loadShell } from './lib/shell.mjs';
+import { historyHtml } from './lib/sparkline.mjs';
 
 const SUPABASE_URL = 'https://hpvwxaubgiyqgqtyjofb.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_g14CxS8Kbu5hjGIpRGirQg_L5SY7ZWW';
 const SITE_ROOT = process.argv[2] || '.'; // path to the repo root
 const LOCAL_JSON = process.argv[3] || null; // optional: path to a local items JSON (skips the network fetch)
+const LOCAL_HISTORY = process.argv[4] || null; // optional: local price-history JSON rows (skips that fetch too)
+let historyByItem = new Map(); // item_id -> [{ regular_value, recorded_at }]
 const OUT_DIR = path.join(SITE_ROOT, 'blox-fruits-values');
 
 const CATEGORY_LABEL = {
@@ -198,6 +201,7 @@ ${shell.nav}
     ${affiliateBlockHtml()}
     <h2 style="font-size:1.3rem;">Demand &amp; Trend</h2>
     <p>${demandCopy(item.demand)}${item.trend && TREND_COPY[item.trend] ? ` It's also ${TREND_COPY[item.trend]}.` : ''}</p>
+    ${historyHtml(item, historyByItem.get(item.id), formatValue)}
     <h2 style="font-size:1.3rem;">How to Trade ${item.name}</h2>
     <p>Values shift with the trend above, so always confirm the current going rate before agreeing to a trade — check the live <a href="/trading/">Trading board</a> for active listings involving ${item.name}, or post your own offer if you're looking to buy or sell. See our <a href="/blox-fruits-values/">full guide to how Blox Fruits values work</a> for more on reading physical vs. permanent pricing, rarity tiers, and spotting inflated value claims.</p>
     <h2 style="font-size:1.3rem;">${escAttr(item.name)} FAQ</h2>
@@ -243,6 +247,26 @@ async function main() {
     if (!res.ok) throw new Error(`Supabase fetch failed: ${res.status} ${await res.text()}`);
     items = await res.json();
     console.log(`Fetched ${items.length} items from Supabase.`);
+  }
+
+  try {
+    let rows = [];
+    if (LOCAL_HISTORY) rows = JSON.parse(fs.readFileSync(LOCAL_HISTORY, 'utf8'));
+    else if (!LOCAL_JSON) {
+      for (let from = 0; ; from += 1000) { // PostgREST caps a page at 1000 rows
+        const r = await fetch(`${SUPABASE_URL}/rest/v1/bf_item_price_history?select=item_id,regular_value,recorded_at&order=recorded_at.asc`, {
+          headers: { apikey: SUPABASE_ANON_KEY, Authorization: `Bearer ${SUPABASE_ANON_KEY}`, Range: `${from}-${from + 999}` },
+        });
+        if (!r.ok) throw new Error(`history fetch failed: ${r.status}`);
+        const page = await r.json();
+        rows.push(...page);
+        if (page.length < 1000) break;
+      }
+    }
+    rows.forEach(r => { if (!historyByItem.has(r.item_id)) historyByItem.set(r.item_id, []); historyByItem.get(r.item_id).push(r); });
+    console.log(`Loaded ${rows.length} price-history rows for ${historyByItem.size} items.`);
+  } catch (err) {
+    console.warn('Price history unavailable — pages will be built without it:', err.message); // never block the daily rebuild on this
   }
 
   // Only items with an actual established value are worth their own page — a "value" page

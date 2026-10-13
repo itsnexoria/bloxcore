@@ -1,0 +1,7 @@
+# Long-cache images/fonts (filenames change when the art changes); short-cache css/js so edits show within the hour.
+/assets/*
+  Cache-Control: public, max-age=2592000
+/css/*
+  Cache-Control: public, max-age=3600
+/js/*
+  Cache-Control: public, max-age=3600

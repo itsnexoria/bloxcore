@@ -149,7 +149,6 @@
   </div>
 </nav>
 
-```html
 <header class="section hero-simple hero-fullbleed bc-hero">
   <div class="hero-bg" aria-hidden="true"></div>
   <div class="hero-bg-shade" aria-hidden="true"></div>
@@ -183,19 +182,14 @@
       </div>
     </div>
 
-    <aside class="bc-stream-card" aria-label="Clxxdy4869 Twitch stream">
+    <aside class="bc-stream-card" id="bc-stream-card" aria-label="Live Twitch stream" aria-hidden="true" inert>
       <div class="bc-stream-video">
-        <iframe
-          src="https://player.twitch.tv/?channel=clxxdy4869&parent=bloxcores.com&parent=www.bloxcores.com&autoplay=true&muted=true"
-          title="Clxxdy Twitch livestream"
-          allow="autoplay; fullscreen"
-          allowfullscreen>
-        </iframe>
+        <div id="bc-twitch-player"></div>
       </div>
 
       <div class="bc-stream-footer">
         <div class="bc-stream-caption">
-          <strong>Watch the action</strong>
+          <strong><span class="bc-live-dot" aria-hidden="true"></span>Live now</strong>
           <span>Streaming from Twitch</span>
         </div>
 
@@ -221,7 +215,7 @@
     position: relative;
     z-index: 1;
     display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(0, 390px);
+    grid-template-columns: minmax(0, 1fr) minmax(0, 580px);
     align-items: center;
     gap: clamp(24px, 4vw, 54px);
     width: 100%;
@@ -273,10 +267,10 @@
 
   .bc-stream-card {
     width: 100%;
-    max-width: 390px;
+    max-width: 580px;
     min-width: 0;
     justify-self: end;
-    padding: 15px;
+    padding: 18px;
     overflow: hidden;
     color: #eef4ff;
     background:
@@ -287,6 +281,24 @@
     box-shadow: 0 18px 45px #0004;
   }
 
+  .bc-stream-card:not(.is-live) {
+    position: absolute;
+    left: -9999px;
+    top: 0;
+    width: 580px;
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .bc-stream-card.is-live {
+    animation: bc-stream-in .5s ease both;
+  }
+
+  @keyframes bc-stream-in {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: none; }
+  }
+
   .bc-stream-video {
     position: relative;
     width: 100%;
@@ -295,6 +307,11 @@
     background: #050912;
     border: 1px solid #29456c;
     border-radius: 5px;
+  }
+
+  #bc-twitch-player {
+    position: absolute;
+    inset: 0;
   }
 
   .bc-stream-video iframe {
@@ -311,7 +328,7 @@
     justify-content: space-between;
     align-items: center;
     gap: 10px;
-    margin-top: 13px;
+    margin-top: 14px;
   }
 
   .bc-stream-caption {
@@ -322,13 +339,30 @@
   }
 
   .bc-stream-caption strong {
+    display: flex;
+    align-items: center;
+    gap: 7px;
     color: #eaf2ff;
-    font-size: 11px;
+    font-size: 14px;
   }
 
   .bc-stream-caption > span {
     color: #8fa4c4;
-    font-size: 10px;
+    font-size: 12px;
+  }
+
+  .bc-live-dot {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: #ef4444;
+    box-shadow: 0 0 0 0 #ef444499;
+    animation: bc-live-pulse 1.8s infinite;
+  }
+
+  @keyframes bc-live-pulse {
+    70% { box-shadow: 0 0 0 8px #ef444400; }
+    100% { box-shadow: 0 0 0 0 #ef444400; }
   }
 
   .bc-stream-button {
@@ -337,12 +371,12 @@
     align-items: center;
     gap: 8px;
     flex-shrink: 0;
-    padding: 10px 11px;
+    padding: 11px 15px;
     color: #fff !important;
     background: #2868dc;
     border: 1px solid #5590ff;
-    border-radius: 4px;
-    font-size: 10px;
+    border-radius: 6px;
+    font-size: 12px;
     font-weight: 800;
     text-decoration: none !important;
     transition: background .2s ease;
@@ -360,8 +394,12 @@
     }
 
     .bc-stream-card {
-      max-width: 480px;
+      max-width: 580px;
       justify-self: start;
+    }
+
+    .bc-stream-card:not(.is-live) {
+      width: 320px;
     }
   }
 
@@ -375,8 +413,8 @@
     }
 
     .bc-stream-button {
-      padding: 9px;
-      font-size: 9px;
+      padding: 9px 11px;
+      font-size: 11px;
     }
   }
 
@@ -384,9 +422,13 @@
     .bc-stream-button {
       transition: none;
     }
+
+    .bc-stream-card.is-live,
+    .bc-live-dot {
+      animation: none;
+    }
   }
 </style>
-```
 
 <main>
 
@@ -597,5 +639,6 @@
 <script src="/js/search.js"></script>
 <script src="/js/listings.js"></script>
 <script src="/js/home.js"></script>
+<script src="/js/stream-embed.js" defer></script>
 </body>
 </html>

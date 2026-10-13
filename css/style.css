@@ -3876,3 +3876,24 @@ a.ov-kpi:hover { border-color: color-mix(in srgb, var(--c) 60%, transparent); }
 
 .ov-page h2::after, .ov-page h3::after { display: none !important; }
 @media (max-width: 560px) { .ov-kpis, .ov-health { grid-template-columns: 1fr 1fr; } }
+
+/* ── Community W/L/Fair votes on trade cards ── */
+.trade-vote-row { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin-top: 10px; }
+.trade-vote-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted, #8b95a8); margin-right: 2px; }
+.trade-vote-btn { display: inline-flex; align-items: center; gap: 4px; padding: 3px 10px; border-radius: 999px; border: 1px solid var(--glass-border); background: transparent; color: var(--bone); font-size: 0.78rem; font-weight: 600; cursor: pointer; transition: background 0.15s, border-color 0.15s; }
+.trade-vote-btn:hover:not(:disabled) { border-color: rgb(var(--brass-rgb) / 0.6); }
+.trade-vote-btn:disabled { cursor: default; opacity: 0.75; }
+.trade-vote-btn[data-vote="w"].is-active { background: rgba(52,211,153,0.18); border-color: #34d399; color: #34d399; }
+.trade-vote-btn[data-vote="l"].is-active { background: rgba(248,113,113,0.18); border-color: #f87171; color: #f87171; }
+.trade-vote-btn[data-vote="fair"].is-active { background: rgb(var(--brass-rgb) / 0.18); border-color: var(--brass-bright); color: var(--brass-bright); }
+.trade-vote-count { font-family: var(--font-mono); opacity: 0.85; }
+.trade-vote-hint { font-size: 0.72rem; }
+
+/* ── Value history chart on item pages ── */
+.value-history { padding: 14px 16px; margin: 12px 0 6px; }
+.value-history-chart { display: block; width: 100%; height: 150px; }
+.value-history-stats { display: flex; gap: 22px; flex-wrap: wrap; margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--glass-border); }
+.value-history-k { margin: 0; font-size: 0.7rem; text-transform: uppercase; color: var(--muted, #8b95a8); }
+.value-history-v { margin: 2px 0 0; font-family: var(--font-mono); font-size: 1.05rem; color: var(--brass-bright); }
+.value-history-v.is-up { color: #34d399; }
+.value-history-v.is-down { color: #f87171; }
