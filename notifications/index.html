@@ -30,22 +30,6 @@
       <a href="/leaderboard/" class="nav-bar-link"><i data-lucide="trophy" class="icon-sm"></i>Leaderboards</a>
       <a href="/giveaways/" class="nav-bar-link"><i data-lucide="gift" class="icon-sm"></i>Giveaways</a>
       <a href="/trading/" class="nav-bar-link"><i data-lucide="repeat" class="icon-sm"></i>Trading</a>
-      <div class="nav-bar-more">
-        <button type="button" class="nav-bar-link nav-bar-more-btn">More<i data-lucide="chevron-down" class="icon-sm"></i></button>
-        <div class="nav-bar-more-menu">
-          <a href="/"><i data-lucide="home" class="icon-sm"></i>Home</a>
-          <a href="/crews/"><i data-lucide="users" class="icon-sm"></i>Crews</a>
-          <a href="/sea-events/"><i data-lucide="waves" class="icon-sm"></i>Sea Events</a>
-          <a href="/pvp/"><i data-lucide="crosshair" class="icon-sm"></i>PvP</a>
-          <a href="/challenges/"><i data-lucide="swords" class="icon-sm"></i>Quests</a>
-          <a href="/combos/"><i data-lucide="flame" class="icon-sm"></i>Combos</a>
-          <a href="/services/"><i data-lucide="briefcase" class="icon-sm"></i>Services</a>
-          <a href="/whats-new/"><i data-lucide="sparkles" class="icon-sm"></i>What's New</a>
-          <a href="/friends/"><i data-lucide="heart-handshake" class="icon-sm"></i>Friends</a>
-          <a href="/inventory/"><i data-lucide="package" class="icon-sm"></i>Inventory</a>
-          <a href="/notifications/"><i data-lucide="bell" class="icon-sm"></i>Notifications</a>
-        </div>
-      </div>
     </div>
 
     <div class="nav-header-actions">
@@ -91,25 +75,26 @@
     </div>
   </div>
 </nav>
-<section class="section page-head">
-  <div class="container" style="max-width:760px; position:relative; z-index:1;">
-    <div class="page-toolbar">
-    <div style="display:flex; gap:8px; flex-wrap:wrap;">
-      <button type="button" class="btn btn-sm btn-ghost notif-filter-btn active" data-notif-filter="all">All</button>
-      <button type="button" class="btn btn-sm btn-ghost notif-filter-btn" data-notif-filter="rank">Rank &amp; Titles</button>
-      <button type="button" class="btn btn-sm btn-ghost notif-filter-btn" data-notif-filter="social">Social</button>
-      <button type="button" class="btn btn-sm btn-ghost notif-filter-btn" data-notif-filter="crews">Crews &amp; Wars</button>
-      <button type="button" class="btn btn-sm btn-ghost notif-filter-btn" data-notif-filter="events">Giveaways &amp; Events</button>
-      <button type="button" class="btn btn-sm btn-ghost notif-filter-btn" data-notif-filter="tournaments">Tournaments</button>
-    </div>
-    <button type="button" class="btn btn-ghost btn-sm" id="notif-page-mark-all-read"><i data-lucide="check-check" class="icon-sm icon-inline"></i>Mark all read</button>
+<section class="section page-head nf-page">
+  <div class="container nf-container">
+    <header class="nf-head">
+      <div>
+        <p class="nf-head-count" id="nf-count">&nbsp;</p>
+        <p class="nf-head-sub" id="nf-sub">Loading your notifications…</p>
+      </div>
+      <button type="button" class="btn btn-ghost btn-sm" id="notif-page-mark-all-read"><i data-lucide="check-check" class="icon-sm icon-inline"></i>Mark all read</button>
+    </header>
+
+    <div class="nf-filters" role="group" aria-label="Filter notifications">
+      <button type="button" class="nf-chip notif-filter-btn active" data-notif-filter="all"><i data-lucide="inbox" class="icon-sm"></i>All</button>
+      <button type="button" class="nf-chip notif-filter-btn" data-notif-filter="rank"><i data-lucide="trending-up" class="icon-sm"></i>Rank &amp; titles</button>
+      <button type="button" class="nf-chip notif-filter-btn" data-notif-filter="social"><i data-lucide="users" class="icon-sm"></i>Social</button>
+      <button type="button" class="nf-chip notif-filter-btn" data-notif-filter="crews"><i data-lucide="swords" class="icon-sm"></i>Crews</button>
+      <button type="button" class="nf-chip notif-filter-btn" data-notif-filter="events"><i data-lucide="gift" class="icon-sm"></i>Events &amp; giveaways</button>
+      <button type="button" class="nf-chip notif-filter-btn" data-notif-filter="tournaments"><i data-lucide="trophy" class="icon-sm"></i>Tournaments</button>
     </div>
 
-    <div id="notif-page-list" style="margin-top:20px; display:flex; flex-direction:column; gap:10px;">
-      <div class="skeleton" style="height:64px;"></div>
-      <div class="skeleton" style="height:64px;"></div>
-      <div class="skeleton" style="height:64px;"></div>
-    </div>
+    <div id="notif-page-list" class="nf-list"></div>
   </div>
 </section>
 

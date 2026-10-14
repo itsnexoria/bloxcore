@@ -715,7 +715,4 @@ document.addEventListener('DOMContentLoaded', () => {
     const href = a.getAttribute('href');
     if (href !== '/' && (path === href || path.startsWith(href))) { a.classList.add('is-active'); a.setAttribute('aria-current', 'page'); }
   });
-  // Inside "More"? Light up the More button so people can tell where they are.
-  const hit = [...document.querySelectorAll('.nav-bar-more-menu a[href]')].find(a => { const h = a.getAttribute('href'); return h !== '/' && path.startsWith(h); });
-  if (hit) document.querySelector('.nav-bar-more-btn')?.classList.add('is-active');
 });

@@ -30,22 +30,6 @@
       <a href="/leaderboard/" class="nav-bar-link"><i data-lucide="trophy" class="icon-sm"></i>Leaderboards</a>
       <a href="/giveaways/" class="nav-bar-link"><i data-lucide="gift" class="icon-sm"></i>Giveaways</a>
       <a href="/trading/" class="nav-bar-link"><i data-lucide="repeat" class="icon-sm"></i>Trading</a>
-      <div class="nav-bar-more">
-        <button type="button" class="nav-bar-link nav-bar-more-btn">More<i data-lucide="chevron-down" class="icon-sm"></i></button>
-        <div class="nav-bar-more-menu">
-          <a href="/"><i data-lucide="home" class="icon-sm"></i>Home</a>
-          <a href="/crews/"><i data-lucide="users" class="icon-sm"></i>Crews</a>
-          <a href="/sea-events/"><i data-lucide="waves" class="icon-sm"></i>Sea Events</a>
-          <a href="/pvp/"><i data-lucide="crosshair" class="icon-sm"></i>PvP</a>
-          <a href="/challenges/"><i data-lucide="swords" class="icon-sm"></i>Quests</a>
-          <a href="/combos/"><i data-lucide="flame" class="icon-sm"></i>Combos</a>
-          <a href="/services/"><i data-lucide="briefcase" class="icon-sm"></i>Services</a>
-          <a href="/whats-new/"><i data-lucide="sparkles" class="icon-sm"></i>What's New</a>
-          <a href="/friends/"><i data-lucide="heart-handshake" class="icon-sm"></i>Friends</a>
-          <a href="/inventory/"><i data-lucide="package" class="icon-sm"></i>Inventory</a>
-          <a href="/notifications/"><i data-lucide="bell" class="icon-sm"></i>Notifications</a>
-        </div>
-      </div>
     </div>
 
     <div class="nav-header-actions">
@@ -111,6 +95,11 @@
         <p class="inv-chart-note" id="inv-chart-note" aria-live="polite"></p>
       </header>
 
+      <label class="inv-visibility" id="inv-visibility">
+        <span class="inv-switch"><input type="checkbox" id="inv-public"><i></i></span>
+        <span class="inv-visibility-text"><strong>Show on my public profile</strong><small id="inv-visibility-hint">Off: only you can see your inventory.</small></span>
+      </label>
+
       <section class="inv-compose" id="inv-compose" aria-label="What your net worth is made of" hidden>
         <div class="inv-compose-bar" id="inv-compose-bar"></div>
         <ul class="inv-compose-legend" id="inv-compose-legend"></ul>
@@ -135,7 +124,7 @@
       </div>
 
       <div id="inv-list" class="inv-grid"></div>
-      <p class="inv-foot">Only you can see this. Values are community estimates and follow the value list; a snapshot is saved every day so the chart keeps moving even when you don't.</p>
+      <p class="inv-foot">Your inventory stays private unless you switch on profile visibility above. Values are community estimates and follow the value list; a snapshot is saved every day so the chart keeps moving even when you don't.</p>
     </div>
   </div>
 </section>

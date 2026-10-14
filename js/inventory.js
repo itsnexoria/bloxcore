@@ -35,11 +35,12 @@ onReady(async () => {
 
   invCatalog = await fetchBfItemCatalog(['fruit', 'limited', 'gamepass']);
   invCatalog.forEach(i => invItemById.set(i.id, i));
-  await Promise.all([invLoadRows(), invLoadSnapshots()]);
+  await Promise.all([invLoadRows(), invLoadSnapshots(), invLoadVisibility()]);
 
   document.getElementById('inv-loading').style.display = 'none';
   document.getElementById('inv-app').hidden = false;
   invRender();
+  invRenderVisibility();
   invWire();
 });
 
@@ -47,6 +48,24 @@ async function invLoadRows() {
   const { data, error } = await sb.from('user_inventory').select('item_id, value_type, qty').eq('user_id', invUserId);
   if (error) { logError(error); showToast('Couldn\'t load your inventory.', true); return; }
   invRows = data || [];
+}
+
+let invPublic = false;
+let invUsername = null;
+async function invLoadVisibility() {
+  const { data, error } = await sb.from('profiles').select('username, inventory_public').eq('id', invUserId).maybeSingle();
+  if (error) { logError(error); return; }
+  invPublic = !!data?.inventory_public;
+  invUsername = data?.username || null;
+}
+
+function invRenderVisibility() {
+  const box = document.getElementById('inv-public');
+  const hint = document.getElementById('inv-visibility-hint');
+  box.checked = invPublic;
+  hint.innerHTML = invPublic
+    ? `On: anyone can see it on ${invUsername ? `<a href="/player/?u=${encodeURIComponent(invUsername)}">your profile</a>` : 'your profile'}.`
+    : 'Off: only you can see your inventory.';
 }
 
 async function invLoadSnapshots() {
@@ -240,6 +259,14 @@ async function invSet(itemId, type, qty) {
 }
 
 function invWire() {
+  document.getElementById('inv-public').addEventListener('change', async (e) => {
+    const want = e.target.checked;
+    const { error } = await sb.rpc('set_inventory_public', { p_public: want });
+    if (error) { e.target.checked = invPublic; showToast(error.message, true); return; }
+    invPublic = want;
+    invRenderVisibility();
+    showToast(want ? 'Your inventory is now on your profile.' : 'Your inventory is private again.');
+  });
   const list = document.getElementById('inv-list');
   list.addEventListener('click', (e) => {
     const quick = e.target.closest('[data-quick-add]');

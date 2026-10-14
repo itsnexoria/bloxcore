@@ -41,22 +41,6 @@
       <a href="/leaderboard/" class="nav-bar-link"><i data-lucide="trophy" class="icon-sm"></i>Leaderboards</a>
       <a href="/giveaways/" class="nav-bar-link"><i data-lucide="gift" class="icon-sm"></i>Giveaways</a>
       <a href="/trading/" class="nav-bar-link"><i data-lucide="repeat" class="icon-sm"></i>Trading</a>
-      <div class="nav-bar-more">
-        <button type="button" class="nav-bar-link nav-bar-more-btn">More<i data-lucide="chevron-down" class="icon-sm"></i></button>
-        <div class="nav-bar-more-menu">
-          <a href="/"><i data-lucide="home" class="icon-sm"></i>Home</a>
-          <a href="/crews/"><i data-lucide="users" class="icon-sm"></i>Crews</a>
-          <a href="/sea-events/"><i data-lucide="waves" class="icon-sm"></i>Sea Events</a>
-          <a href="/pvp/"><i data-lucide="crosshair" class="icon-sm"></i>PvP</a>
-          <a href="/challenges/"><i data-lucide="swords" class="icon-sm"></i>Quests</a>
-          <a href="/combos/"><i data-lucide="flame" class="icon-sm"></i>Combos</a>
-          <a href="/services/"><i data-lucide="briefcase" class="icon-sm"></i>Services</a>
-          <a href="/whats-new/"><i data-lucide="sparkles" class="icon-sm"></i>What's New</a>
-          <a href="/friends/"><i data-lucide="heart-handshake" class="icon-sm"></i>Friends</a>
-          <a href="/inventory/"><i data-lucide="package" class="icon-sm"></i>Inventory</a>
-          <a href="/notifications/"><i data-lucide="bell" class="icon-sm"></i>Notifications</a>
-        </div>
-      </div>
     </div>
 
     <div class="nav-header-actions">
@@ -153,35 +137,67 @@
     </div>
 
     <div data-hub-panel="calculator" role="tabpanel" hidden>
-      <div style="max-width:960px; margin:0 auto;">
-    <h2 style="font-size:1.35rem; margin-bottom:2px;">Trade Calculator</h2>
-    <p class="muted" style="margin:0 0 16px;">Add items to each side and see whether the trade is fair, using community-estimated values.</p>
-    <div class="calc-grid">
-      <div class="panel calc-side">
-        <h3>You give</h3>
-        <input type="text" id="calc-give-search" placeholder="Search items to add…" autocomplete="off">
-        <div id="calc-give-results" class="calc-results"></div>
-        <div id="calc-give-list"></div>
-        <p class="calc-total">Total: <strong id="calc-give-total">—</strong></p>
-      </div>
-      <div class="panel calc-side">
-        <h3>You get</h3>
-        <input type="text" id="calc-get-search" placeholder="Search items to add…" autocomplete="off">
-        <div id="calc-get-results" class="calc-results"></div>
-        <div id="calc-get-list"></div>
-        <p class="calc-total">Total: <strong id="calc-get-total">—</strong></p>
+      <div class="calc-wrap">
+        <div class="calc-intro">
+          <h2>Trade Calculator</h2>
+          <p class="muted">Add items to each side and see whether the trade is fair, using community-estimated values.</p>
+        </div>
+
+        <div class="calc-board">
+        <section class="calc-side calc-side-give" aria-label="You give">
+          <header class="calc-side-head">
+            <p class="calc-side-label"><i class="calc-dot" aria-hidden="true"></i>You give</p>
+            <p class="calc-side-total" id="calc-give-total">—</p>
+          </header>
+          <div class="calc-search">
+            <i data-lucide="search" class="icon-sm"></i>
+            <input type="text" id="calc-give-search" placeholder="Search what you’re giving" autocomplete="off" aria-label="Search items to add to you give">
+            <div id="calc-give-results" class="calc-results"></div>
+          </div>
+          <div id="calc-give-list" class="calc-list"></div>
+          <div class="calc-quick" id="calc-give-quick" aria-label="Popular items"></div>
+        </section>
+          <button type="button" class="calc-swap" id="calc-swap" aria-label="Swap sides" title="Swap sides"><i data-lucide="arrow-left-right" class="icon-md"></i></button>
+        <section class="calc-side calc-side-get" aria-label="You get">
+          <header class="calc-side-head">
+            <p class="calc-side-label"><i class="calc-dot" aria-hidden="true"></i>You get</p>
+            <p class="calc-side-total" id="calc-get-total">—</p>
+          </header>
+          <div class="calc-search">
+            <i data-lucide="search" class="icon-sm"></i>
+            <input type="text" id="calc-get-search" placeholder="Search what you’re getting" autocomplete="off" aria-label="Search items to add to you get">
+            <div id="calc-get-results" class="calc-results"></div>
+          </div>
+          <div id="calc-get-list" class="calc-list"></div>
+          <div class="calc-quick" id="calc-get-quick" aria-label="Popular items"></div>
+        </section>
+        </div>
+
+        <div id="calc-verdict" class="calc-verdict is-idle" aria-live="polite">
+          <div class="calc-verdict-main">
+            <span class="calc-verdict-icon" id="calc-verdict-icon"><i data-lucide="scale" class="icon-lg"></i></span>
+            <div class="calc-verdict-text">
+              <p class="calc-verdict-title" id="calc-verdict-title">Loading item values…</p>
+              <p class="calc-verdict-sub" id="calc-verdict-sub"></p>
+            </div>
+            <p class="calc-verdict-pct" id="calc-verdict-pct"></p>
+          </div>
+          <div class="calc-gauge" aria-hidden="true">
+            <div class="calc-gauge-track"><span class="calc-gauge-fair"></span><span class="calc-gauge-needle" id="calc-needle" style="left:50%"></span></div>
+            <div class="calc-gauge-labels"><span>You overpay</span><span>Fair</span><span>In your favor</span></div>
+          </div>
+        </div>
+
+        <div class="calc-actions">
+          <button type="button" class="btn btn-ghost btn-sm" id="calc-share"><i data-lucide="link" class="icon-sm icon-inline"></i>Copy link</button>
+          <button type="button" class="btn btn-primary btn-sm" id="calc-share-image"><i data-lucide="image" class="icon-sm icon-inline"></i>Share image</button>
+          <button type="button" class="btn btn-ghost btn-sm" id="calc-copy-text"><i data-lucide="clipboard" class="icon-sm icon-inline"></i>Copy as text</button>
+          <button type="button" class="btn btn-ghost btn-sm" id="calc-clear"><i data-lucide="rotate-ccw" class="icon-sm icon-inline"></i>Clear</button>
+        </div>
+        <p class="calc-note">Values are community estimates and only compare raw value — demand and trend aren't priced in. Within ±8% counts as roughly fair. BloxCore doesn't verify or guarantee any trade. See the <a href="/blox-fruits-trading-guide/">trading guide</a> and the <a href="/blox-fruits-tier-list/">value tier list</a>.</p>
       </div>
     </div>
-    <div id="calc-verdict" class="panel calc-verdict"><p class="muted" style="margin:0;">Loading item values…</p></div>
-    <div style="display:flex; gap:8px; justify-content:center; flex-wrap:wrap; margin-top:14px;">
-      <button type="button" class="btn btn-ghost btn-sm" id="calc-swap"><i data-lucide="arrow-left-right" class="icon-sm icon-inline"></i>Swap sides</button>
-      <button type="button" class="btn btn-ghost btn-sm" id="calc-share"><i data-lucide="link" class="icon-sm icon-inline"></i>Copy link</button>
-      <button type="button" class="btn btn-primary btn-sm" id="calc-share-image"><i data-lucide="image" class="icon-sm icon-inline"></i>Share image</button>
-      <button type="button" class="btn btn-ghost btn-sm" id="calc-copy-text"><i data-lucide="clipboard" class="icon-sm icon-inline"></i>Copy as Text</button>
-      <button type="button" class="btn btn-ghost btn-sm" id="calc-clear">Clear</button>
-    </div>
-    <p class="muted" style="text-align:center; font-size:0.8rem; margin-top:18px;">Values are community estimates and only compare raw value — demand and trend aren't priced in. Within ±8% counts as roughly fair. BloxCore doesn't verify or guarantee any trade. See the <a href="/blox-fruits-trading-guide/">trading guide</a> and the <a href="/blox-fruits-tier-list/">value tier list</a>.</p>
-      </div>
+
     </div>
 
     <div data-hub-panel="values" role="tabpanel" hidden>

@@ -1,7 +1,7 @@
 // BloxCore — /notifications/index.html logic (full notification history)
-// Reuses the .notif-item/.notif-dot/.notif-message/.notif-time/.notif-actions CSS from
-// the header dropdown (js/nav.js) but each row here is its own panel card, and this page
-// adds filtering + pagination the dropdown doesn't need (it only ever shows the latest 20).
+// A day-grouped timeline (Today / Yesterday / This week / Earlier) with tone-coded icons, an unread
+// accent bar, a live unread summary and filters. The header dropdown (js/nav.js) keeps its own
+// .notif-item styles; this page uses the .nf-* classes.
 
 let notifUserId = null;
 let currentNotifFilter = 'all';
@@ -15,6 +15,31 @@ const NOTIF_FILTER_TYPES = {
   events: ['new_giveaway', 'giveaway_win', 'giveaway_winner_picked', 'new_sea_event', 'sea_event_joined', 'submission_approved', 'watchlist_match', 'weekly_recap'],
   tournaments: ['tournament_cancelled', 'tournament_champion', 'tournament_match_result', 'tournament_prediction_correct', 'tournament_prize_won'],
 };
+
+// Which tone a notification gets, derived from the same buckets the filters use.
+function notifCategory(type) {
+  for (const [cat, types] of Object.entries(NOTIF_FILTER_TYPES)) if (types.includes(type)) return cat;
+  return 'other';
+}
+
+function notifBucket(iso) {
+  const d = new Date(iso), now = new Date();
+  const day = (x) => new Date(x.getFullYear(), x.getMonth(), x.getDate()).getTime();
+  const diff = Math.round((day(now) - day(d)) / 86400000);
+  if (diff <= 0) return 'Today';
+  if (diff === 1) return 'Yesterday';
+  if (diff < 7) return 'This week';
+  return 'Earlier';
+}
+
+async function refreshNotifSummary() {
+  const { count, error } = await sb.from('notifications').select('id', { count: 'exact', head: true }).eq('user_id', notifUserId).eq('read', false);
+  if (error) { logError(error); return; }
+  const n = count || 0;
+  document.getElementById('nf-count').textContent = n ? `${n} new` : 'All caught up';
+  document.getElementById('nf-sub').textContent = n ? 'Tap one to jump straight to it, or clear them all at once.' : 'Nothing is waiting for you right now.';
+  document.getElementById('notif-page-mark-all-read').disabled = n === 0;
+}
 
 const NOTIF_TYPE_ICON = {
   rank_up: 'trending-up', title_earned: 'award', title_awarded: 'award', achievement_earned: 'award',
@@ -35,11 +60,12 @@ onReady(async () => {
   notifUserId = auth.user.id;
 
   loadNotifPage();
+  refreshNotifSummary();
 
   document.getElementById('notif-page-mark-all-read').addEventListener('click', markAllReadFromPage);
   document.querySelectorAll('.notif-filter-btn').forEach(btn => {
     btn.addEventListener('click', () => {
-      document.querySelectorAll('.notif-filter-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.notif-filter-btn').forEach(b => { b.classList.remove('active'); b.removeAttribute('aria-pressed'); });
       btn.classList.add('active');
       currentNotifFilter = btn.dataset.notifFilter;
       loadNotifPage();
@@ -49,8 +75,9 @@ onReady(async () => {
 
 function loadNotifPage() {
   const container = document.getElementById('notif-page-list');
-  container.innerHTML = `<div class="skeleton" style="height:64px;"></div><div class="skeleton" style="height:64px;"></div><div class="skeleton" style="height:64px;"></div>`;
+  container.innerHTML = `<div class="skeleton nf-skeleton"></div><div class="skeleton nf-skeleton"></div><div class="skeleton nf-skeleton"></div>`;
   let isFirstPage = true;
+  lastNotifBucket = null; // day headers restart whenever the list reloads
 
   const { loadNext } = attachLoadMore(container, {
     pageSize: 20,
@@ -65,7 +92,10 @@ function loadNotifPage() {
       // so an empty *first* page (nothing matches this filter at all) needs its own
       // empty-state — handled here, not in onAppend, since onAppend never fires for it.
       if (isFirstPage && !data.length) {
-        container.innerHTML = `<div class="empty-state">Nothing here yet.</div>`;
+        container.innerHTML = currentNotifFilter === 'all'
+          ? `<div class="nf-empty"><i data-lucide="bell-off" class="icon-lg"></i><h2>No notifications yet</h2><p>Follow players, join a crew or enter a giveaway and what happens next shows up here.</p></div>`
+          : `<div class="nf-empty"><i data-lucide="filter-x" class="icon-lg"></i><h2>Nothing in this filter</h2><p>Try another filter or head back to All.</p></div>`;
+        refreshIcons();
       }
       isFirstPage = false;
       return data;
@@ -76,7 +106,13 @@ function loadNotifPage() {
       container.querySelectorAll('[data-notif-id]').forEach(el => {
         if (el.dataset.wired) return;
         el.dataset.wired = '1';
-        el.addEventListener('click', () => openNotifFromPage(el.dataset.notifId, el.dataset.notifLink));
+        const open = (e) => {
+          // an inline action link just marks the notification read — it brings its own destination
+          if (e.target.closest('[data-notif-action-id]')) { markNotifRead(el); return; }
+          openNotifFromPage(el);
+        };
+        el.addEventListener('click', open);
+        el.addEventListener('keydown', (e) => { if ((e.key === 'Enter' || e.key === ' ') && e.target === el) { e.preventDefault(); open(e); } });
       });
     },
   });
@@ -85,25 +121,43 @@ function loadNotifPage() {
   loadNext();
 }
 
+let lastNotifBucket = null;
+
 function renderNotifPageItem(n) {
   const icon = NOTIF_TYPE_ICON[n.type] || 'bell';
   const actions = renderNotifActions(n);
-  return `
-    <div class="panel hover-lift-card notif-item ${n.read ? '' : 'unread'}" data-notif-id="${n.id}" data-notif-link="${escapeHtml(n.link || '')}" style="cursor:${n.link ? 'pointer' : 'default'};">
-      <span class="icon-badge" data-tone="blue" style="flex-shrink:0;"><i data-lucide="${icon}" class="icon-sm"></i></span>
-      <span style="flex:1; min-width:0;">
-        <span class="notif-message">${escapeHtml(n.message)}</span>
-        <span class="notif-time">${timeAgo(n.created_at)}</span>
-        ${actions}
-      </span>
-      ${n.read ? '' : '<span class="notif-dot" style="background:var(--brass-bright); margin-top:8px;"></span>'}
-    </div>
-  `;
+  const bucket = notifBucket(n.created_at);
+  const header = bucket !== lastNotifBucket ? `<p class="nf-day">${bucket}</p>` : '';
+  lastNotifBucket = bucket;
+  const link = n.link || '';
+  return `${header}
+    <article class="nf-item ${n.read ? '' : 'unread'} ${link ? 'is-link' : ''}" data-cat="${notifCategory(n.type)}" data-notif-id="${n.id}" data-notif-link="${escapeHtml(link)}" ${link ? 'role="link" tabindex="0"' : 'tabindex="0"'}>
+      <span class="nf-icon"><i data-lucide="${icon}" class="icon-md"></i></span>
+      <div class="nf-body">
+        <p class="nf-msg">${escapeHtml(n.message)}</p>
+        <p class="nf-time">${timeAgo(n.created_at)}</p>
+        ${actions ? `<div class="nf-actions">${actions}</div>` : ''}
+      </div>
+      ${link ? '<i data-lucide="chevron-right" class="icon-sm nf-chev"></i>' : ''}
+    </article>`;
 }
 
-async function openNotifFromPage(id, link) {
-  await sb.from('notifications').update({ read: true }).eq('id', id);
-  if (link) window.location.href = link;
+async function markNotifRead(el) {
+  if (!el.classList.contains('unread')) return;
+  el.classList.remove('unread');
+  const { error } = await sb.from('notifications').update({ read: true }).eq('id', el.dataset.notifId);
+  if (error) { el.classList.add('unread'); logError(error); return; }
+  refreshNotifSummary();
+}
+
+async function openNotifFromPage(el) {
+  const link = el.dataset.notifLink;
+  if (link) {
+    await sb.from('notifications').update({ read: true }).eq('id', el.dataset.notifId);
+    window.location.href = link;
+    return;
+  }
+  markNotifRead(el);
 }
 
 async function markAllReadFromPage() {
@@ -114,4 +168,5 @@ async function markAllReadFromPage() {
   }
   showToast('All caught up.');
   loadNotifPage();
+  refreshNotifSummary();
 }

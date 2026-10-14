@@ -48,6 +48,7 @@ async function loadPlayer() {
   const hidden = new Set(profile.hidden_profile_sections || []);
   if (!hidden.has('achievements')) loadPlayerAchievements(profile.id);
   if (!hidden.has('activity')) loadPlayerActivity(profile.id);
+  loadPlayerInventory(profile, isOwnProfile);
   loadPlayerTradeListings(profile.id);
   loadPlayerCombos(profile.id);
   loadPlayerServices(profile.id);
@@ -360,6 +361,11 @@ function renderProfile(p, crew, isOwnProfile) {
       <div id="player-achievements" class="grid" style="grid-template-columns: repeat(auto-fill, minmax(90px, 1fr)); gap:14px;"></div>
     </div>
 
+    <div id="player-inventory-section" style="display:none; margin-top:28px;">
+      <p class="muted" style="margin:0 0 10px; font-size:0.8rem; text-transform:uppercase; letter-spacing:0.05em;"><i data-lucide="package" class="icon-sm icon-inline"></i>Inventory</p>
+      <div id="player-inventory"></div>
+    </div>
+
     <div style="margin-top:20px;">
       <p class="muted" style="margin:0 0 10px; font-size:0.8rem; text-transform:uppercase; letter-spacing:0.05em;"><i data-lucide="shield-check" class="icon-sm icon-inline"></i>Reputation & Vouches</p>
       <p class="muted" style="margin:-6px 0 12px; font-size:0.78rem;">Left by other traders after a deal. Not verified against an actual trade — use judgment, not just the number.</p>
@@ -411,6 +417,95 @@ function renderProfile(p, crew, isOwnProfile) {
       </div>
     </div>
   `;
+}
+
+// ---- Inventory showcase -----------------------------------------------------------------
+// Opt-in: get_public_inventory returns rows only when the owner switched it on (or the viewer
+// is the owner), so an empty result means "nothing to show" for visitors.
+const PINV_PALETTE = ['var(--brass-bright)', 'var(--purple)', 'var(--gold)', 'var(--sea)', 'var(--blue)', '#d946ef'];
+const PINV_PREVIEW = 8;
+
+async function loadPlayerInventory(profile, isOwnProfile) {
+  const section = document.getElementById('player-inventory-section');
+  const body = document.getElementById('player-inventory');
+  if (!section || !body) return;
+  const { data: rows, error } = await sb.rpc('get_public_inventory', { p_user: profile.id });
+  if (error) { logError(error); return; }
+  if (!rows || !rows.length) {
+    if (!isOwnProfile) return;
+    section.style.display = 'block';
+    body.innerHTML = `<div class="pinv-invite"><i data-lucide="package" class="icon-lg"></i><div><strong>Show off what you own</strong><p>Add your fruits and limiteds to see your net worth, and choose whether visitors can see it on your profile.</p></div><a href="/inventory/" class="btn btn-primary btn-sm">Build my inventory</a></div>`;
+    refreshIcons();
+    return;
+  }
+
+  const catalog = await fetchBfItemCatalog();
+  const byId = new Map(catalog.map(i => [i.id, i]));
+  const holdings = rows.map(r => ({ ...r, item: byId.get(r.item_id) })).filter(h => h.item)
+    .map(h => ({ ...h, total: h.qty * (valueFor(h.item, h.value_type) || 0) })).sort((a, b) => b.total - a.total);
+  if (!holdings.length) return;
+  const total = holdings.reduce((s, h) => s + h.total, 0);
+  const count = holdings.reduce((s, h) => s + h.qty, 0);
+  const perm = holdings.filter(h => h.value_type === 'permanent').reduce((s, h) => s + h.total, 0);
+
+  // composition: top 5 items (physical + permanent combined) + everything else
+  const byItem = new Map();
+  holdings.forEach(h => byItem.set(h.item.name, (byItem.get(h.item.name) || 0) + h.total));
+  const parts = [...byItem].map(([name, v]) => ({ name, v })).filter(p => p.v > 0).sort((a, b) => b.v - a.v);
+  const top = parts.slice(0, 5);
+  const rest = parts.slice(5).reduce((s, p) => s + p.v, 0);
+  if (rest) top.push({ name: 'Everything else', v: rest, other: true });
+  const pct = v => Math.round((v / total) * 1000) / 10;
+  const color = (p, i) => p.other ? 'var(--ash)' : PINV_PALETTE[i];
+
+  const card = (h) => {
+    const icon = safeImgUrl(h.item.icon_url);
+    const isPerm = h.value_type === 'permanent';
+    const share = total ? Math.max(1, Math.round((h.total / total) * 100)) : 0;
+    return `
+      <article class="inv-card is-compact" data-rarity="${escapeHtml((h.item.rarity || '').toLowerCase())}">
+        <div class="inv-card-art">
+          ${icon ? `<img src="${icon}" alt="" loading="lazy" onerror="this.style.display='none';">` : '<i data-lucide="sparkles" class="icon-lg"></i>'}
+          <span class="inv-card-qty">×${h.qty}</span>
+          <span class="inv-pill ${isPerm ? 'is-perm' : ''}">${isPerm ? 'Permanent' : 'Physical'}</span>
+        </div>
+        <div class="inv-card-body"><h3 class="inv-card-name">${escapeHtml(h.item.name)}</h3><p class="inv-card-value" title="${h.total.toLocaleString()}">${formatValue(h.total)}</p></div>
+        <div class="inv-card-share" aria-hidden="true"><span style="width:${share}%"></span></div>
+      </article>`;
+  };
+
+  const owner = isOwnProfile
+    ? `<p class="pinv-note">${profile.inventory_public
+        ? '<i data-lucide="eye" class="icon-sm icon-inline"></i>Visible to everyone. <a href="/inventory/">Manage inventory</a>'
+        : '<i data-lucide="lock" class="icon-sm icon-inline"></i>Only you can see this right now. <a href="/inventory/">Show it on your profile</a>'}</p>`
+    : '';
+
+  body.innerHTML = `
+    ${owner}
+    <div class="pinv-head">
+      <div>
+        <p class="pinv-label">Net worth</p>
+        <p class="pinv-total" title="${total.toLocaleString()}">${formatValue(total)}</p>
+      </div>
+      <dl class="pinv-meta">
+        <div><dt>Items</dt><dd>${count}</dd></div>
+        <div><dt>Permanent</dt><dd>${perm ? formatValue(perm) : '0'}</dd></div>
+        <div><dt>Top holding</dt><dd>${escapeHtml(parts[0].name)}</dd></div>
+      </dl>
+    </div>
+    <div class="inv-compose" style="margin-top:14px;">
+      <div class="inv-compose-bar">${top.map((p, i) => `<span style="flex:${p.v}; background:${color(p, i)}" title="${escapeHtml(p.name)}: ${pct(p.v)}%"></span>`).join('')}</div>
+      <ul class="inv-compose-legend">${top.map((p, i) => `<li><i style="background:${color(p, i)}"></i>${escapeHtml(p.name)} <b>${pct(p.v)}%</b></li>`).join('')}</ul>
+    </div>
+    <div class="inv-grid pinv-grid" id="player-inventory-grid">${holdings.slice(0, PINV_PREVIEW).map(card).join('')}</div>
+    ${holdings.length > PINV_PREVIEW ? `<button type="button" class="btn btn-ghost btn-sm" id="player-inventory-more" style="margin-top:12px;">Show all ${holdings.length} items</button>` : ''}`;
+  section.style.display = 'block';
+  document.getElementById('player-inventory-more')?.addEventListener('click', (e) => {
+    document.getElementById('player-inventory-grid').innerHTML = holdings.map(card).join('');
+    e.currentTarget.remove();
+    refreshIcons();
+  });
+  refreshIcons();
 }
 
 async function loadPlayerTradeListings(userId) {
