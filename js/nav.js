@@ -708,26 +708,14 @@ const CF_BEACON_TOKEN = '';
   document.head.appendChild(s);
 })();
 
-// ---- "Inventory" link in the More menu + mobile drawer ----
-// Added at runtime (cloned from the Notifications entry) so it shows on every page without
-// editing the nav markup in each static page.
+// ---- Highlight the current section in the centre nav ----
 document.addEventListener('DOMContentLoaded', () => {
-  if (document.querySelector('a[href="/inventory/"]')) return;
-  let added = false;
-  document.querySelectorAll('a[href="/notifications/"]').forEach(a => {
-    const host = a.closest('li') || a;
-    const clone = host.cloneNode(true);
-    const link = clone.tagName === 'A' ? clone : clone.querySelector('a');
-    if (!link) return;
-    link.setAttribute('href', '/inventory/');
-    const icon = link.querySelector('[data-lucide], svg');
-    if (icon) { const i = document.createElement('i'); i.setAttribute('data-lucide', 'package'); if (icon.getAttribute('class')) i.setAttribute('class', icon.getAttribute('class').replace(/\blucide\b\S*/g, '').trim()); icon.replaceWith(i); }
-    const textNode = [...link.childNodes].reverse().find(n => n.nodeType === 3 && n.textContent.trim());
-    if (textNode) textNode.textContent = 'Inventory';
-    const idx = link.style.getPropertyValue('--i');
-    if (idx) link.style.setProperty('--i', String(Number(idx) + 1));
-    host.after(clone);
-    added = true;
+  const path = location.pathname;
+  document.querySelectorAll('.nav-bar-links a.nav-bar-link[href]').forEach(a => {
+    const href = a.getAttribute('href');
+    if (href !== '/' && (path === href || path.startsWith(href))) { a.classList.add('is-active'); a.setAttribute('aria-current', 'page'); }
   });
-  if (added && typeof refreshIcons === 'function') refreshIcons();
+  // Inside "More"? Light up the More button so people can tell where they are.
+  const hit = [...document.querySelectorAll('.nav-bar-more-menu a[href]')].find(a => { const h = a.getAttribute('href'); return h !== '/' && path.startsWith(h); });
+  if (hit) document.querySelector('.nav-bar-more-btn')?.classList.add('is-active');
 });
