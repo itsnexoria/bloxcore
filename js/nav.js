@@ -283,9 +283,11 @@ function injectExtraNavLinks() {
       if (ref) { ref.after(li); ref = li; } else { list.appendChild(li); }
     });
   };
-  place('/trading/', [{ href: '/build/', icon: 'hammer', tone: 'blue', label: 'Build' }]);
-  place('/whats-new/', [{ href: '/clips/', icon: 'clapperboard', tone: 'pink', label: 'Clip of the Week' }]);
-  place('/admin/', [{ href: '/admin/overview/', icon: 'layout-dashboard', tone: 'gold', label: 'Overview', role: 'mod' }]);
+  // Public-site entries only — the admin panel's drawer is its own list (Overview is part of its static markup).
+  if (!window.location.pathname.startsWith('/admin/')) {
+    place('/trading/', [{ href: '/build/', icon: 'hammer', tone: 'blue', label: 'Build' }]);
+    place('/whats-new/', [{ href: '/clips/', icon: 'clapperboard', tone: 'pink', label: 'Clip of the Week' }]);
+  }
 }
 
 function highlightActiveLink() {

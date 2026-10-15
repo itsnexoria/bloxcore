@@ -46,7 +46,6 @@ async function loadPlayer() {
   loadPinnedShowcase(profile);
   if (viewerId && !isOwnProfile) loadMutuals(viewerId, profile.id);
   const hidden = new Set(profile.hidden_profile_sections || []);
-  if (!hidden.has('achievements')) loadPlayerAchievements(profile.id);
   if (!hidden.has('activity')) loadPlayerActivity(profile.id);
   loadPlayerInventory(profile, isOwnProfile);
   loadPlayerTradeListings(profile.id);
@@ -356,11 +355,6 @@ function renderProfile(p, crew, isOwnProfile) {
       <div id="player-pinned-post"></div>
     </div>
 
-    <div id="player-achievements-section" style="display:none; margin-top:20px;">
-      <p class="muted" style="margin:0 0 10px; font-size:0.8rem; text-transform:uppercase; letter-spacing:0.05em;"><i data-lucide="award" class="icon-sm icon-inline"></i>Achievements</p>
-      <div id="player-achievements" class="grid" style="grid-template-columns: repeat(auto-fill, minmax(90px, 1fr)); gap:14px;"></div>
-    </div>
-
     <div id="player-inventory-section" style="display:none; margin-top:28px;">
       <p class="muted" style="margin:0 0 10px; font-size:0.8rem; text-transform:uppercase; letter-spacing:0.05em;"><i data-lucide="package" class="icon-sm icon-inline"></i>Inventory</p>
       <div id="player-inventory"></div>
@@ -643,42 +637,6 @@ function renderBuildItem(field) {
       ${field.sub ? `<p class="muted" style="margin:2px 0 0; font-size:0.72rem;">${escapeHtml(field.sub)} skin</p>` : ''}
     </div>
   `;
-}
-
-const ACHIEVEMENT_TIER_COLORS = {
-  // hex + matching r,g,b triple — this site avoids CSS relative-color syntax (rgb(from ...))
-  // for browser-support reasons, using the same "var(--x-rgb) / alpha" pattern everywhere else.
-  bronze: { hex: '#c9885f', rgb: '201, 136, 95' },
-  silver: { hex: '#b8c2cc', rgb: '184, 194, 204' },
-  gold: { hex: '#d4af6a', rgb: '212, 175, 106' },
-  platinum: { hex: '#8fd6e8', rgb: '143, 214, 232' },
-};
-
-async function loadPlayerAchievements(userId) {
-  const section = document.getElementById('player-achievements-section');
-  const container = document.getElementById('player-achievements');
-
-  const { data } = await sb
-    .from('user_achievements')
-    .select('earned_at, achievements(name, description, icon, tier)')
-    .eq('user_id', userId)
-    .order('earned_at', { ascending: true });
-
-  if (!data?.length) return; // no badge shelf at all for a player with none yet — not an error state
-  section.style.display = 'block';
-
-  container.innerHTML = data.map(({ achievements: a, earned_at }) => {
-    const color = ACHIEVEMENT_TIER_COLORS[a.tier] || { hex: 'var(--brass-bright)', rgb: 'var(--brass-rgb)' };
-    return `
-      <div style="display:flex; flex-direction:column; align-items:center; gap:6px; text-align:center;" title="${escapeHtml(a.description)} — earned ${new Date(earned_at).toLocaleDateString()}">
-        <div style="width:52px; height:52px; border-radius:50%; display:flex; align-items:center; justify-content:center; background:rgb(${color.rgb} / 0.14); border:2px solid ${color.hex};">
-          <i data-lucide="${a.icon}" class="icon-md" style="color:${color.hex};"></i>
-        </div>
-        <span style="font-size:0.72rem; color:var(--ash); line-height:1.2;">${escapeHtml(a.name)}</span>
-      </div>
-    `;
-  }).join('');
-  refreshIcons();
 }
 
 const ACTIVITY_PAGE_SIZE = 12;

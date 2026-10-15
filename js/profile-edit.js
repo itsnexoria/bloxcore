@@ -646,7 +646,6 @@ async function handleSave(e) {
 
 const HIDEABLE_PROFILE_SECTIONS = [
   { key: 'trade_history', label: 'Trade History' },
-  { key: 'achievements', label: 'Achievements' },
   { key: 'activity', label: 'Recent Activity' },
   { key: 'pvp_history', label: 'PvP History' },
 ];
