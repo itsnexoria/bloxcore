@@ -49,7 +49,7 @@ async function loadFrames() {
     data.map((f, i) => `
       <div class="flex-between" style="padding:12px 20px; ${i === data.length - 1 ? '' : 'border-bottom:1px solid var(--navy-light);'}">
         <div style="display:flex; align-items:center; gap:12px;">
-          <img src="${f.image_url}" alt="${escapeHtml(f.name)}" loading="lazy" style="width:44px; height:44px; object-fit:contain; background:var(--navy); border-radius:8px; padding:4px; border:1px solid var(--glass-border);">
+          <img src="${safeImgUrl(f.image_url)}" alt="${escapeHtml(f.name)}" loading="lazy" style="width:44px; height:44px; object-fit:contain; background:var(--navy); border-radius:8px; padding:4px; border:1px solid var(--glass-border);">
           <div>
             <p style="margin:0; font-weight:700; font-size:0.9rem;">${escapeHtml(f.name)}</p>
             <p class="muted" style="margin:2px 0 0; font-size:0.76rem;">Level ${f.min_level}+ · key: ${escapeHtml(f.key)}</p>

@@ -193,7 +193,7 @@ function renderValueHistoryGrid() {
         const trendColor = item.trend === 'up' || item.trend === 'underpaid' ? 'var(--sea)' : item.trend === 'overpaid' || item.trend === 'unstable' ? '#f87171' : 'var(--ash)';
         return `
           <div class="panel hover-lift-card" data-view-value-history="${item.id}" style="cursor:pointer; padding:14px; display:flex; align-items:center; gap:12px;" data-rarity="${rarity}">
-            ${item.icon_url ? `<img src="${item.icon_url}" alt="" loading="lazy" style="width:40px; height:40px; object-fit:contain; flex-shrink:0;" onerror="this.style.display='none';">` : `<i data-lucide="sparkles" class="icon-lg" style="flex-shrink:0;"></i>`}
+            ${item.icon_url ? `<img src="${safeImgUrl(item.icon_url)}" alt="" loading="lazy" style="width:40px; height:40px; object-fit:contain; flex-shrink:0;" onerror="this.style.display='none';">` : `<i data-lucide="sparkles" class="icon-lg" style="flex-shrink:0;"></i>`}
             <div style="min-width:0;">
               <p style="margin:0; font-weight:700; font-size:0.86rem; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${escapeHtml(item.name)}</p>
               <p style="margin:2px 0 0; font-family:var(--font-mono); font-size:0.82rem; color:${trendColor};">${formatValue(valueFor(item, 'regular'))}</p>
@@ -237,7 +237,7 @@ function renderWatchlistGrid() {
             ${isWatched ? `<i data-lucide="eye" class="icon-sm" style="position:absolute; top:4px; right:4px; color:var(--brass-bright);"></i>` : ''}
             <button type="button" class="btn btn-ghost btn-sm" data-view-item-history="${item.id}" title="Value history" aria-label="Value history" style="position:absolute; top:2px; left:2px; padding:3px;"><i data-lucide="line-chart" style="width:12px;height:12px;"></i></button>
             ${isWatched ? `<button type="button" class="btn btn-ghost btn-sm" data-set-alert="${item.id}" title="${alert ? `Alert set: ${alert.alert_direction} ${formatValue(alert.alert_target_value)}` : 'Set a price alert'}" aria-label="Set price alert" style="position:absolute; bottom:2px; right:2px; padding:3px;"><i data-lucide="bell${alert && !alert.alert_triggered_at ? '-ring' : ''}" style="width:12px;height:12px; ${alert && !alert.alert_triggered_at ? 'color:var(--brass-bright);' : ''}"></i></button>` : ''}
-            ${item.icon_url ? `<img src="${item.icon_url}" alt="" loading="lazy" onerror="this.style.display='none';">` : `<i data-lucide="sparkles" class="icon-lg"></i>`}
+            ${item.icon_url ? `<img src="${safeImgUrl(item.icon_url)}" alt="" loading="lazy" onerror="this.style.display='none';">` : `<i data-lucide="sparkles" class="icon-lg"></i>`}
             <span style="font-size:0.72rem;">${escapeHtml(item.name)}</span>
           </div>
         `;

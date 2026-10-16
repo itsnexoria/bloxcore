@@ -557,7 +557,7 @@ async function loadPlayerTradeListings(userId) {
   const { data: items } = await sb.from('bf_items').select('id, name, icon_url').in('id', allIds);
   const tinyTile = entry => {
     const item = (items || []).find(i => i.id === entry.id);
-    return item ? `<img src="${item.icon_url}" alt="${escapeHtml(item.name)}" title="${escapeHtml(item.name)} (${entry.valueType})" loading="lazy" style="width:32px; height:32px; object-fit:contain; background:var(--navy); border-radius:6px; padding:3px; border:1px solid var(--glass-border);">` : '';
+    return item ? `<img src="${safeImgUrl(item.icon_url)}" alt="${escapeHtml(item.name)}" title="${escapeHtml(item.name)} (${entry.valueType})" loading="lazy" style="width:32px; height:32px; object-fit:contain; background:var(--navy); border-radius:6px; padding:3px; border:1px solid var(--glass-border);">` : '';
   };
 
   container.innerHTML = data.map(t => `

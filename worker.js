@@ -58,7 +58,7 @@ async function fetchImageAsDataUri(imageUrl, { timeoutMs = 3000 } = {}) {
     if (buf.byteLength > 2_000_000) return null; // guard against an unexpectedly huge image
     let binary = '';
     const bytes = new Uint8Array(buf);
-    for (let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]);
+    for (let i = 0; i < bytes.length; i += 0x8000) binary += String.fromCharCode.apply(null, bytes.subarray(i, i + 0x8000));
     return `data:${contentType};base64,${btoa(binary)}`;
   } catch {
     return null;
@@ -90,8 +90,19 @@ class MetaRewriter {
   }
 }
 
+class CanonicalRewriter {
+  constructor(url) { this.url = url; }
+  element(el) {
+    if (this.url && el.getAttribute('rel') === 'canonical') el.setAttribute('href', this.url);
+  }
+}
+
 function rewriteMeta(response, data) {
-  return new HTMLRewriter().on('title', new MetaRewriter(data)).on('meta', new MetaRewriter(data)).transform(response);
+  return new HTMLRewriter()
+    .on('title', new MetaRewriter(data))
+    .on('meta', new MetaRewriter(data))
+    .on('link', new CanonicalRewriter(data.url))
+    .transform(response);
 }
 
 async function handlePlayer(request, env, url) {
@@ -111,10 +122,10 @@ async function handlePlayer(request, env, url) {
     : `Level ${profile.level} pirate on BloxCore, the #1 Blox Fruits community. Check their quests, trades, and crew.`;
 
   return rewriteMeta(response, {
-    title: escapeAttr(title),
-    description: escapeAttr(description),
+    title: title,
+    description: description,
     image: `https://bloxcores.com/og/player.png?u=${encodeURIComponent(profile.username)}`,
-    imageAlt: escapeAttr(`${name}'s BloxCore profile card`),
+    imageAlt: `${name}'s BloxCore profile card`,
     url: `https://bloxcores.com/player/?u=${encodeURIComponent(profile.username)}`,
   });
 }
@@ -134,10 +145,10 @@ async function handleAuth(request, env, url) {
   const description = `${name} is a Level ${profile.level} pirate on BloxCore, the #1 Blox Fruits community — trading, bounty hunting, crews, and more. Join with their link and you're both in.`;
 
   return rewriteMeta(response, {
-    title: escapeAttr(title),
-    description: escapeAttr(description),
+    title: title,
+    description: description,
     image: bigAvatar(profile.avatar_url) || undefined,
-    imageAlt: escapeAttr(`${name}'s avatar`),
+    imageAlt: `${name}'s avatar`,
     url: `https://bloxcores.com/auth/?ref=${encodeURIComponent(profile.username)}`,
   });
 }
@@ -159,10 +170,10 @@ async function handleCrew(request, env, url) {
     : `${memberCount} member${memberCount === 1 ? '' : 's'} — a Blox Fruits crew on BloxCore.`;
 
   return rewriteMeta(response, {
-    title: escapeAttr(title),
-    description: escapeAttr(description),
+    title: title,
+    description: description,
     image: `https://bloxcores.com/og/crew.png?name=${encodeURIComponent(crew.name)}`,
-    imageAlt: escapeAttr(`${crew.name} crew card`),
+    imageAlt: `${crew.name} crew card`,
     url: `https://bloxcores.com/crew/?name=${encodeURIComponent(crew.name)}`,
   });
 }
@@ -198,10 +209,10 @@ async function handleTrading(request, env, url) {
   const description = `Offering: ${nameList(offeringIds)}. Looking for: ${nameList(requestingIds)}.`;
 
   return rewriteMeta(response, {
-    title: escapeAttr(title),
-    description: escapeAttr(description.slice(0, 200)),
+    title: title,
+    description: description.slice(0, 200),
     image: `https://bloxcores.com/og/trade.png?listing=${encodeURIComponent(listingId)}`,
-    imageAlt: escapeAttr('Trade details'),
+    imageAlt: 'Trade details',
     url: `https://bloxcores.com/trading/?listing=${encodeURIComponent(listingId)}`,
   });
 }
@@ -392,6 +403,14 @@ function movedPageRedirect(url) {
   return Response.redirect(dest.toString(), 301);
 }
 
+// Social crawlers re-request OG images constantly; let Cloudflare/browsers cache them briefly.
+function withOgCache(res) {
+  if (!(res instanceof Response) || res.status !== 200) return res;
+  const out = new Response(res.body, res);
+  out.headers.set('Cache-Control', 'public, max-age=300, s-maxage=3600');
+  return out;
+}
+
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
@@ -402,9 +421,9 @@ export default {
       if (url.pathname === '/auth/') return await handleAuth(request, env, url);
       if (url.pathname === '/crew/') return await handleCrew(request, env, url);
       if (url.pathname === '/trading/') return await handleTrading(request, env, url);
-      if (url.pathname === '/og/trade.png') return await handleOgTradeImage(request, env, url);
-      if (url.pathname === '/og/player.png') return await handleOgPlayerImage(request, env, url);
-      if (url.pathname === '/og/crew.png') return await handleOgCrewImage(request, env, url);
+      if (url.pathname === '/og/trade.png') return withOgCache(await handleOgTradeImage(request, env, url));
+      if (url.pathname === '/og/player.png') return withOgCache(await handleOgPlayerImage(request, env, url));
+      if (url.pathname === '/og/crew.png') return withOgCache(await handleOgCrewImage(request, env, url));
     } catch (err) {
       // Any failure (Supabase down, bad data, etc.) should never take the page down —
       // fall through to the plain static page instead.

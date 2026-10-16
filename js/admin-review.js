@@ -104,7 +104,7 @@ async function loadPendingGiveaways() {
 }
 
 function renderPendingGiveawayCard(g) {
-  const image = g.image_url ? `<img src="${g.image_url}" alt="" loading="lazy" style="width:48px; height:48px; object-fit:contain; flex-shrink:0;">` : '';
+  const image = g.image_url ? `<img src="${safeImgUrl(g.image_url)}" alt="" loading="lazy" style="width:48px; height:48px; object-fit:contain; flex-shrink:0;">` : '';
   const submittedBy = g.submitter ? escapeHtml(displayNameFor(g.submitter)) : 'Unknown';
   return `
     <div class="panel" style="margin-bottom:14px; display:flex; gap:16px; align-items:flex-start; flex-wrap:wrap;">

@@ -165,7 +165,7 @@ function frameAvatarPreviewFor(frame) {
     ? `<img src="${avatarUrl}" alt="" style="${style}">`
     : `<div style="${style}"></div>`;
   if (!frame) return avatarEl;
-  return `<span style="position:relative; display:inline-flex; width:48px; height:48px;">${avatarEl}<img src="${frame.image_url}" alt="" style="position:absolute; top:50%; left:50%; width:65px; height:65px; transform:translate(-50%,-50%); pointer-events:none;"></span>`;
+  return `<span style="position:relative; display:inline-flex; width:48px; height:48px;">${avatarEl}<img src="${safeImgUrl(frame.image_url)}" alt="" style="position:absolute; top:50%; left:50%; width:65px; height:65px; transform:translate(-50%,-50%); pointer-events:none;"></span>`;
 }
 
 async function updateFramePickerButton() {

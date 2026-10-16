@@ -475,7 +475,7 @@ async function renderSiteBanners() {
   wrap.id = 'site-banners';
   wrap.innerHTML = banners.map(b => `
     <div class="site-banner" style="border-left-color:${BANNER_COLORS[b.severity] || BANNER_COLORS.info};" data-banner-id="${b.id}">
-      <span>${b.message}</span>
+      <span>${escapeHtml(b.message)}</span>
       ${b.dismissible ? `<button type="button" class="site-banner-dismiss" data-dismiss-banner="${b.id}" aria-label="Dismiss"><i data-lucide="x" class="icon-sm"></i></button>` : ''}
     </div>
   `).join('');

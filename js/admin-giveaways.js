@@ -210,7 +210,7 @@ function renderGiveawayRow(g, entryCount, isLast, winners = []) {
   const winnerLabel = winners.length
     ? `<i data-lucide="trophy" class="icon-sm" style="color:var(--brass-bright);"></i> ${winners.map(w => escapeHtml(displayNameFor(w))).join(', ')}`
     : '';
-  const image = g.image_url ? `<img src="${g.image_url}" alt="" loading="lazy" style="width:36px; height:36px; object-fit:contain; flex-shrink:0;">` : '';
+  const image = g.image_url ? `<img src="${safeImgUrl(g.image_url)}" alt="" loading="lazy" style="width:36px; height:36px; object-fit:contain; flex-shrink:0;">` : '';
   const submittedBy = g.submitter ? `<span class="muted"> · submitted by ${escapeHtml(displayNameFor(g.submitter))}</span>` : '';
 
   return `
@@ -329,7 +329,7 @@ function renderSelectedPrizeValue() {
   const valueEl = document.getElementById('gv-prize-picker-value');
   const toggleEl = document.getElementById('gv-prize-value-toggle');
   valueEl.classList.remove('is-empty');
-  valueEl.innerHTML = `<img src="${selectedPrize.icon_url}" alt="" style="width:18px; height:18px; object-fit:contain; vertical-align:-4px; margin-right:6px;">${escapeHtml(selectedPrize.name)}`;
+  valueEl.innerHTML = `<img src="${safeImgUrl(selectedPrize.icon_url)}" alt="" style="width:18px; height:18px; object-fit:contain; vertical-align:-4px; margin-right:6px;">${escapeHtml(selectedPrize.name)}`;
 
   if (selectedPrize.category === 'fruit') {
     toggleEl.style.display = 'inline-flex';
@@ -348,7 +348,7 @@ function renderPrizePickerGrid() {
   grid.innerHTML = items.length
     ? items.map(item => `
         <div class="build-modal-tile" data-rarity="${(item.rarity || '').toLowerCase()}" data-pick-prize="${item.id}">
-          ${item.icon_url ? `<img src="${item.icon_url}" alt="" loading="lazy">` : `<i data-lucide="sparkles" class="icon-lg"></i>`}
+          ${item.icon_url ? `<img src="${safeImgUrl(item.icon_url)}" alt="" loading="lazy">` : `<i data-lucide="sparkles" class="icon-lg"></i>`}
           <span>${escapeHtml(item.name)}</span>
         </div>
       `).join('')

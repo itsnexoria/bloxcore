@@ -164,7 +164,7 @@ function renderItemCard(item) {
         </div>
       </div>
       <div style="text-align:center; margin-top:6px;">
-        ${item.icon_url ? `<img src="${item.icon_url}" alt="${escapeHtml(item.name)}" loading="lazy" style="width:56px; height:56px; object-fit:contain; margin-bottom:6px;">` : ''}
+        ${item.icon_url ? `<img src="${safeImgUrl(item.icon_url)}" alt="${escapeHtml(item.name)}" loading="lazy" style="width:56px; height:56px; object-fit:contain; margin-bottom:6px;">` : ''}
         <p style="margin:0; font-weight:700; font-size:0.9rem;">${escapeHtml(item.name)}</p>
         <p class="muted" style="margin:2px 0 0; font-size:0.74rem;">${cat ? escapeHtml(cat.label) : item.category}${item.rarity ? ' · ' + escapeHtml(item.rarity) : ''}</p>
         ${cat?.is_tradeable ? `<p class="muted" style="margin:4px 0 0; font-size:0.72rem;">${item.regular_value != null ? `Value: ${item.regular_value}` : 'No value set'}${item.demand != null ? ` · Demand ${item.demand}/5` : ''}</p>` : ''}

@@ -116,10 +116,9 @@ function errorStateTableRow(colspan, message, retryFn) {
   </td></tr>`;
 }
 
+// Escapes quotes too, so it is safe inside attribute values (title="...", data-x="...", href="...").
 function escapeHtml(str) {
-  const div = document.createElement('div');
-  div.textContent = str ?? '';
-  return div.innerHTML;
+  return String(str ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 }
 
 // Guards against javascript:/data:/vbscript: URIs in user-supplied link fields
@@ -394,7 +393,7 @@ function avatarHtml(profile, size, extraStyle = '', presence = null) {
   // Discord-style — needs a positioning wrapper since the frame art extends past
   // the avatar's own circular box.
   const inner = frame
-    ? `<span style="position:relative; display:inline-flex; width:${size}px; height:${size}px; flex-shrink:0; ${wrapExtra}">${avatarInner}<img src="${frame.image_url}" alt="" loading="lazy" style="position:absolute; top:50%; left:50%; width:${Math.round(size * 1.35)}px; height:${Math.round(size * 1.35)}px; transform:translate(-50%,-50%); pointer-events:none;"></span>`
+    ? `<span style="position:relative; display:inline-flex; width:${size}px; height:${size}px; flex-shrink:0; ${wrapExtra}">${avatarInner}<img src="${safeImgUrl(frame.image_url)}" alt="" loading="lazy" style="position:absolute; top:50%; left:50%; width:${Math.round(size * 1.35)}px; height:${Math.round(size * 1.35)}px; transform:translate(-50%,-50%); pointer-events:none;"></span>`
     : avatarInner;
 
   if (!presence) return inner;
@@ -779,7 +778,7 @@ async function maybePromptFruitSkin(fruitName, currentSkin, onSelect) {
   const noneTile = `<div class="build-modal-tile ${!currentSkin ? 'selected' : ''}" data-skin-name=""><i data-lucide="ban" class="icon-lg"></i><span>Base ${escapeHtml(fruitName)}</span></div>`;
   const tiles = skins.map(s => `
     <div class="build-modal-tile ${currentSkin === s.name ? 'selected' : ''}" data-skin-name="${escapeHtml(s.name)}">
-      <img src="${s.icon_url}" alt="${escapeHtml(s.name)}" loading="lazy">
+      <img src="${safeImgUrl(s.icon_url)}" alt="${escapeHtml(s.name)}" loading="lazy">
       <span>${escapeHtml(s.name)}</span>
     </div>
   `).join('');

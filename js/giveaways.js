@@ -100,7 +100,7 @@ function renderPrizePickerGrid() {
   grid.innerHTML = items.length
     ? items.map(item => `
         <div class="build-modal-tile" data-rarity="${(item.rarity || '').toLowerCase()}" data-pick-prize="${item.id}">
-          ${item.icon_url ? `<img src="${item.icon_url}" alt="" loading="lazy">` : `<i data-lucide="sparkles" class="icon-lg"></i>`}
+          ${item.icon_url ? `<img src="${safeImgUrl(item.icon_url)}" alt="" loading="lazy">` : `<i data-lucide="sparkles" class="icon-lg"></i>`}
           <span>${escapeHtml(item.name)}</span>
         </div>
       `).join('')
@@ -124,7 +124,7 @@ function renderSelectedPrizeValue() {
   const valueEl = document.getElementById('gv-prize-picker-value');
   const toggleEl = document.getElementById('gv-prize-value-toggle');
   valueEl.classList.remove('is-empty');
-  valueEl.innerHTML = `<img src="${selectedPrize.icon_url}" alt="" style="width:18px; height:18px; object-fit:contain; vertical-align:-4px; margin-right:6px;">${escapeHtml(selectedPrize.name)}`;
+  valueEl.innerHTML = `<img src="${safeImgUrl(selectedPrize.icon_url)}" alt="" style="width:18px; height:18px; object-fit:contain; vertical-align:-4px; margin-right:6px;">${escapeHtml(selectedPrize.name)}`;
 
   if (selectedPrize.category === 'fruit') {
     toggleEl.style.display = 'inline-flex';

@@ -8,3 +8,12 @@ worker.js
 wrangler.jsonc
 scripts/**
 node_modules/**
+supabase/**
+.github/**
+package.json
+package-lock.json
+README.md
+*.zip
+*.sql
+guide-page-sitemap-urls.txt
+item-page-sitemap-urls.txt

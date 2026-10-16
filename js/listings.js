@@ -65,7 +65,7 @@ function pickerTileHtml(item) {
   const rarity = (item.rarity || '').toLowerCase();
   return `
     <div class="build-modal-tile" data-rarity="${rarity}" data-pick-item="${item.id}" style="padding:8px;">
-      ${item.icon_url ? `<img src="${item.icon_url}" alt="" loading="lazy" onerror="this.style.display='none';">` : `<i data-lucide="sparkles" class="icon-lg"></i>`}
+      ${item.icon_url ? `<img src="${safeImgUrl(item.icon_url)}" alt="" loading="lazy" onerror="this.style.display='none';">` : `<i data-lucide="sparkles" class="icon-lg"></i>`}
       <span style="font-size:0.72rem;">${escapeHtml(item.name)}</span>
     </div>
   `;
@@ -82,7 +82,7 @@ function valueTileHtml(item, valueType, { editable = false } = {}) {
   return `
     <div style="display:flex; flex-direction:column; align-items:center; gap:4px;">
       <div class="build-modal-tile" data-rarity="${rarity}" style="width:56px; height:56px; padding:4px; cursor:default;" title="${escapeHtml(item.name)} — ${item.trend || 'stable'} trend, demand ${item.demand ?? '?'}/10">
-        ${item.icon_url ? `<img src="${item.icon_url}" alt="" loading="lazy" onerror="this.style.display='none';">` : `<i data-lucide="sparkles" class="icon-md"></i>`}
+        ${item.icon_url ? `<img src="${safeImgUrl(item.icon_url)}" alt="" loading="lazy" onerror="this.style.display='none';">` : `<i data-lucide="sparkles" class="icon-md"></i>`}
       </div>
       <span style="font-size:0.66rem; font-family:var(--font-mono); color:var(--gold-bright);">${formatValue(value)}</span>
       ${canToggle

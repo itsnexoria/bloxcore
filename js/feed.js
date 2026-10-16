@@ -544,6 +544,7 @@ function linkifyHashtags(content) {
   );
   // Bare URLs pasted into a post (e.g. a YouTube/TikTok link) aren't clickable by default —
   // linkify them too, on top of the embed card rendered separately below the post.
+  // `withHashtags` is already HTML-escaped (quotes included), so `url` can't break out of the attribute.
   return withHashtags.replace(/(^|[\s])(https?:\/\/[^\s<]+)/g, (match, pre, url) =>
     `${pre}<a href="${url}" target="_blank" rel="noopener noreferrer nofollow" style="color:var(--sea); text-decoration:underline; word-break:break-all;">${url}</a>`
   );
