@@ -1,0 +1,113 @@
+/* Rules that only apply on /profile/ — loaded by that page after style.css. */
+.stamp-static { animation: none; transform: none; }
+
+.build-picker-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  margin-bottom: 8px;
+}
+
+.build-picker-label {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--ash);
+}
+
+.build-modal-tile-lock {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--bone);
+  background: rgba(5,6,10,0.75);
+  border-radius: 50%;
+}
+
+.title-tile.locked { cursor: default; opacity: 0.45; }
+
+.title-tile.locked:hover { border-color: var(--glass-border); transform: none; }
+
+.title-tile .lock-icon { font-size: 1.1rem; }
+
+.swatch-rainbow {
+  background: conic-gradient(#ef4444, #fbbf24, #34d399, #38bdf8, #a78bfa, #ef4444);
+}
+
+.crop-modal { max-width: 480px; width: 100%; }
+
+.crop-stage {
+  position: relative;
+  width: 100%;
+  margin: 0 auto;
+  overflow: hidden;
+  border-radius: var(--radius-sm);
+  background: #000;
+  border: 1px solid var(--glass-border);
+  cursor: grab;
+  touch-action: none;
+}
+
+.crop-stage:active { cursor: grabbing; }
+
+.crop-stage.is-circle { border-radius: 50%; }
+
+.crop-stage img {
+  position: absolute;
+  left: 0;
+  top: 0;
+  user-select: none;
+  -webkit-user-drag: none;
+  pointer-events: none;
+  will-change: transform;
+}
+
+.crop-zoom-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 18px;
+}
+
+.crop-zoom-row input[type="range"] {
+  flex: 1;
+  -webkit-appearance: none;
+  appearance: none;
+  height: 4px;
+  border-radius: 999px;
+  background: var(--navy-light);
+  outline: none;
+}
+
+.crop-zoom-row input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--brass-bright);
+  border: 2px solid var(--ink);
+  box-shadow: 0 2px 8px rgb(var(--shadow-rgb) / 0.5);
+  cursor: pointer;
+}
+
+.crop-zoom-row input[type="range"]::-moz-range-thumb {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--brass-bright);
+  border: 2px solid var(--ink);
+  cursor: pointer;
+}
+
+.crop-modal-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.crop-modal-actions .btn { flex: 1; }

@@ -133,6 +133,48 @@ function wireProfileActions(p, isOwnProfile) {
     }
   });
   document.getElementById('profile-report')?.addEventListener('click', () => reportContent('profile', p.id));
+  document.getElementById('profile-share-card')?.addEventListener('click', () => openProfileShareCard(p));
+}
+
+// Builds the data for the 1200×630 profile card: core stats + (only if public) inventory net worth.
+async function profileCardData(p) {
+  const name = displayNameFor(p);
+  const progress = xpProgress(p.xp, p.level);
+  const { count: followers } = await sb.from('follows').select('follower_id', { count: 'exact', head: true }).eq('followed_id', p.id);
+  const data = {
+    name, handle: name !== p.username ? p.username : '', avatarUrl: safeImgUrl(p.avatar_url),
+    level: p.level ?? 1, rankTitle: rankTitleForLevel(p.level), xpPct: (progress.pct || 0) / 100,
+    stats: [
+      ['Pirate bounty', formatBounty(p.pirate_bounty)],
+      ['Marine bounty', formatBounty(p.marine_bounty)],
+      ['PvP record', `${p.pvp_wins ?? 0}W ${p.pvp_losses ?? 0}L`],
+      ['Followers', String(followers || 0)],
+    ],
+    netWorth: '', holdings: [],
+  };
+  try {
+    const { data: rows } = await sb.rpc('get_public_inventory', { p_user: p.id });
+    if (rows?.length) {
+      const catalog = await fetchBfItemCatalog();
+      const byId = new Map(catalog.map(i => [i.id, i]));
+      const hs = rows.map(r => ({ ...r, item: byId.get(r.item_id) })).filter(h => h.item)
+        .map(h => ({ name: h.item.name, iconUrl: safeImgUrl(h.item.icon_url), rarity: h.item.rarity, total: h.qty * (valueFor(h.item, h.value_type) || 0) }))
+        .sort((a, b) => b.total - a.total);
+      const total = hs.reduce((s2, h) => s2 + h.total, 0);
+      if (total) { data.netWorth = formatValue(total); data.holdings = hs; }
+    }
+  } catch (e) { logError(e); }
+  return data;
+}
+
+function openProfileShareCard(p) {
+  const name = displayNameFor(p);
+  scOpenPreview({
+    title: `${name}'s profile card`,
+    filename: `bloxcore-${p.username}.png`,
+    shareText: `${name} on BloxCore — bloxcores.com/player/?u=${encodeURIComponent(p.username)}`,
+    render: async (canvas) => { await scRenderProfileCard(canvas, await profileCardData(p)); },
+  });
 }
 
 async function loadSocialActions(p, viewerId, isOwnProfile) {
@@ -253,6 +295,7 @@ function renderProfile(p, crew, isOwnProfile) {
             </a>
           ` : ''}
           <button type="button" id="profile-copy-link" class="profile-hero-icon-btn" title="${isOwnProfile ? 'Copy your referral link' : 'Copy profile link'}" aria-label="${isOwnProfile ? 'Copy your referral link' : 'Copy profile link'}"><i data-lucide="${isOwnProfile ? 'user-plus' : 'link'}" class="icon-sm"></i></button>
+          <button type="button" id="profile-share-card" class="profile-hero-icon-btn" title="Share card" aria-label="Create a share image"><i data-lucide="image" class="icon-sm"></i></button>
           ${!isOwnProfile ? `<button type="button" id="profile-report" class="profile-hero-icon-btn" title="Report this profile" aria-label="Report this profile"><i data-lucide="flag" class="icon-sm"></i></button>` : ''}
         </div>
         <div class="profile-hero-overlay-info">

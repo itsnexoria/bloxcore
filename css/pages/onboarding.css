@@ -1,0 +1,12 @@
+/* Rules that only apply on /onboarding/ — loaded by that page after style.css. */
+.btn-link {
+  background: none;
+  border: none;
+  color: var(--ash);
+  font-size: 0.82rem;
+  cursor: pointer;
+  text-decoration: underline;
+  padding: 4px;
+}
+
+.btn-link:hover { color: var(--bone); }

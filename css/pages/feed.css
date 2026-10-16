@@ -1,0 +1,48 @@
+/* Rules that only apply on /feed/ — loaded by that page after style.css. */
+.feed-tagged-item-card { border-left-width: 3px; transition: border-color 0.15s ease; }
+
+.feed-tagged-item-card[data-rarity="common"] { border-left-color: #9a9aa8; }
+
+.feed-tagged-item-card[data-rarity="uncommon"] { border-left-color: var(--blue); }
+
+.feed-tagged-item-card[data-rarity="rare"], .feed-tagged-item-card[data-rarity="epic"] { border-left-color: var(--purple); }
+
+.feed-tagged-item-card[data-rarity="legendary"] { border-left-color: #d946ef; }
+
+.feed-tagged-item-card[data-rarity="mythical"] { border-left-color: var(--brass); }
+
+.feed-tagged-item-card[data-rarity="divine"] { border-left-color: #ffffff; }
+
+.feed-tagged-item-card[data-rarity="limited"] { border-left-color: var(--purple); }
+
+.feed-layout { display:grid; grid-template-columns: minmax(0,1fr) 300px; gap:24px; align-items:start; }
+
+.feed-main { min-width:0; }
+
+.feed-sidebar { display:flex; flex-direction:column; gap:16px; position:sticky; top:84px; }
+
+.feed-sidebar-card h3 { font-size:0.85rem; margin:0 0 12px; text-transform:uppercase; letter-spacing:0.04em; color:var(--ash); display:flex; align-items:center; gap:6px; }
+
+.feed-sidebar-trending-row, .feed-sidebar-suggestion-row { display:flex; align-items:center; gap:10px; padding:7px 0; }
+
+.feed-sidebar-trending-row + .feed-sidebar-trending-row, .feed-sidebar-suggestion-row + .feed-sidebar-suggestion-row { border-top:1px solid var(--navy-light); }
+
+.feed-pulse-number { font-family:var(--font-mono); color:var(--brass-bright); font-weight:700; }
+
+@media (max-width: 860px) {
+  .feed-layout { grid-template-columns: 1fr; }
+  .feed-sidebar { position:static; flex-direction:row; overflow-x:auto; gap:12px; }
+  .feed-sidebar-card { min-width:240px; flex-shrink:0; }
+}
+
+.feed-post-card { animation: fadeInUp 0.35s ease both; }
+
+.feed-comments-panel { margin-top:12px; padding-top:12px; border-top:1px solid var(--glass-border); animation: fadeInUp 0.25s ease both; }
+
+.feed-comment-row { display:flex; gap:10px; padding:8px 0; }
+
+.feed-comment-row + .feed-comment-row { border-top:1px solid var(--navy-light); }
+
+.feed-repost-embed { border:1px solid var(--glass-border); background:var(--glass-bg); padding:14px; }
+
+.feed-repost-embed:hover { border-color:var(--brass); }

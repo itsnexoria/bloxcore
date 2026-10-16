@@ -1,0 +1,7 @@
+/* Rules that only apply on /leaderboard/ — loaded by that page after style.css. */
+.lb-row-mine {
+  background: rgb(var(--brass-rgb) / 0.08);
+  box-shadow: inset 3px 0 0 var(--brass-bright);
+}
+
+.streak-chip { display: inline-flex; align-items: center; gap: 2px; margin-left: 6px; font-size: 0.72rem; font-weight: 700; color: #fb923c; }

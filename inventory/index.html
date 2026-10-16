@@ -9,7 +9,10 @@
 <meta name="description" content="Track your Blox Fruits inventory and watch your net worth change as values move.">
 <meta name="keywords" content="Roblox, Blox Fruits, BloxCore, Nexoria, Nexus, trading, perms, fruits, One Piece game, anime game, PvP, crews, best Roblox game, bounty hunting, giveaways, leaderboard, sea events, combos, quests">
 <link rel="stylesheet" href="/css/style.css">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+<link rel="stylesheet" href="/css/pages/inventory.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Space+Grotesk:wght@400;500;600;700&family=Sora:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap">
 <link rel="stylesheet" href="/css/animations.css">
 <link rel="icon" href="/favicon.ico" sizes="any">
 <link rel="icon" type="image/png" href="/assets/favicon.png">
@@ -118,6 +121,8 @@
           <option value="name">Name A–Z</option>
         </select>
         <div class="inv-toolbar-actions">
+          <button type="button" class="btn btn-ghost btn-sm" id="inv-import"><i data-lucide="clipboard-paste" class="icon-sm icon-inline"></i>Import list</button>
+          <button type="button" class="btn btn-ghost btn-sm" id="inv-share"><i data-lucide="image" class="icon-sm icon-inline"></i>Share image</button>
           <button type="button" class="btn btn-ghost btn-sm" id="inv-copy"><i data-lucide="copy" class="icon-sm icon-inline"></i>Copy list</button>
           <button type="button" class="btn btn-primary btn-sm" id="inv-add"><i data-lucide="plus" class="icon-sm icon-inline"></i>Add item</button>
         </div>
@@ -128,6 +133,26 @@
     </div>
   </div>
 </section>
+
+<div id="inv-import-modal" class="build-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="inv-import-title">
+  <div class="panel build-modal inv-import">
+    <div class="flex-between" style="margin-bottom:10px;">
+      <h2 id="inv-import-title" style="font-size:1.05rem; margin:0;">Import your list</h2>
+      <button type="button" class="btn btn-ghost btn-sm" id="inv-import-close" aria-label="Close"><i data-lucide="x" class="icon-md"></i></button>
+    </div>
+    <p class="muted" style="margin:0 0 10px; font-size:0.85rem;">Paste one item per line, like <code>2 West Dragon</code>, <code>Kitsune perm</code> or <code>Buddha x3</code>. You can fix anything we got wrong before it's saved.</p>
+    <textarea id="inv-import-text" rows="6" placeholder="2 West Dragon&#10;1 Kitsune perm&#10;Buddha x3" aria-label="Your list"></textarea>
+    <div class="inv-import-mode" role="radiogroup" aria-label="How to apply the list">
+      <label><input type="radio" name="inv-import-mode" value="add" checked> Add to what I already have</label>
+      <label><input type="radio" name="inv-import-mode" value="replace"> Replace those quantities</label>
+    </div>
+    <div id="inv-import-preview"></div>
+    <div class="inv-import-actions">
+      <button type="button" class="btn btn-ghost btn-sm" id="inv-import-parse">Preview</button>
+      <button type="button" class="btn btn-primary btn-sm" id="inv-import-apply" disabled>Import</button>
+    </div>
+  </div>
+</div>
 
 <div id="inv-picker-modal" class="build-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="inv-picker-title">
   <div class="panel build-modal">
@@ -255,6 +280,8 @@
 <script src="/js/search.js"></script>
 <script src="/js/build-options.js"></script>
 <script src="/js/listings.js"></script>
+<script src="/js/share-canvas.js"></script>
+<script src="/js/share-cards.js"></script>
 <script src="/js/inventory.js"></script>
 </body>
 </html>

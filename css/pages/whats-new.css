@@ -1,0 +1,25 @@
+/* Rules that only apply on /whats-new/ — loaded by that page after style.css. */
+.upd-card { display: block; padding: 16px 18px; text-decoration: none; color: inherit; }
+
+.upd-tier { display: grid; grid-template-columns: 96px minmax(0, 1fr); overflow: hidden; padding: 0; border-color: color-mix(in srgb, var(--tier) 35%, transparent); }
+
+.upd-tier-label { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; padding: 12px 8px; text-align: center; background: color-mix(in srgb, var(--tier) 16%, transparent); }
+
+.upd-tier-label strong { font-size: 2rem; line-height: 1; color: var(--tier); }
+
+.upd-tier-label span { font-size: 0.66rem; color: var(--ash); }
+
+.upd-item { display: grid; justify-items: center; gap: 2px; width: 104px; padding: 8px 6px; text-align: center; text-decoration: none; color: var(--bone); border-radius: var(--radius-sm); background: rgb(255 255 255 / 0.03); font-size: 0.78rem; }
+
+.upd-item:hover { background: rgb(255 255 255 / 0.07); }
+
+.upd-item img { width: 44px; height: 44px; object-fit: contain; }
+
+.upd-item .muted { font-family: var(--font-mono); font-size: 0.72rem; }
+
+.upd-delta { font-size: 0.68rem; font-weight: 700; }
+
+@media (max-width: 560px) {
+  .upd-tier { grid-template-columns: 64px minmax(0, 1fr); }
+  .upd-item { width: 92px; }
+}

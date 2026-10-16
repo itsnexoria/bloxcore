@@ -1,0 +1,100 @@
+/* Rules that only apply on /admin/manage/ — loaded by that page after style.css. */
+.site-jump-nav { display: flex; gap: 8px; flex-wrap: wrap; position: sticky; top: 66px; z-index: 5; padding: 10px 0; }
+
+.site-jump-nav a { padding: 6px 12px; border-radius: 999px; background: rgba(255,255,255,0.03); border: 1px solid var(--glass-border); color: var(--ash); font-size: 0.78rem; text-decoration: none; transition: border-color 0.15s ease, color 0.15s ease; }
+
+.site-jump-nav a:hover { border-color: var(--brass); color: var(--bone); }
+
+.webhook-row { display: flex; align-items: center; gap: 12px; padding: 10px 12px; background: var(--glass-bg); border-radius: var(--radius-sm); flex-wrap: wrap; }
+
+.webhook-row-label { display: flex; flex-direction: column; min-width: 140px; flex-shrink: 0; }
+
+.admin-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+
+.admin-table th { text-align: left; padding: 10px 14px; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--ash); border-bottom: 1px solid var(--glass-border); }
+
+.admin-table td { padding: 10px 14px; border-bottom: 1px solid var(--glass-border); vertical-align: middle; }
+
+.admin-table tbody tr:last-child td { border-bottom: none; }
+
+.admin-table tbody tr:hover { background: rgba(255,255,255,0.02); }
+
+.admin-table input[type="checkbox"] { width: auto; margin: 0; }
+
+.grid-2-panel {
+  display: grid;
+  gap: 22px;
+  grid-template-columns: 1fr 1fr;
+}
+
+@media (max-width: 760px) {
+  .grid-2-panel { grid-template-columns: 1fr; }
+}
+
+.gi-category-tab.active { border-color: var(--brass); color: var(--brass-bright); background: rgb(var(--brass-rgb) / 0.14); }
+
+.manage-tab-group { margin-bottom: 16px; display: flex; flex-direction: column; gap: 2px; }
+
+.manage-tab-group-label {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--ash);
+  margin-bottom: 8px;
+}
+
+.admin-manage-layout {
+  display: flex;
+  gap: 28px;
+  align-items: flex-start;
+  margin-top: 20px;
+}
+
+.admin-manage-sidebar {
+  width: 220px;
+  flex-shrink: 0;
+  position: sticky;
+  top: 90px;
+  display: flex;
+  flex-direction: column;
+  max-height: calc(100vh - 110px);
+  overflow-y: auto;
+}
+
+.admin-sidebar-link {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 9px 12px;
+  border-radius: var(--radius-sm);
+  background: none;
+  border: 1px solid transparent;
+  color: var(--ash);
+  font-weight: 600;
+  font-size: 0.85rem;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+
+.admin-sidebar-link i { flex-shrink: 0; color: var(--ash); transition: color 0.15s ease; }
+
+.admin-sidebar-link:hover { background: rgba(255,255,255,0.04); color: var(--bone); }
+
+.admin-sidebar-link.active { background: rgb(var(--brass-rgb) / 0.14); border-color: rgb(var(--brass-rgb) / 0.3); color: var(--brass-bright); }
+
+.admin-sidebar-link.active i { color: var(--brass-bright); }
+
+.admin-manage-content { flex: 1; min-width: 0; }
+
+@media (max-width: 860px) {
+  .admin-manage-layout { flex-direction: column; }
+  .admin-manage-sidebar { width: 100%; position: static; max-height: none; }
+  .manage-tab-group { flex-direction: row; flex-wrap: wrap; gap: 6px; }
+  .manage-tab-group-label { width: 100%; }
+  .admin-sidebar-link { width: auto; }
+}

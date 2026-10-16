@@ -1,0 +1,2 @@
+/* Rules that only apply on /sea-events/ — loaded by that page after style.css. */
+.sea-event-card::before { background: linear-gradient(90deg, var(--sea), var(--blue)); opacity: 1; }

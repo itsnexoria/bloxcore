@@ -1,0 +1,50 @@
+/* Rules that only apply on /build/ — loaded by that page after style.css. */
+.bp-grid { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: 16px; align-items: start; }
+
+@media (max-width: 860px) {
+  .bp-grid { grid-template-columns: 1fr; }
+}
+
+.bp-level-row { display: flex; gap: 14px; align-items: flex-start; flex-wrap: wrap; }
+
+.bp-level-row input[type=number] { width: 110px; }
+
+.bp-points { margin: 14px 0 10px; padding: 8px 12px; border-radius: 8px; background: rgb(255 255 255 / 0.04); font-size: 0.9rem; }
+
+.bp-stat { display: grid; grid-template-columns: 84px minmax(0, 1fr) 84px; align-items: center; gap: 12px; margin-bottom: 8px; }
+
+.bp-stat label { margin: 0; color: var(--c); font-weight: 700; }
+
+.bp-stat input[type=number] { margin: 0; width: 84px; padding: 6px 8px; }
+
+.bp-stat input[type=range], .bp-level-row input[type=range] { accent-color: var(--c, #60a5fa); width: 100%; margin: 0; }
+
+.bp-loadout { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 10px; }
+
+.bp-bars { display: grid; gap: 8px; margin: 14px 0; }
+
+.bp-bar { display: grid; grid-template-columns: 86px minmax(0, 1fr) 54px; align-items: center; gap: 10px; font-size: 0.82rem; }
+
+.bp-bar-label { color: var(--ash); }
+
+.bp-bar-track { height: 10px; border-radius: 6px; background: rgb(255 255 255 / 0.08); overflow: hidden; }
+
+.bp-bar-fill { height: 100%; border-radius: 6px; transition: width .25s; }
+
+.bp-bar-val { text-align: right; font-family: var(--font-mono); }
+
+.bp-tiles { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+
+.bp-tile { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 10px; background: rgb(255 255 255 / 0.05); min-width: 0; }
+
+.bp-tile.empty { opacity: 0.55; }
+
+.bp-tile img { width: 36px; height: 36px; object-fit: contain; flex: none; }
+
+.bp-tile-ph { display: grid; place-items: center; width: 36px; height: 36px; flex: none; border-radius: 8px; background: rgb(255 255 255 / 0.06); color: var(--ash); font-weight: 700; }
+
+.bp-tile-text { display: grid; min-width: 0; }
+
+.bp-tile-text small { font-size: 0.64rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--ash); }
+
+.bp-tile-text strong { font-size: 0.82rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }

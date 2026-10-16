@@ -1,0 +1,321 @@
+/* Rules that only apply on /player/ — loaded by that page after style.css. */
+.tp-vote-widget { display: flex; align-items: center; gap: 2px; background: rgba(255,255,255,0.03); border: 1px solid var(--glass-border); border-radius: 999px; padding: 3px; }
+
+.profile-hero {
+  position: relative;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  background: var(--navy);
+  border: 1px solid var(--glass-border);
+  box-shadow: 0 18px 44px rgb(var(--shadow-rgb) / 0.4);
+  padding: 0 !important;
+  animation: fadeInUp 0.45s ease both;
+}
+
+.profile-hero::before { display: none; }
+
+.profile-hero-banner-wrap {
+  position: relative;
+  min-height: 320px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding: 100px 30px 22px;
+  background: linear-gradient(135deg, rgb(var(--brass-rgb) / 0.25), var(--navy-light) 60%, var(--navy) 100%);
+  overflow: hidden;
+}
+
+.profile-hero-banner-wrap img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  z-index: 0;
+}
+
+.profile-hero-banner-wrap::after {
+  /* Scrim so name/rank/status/meta stay legible over any banner image — strongest at
+     the bottom where the text sits, fading out toward the top so the image still reads. */
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background: linear-gradient(180deg, rgba(5,6,10,0) 25%, rgba(5,6,10,0.5) 62%, rgba(5,6,10,0.92) 100%);
+}
+
+.profile-hero-actions {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  z-index: 3;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+  max-width: 70%;
+}
+
+.profile-hero-verified-badge {
+  position: absolute;
+  bottom: -3px;
+  right: -3px;
+  background: var(--navy);
+  border-radius: 50%;
+  color: var(--blue);
+  width: 15px;
+  height: 15px;
+}
+
+.profile-hero-overlay-info {
+  position: relative;
+  z-index: 2;
+  /* Clears the avatar column, which visually overlaps this lower-left area of the
+     banner even though it lives in .profile-hero-body below (see that rule's comment). */
+  padding-left: 178px;
+}
+
+.profile-hero-name-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  min-width: 0;
+}
+
+.profile-hero-name {
+  margin: 0;
+  font-size: 2.1rem;
+  font-weight: 800;
+  font-family: var(--font-display);
+  text-transform: none;
+  letter-spacing: normal;
+  background: linear-gradient(120deg, #fff 30%, rgb(var(--brass-rgb)) 90%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  text-shadow: 0 2px 24px rgb(var(--shadow-rgb) / 0.7);
+  overflow-wrap: break-word;
+  min-width: 0;
+}
+
+.profile-hero-rank-title {
+  margin: 4px 0 0;
+  font-size: 0.95rem;
+  color: var(--brass-bright);
+  font-weight: 700;
+}
+
+.profile-hero-rank-title .profile-hero-handle { color: var(--bone); font-weight: 500; }
+
+.profile-hero-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin: 12px 0 0;
+  padding: 6px 13px 6px 11px;
+  border-radius: 999px;
+  background: rgba(10, 10, 16, 0.4);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  border: 1px solid rgb(var(--brass-rgb) / 0.35);
+  color: var(--bone);
+  font-size: 0.83rem;
+  font-weight: 600;
+}
+
+.profile-hero-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin: 12px 0 0;
+  color: var(--ash);
+  font-size: 0.82rem;
+}
+
+.profile-hero-meta-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.profile-hero-sep { opacity: 0.35; }
+
+.profile-hero-body {
+  position: relative;
+  z-index: 2;
+  padding: 0 30px 26px;
+  display: flex;
+  align-items: flex-end;
+  gap: 22px;
+}
+
+.profile-hero-avatar-wrap {
+  position: relative;
+  flex-shrink: 0;
+  z-index: 2;
+  margin-top: -76px;
+}
+
+.profile-hero-level-pill {
+  position: absolute;
+  bottom: -4px;
+  right: -8px;
+  background: linear-gradient(135deg, var(--brass), var(--gold));
+  color: #1a0a06;
+  font-family: var(--font-stamp);
+  font-weight: 700;
+  font-size: 0.8rem;
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 3px solid var(--navy);
+  box-shadow: 0 2px 10px rgb(var(--shadow-rgb) / 0.45);
+}
+
+.profile-hero-body-content {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.profile-hero-crew-chip {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px;
+  border-radius: var(--radius-sm);
+  background: rgba(10, 10, 16, 0.55);
+  border: 1px solid var(--glass-border);
+  text-decoration: none;
+  transition: border-color 0.15s ease, transform 0.15s ease;
+}
+
+.profile-hero-crew-chip:hover { border-color: rgb(var(--brass-rgb) / 0.5); transform: translateY(-1px); }
+
+.profile-hero-crew-chip .icon-sm:last-child { margin-left: auto; color: var(--ash); }
+
+.profile-hero-xp-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.profile-hero-xp-level {
+  flex-shrink: 0;
+  font-family: var(--font-stamp);
+  font-weight: 700;
+  font-size: 0.82rem;
+  letter-spacing: 0.06em;
+  color: var(--brass-bright);
+}
+
+.profile-hero-xp-row .xp-bar { flex: 1; margin: 0; }
+
+.profile-hero-xp-label {
+  flex-shrink: 0;
+  font-size: 0.76rem;
+  color: var(--ash);
+  font-family: var(--font-mono);
+}
+
+@media (max-width: 700px) {
+  .profile-hero-banner-wrap { min-height: 260px; padding: 80px 18px 26px; }
+  .profile-hero-overlay-info { padding-left: 0; margin-bottom: 4px; }
+  .profile-hero-name { font-size: 1.5rem; }
+  .profile-hero-body { padding: 0 18px 20px; gap: 14px; }
+  .profile-hero-avatar-wrap { margin-top: -48px; }
+}
+
+@media (max-width: 480px) {
+  .profile-hero-body { flex-wrap: wrap; }
+  .profile-hero-body-content { min-width: 100%; order: 3; margin-top: 8px; }
+}
+
+.activity-timeline-row {
+  position: relative;
+  display: flex;
+  gap: 14px;
+  padding-bottom: 20px;
+}
+
+.activity-timeline-row:last-child { padding-bottom: 16px; }
+
+.activity-timeline-row:not(:last-child)::before {
+  content: '';
+  position: absolute;
+  left: 15px;
+  top: 32px;
+  bottom: 0;
+  width: 1px;
+  background: var(--navy-light);
+}
+
+.activity-timeline-dot {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  color: #05070d;
+  z-index: 1;
+}
+
+.activity-timeline-content { padding-top: 4px; min-width: 0; }
+
+.stat-card::before { background: linear-gradient(90deg, rgb(var(--sc-rgb, var(--brass-rgb))), rgb(var(--sc-rgb, var(--brass-rgb)) / 0.4)); opacity: 1; }
+
+.stat-card[data-tone="gold"] { --sc-rgb: var(--gold-rgb); }
+
+.stat-card[data-tone="blood"] { --sc-rgb: 251 113 133; }
+
+.stat-card[data-tone="pink"] { --sc-rgb: 244 114 182; }
+
+.stat-card[data-tone="blue"] { --sc-rgb: var(--blue-rgb); }
+
+.stat-card[data-tone="sea"] { --sc-rgb: 52 211 153; }
+
+.stat-card .icon-badge { width: 34px; height: 34px; border-radius: 10px; margin-bottom: 10px; }
+
+.stat-card .icon-badge svg { width: 16px; height: 16px; }
+
+.bio-panel { position: relative; overflow: hidden; }
+
+.bio-panel .bio-quote-icon { position: absolute; top: 10px; right: 14px; opacity: 0.1; width: 46px; height: 46px; color: var(--brass-bright); pointer-events: none; }
+
+.bio-panel p { position: relative; z-index: 1; }
+
+.build-card { text-align: center; }
+
+.build-card .build-icon-wrap { display: inline-flex; align-items: center; justify-content: center; width: 64px; height: 64px; border-radius: 14px; background: rgb(var(--brass-rgb) / 0.1); box-shadow: inset 0 0 0 1px rgb(var(--brass-rgb) / 0.25); margin-bottom: 8px; }
+
+.build-card .build-icon-wrap img { width: 40px; height: 40px; object-fit: contain; }
+
+.pinv-head { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 14px 28px; padding: 20px 22px; border-radius: var(--radius-lg); border: 1px solid var(--glass-border); background: linear-gradient(160deg, rgb(var(--brass-rgb) / 0.18), var(--navy) 68%); }
+
+.pinv-label { margin: 0; font-size: 0.85rem; color: var(--ash); }
+
+.pinv-meta { display: flex; flex-wrap: wrap; gap: 8px 26px; margin: 0; }
+
+.pinv-meta dt { font-size: 0.75rem; color: var(--ash); }
+
+.pinv-meta dd { margin: 2px 0 0; font-family: var(--font-mono); font-size: 1rem; color: var(--bone); }
+
+.pinv-grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; margin-top: 14px; }
+
+.pinv-note { margin: 0 0 10px; font-size: 0.82rem; color: var(--ash); }
+
+.pinv-note a { color: var(--brass-bright); }
+
+.pinv-invite { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; padding: 18px 20px; border-radius: var(--radius-lg); border: 1px dashed rgb(var(--brass-rgb) / 0.4); background: rgb(var(--brass-rgb) / 0.05); }
+
+.pinv-invite > i, .pinv-invite > svg { color: var(--brass-bright); flex-shrink: 0; }
+
+.pinv-invite > div { flex: 1 1 240px; }
+
+.pinv-invite p { margin: 2px 0 0; font-size: 0.85rem; color: var(--ash); }

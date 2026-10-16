@@ -200,7 +200,10 @@ function invRenderList(total) {
       <h2>Start your vault</h2>
       <p>Add the fruits, limiteds and gamepasses you own and BloxCore will track what they're worth, every day.</p>
       <div class="inv-quick">${quick.map(i => `<button type="button" class="inv-quick-chip" data-quick-add="${i.id}">${escapeHtml(i.name)}<span>${formatValue(i.regular_value)}</span></button>`).join('')}</div>
-      <button type="button" class="btn btn-primary" id="inv-empty-add"><i data-lucide="plus" class="icon-sm icon-inline"></i>Browse all items</button>`;
+      <div class="inv-empty-actions">
+        <button type="button" class="btn btn-primary" id="inv-empty-add"><i data-lucide="plus" class="icon-sm icon-inline"></i>Browse all items</button>
+        <button type="button" class="btn btn-ghost" id="inv-empty-import"><i data-lucide="clipboard-paste" class="icon-sm icon-inline"></i>Import a list</button>
+      </div>`;
     return;
   }
   list.className = 'inv-grid';
@@ -258,7 +261,187 @@ async function invSet(itemId, type, qty) {
   invLoadSnapshots().then(invRender); // today's snapshot was just refreshed server-side
 }
 
+// ---- share image ---------------------------------------------------------------------------
+const INV_PALETTE_HEX = ['#60a5fa', '#a78bfa', '#fbbf24', '#34d399', '#38bdf8', '#e879f9'];
+
+function invShareData() {
+  const holdings = invRows.filter(r => invItemById.has(r.item_id)).map(r => {
+    const item = invItemById.get(r.item_id);
+    return { name: item.name, iconUrl: safeImgUrl(item.icon_url), rarity: item.rarity, qty: r.qty, type: r.value_type, v: invRowValue(r) };
+  }).sort((a, b) => b.v - a.v);
+  const sum = (type) => invRows.filter(r => r.value_type === type).reduce((acc, r) => acc + invRowValue(r), 0);
+  const total = holdings.reduce((acc, h) => acc + h.v, 0);
+  const byName = new Map();
+  holdings.forEach(h => byName.set(h.name, (byName.get(h.name) || 0) + h.v));
+  const parts = [...byName].map(([, v]) => v).sort((a, b) => b - a);
+  const top = parts.slice(0, 5).map((v, i) => ({ v, color: INV_PALETTE_HEX[i] }));
+  const rest = parts.slice(5).reduce((acc, v) => acc + v, 0);
+  if (rest) top.push({ v: rest, color: '#8d98ad' });
+  const deltaEl = document.getElementById('inv-delta');
+  return {
+    owner: invUsername || 'My',
+    total: invMoney(total), physical: invMoney(sum('physical')), permanent: invMoney(sum('permanent')),
+    count: invRows.reduce((acc, r) => acc + r.qty, 0),
+    deltaText: deltaEl.textContent.trim(), deltaTone: deltaEl.classList.contains('is-up') ? 'up' : deltaEl.classList.contains('is-down') ? 'down' : '',
+    holdings: holdings.map(h => ({ ...h, value: invMoney(h.v) })), parts: top,
+  };
+}
+
+function invOpenShare() {
+  if (!invRows.length) { showToast('Add some items first.', true); return; }
+  const d = invShareData();
+  scOpenPreview({
+    title: 'Share your vault',
+    filename: 'bloxcore-vault.png',
+    shareText: `My Blox Fruits vault is worth ${d.total} on BloxCore — bloxcores.com`,
+    render: (canvas) => scRenderInventoryCard(canvas, d),
+  });
+}
+
+// ---- paste-a-list import ---------------------------------------------------------------------
+let invImportRows = [];
+
+const invNorm = (str) => str.toLowerCase().replace(/['’]/g, '').replace(/[^a-z0-9]+/g, ' ').replace(/\bfruit\b/g, ' ').replace(/\s+/g, ' ').trim();
+
+function invLev(a, b) { // tiny edit distance, enough to forgive one typo
+  const m = a.length, n = b.length;
+  if (Math.abs(m - n) > 1) return 2;
+  const d = Array.from({ length: m + 1 }, (_, i) => [i, ...Array(n).fill(0)]);
+  for (let j = 1; j <= n; j++) d[0][j] = j;
+  for (let i = 1; i <= m; i++) for (let j = 1; j <= n; j++) d[i][j] = Math.min(d[i - 1][j] + 1, d[i][j - 1] + 1, d[i - 1][j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1));
+  return d[m][n];
+}
+
+// Returns { item } for a confident match, or { candidates } when it's ambiguous / not found.
+function invMatchName(raw) {
+  const n = invNorm(raw);
+  if (!n) return { candidates: [] };
+  const entries = invCatalog.filter(i => i.regular_value != null).map(i => ({ i, n: invNorm(i.name) }));
+  const pickOne = (hits) => {
+    if (hits.length === 1) return { item: hits[0].i };
+    if (hits.length > 1) {
+      const withPerm = hits.filter(h => h.i.category === 'fruit' && h.i.permanent_value != null);
+      if (withPerm.length === 1 && hits.every(h => h.n === hits[0].n)) return { item: withPerm[0].i }; // "Magnet" vs "Magnet Fruit" twins
+      return { candidates: hits.map(h => h.i) };
+    }
+    return null;
+  };
+  let r = pickOne(entries.filter(e => e.n === n)); if (r) return r;
+  r = pickOne(entries.filter(e => e.n.split(' ').includes(n) || e.n.startsWith(n + ' ') || e.n.endsWith(' ' + n))); if (r) return r;
+  if (n.length >= 3) { r = pickOne(entries.filter(e => e.n.includes(n))); if (r) return r; }
+  if (n.length >= 4) { r = pickOne(entries.filter(e => invLev(e.n, n) <= 1)); if (r && r.item) return r; }
+  return { candidates: [] };
+}
+
+function invParseLine(line) {
+  let str = line.trim().replace(/^[-*•\u2022]+\s*/, '').replace(/^\d+[.)]\s+/, '');
+  if (!str) return null;
+  let type = 'physical', qty = 1, name = str;
+  if (/\b(perm|perma|permanent)\b/i.test(str)) { type = 'permanent'; str = str.replace(/\b(perm|perma|permanent)\b/gi, ' '); }
+  str = str.replace(/\b(physical|phys)\b/gi, ' ').replace(/\s+/g, ' ').trim();
+  let m;
+  if ((m = str.match(/^(\d{1,3})\s*[x×*]?\s+(.+)$/i))) { qty = +m[1]; name = m[2]; }
+  else if ((m = str.match(/^(.+?)\s*[x×*]\s*(\d{1,3})$/i))) { name = m[1]; qty = +m[2]; }
+  else if ((m = str.match(/^(.+?)\s*\(\s*(\d{1,3})\s*\)$/))) { name = m[1]; qty = +m[2]; }
+  else name = str;
+  name = name.replace(/[()]/g, ' ').trim();
+  if (!name) return null;
+  return { raw: line.trim(), name, type, qty: Math.max(1, Math.min(999, qty)) };
+}
+
+function invParseList(text) {
+  const lines = text.split(/\r?\n/).flatMap(l => (l.includes(',') && !/\d\s*,\s*\d/.test(l)) ? l.split(/[,;]+/) : [l]);
+  return lines.map(invParseLine).filter(Boolean).slice(0, 200).map(p => {
+    const m = invMatchName(p.name);
+    const item = m.item || null;
+    return { ...p, itemId: item ? item.id : '', candidates: (m.candidates || []).map(c => c.id), include: !!item };
+  });
+}
+
+function invRenderImportPreview() {
+  const box = document.getElementById('inv-import-preview');
+  const apply = document.getElementById('inv-import-apply');
+  if (!invImportRows.length) { box.innerHTML = '<p class="muted" style="margin:12px 0 0; font-size:0.85rem;">Nothing recognised yet — check the list and try Preview again.</p>'; apply.disabled = true; return; }
+  const optionsFor = (r) => {
+    const cand = r.candidates.length ? `<optgroup label="Did you mean…">${r.candidates.map(id => `<option value="${id}" ${String(id) === String(r.itemId) ? 'selected' : ''}>${escapeHtml(invItemById.get(id)?.name || '')}</option>`).join('')}</optgroup>` : '';
+    const all = invCatalog.filter(i => i.regular_value != null).map(i => `<option value="${i.id}" ${String(i.id) === String(r.itemId) ? 'selected' : ''}>${escapeHtml(i.name)}</option>`).join('');
+    return `<option value="">Choose an item…</option>${cand}<optgroup label="All items">${all}</optgroup>`;
+  };
+  box.innerHTML = `<div class="inv-import-rows">${invImportRows.map((r, i) => {
+    const item = invItemById.get(Number(r.itemId));
+    const canPerm = item?.category === 'fruit';
+    return `
+      <div class="inv-import-row ${r.itemId ? '' : 'needs-match'}" data-i="${i}">
+        <input type="checkbox" data-f="include" ${r.include && r.itemId ? 'checked' : ''} ${r.itemId ? '' : 'disabled'} aria-label="Include this line">
+        <span class="inv-import-raw" title="${escapeHtml(r.raw)}">${escapeHtml(r.raw)}</span>
+        <select data-f="item" aria-label="Item for “${escapeHtml(r.raw)}”">${optionsFor(r)}</select>
+        <select data-f="type" aria-label="Value type" ${canPerm ? '' : 'disabled'}><option value="physical" ${r.type === 'physical' || !canPerm ? 'selected' : ''}>Physical</option><option value="permanent" ${r.type === 'permanent' && canPerm ? 'selected' : ''}>Permanent</option></select>
+        <input type="number" min="1" max="999" value="${r.qty}" data-f="qty" aria-label="Quantity">
+      </div>`;
+  }).join('')}</div>`;
+  invUpdateImportButton();
+}
+
+function invUpdateImportButton() {
+  const n = invImportRows.filter(r => r.include && r.itemId).length;
+  const apply = document.getElementById('inv-import-apply');
+  apply.disabled = n === 0;
+  apply.textContent = n ? `Import ${n} item${n === 1 ? '' : 's'}` : 'Import';
+}
+
+function invOpenImport() {
+  document.getElementById('inv-import-modal').classList.add('open');
+  document.getElementById('inv-import-text').focus();
+  refreshIcons();
+}
+
+async function invApplyImport() {
+  const mode = document.querySelector('input[name="inv-import-mode"]:checked')?.value || 'add';
+  const rows = invImportRows.filter(r => r.include && r.itemId).map(r => {
+    const item = invItemById.get(Number(r.itemId));
+    return { item_id: Number(r.itemId), value_type: item?.category === 'fruit' ? r.type : 'physical', qty: r.qty };
+  });
+  if (!rows.length) return;
+  const apply = document.getElementById('inv-import-apply');
+  apply.disabled = true; apply.textContent = 'Importing…';
+  let applied = 0, ignored = 0;
+  for (let i = 0; i < rows.length; i += 100) {
+    const { data, error } = await sb.rpc('import_inventory', { p_rows: rows.slice(i, i + 100), p_mode: mode });
+    if (error) { showToast(error.message, true); invUpdateImportButton(); return; }
+    applied += data?.applied || 0; ignored += data?.ignored || 0;
+  }
+  await Promise.all([invLoadRows(), invLoadSnapshots()]);
+  invRender();
+  document.getElementById('inv-import-modal').classList.remove('open');
+  document.getElementById('inv-import-text').value = '';
+  invImportRows = []; document.getElementById('inv-import-preview').innerHTML = '';
+  showToast(`Imported ${applied} item${applied === 1 ? '' : 's'}${ignored ? ` (${ignored} skipped)` : ''}.`);
+}
+
 function invWire() {
+  // share + import
+  document.getElementById('inv-share').addEventListener('click', invOpenShare);
+  document.getElementById('inv-import').addEventListener('click', invOpenImport);
+  const importModal = document.getElementById('inv-import-modal');
+  document.getElementById('inv-import-close').addEventListener('click', () => importModal.classList.remove('open'));
+  importModal.addEventListener('click', (e) => { if (e.target === importModal) importModal.classList.remove('open'); });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') importModal.classList.remove('open'); });
+  document.getElementById('inv-import-parse').addEventListener('click', () => {
+    invImportRows = invParseList(document.getElementById('inv-import-text').value);
+    invRenderImportPreview();
+  });
+  document.getElementById('inv-import-apply').addEventListener('click', invApplyImport);
+  const preview = document.getElementById('inv-import-preview');
+  preview.addEventListener('change', (e) => {
+    const rowEl = e.target.closest('[data-i]'); if (!rowEl) return;
+    const r = invImportRows[Number(rowEl.dataset.i)]; const f = e.target.dataset.f;
+    if (f === 'include') r.include = e.target.checked;
+    else if (f === 'qty') r.qty = Math.max(1, Math.min(999, parseInt(e.target.value, 10) || 1));
+    else if (f === 'type') r.type = e.target.value;
+    else if (f === 'item') { r.itemId = e.target.value; r.include = !!r.itemId; invRenderImportPreview(); return; }
+    invUpdateImportButton();
+  });
+
   document.getElementById('inv-public').addEventListener('change', async (e) => {
     const want = e.target.checked;
     const { error } = await sb.rpc('set_inventory_public', { p_public: want });
@@ -272,6 +455,7 @@ function invWire() {
     const quick = e.target.closest('[data-quick-add]');
     if (quick) { invSet(Number(quick.dataset.quickAdd), 'physical', 1); return; }
     if (e.target.closest('#inv-empty-add')) { document.getElementById('inv-add').click(); return; }
+    if (e.target.closest('#inv-empty-import')) { invOpenImport(); return; }
     const btn = e.target.closest('[data-act]');
     const card = e.target.closest('[data-inv-item]');
     if (!btn || !card || btn.dataset.act === 'qty') return;

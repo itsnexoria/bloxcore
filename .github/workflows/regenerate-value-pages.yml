@@ -51,6 +51,11 @@ jobs:
       - name: Regenerate value-converter & permanent-fruit calculator pages
         run: node scripts/generate-calculator-pages.mjs .
 
+      # Warns (never blocks the deploy) if a page uses classes from a stylesheet bundle it doesn't link.
+      - name: Check page stylesheet bundles
+        run: node scripts/check-css-split.mjs .
+        continue-on-error: true
+
       - name: Rebuild sitemap (adds lastmod)
         run: node scripts/generate-sitemap.mjs .
 

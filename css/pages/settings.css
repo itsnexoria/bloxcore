@@ -1,0 +1,99 @@
+/* Rules that only apply on /settings/ — loaded by that page after style.css. */
+.theme-swatch {
+  border: 2px solid var(--glass-border);
+  border-radius: var(--radius);
+  padding: 12px 6px;
+  cursor: pointer;
+  text-align: center;
+  transition: border-color 0.15s ease, transform 0.15s ease;
+  min-height: 84px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.theme-swatch:hover { transform: translateY(-2px); }
+
+.theme-swatch.selected { border-color: var(--brass); }
+
+.theme-swatch .swatch-dot {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.theme-swatch .swatch-dot i { width: 14px; height: 14px; }
+
+.theme-swatch span {
+  font-size: 0.78rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+.settings-layout {
+  display: grid;
+  grid-template-columns: 190px 1fr;
+  gap: 28px;
+  align-items: start;
+  margin-top: 24px;
+}
+
+.settings-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  position: sticky;
+  top: 84px;
+}
+
+.settings-nav button {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  text-align: left;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--radius);
+  padding: 10px 12px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--ash);
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+
+.settings-nav button:hover { background: var(--glass); color: var(--bone); }
+
+.settings-nav button.active {
+  background: var(--glass);
+  border-color: var(--glass-border);
+  color: var(--brass-bright);
+}
+
+.settings-nav button .icon-sm { flex-shrink: 0; }
+
+.settings-panel { display: none; }
+
+.settings-panel.active { display: block; animation: settingsFadeIn 0.15s ease; }
+
+@media (max-width: 760px) {
+  .settings-layout { grid-template-columns: 1fr; gap: 16px; }
+  .settings-nav {
+    position: static;
+    flex-direction: row;
+    overflow-x: auto;
+    gap: 6px;
+    padding-bottom: 4px;
+    -webkit-overflow-scrolling: touch;
+  }
+  .settings-nav button { flex-shrink: 0; white-space: nowrap; }
+}

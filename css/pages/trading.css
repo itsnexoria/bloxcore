@@ -1,0 +1,72 @@
+/* Rules that only apply on /trading/ — loaded by that page after style.css. */
+.trade-card { position: relative; }
+
+.trade-card-footer { display: flex; justify-content: flex-end; gap: 8px; margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--glass-border); }
+
+.trade-compose-extra { padding-top: 16px; margin-top: 4px; border-top: 1px solid var(--glass-border); }
+
+.trade-compose-extra label:first-child { margin-top: 0; }
+
+.trade-card::before { background: linear-gradient(90deg, var(--sea), var(--gold-bright)); opacity: 1; }
+
+.confirm-card { padding: 16px; border-color: rgb(var(--brass-rgb) / 0.45); }
+
+.confirm-card-tiles { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
+
+.vc-summary { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin-top: 18px; }
+
+.vc-summary:empty { display: none; }
+
+.vc-summary-col { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 12px 14px; border: 1px solid var(--border, rgb(255 255 255 / 0.08)); border-radius: var(--radius-sm); background: rgb(255 255 255 / 0.02); }
+
+.vc-summary-label { width: 100%; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--ash); }
+
+.vc-group { display: grid; gap: 8px; }
+
+.vc-row { display: grid; grid-template-columns: 44px minmax(0, 1fr) auto auto; align-items: center; gap: 14px; padding: 10px 14px; text-decoration: none; color: inherit; }
+
+.vc-row-img { width: 40px; height: 40px; display: grid; place-items: center; border-radius: 10px; background: radial-gradient(circle, color-mix(in srgb, var(--vc-color) 22%, transparent), transparent 75%); }
+
+.vc-row-img img { width: 36px; height: 36px; object-fit: contain; }
+
+.vc-row-name { display: flex; flex-direction: column; min-width: 0; }
+
+.vc-row-name strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+.vc-row-name .muted { font-size: 0.72rem; text-transform: capitalize; }
+
+.vc-row-values { display: inline-flex; align-items: center; gap: 8px; font-family: var(--font-mono); font-size: 0.85rem; }
+
+.vc-row-pct { font-weight: 700; font-size: 0.85rem; color: var(--vc-color); min-width: 76px; text-align: right; }
+
+@media (max-width: 640px) {
+  .vc-summary { grid-template-columns: 1fr; }
+  .vc-row { grid-template-columns: 40px minmax(0, 1fr) auto; }
+  .vc-row-values { display: none; }
+}
+
+.sc-card { padding: 20px; border-color: color-mix(in srgb, var(--risk) 45%, transparent); box-shadow: 0 12px 36px -18px color-mix(in srgb, var(--risk) 60%, transparent); }
+
+.sc-head { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+
+.sc-risk { display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; border-radius: 999px; font-weight: 700; font-size: 0.85rem; color: var(--risk); background: color-mix(in srgb, var(--risk) 14%, transparent); border: 1px solid color-mix(in srgb, var(--risk) 40%, transparent); }
+
+.sc-blurb { margin: 14px 0; color: var(--ash); font-size: 0.92rem; }
+
+.sc-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 10px; }
+
+.sc-stat { padding: 10px 12px; border-radius: var(--radius-sm); background: rgb(255 255 255 / 0.03); text-align: center; }
+
+.sc-stat strong { display: block; font-size: 1.35rem; font-family: var(--font-mono); }
+
+.sc-stat span { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--ash); }
+
+.sc-reasons { margin: 14px 0 0; padding-left: 18px; font-size: 0.88rem; color: var(--ash); line-height: 1.7; }
+
+.trade-vote-row { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin-top: 10px; }
+
+.trade-vote-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted, #8b95a8); margin-right: 2px; }
+
+.trade-vote-count { font-family: var(--font-mono); opacity: 0.85; }
+
+.trade-vote-hint { font-size: 0.72rem; }

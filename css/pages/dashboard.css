@@ -1,0 +1,124 @@
+/* Rules that only apply on /dashboard/ — loaded by that page after style.css. */
+.info-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--glass-border);
+  background: var(--glass-bg);
+}
+
+.stamp .stamp-label {
+  font-size: 0.6rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-family: var(--font-body);
+  font-weight: 700;
+  margin-top: 2px;
+}
+
+.stamp-approved { --stamp-color: var(--sea); }
+
+.stamp-rejected { --stamp-color: var(--blood); }
+
+.rankup-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 300;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.rankup-overlay::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: rgba(5, 6, 10, 0);
+  backdrop-filter: blur(0px);
+  -webkit-backdrop-filter: blur(0px);
+  transition: background 0.25s ease, backdrop-filter 0.25s ease, -webkit-backdrop-filter 0.25s ease;
+}
+
+.rankup-overlay.open::before {
+  background: rgba(5, 6, 10, 0.72);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+
+.rankup-card {
+  position: relative;
+  background: linear-gradient(165deg, var(--glass-bg-strong), var(--navy) 70%);
+  border: 1px solid rgb(var(--brass-rgb) / 0.4);
+  border-radius: var(--radius);
+  padding: 40px 32px;
+  max-width: 340px;
+  width: 100%;
+  text-align: center;
+  transform: scale(0.85) translateY(10px);
+  opacity: 0;
+  transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.3s ease;
+  box-shadow: 0 0 60px rgb(var(--brass-rgb) / 0.25);
+}
+
+.rankup-overlay.open .rankup-card { transform: scale(1) translateY(0); opacity: 1; }
+
+.rankup-burst {
+  position: absolute;
+  top: 50%; left: 50%;
+  width: 240px; height: 240px;
+  transform: translate(-50%, -50%);
+  background: radial-gradient(circle, rgb(var(--brass-rgb) / 0.35), transparent 70%);
+  border-radius: 50%;
+  pointer-events: none;
+  animation: rankupPulse 1.8s ease-out infinite;
+}
+
+.rankup-eyebrow {
+  position: relative;
+  margin: 0 0 6px;
+  font-size: 0.78rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--brass-bright);
+  font-weight: 700;
+}
+
+.rankup-level {
+  position: relative;
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 2.6rem;
+  color: var(--bone);
+  line-height: 1.1;
+}
+
+.rankup-title {
+  position: relative;
+  margin: 4px 0 24px;
+  font-size: 1.1rem;
+  color: var(--ash);
+}
+
+.login-streak { padding: 16px 20px; }
+
+.ls-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+
+.ls-flame { display: grid; place-items: center; width: 40px; height: 40px; border-radius: 12px; background: rgb(255 255 255 / 0.05); color: var(--ash); }
+
+.ls-flame.on { color: #fb923c; background: rgb(251 146 60 / 0.15); }
+
+.ls-dots { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; margin-top: 14px; }
+
+.ls-dot { display: grid; place-items: center; height: 30px; border-radius: 8px; font-size: 0.78rem; font-weight: 700; font-family: var(--font-mono); color: var(--ash); background: rgb(255 255 255 / 0.04); border: 1px dashed rgb(255 255 255 / 0.1); }
+
+.ls-dot.on { color: #1a0a06; background: linear-gradient(135deg, #fb923c, #fbbf24); border-style: solid; border-color: transparent; }
+
+.ls-dot.next { border-color: #fb923c; color: #fb923c; animation: ls-pulse 1.8s ease-in-out infinite; }
+
+@media (prefers-reduced-motion: reduce) {
+  .ls-dot.next { animation: none; }
+}

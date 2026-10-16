@@ -1,0 +1,45 @@
+/* Rules that only apply on /admin/ — loaded by that page after style.css. */
+.lightbox-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 300;
+  background: rgba(4,4,7,0.94);
+  align-items: center;
+  justify-content: center;
+  padding: 40px;
+}
+
+.lightbox-overlay.open { display: flex; }
+
+.lightbox-overlay img {
+  max-width: min(90vw, 1100px);
+  max-height: 85vh;
+  max-height: 85dvh;
+  object-fit: contain;
+  border-radius: var(--radius);
+  border: 1px solid var(--glass-border);
+}
+
+.lightbox-nav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background: var(--glass-bg-strong);
+  border: 1px solid var(--glass-border);
+  color: var(--bone);
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  font-size: 1.4rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.lightbox-nav:hover { border-color: var(--brass); background: rgb(var(--brass-rgb) / 0.16); }
+
+.lightbox-prev { left: 18px; }
+
+.lightbox-next { right: 18px; }
