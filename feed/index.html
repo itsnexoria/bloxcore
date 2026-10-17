@@ -94,11 +94,12 @@
   <div class="container" style="max-width:1080px;">
     <div class="feed-layout" style="margin-top:20px;">
       <div class="feed-main">
-        <div id="feed-signed-out" class="panel" style="display:none; text-align:center;">
-          <p class="muted" style="margin:0;"><a href="/auth/">Sign in</a> to post to the feed, like, and comment.</p>
+        <div id="feed-signed-out" class="panel feed-signin" style="display:none;">
+          <div class="feed-signin-inner"><div><h2>Join the conversation</h2><p class="muted">Sign in to post, like, comment and follow other players.</p></div>
+          <a href="/auth/" class="btn btn-primary">Sign in</a></div>
         </div>
 
-        <div id="feed-compose" class="panel hover-lift-card" style="display:none;">
+        <div id="feed-compose" class="panel feed-compose" style="display:none;">
           <div style="display:flex; gap:12px;">
             <div id="feed-compose-avatar"></div>
             <div style="flex:1; min-width:0;">
@@ -157,7 +158,7 @@
           </div>
         </div>
 
-        <div id="feed-tabs" style="display:flex; gap:8px; margin-top:20px; flex-wrap:wrap;">
+        <div id="feed-tabs" class="feed-tabs" role="tablist" aria-label="Feed view">
           <button type="button" class="btn btn-sm btn-primary" data-feed-tab="latest">Latest</button>
           <button type="button" class="btn btn-sm btn-ghost" data-feed-tab="trending"><i data-lucide="flame" class="icon-sm icon-inline"></i>Trending</button>
           <button type="button" class="btn btn-sm btn-ghost" data-feed-tab="following" id="feed-tab-following"><i data-lucide="user-check" class="icon-sm icon-inline"></i>Following</button>
@@ -170,12 +171,12 @@
           <button type="button" id="feed-tag-clear-btn" class="btn btn-ghost btn-sm" style="padding:2px 8px; font-size:0.72rem;">Clear</button>
         </div>
 
-        <div id="feed-list" style="margin-top:20px; display:flex; flex-direction:column; gap:14px;">
-          <div class="skeleton" style="height:120px;"></div>
-          <div class="skeleton" style="height:120px;"></div>
-          <div class="skeleton" style="height:120px;"></div>
+        <div id="feed-list" class="feed-list">
+          <div class="skeleton" style="height:150px;"></div>
+          <div class="skeleton" style="height:150px;"></div>
+          <div class="skeleton" style="height:150px;"></div>
         </div>
-        <p id="feed-empty" class="muted" style="display:none; text-align:center; padding:40px 0;">No posts yet — be the first to share something.</p>
+        <div id="feed-empty" class="feed-empty" style="display:none;"><i data-lucide="message-square-plus" class="icon-lg"></i><p>No posts here yet — be the first to share something.</p></div>
         <div id="feed-load-more-wrap"></div>
       </div>
 
@@ -214,11 +215,11 @@
 
         <div class="panel feed-sidebar-card">
           <h3><i data-lucide="compass" class="icon-sm icon-inline"></i>Jump To</h3>
-          <div style="display:flex; flex-direction:column; gap:6px;">
-            <a href="/challenges/" class="btn btn-ghost btn-sm" style="justify-content:flex-start;">Bounty Board</a>
-            <a href="/trading/" class="btn btn-ghost btn-sm" style="justify-content:flex-start;">Trading</a>
-            <a href="/sea-events/" class="btn btn-ghost btn-sm" style="justify-content:flex-start;">Sea Events</a>
-            <a href="/giveaways/" class="btn btn-ghost btn-sm" style="justify-content:flex-start;">Giveaways</a>
+          <div class="fs-jump">
+            <a href="/challenges/"><i data-lucide="target" class="icon-sm"></i>Bounties</a>
+            <a href="/trading/"><i data-lucide="repeat" class="icon-sm"></i>Trading</a>
+            <a href="/sea-events/"><i data-lucide="waves" class="icon-sm"></i>Sea Events</a>
+            <a href="/giveaways/"><i data-lucide="gift" class="icon-sm"></i>Giveaways</a>
           </div>
         </div>
       </aside>

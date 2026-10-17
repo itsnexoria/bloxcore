@@ -16,6 +16,7 @@ onReady(async () => {
   document.getElementById('ov-refresh').addEventListener('click', () => refreshOverview(true));
   document.getElementById('ov-auto').addEventListener('click', toggleAuto);
   document.querySelectorAll('[data-ov-metric]').forEach(b => b.addEventListener('click', () => { OV.metric = b.dataset.ovMetric; renderMainChart(); }));
+  document.getElementById('ov-chart-extra')?.addEventListener('click', (e) => { const b = e.target.closest('[data-ov-pick]'); if (!b) return; OV.metric = b.dataset.ovPick; renderMainChart(); });
   document.querySelectorAll('[data-ov-sev]').forEach(b => b.addEventListener('click', () => { OV.sev = b.dataset.ovSev; renderFlags(); }));
   document.getElementById('ov-dismiss-low').addEventListener('click', dismissLowFlags);
   document.addEventListener('keydown', (e) => { if (e.key === 'r' && !e.metaKey && !e.ctrlKey && !/input|textarea|select/i.test(document.activeElement?.tagName)) refreshOverview(true); });
@@ -194,6 +195,34 @@ function renderMainChart() {
   document.getElementById('ov-chart-sub').textContent = `${total} total · ${avg} per day · last 14 days (UTC)`;
   box.innerHTML = ovBars(values, labels, color, label);
   wireTips(box);
+  renderChartExtra(daily, values, labels, color);
+}
+
+// Fills the space under the main chart: headline stats for the selected metric + a one-row-per-metric
+// overview (click a row to switch the chart). Keeps this card from stretching hollow next to the taller one.
+function renderChartExtra(daily, values, labels, color) {
+  const el = document.getElementById('ov-chart-extra');
+  if (!el) return;
+  const sum = a => a.reduce((x, y) => x + y, 0);
+  const peak = Math.max(...values), peakDay = peak > 0 ? labels[values.indexOf(peak)] : '—';
+  const last7 = sum(values.slice(-7)), prev7 = sum(values.slice(-14, -7));
+  const delta = prev7 ? Math.round(((last7 - prev7) / prev7) * 100) : null;
+  const deltaTxt = delta == null ? (last7 ? 'new' : '—') : `${delta > 0 ? '▲' : delta < 0 ? '▼' : '•'} ${Math.abs(delta)}%`;
+  const deltaCls = delta == null ? '' : delta > 0 ? 'up' : delta < 0 ? 'down' : '';
+  const stats = [
+    ['Today', values[values.length - 1]],
+    ['Last 7 days', last7],
+    ['Peak day', peak > 0 ? `${peak} <small>${peakDay}</small>` : '—'],
+    ['vs previous 7d', `<span class="ov-delta ${deltaCls}">${deltaTxt}</span>`],
+  ];
+  const rows = Object.entries(OV_METRICS).map(([key, [lab, col]]) => {
+    const vs = daily.map(r => r[key]);
+    return `<button type="button" class="ov-mrow${key === OV.metric ? ' is-on' : ''}" data-ov-pick="${key}" style="--c:${col};">
+      <span class="ov-mrow-dot"></span><span class="ov-mrow-name">${lab}</span>
+      <span class="ov-mrow-spark">${ovSpark(vs, col)}</span><b>${sum(vs)}</b></button>`;
+  }).join('');
+  el.innerHTML = `<div class="ov-cstats" style="--c:${color};">${stats.map(([l, v]) => `<div class="ov-cstat"><span>${l}</span><strong>${v}</strong></div>`).join('')}</div>
+    <div class="ov-mrows">${rows}</div>`;
 }
 
 function renderErrorChart() {

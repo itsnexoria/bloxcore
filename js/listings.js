@@ -79,15 +79,18 @@ function valueTileHtml(item, valueType, { editable = false } = {}) {
   // Only fruits can be a "physical" drop vs. a permanent (gamepass-bought) copy — skins and
   // gamepasses are always permanent, so don't offer a toggle that has nothing to toggle to.
   const canToggle = editable && item.category === 'fruit';
+  const vtLabel = valueType === 'permanent' ? 'Permanent' : 'Physical';
+  const vtTone = valueType === 'permanent' ? 'legendary' : 'medium';
   return `
-    <div style="display:flex; flex-direction:column; align-items:center; gap:4px;">
-      <div class="build-modal-tile" data-rarity="${rarity}" style="width:56px; height:56px; padding:4px; cursor:default;" title="${escapeHtml(item.name)} — ${item.trend || 'stable'} trend, demand ${item.demand ?? '?'}/10">
+    <div class="value-tile">
+      <div class="build-modal-tile value-tile-box" data-rarity="${rarity}" title="${escapeHtml(item.name)} — ${item.trend || 'stable'} trend, demand ${item.demand ?? '?'}/10">
         ${item.icon_url ? `<img src="${safeImgUrl(item.icon_url)}" alt="" loading="lazy" onerror="this.style.display='none';">` : `<i data-lucide="sparkles" class="icon-md"></i>`}
       </div>
-      <span style="font-size:0.66rem; font-family:var(--font-mono); color:var(--gold-bright);">${formatValue(value)}</span>
+      <span class="value-tile-name">${escapeHtml(item.name)}</span>
+      <span class="value-tile-val">${formatValue(value)}</span>
       ${canToggle
-        ? `<button type="button" class="tag tag-${valueType === 'permanent' ? 'legendary' : 'medium'}" data-toggle-value-type style="border:none; cursor:pointer;">${valueType === 'permanent' ? 'Permanent' : 'Physical'}</button>`
-        : `<span class="tag tag-${valueType === 'permanent' ? 'legendary' : 'medium'}">${valueType === 'permanent' ? 'Permanent' : 'Physical'}</span>`}
+        ? `<button type="button" class="tag tag-${vtTone}" data-toggle-value-type style="border:none; cursor:pointer;">${vtLabel}</button>`
+        : `<span class="tag tag-${vtTone}">${vtLabel}</span>`}
     </div>
   `;
 }

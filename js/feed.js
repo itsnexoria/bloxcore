@@ -304,8 +304,10 @@ async function loadPulseStats() {
   ]);
 
   el.innerHTML = `
-    <p style="margin:0 0 8px; font-size:0.85rem;"><span class="feed-pulse-number">${todayCount ?? 0}</span> post${todayCount === 1 ? '' : 's'} in the last 24h</p>
-    <p style="margin:0; font-size:0.85rem;"><span class="feed-pulse-number">${weekCount ?? 0}</span> post${weekCount === 1 ? '' : 's'} this week</p>
+    <div class="fs-stats">
+      <div class="fs-stat"><strong class="feed-pulse-number">${todayCount ?? 0}</strong><span>post${todayCount === 1 ? '' : 's'} today</span></div>
+      <div class="fs-stat"><strong class="feed-pulse-number">${weekCount ?? 0}</strong><span>post${weekCount === 1 ? '' : 's'} this week</span></div>
+    </div>
   `;
 }
 
@@ -318,12 +320,13 @@ async function loadSidebarTrending() {
     return;
   }
 
-  el.innerHTML = data.map(p => `
-    <a href="/feed/#post-${p.id}" class="feed-sidebar-trending-row" style="text-decoration:none; color:inherit;">
-      ${avatarHtml({ username: p.username, display_name: p.display_name, avatar_url: p.avatar_url, avatar_frame: p.avatar_frame }, 28)}
-      <div style="min-width:0;">
-        <p style="margin:0; font-size:0.78rem; color:var(--bone); overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${escapeHtml(p.content)}</p>
-        <p class="muted" style="margin:0; font-size:0.68rem;"><i data-lucide="heart" class="icon-sm icon-inline"></i>${p.like_count} · <i data-lucide="message-square" class="icon-sm icon-inline"></i>${p.comment_count}</p>
+  el.innerHTML = data.map((p, i) => `
+    <a href="/feed/#post-${p.id}" class="feed-sidebar-trending-row fs-row">
+      <span class="fs-rank">${i + 1}</span>
+      ${avatarHtml({ username: p.username, display_name: p.display_name, avatar_url: p.avatar_url, avatar_frame: p.avatar_frame }, 30)}
+      <div class="fs-row-main">
+        <p class="fs-row-title">${escapeHtml(p.content)}</p>
+        <p class="fs-row-sub"><i data-lucide="heart" class="icon-sm icon-inline"></i>${p.like_count} <i data-lucide="message-square" class="icon-sm icon-inline" style="margin-left:6px;"></i>${p.comment_count}</p>
       </div>
     </a>
   `).join('');
@@ -340,13 +343,14 @@ async function loadSidebarTopPlayers() {
     .order('xp', { ascending: false })
     .limit(5);
   if (!data || !data.length) { el.closest('.feed-sidebar-card').style.display = 'none'; return; }
-  el.innerHTML = data.map(p => `
-    <div class="feed-sidebar-suggestion-row">
-      <a href="/player/?u=${encodeURIComponent(p.username || '')}" style="display:flex; align-items:center; gap:8px; text-decoration:none; color:inherit; min-width:0; flex:1;">
+  el.innerHTML = data.map((p, i) => `
+    <div class="feed-sidebar-suggestion-row fs-row">
+      <span class="fs-rank fs-rank-${i + 1}">${i + 1}</span>
+      <a href="/player/?u=${encodeURIComponent(p.username || '')}" class="fs-row-link">
         ${avatarHtml(p, 30)}
-        <span style="font-size:0.82rem; color:var(--bone); overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${escapeHtml(displayNameFor(p))}</span>
+        <span class="fs-row-name">${escapeHtml(displayNameFor(p))}</span>
       </a>
-      <span class="muted" style="font-size:0.72rem; flex-shrink:0;">Lv ${p.level ?? 1}</span>
+      <span class="fs-lv">Lv ${p.level ?? 1}</span>
     </div>
   `).join('');
 }
@@ -367,12 +371,12 @@ async function loadSidebarSuggestions() {
   card.style.display = 'block';
 
   el.innerHTML = suggestions.map(p => `
-    <div class="feed-sidebar-suggestion-row">
-      <a href="/player/?u=${encodeURIComponent(p.username || '')}" style="display:flex; align-items:center; gap:8px; text-decoration:none; color:inherit; min-width:0; flex:1;">
+    <div class="feed-sidebar-suggestion-row fs-row">
+      <a href="/player/?u=${encodeURIComponent(p.username || '')}" class="fs-row-link">
         ${avatarHtml(p, 30)}
-        <span style="font-size:0.82rem; color:var(--bone); overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${escapeHtml(displayNameFor(p))}</span>
+        <span class="fs-row-name">${escapeHtml(displayNameFor(p))}</span>
       </a>
-      <button type="button" class="btn btn-ghost btn-sm" data-follow-user="${p.id}" style="flex-shrink:0; padding:4px 8px; font-size:0.72rem;">Follow</button>
+      <button type="button" class="btn btn-ghost btn-sm fs-follow" data-follow-user="${p.id}">Follow</button>
     </div>
   `).join('');
 
@@ -688,44 +692,46 @@ function renderPost(p) {
   const isOwner = currentUser && currentUser.id === p.user_id;
   const isPinned = currentProfile && currentProfile.pinned_feed_post_id === p.id;
   const embed = detectEmbed(p.content || '');
+  const profileUrl = `/player/?u=${encodeURIComponent(p.username || '')}`;
+  const img = p.image_url ? safeImgUrl(p.image_url) : '';
+
+  const tools = isOwner
+    ? `<button class="fp-tool${isPinned ? ' is-on' : ''}" data-pin-post="${p.id}" aria-label="${isPinned ? 'Unpin from profile' : 'Pin to profile'}" title="${isPinned ? 'Unpin from profile' : 'Pin to profile'}"><i data-lucide="pin" class="icon-sm"></i></button>
+       <button class="fp-tool fp-tool-bad" data-delete-post="${p.id}" aria-label="Delete post" title="Delete"><i data-lucide="trash-2" class="icon-sm"></i></button>`
+    : (currentUser ? `<button class="fp-tool" data-report-post="${p.id}" aria-label="Report post" title="Report"><i data-lucide="flag" class="icon-sm"></i></button>` : '');
 
   return `
-    <div class="panel feed-post-card hover-lift-card" data-post-id="${p.id}">
-      <div class="flex-between">
-        <div style="display:flex; align-items:center; gap:10px;">
-          ${avatarHtml(profile, 38)}
-          <div>
-            <a href="/player/?u=${encodeURIComponent(p.username || '')}" style="color:var(--bone); font-weight:700; text-decoration:none; font-size:0.92rem;">${escapeHtml(displayNameFor(profile))}</a> ${titleBadge(profile)}
-            <p class="muted" style="margin:0; font-size:0.75rem;">${timeAgo(p.created_at)}${p.visibility === 'crew' ? ` · <span style="color:var(--sea);"><i data-lucide="shield" class="icon-sm icon-inline"></i>${escapeHtml(p.crew_name || 'Crew')} only</span>` : ''}</p>
-          </div>
+    <article class="panel feed-post-card hover-lift-card${isPinned ? ' is-pinned-post' : ''}" data-post-id="${p.id}" id="post-${p.id}">
+      <header class="fp-head">
+        <a href="${profileUrl}" class="fp-avatar" aria-label="${escapeHtml(displayNameFor(profile))}">${avatarHtml(profile, 44)}</a>
+        <div class="fp-who">
+          <div class="fp-name-line"><a href="${profileUrl}" class="fp-name">${escapeHtml(displayNameFor(profile))}</a> ${titleBadge(profile)}</div>
+          <p class="fp-meta">${timeAgo(p.created_at)}${p.visibility === 'crew' ? `<span class="fp-chip fp-chip-crew"><i data-lucide="shield" class="icon-sm icon-inline"></i>${escapeHtml(p.crew_name || 'Crew')} only</span>` : ''}${isPinned ? `<span class="fp-chip fp-chip-pin"><i data-lucide="pin" class="icon-sm icon-inline"></i>Pinned</span>` : ''}</p>
         </div>
-        <div style="display:flex; gap:4px;">
-          ${isOwner
-            ? `<button class="services-card-icon-btn" data-pin-post="${p.id}" aria-label="${isPinned ? 'Unpin from profile' : 'Pin to profile'}" title="${isPinned ? 'Unpin from profile' : 'Pin to profile'}"><i data-lucide="pin" class="icon-sm" style="${isPinned ? 'color:var(--brass-bright); fill:var(--brass-bright);' : ''}"></i></button>
-               <button class="services-card-icon-btn" data-delete-post="${p.id}" aria-label="Delete post" title="Delete"><i data-lucide="x" class="icon-sm"></i></button>`
-            : (currentUser ? `<button class="services-card-icon-btn" data-report-post="${p.id}" aria-label="Report post" title="Report"><i data-lucide="flag" class="icon-sm"></i></button>` : '')}
-        </div>
-      </div>
-      ${isPinned ? `<p class="muted" style="margin:10px 0 0; font-size:0.72rem;"><i data-lucide="pin" class="icon-sm icon-inline"></i>Pinned to profile</p>` : ''}
-      <p style="margin:12px 0 0; white-space:pre-wrap; font-size:0.94rem;">${linkifyHashtags(p.content)}</p>
-      ${p.image_url ? `<a href="${safeImgUrl(p.image_url) || '#'}" target="_blank" rel="noopener noreferrer"><img src="${safeImgUrl(p.image_url)}" alt="" loading="lazy" style="max-width:100%; border-radius:var(--radius-sm,8px); margin-top:12px; border:1px solid var(--glass-border);"></a>` : ''}
+        <div class="fp-tools">${tools}</div>
+      </header>
+      ${(p.content || '').trim() ? `<div class="fp-text">${linkifyHashtags(p.content)}</div>` : ''}
+      ${img ? `<a href="${img || '#'}" target="_blank" rel="noopener noreferrer" class="fp-media"><img src="${img}" alt="" loading="lazy"></a>` : ''}
       ${!p.image_url ? embedHtml(embed) : ''}
       ${p.tagged_item_id ? taggedItemEmbedHtml(p) : ''}
-      ${p.repost_trade_listing_id ? `<div style="margin-top:12px;">${buildTradeEmbedHtml(p)}</div>` : ''}
-      ${p.repost_crew_war_id ? `<div style="margin-top:12px;">${buildWarEmbedHtml(p)}</div>` : ''}
-      <div style="display:flex; align-items:center; gap:18px; margin-top:14px; padding-top:12px; border-top:1px solid var(--glass-border);">
-        <button class="feed-action-btn ${p.liked_by_me ? 'is-active' : ''}" data-like-post="${p.id}" ${!currentUser ? 'disabled' : ''}>
+      ${p.repost_trade_listing_id ? `<div class="fp-embed">${buildTradeEmbedHtml(p)}</div>` : ''}
+      ${p.repost_crew_war_id ? `<div class="fp-embed">${buildWarEmbedHtml(p)}</div>` : ''}
+      <footer class="fp-actions">
+        <button class="feed-action-btn ${p.liked_by_me ? 'is-active' : ''}" data-like-post="${p.id}" ${!currentUser ? 'disabled' : ''} title="Like">
           <i data-lucide="heart" class="icon-sm"></i><span data-like-count>${p.like_count}</span>
         </button>
-        <button class="feed-action-btn" data-toggle-comments="${p.id}">
+        <button class="feed-action-btn" data-toggle-comments="${p.id}" title="Comments">
           <i data-lucide="message-square" class="icon-sm"></i><span data-comment-count>${p.comment_count}</span>
         </button>
-        <button class="feed-action-btn ${p.bookmarked_by_me ? 'is-active' : ''}" data-bookmark-post="${p.id}" ${!currentUser ? 'disabled' : ''} style="margin-left:auto;" title="${p.bookmarked_by_me ? 'Remove from saved' : 'Save privately'}">
+        <button class="feed-action-btn" data-copy-post="${p.id}" title="Copy link to this post" aria-label="Copy link">
+          <i data-lucide="link" class="icon-sm"></i>
+        </button>
+        <button class="feed-action-btn fp-save ${p.bookmarked_by_me ? 'is-active' : ''}" data-bookmark-post="${p.id}" ${!currentUser ? 'disabled' : ''} title="${p.bookmarked_by_me ? 'Remove from saved' : 'Save privately'}">
           <i data-lucide="bookmark" class="icon-sm"></i>
         </button>
-      </div>
+      </footer>
       <div class="feed-comments-panel" data-comments-panel="${p.id}" style="display:none;"></div>
-    </div>
+    </article>
   `;
 }
 
@@ -746,6 +752,21 @@ function wirePostActions(root) {
   root.querySelectorAll('[data-report-post]').forEach(btn => {
     btn.addEventListener('click', () => reportContent('feed_post', btn.dataset.reportPost));
   });
+  root.querySelectorAll('[data-copy-post]').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const url = `${location.origin}/feed/#post-${btn.dataset.copyPost}`;
+      try { await navigator.clipboard.writeText(url); showToast('Link copied.'); } catch { showToast(url); }
+    });
+  });
+  // Deep link (/feed/#post-<id>, used by the sidebar's Trending Now): scroll to + flash the post once it renders.
+  const hashId = location.hash.startsWith('#post-') ? location.hash.slice(1) : '';
+  if (hashId && !window.__feedHashHandled) {
+    const target = root.querySelector ? root.querySelector('#' + CSS.escape(hashId)) : null;
+    if (target) {
+      window.__feedHashHandled = true;
+      setTimeout(() => { target.scrollIntoView({ behavior: 'smooth', block: 'center' }); target.classList.add('is-flash'); }, 150);
+    }
+  }
   root.querySelectorAll('[data-like-post]').forEach(btn => {
     btn.addEventListener('click', () => toggleLike(btn));
   });
@@ -833,19 +854,18 @@ async function renderCommentsPanel(postId, panel) {
       ${comments.length
         ? comments.map(c => `
           <div class="feed-comment-row">
-            ${avatarHtml({ username: c.username, display_name: c.display_name, avatar_url: c.avatar_url, avatar_frame: c.avatar_frame }, 28)}
-            <div style="min-width:0;">
-              <a href="/player/?u=${encodeURIComponent(c.username || '')}" style="color:var(--bone); font-weight:700; text-decoration:none; font-size:0.83rem;">${escapeHtml(displayNameFor(c))}</a>
-              <span class="muted" style="font-size:0.7rem; margin-left:6px;">${timeAgo(c.created_at)}</span>
-              <p style="margin:2px 0 0; font-size:0.84rem; white-space:pre-wrap;">${linkifyHashtags(c.content)}</p>
+            ${avatarHtml({ username: c.username, display_name: c.display_name, avatar_url: c.avatar_url, avatar_frame: c.avatar_frame }, 30)}
+            <div class="fc-bubble">
+              <div class="fc-top"><a href="/player/?u=${encodeURIComponent(c.username || '')}" class="fc-name">${escapeHtml(displayNameFor(c))}</a><span class="fc-time">${timeAgo(c.created_at)}</span></div>
+              <p class="fc-text">${linkifyHashtags(c.content)}</p>
             </div>
           </div>
         `).join('')
         : `<p class="muted" style="margin:0 0 10px; font-size:0.8rem;">No comments yet — say something first.</p>`}
     </div>
     ${currentUser ? `
-      <form data-comment-form="${postId}" style="display:flex; gap:8px; margin-top:10px; align-items:flex-end;">
-        <input type="text" maxlength="280" placeholder="Write a comment…" style="margin:0; flex:1; font-size:0.85rem;" autocomplete="off">
+      <form data-comment-form="${postId}" class="fc-form">
+        <input type="text" maxlength="280" placeholder="Write a comment…" autocomplete="off">
         <button type="submit" class="btn btn-primary btn-sm">Reply</button>
       </form>
     ` : `<p class="muted" style="margin:8px 0 0; font-size:0.78rem;"><a href="/auth/">Sign in</a> to comment.</p>`}

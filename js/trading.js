@@ -706,66 +706,79 @@ function sideSummary(entries) {
   return { total, tiles };
 }
 
+function safeThemeColor(c) { return /^[#a-z0-9(),.\s%-]{3,40}$/i.test(c || '') ? c : ''; }
+
 function renderListing(t) {
   const profile = t.profiles || {};
   const isOwner = currentUser && t.user_id === currentUser.id;
   const offer = sideSummary(t.offering_item_ids);
   const request = sideSummary(t.requesting_item_ids);
   const theme = profile.trade_card_themes;
-  const themeStyle = theme
-    ? `border-image: linear-gradient(135deg, ${theme.gradient_from}, ${theme.gradient_to}) 1; border-width: 2px; border-style: solid;`
-    : '';
+  const from = theme && safeThemeColor(theme.gradient_from), to = theme && safeThemeColor(theme.gradient_to);
+  const themed = !!(from && to);
+  const fair = fairValueBadgeHtml(offer.total, request.total, isOwner);
+  const both = offer.total && request.total;
+  const offerPct = both ? Math.round((offer.total / (offer.total + request.total)) * 100) : 50;
+  const profileUrl = `/player/?u=${encodeURIComponent(profile.username || '')}`;
+
+  const tools = [
+    adminPinButtonHtml('trade', t, viewerIsAdmin),
+    `<button class="tc-tool" data-share-listing="${t.id}" title="Copy link to this listing" aria-label="Copy link"><i data-lucide="link" class="icon-sm"></i></button>`,
+    isOwner
+      ? `<button class="tc-tool" data-relist-listing="${t.id}" title="Relist (duplicate as a fresh listing)" aria-label="Relist"><i data-lucide="repeat" class="icon-sm"></i></button>
+         <button class="tc-tool tc-tool-ok" data-complete-listing="${t.id}" title="Mark completed" aria-label="Mark completed"><i data-lucide="check" class="icon-sm"></i></button>
+         <button class="tc-tool tc-tool-bad" data-delete-listing="${t.id}" title="Delete listing" aria-label="Delete listing"><i data-lucide="trash-2" class="icon-sm"></i></button>`
+      : (currentUser ? `<button class="tc-tool" data-report-listing="${t.id}" title="Report this listing" aria-label="Report listing"><i data-lucide="flag" class="icon-sm"></i></button>` : ''),
+  ].join('');
 
   return `
-    <div class="panel trade-card hover-lift-card${t.pinned ? ' is-pinned' : ''}" data-listing-id="${t.id}" style="${themeStyle}">
-      ${t.pinned ? `<div style="margin-bottom:8px;">${pinnedTagHtml()}</div>` : ''}
-      <div class="flex-between">
-        <div style="display:flex; align-items:center; gap:10px;">
-          ${avatarHtml(profile, 34)}
-          <div>
-            <a href="/player/?u=${encodeURIComponent(profile.username || '')}" style="color:var(--bone); font-weight:700; text-decoration:none; font-size:0.9rem;">${escapeHtml(displayNameFor(profile))}</a> ${titleBadge(profile)} <span data-rep-for="${t.user_id}"></span> <span data-verified-trader-for="${t.user_id}"></span>
-            <span data-confirmed-trades-for="${t.user_id}"></span>
-            <p class="muted" style="margin:0; font-size:0.75rem;">${timeAgo(t.created_at)} · ${expiryLabel(t.expires_at)}</p>
-            <span data-new-account-for="${t.user_id}"></span>
+    <article class="panel trade-card hover-lift-card${t.pinned ? ' is-pinned' : ''}${themed ? ' is-themed' : ''}" data-listing-id="${t.id}"${themed ? ` style="--tc-from:${from}; --tc-to:${to};"` : ''}>
+      <header class="tc-head">
+        <div class="tc-user">
+          ${avatarHtml(profile, 42)}
+          <div class="tc-user-meta">
+            <div class="tc-user-line">
+              <a href="${profileUrl}" class="tc-name">${escapeHtml(displayNameFor(profile))}</a>
+              ${titleBadge(profile)} <span data-rep-for="${t.user_id}"></span> <span data-verified-trader-for="${t.user_id}"></span>
+              <span data-confirmed-trades-for="${t.user_id}"></span> <span data-new-account-for="${t.user_id}"></span>
+            </div>
+            <p class="tc-time">${t.pinned ? pinnedTagHtml() + ' ' : ''}<i data-lucide="clock" class="icon-sm icon-inline"></i>${timeAgo(t.created_at)} · ${expiryLabel(t.expires_at)}</p>
           </div>
         </div>
-        ${adminPinButtonHtml('trade', t, viewerIsAdmin)}
-        <button class="btn btn-ghost btn-sm" data-share-listing="${t.id}" title="Copy link to this listing" aria-label="Copy link"><i data-lucide="link" class="icon-sm"></i></button>
-        ${isOwner ? `<div style="display:flex; gap:6px;"><button class="btn btn-ghost btn-sm" data-relist-listing="${t.id}" title="Relist (duplicate as a fresh listing)" aria-label="Relist"><i data-lucide="repeat" class="icon-sm"></i></button><button class="btn btn-ghost btn-sm" data-complete-listing="${t.id}" title="Mark completed" aria-label="Mark completed"><i data-lucide="check" class="icon-sm"></i></button><button class="btn btn-ghost btn-sm" data-delete-listing="${t.id}" aria-label="Delete listing"><i data-lucide="x" class="icon-sm"></i></button></div>` : (currentUser ? `<button class="btn btn-ghost btn-sm" data-report-listing="${t.id}" title="Report" aria-label="Report listing"><i data-lucide="flag" class="icon-sm"></i></button>` : '')}
+        <div class="tc-tools">${tools}</div>
+      </header>
+
+      ${t.note ? `<blockquote class="tc-note">${escapeHtml(t.note)}</blockquote>` : ''}
+
+      <div class="tc-deal">
+        <section class="tc-side tc-side-offer" aria-label="Offering">
+          <div class="tc-side-head"><span class="tc-side-label"><i data-lucide="sparkles" class="icon-sm icon-inline"></i>Offering</span><span class="tc-side-total">${formatValue(offer.total)}</span></div>
+          <div class="trade-item-grid">${offer.tiles || '<span class="muted tc-empty">Nothing listed</span>'}</div>
+        </section>
+        <div class="tc-swap" aria-hidden="true"><i data-lucide="arrow-right-left" class="icon-sm"></i></div>
+        <section class="tc-side tc-side-request" aria-label="Requesting">
+          <div class="tc-side-head"><span class="tc-side-label"><i data-lucide="target" class="icon-sm icon-inline"></i>Requesting</span><span class="tc-side-total">${formatValue(request.total)}</span></div>
+          <div class="trade-item-grid">${request.tiles || '<span class="muted tc-empty">Nothing listed</span>'}</div>
+        </section>
       </div>
 
-      ${t.note ? `<p class="muted" style="margin:12px 0 0; font-size:0.85rem;">${escapeHtml(t.note)}</p>` : ''}
-      ${fairValueBadgeHtml(offer.total, request.total, isOwner) ? `<div style="margin-top:10px;">${fairValueBadgeHtml(offer.total, request.total, isOwner)}</div>` : ''}
-      <div class="trade-vote-row" data-vote-slot="${t.id}" data-vote-owner="${isOwner ? '1' : ''}"></div>
-      ${!isOwner && currentUser ? `<div style="margin-top:12px;"><button class="btn btn-primary btn-sm" data-make-offer="${t.id}"><i data-lucide="handshake" class="icon-sm icon-inline"></i>Make offer</button></div>` : ''}
+      ${both || fair ? `<div class="tc-balance">
+        ${both ? `<div class="tc-bar" title="Offering ${offerPct}% / Requesting ${100 - offerPct}% of the combined value"><span class="tc-bar-offer" style="width:${offerPct}%;"></span></div>` : ''}
+        ${fair ? `<div class="tc-fair">${fair}</div>` : ''}
+      </div>` : ''}
 
-      <div class="trade-columns-wrap">
-        <div class="trade-columns">
-          <div>
-            <div class="trade-side-header" style="color:var(--sea);">
-              <i data-lucide="sparkles" class="icon-sm"></i>Offering
-              <span class="trade-side-total">${formatValue(offer.total)}</span>
-            </div>
-            <div class="trade-item-grid">${offer.tiles}</div>
-          </div>
-          <div class="trade-arrow"><i data-lucide="arrow-right" class="icon-sm"></i></div>
-          <div>
-            <div class="trade-side-header" style="color:var(--gold-bright);">
-              <i data-lucide="sparkles" class="icon-sm"></i>Requesting
-              <span class="trade-side-total">${formatValue(request.total)}</span>
-            </div>
-            <div class="trade-item-grid">${request.tiles}</div>
-          </div>
+      <footer class="tc-foot">
+        <div class="trade-vote-row" data-vote-slot="${t.id}" data-vote-owner="${isOwner ? '1' : ''}"></div>
+        <div class="tc-actions">
+          ${!isOwner && currentUser ? `<a href="/friends/?tab=messages&u=${encodeURIComponent(profile.username || '')}" class="btn btn-ghost btn-sm"><i data-lucide="mail" class="icon-sm icon-inline"></i>Message</a>` : ''}
+          <button type="button" class="btn btn-ghost btn-sm" data-repost-trade="${t.id}" title="Share to Feed" aria-label="Share to Feed"><i data-lucide="share-2" class="icon-sm"></i></button>
+          <a href="${profileUrl}" class="btn btn-ghost btn-sm">Profile</a>
+          ${!isOwner && currentUser
+            ? `<button class="btn btn-primary btn-sm" data-make-offer="${t.id}"><i data-lucide="handshake" class="icon-sm icon-inline"></i>Make offer</button>`
+            : (!currentUser ? `<a href="/auth/" class="btn btn-primary btn-sm">Sign in to trade</a>` : '')}
         </div>
-      </div>
-
-      <div class="trade-card-footer">
-        <a href="/friends/?tab=messages&u=${encodeURIComponent(profile.username || '')}" class="btn btn-ghost btn-sm"><i data-lucide="mail" class="icon-sm icon-inline"></i>Message</a>
-        <button type="button" class="btn btn-ghost btn-sm" data-repost-trade="${t.id}" title="Share to Feed" aria-label="Share to Feed"><i data-lucide="share-2" class="icon-sm icon-inline"></i></button>
-        ${!isOwner ? `<button type="button" class="btn btn-ghost btn-sm" data-report-listing="${t.id}" title="Report this listing" aria-label="Report"><i data-lucide="flag" class="icon-sm"></i></button>` : ''}
-        <a href="/player/?u=${encodeURIComponent(profile.username || '')}" class="btn btn-primary btn-sm"><i data-lucide="repeat" class="icon-sm icon-inline"></i>Trade</a>
-      </div>
-    </div>
+      </footer>
+    </article>
   `;
 }
 
