@@ -1,6 +1,6 @@
 // BloxCore — Value Changes tab on /trading/ (?tab=values) : public log of community value changes (get_value_changes RPC).
 
-let vcDays = 14;
+let vcDays = Number(document.body.dataset.vcDays) || 14;
 let vcDir = 'all';
 let vcRows = [];
 

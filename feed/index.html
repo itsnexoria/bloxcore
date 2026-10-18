@@ -106,6 +106,8 @@
               <div id="feed-repost-preview" style="display:none; margin-bottom:10px; position:relative;"></div>
               <textarea id="feed-post-input" rows="2" maxlength="280" placeholder="Share a win, a screenshot, or what you're grinding today… (#tags work too)" style="resize:vertical;"></textarea>
 
+              <div id="feed-poll-builder" class="feed-poll-builder" hidden></div>
+
               <div id="feed-image-preview" style="display:none; margin:10px 0; position:relative; width:fit-content;">
                 <img id="feed-image-preview-img" src="" alt="" style="max-height:180px; border-radius:var(--radius-sm,8px); border:1px solid var(--glass-border);">
                 <button type="button" id="feed-image-remove-btn" class="btn btn-ghost btn-sm" style="position:absolute; top:-8px; right:-8px; padding:4px; border-radius:50%; background:var(--ink);" aria-label="Remove image"><i data-lucide="x" class="icon-sm"></i></button>
@@ -122,6 +124,7 @@
                   <input type="file" id="feed-image-input" accept="image/png,image/jpeg,image/gif,image/webp" style="display:none;">
                   <button type="button" class="btn btn-ghost btn-sm" id="feed-attach-btn" title="Attach image" aria-label="Attach image"><i data-lucide="image" class="icon-sm"></i></button>
                   <button type="button" class="btn btn-ghost btn-sm" id="feed-attach-item-btn" title="Tag an item" aria-label="Tag an item"><i data-lucide="gem" class="icon-sm"></i></button>
+                  <button type="button" class="btn btn-ghost btn-sm" id="feed-poll-btn" title="Add a poll" aria-label="Add a poll"><i data-lucide="bar-chart-3" class="icon-sm"></i></button>
                   <div id="feed-compose-visibility" style="display:none;">
                     <select id="feed-post-visibility" style="margin:0; width:auto; font-size:0.78rem; padding:5px 10px;">
                       <option value="public">🌐 Public Feed</option>
@@ -230,7 +233,6 @@
 
 <div class="ad-slot ad-slot-native">
   <span class="ad-slot-label">Advertisement</span>
-  <script async="async" data-cfasync="false" src="https://pl31528379.profitableratecpmnetwork.com/1dd0069cb22b02f6884ad8e7e72afcb2/invoke.js"></script>
   <div id="container-1dd0069cb22b02f6884ad8e7e72afcb2"></div>
 </div>
 
@@ -323,7 +325,7 @@
   </div>
 </footer>
 
-<script src="https://unpkg.com/lucide@1.34.0"></script>
+<script defer src="https://unpkg.com/lucide@1.34.0"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.112.4"></script>
 <script src="/js/animations.js"></script>
 <script src="/js/install-prompt.js"></script>

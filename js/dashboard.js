@@ -500,18 +500,32 @@ function renderSubmissionCard(sub) {
 async function loadOnboardingChecklist(profile, membership, userId) {
   if (profile.onboarding_dismissed) return;
 
-  const { count: bountyCount } = await sb.from('completions').select('id', { count: 'exact', head: true }).eq('user_id', userId);
+  const head = (table, col) => sb.from(table).select(col, { count: 'exact', head: true }).eq(table === 'follows' ? 'follower_id' : 'user_id', userId);
+  const [bounty, listings, posts, watched, follows] = await Promise.all([
+    head('completions', 'id'), head('trade_listings', 'id'), head('feed_posts', 'id'), head('item_watchlist', 'item_id'), head('follows', 'followed_id'),
+  ]);
 
   const items = [
     { done: !!profile.roblox_verified, label: 'Verify your Roblox account', href: '/settings/#account', cta: 'Verify' },
     { done: !!membership, label: 'Join a crew', href: '/crews/', cta: 'Find a Crew' },
-    { done: (bountyCount || 0) > 0, label: 'Submit your first bounty', href: '/challenges/', cta: 'View Bounties' },
+    { done: (bounty.count || 0) > 0, label: 'Submit your first bounty', href: '/challenges/', cta: 'View Bounties' },
+    { done: (listings.count || 0) > 0, label: 'Post your first trade listing', href: '/trading/', cta: 'Open Trading' },
+    { done: (posts.count || 0) > 0, label: 'Share something on the feed', href: '/feed/', cta: 'Open Feed' },
+    { done: (watched.count || 0) > 0, label: 'Watch an item for price alerts', href: '/trading/', cta: 'Open Trading' },
+    { done: (follows.count || 0) > 0, label: 'Follow another player', href: '/leaderboard/', cta: 'Find Players' },
   ];
 
-  if (items.every(i => i.done)) return; // nothing left to nudge them on
+  const doneCount = items.filter(i => i.done).length;
+  if (doneCount === items.length) return; // nothing left to nudge them on
 
   const el = document.getElementById('onboarding-checklist');
-  document.getElementById('onboarding-checklist-items').innerHTML = items.map(i => `
+  const pct = Math.round((doneCount / items.length) * 100);
+  document.getElementById('onboarding-checklist-items').innerHTML = `
+    <div class="onb-progress" role="progressbar" aria-valuemin="0" aria-valuemax="${items.length}" aria-valuenow="${doneCount}" aria-label="Getting started progress">
+      <div class="onb-progress-track"><span style="width:${pct}%;"></span></div>
+      <b>${doneCount} / ${items.length}</b>
+    </div>
+  ` + items.map(i => `
     <div style="display:flex; align-items:center; gap:10px; padding:8px 0; ${i.done ? 'opacity:0.55;' : ''}">
       <i data-lucide="${i.done ? 'check-circle-2' : 'circle'}" class="icon-sm" style="color:${i.done ? 'var(--gold-bright)' : 'var(--ash)'}; flex-shrink:0;"></i>
       <span style="flex:1; font-size:0.88rem; ${i.done ? 'text-decoration:line-through;' : ''}">${i.label}</span>

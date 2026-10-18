@@ -5,6 +5,8 @@ let currentProfile = null;
 let pendingImageFile = null;
 let pendingItemId = null;
 let followingIds = new Set();
+let blockedMap = new Map(); // user_id -> 'block' | 'mute' (anyone I've hidden from my feed)
+let pendingPoll = null;     // { options: [], hours } while the poll builder is open
 let myCrewId = null;
 let feedTag = null;
 let feedItemCategory = 'fruit';
@@ -23,11 +25,13 @@ onReady(async () => {
     document.getElementById('feed-compose-avatar').innerHTML = avatarHtml(currentProfile, 44);
     document.getElementById('feed-tab-saved').style.display = 'inline-flex';
 
-    const [{ data: followData }, { data: membership }] = await Promise.all([
+    const [{ data: followData }, { data: membership }, { data: relData }] = await Promise.all([
       sb.from('follows').select('followed_id').eq('follower_id', currentUser.id),
       sb.from('crew_members').select('crew_id').eq('user_id', currentUser.id).maybeSingle(),
+      sb.from('blocked_users').select('blocked_id, kind').eq('blocker_id', currentUser.id),
     ]);
     followingIds = new Set((followData || []).map(r => r.followed_id));
+    blockedMap = new Map((relData || []).map(r => [r.blocked_id, r.kind]));
     if (membership) {
       myCrewId = membership.crew_id;
       document.getElementById('feed-tab-crew').style.display = 'inline-flex';
@@ -44,6 +48,7 @@ onReady(async () => {
   document.getElementById('feed-image-input').addEventListener('change', handleImageSelect);
   document.getElementById('feed-image-remove-btn').addEventListener('click', clearImageSelection);
   document.getElementById('feed-attach-item-btn').addEventListener('click', openFeedItemPicker);
+  document.getElementById('feed-poll-btn').addEventListener('click', () => (pendingPoll ? closePollBuilder() : openPollBuilder()));
   document.getElementById('feed-item-picker-close').addEventListener('click', () => {
     document.getElementById('feed-item-picker-modal').classList.remove('open');
   });
@@ -260,7 +265,14 @@ async function handlePost() {
     image_url = urlData.publicUrl;
   }
 
-  const { error } = await sb.from('feed_posts').insert({
+  let pollOptions = null;
+  if (pendingPoll) {
+    pollOptions = [...new Set(pendingPoll.options.map(o => o.trim()).filter(Boolean))];
+    if (!content) { showToast('Write your poll question in the post box first.', true); btn.disabled = false; return; }
+    if (pollOptions.length < 2) { showToast('A poll needs at least two different options.', true); btn.disabled = false; return; }
+  }
+
+  const { data: newPost, error } = await sb.from('feed_posts').insert({
     user_id: auth.user.id,
     content: content || (pendingRepost ? '' : pendingItemId ? '' : '📷'),
     image_url,
@@ -269,9 +281,22 @@ async function handlePost() {
     repost_crew_war_id: pendingRepost?.type === 'crew_war' ? pendingRepost.id : null,
     visibility: myCrewId && document.getElementById('feed-post-visibility').value === 'crew' ? 'crew' : 'public',
     crew_id: myCrewId && document.getElementById('feed-post-visibility').value === 'crew' ? myCrewId : null,
-  });
+  }).select('id').single();
+  if (error) { btn.disabled = false; showToast(error.message, true); return; }
+
+  if (pollOptions) {
+    const { error: pollError } = await sb.from('feed_polls').insert({
+      post_id: newPost.id, options: pollOptions, ends_at: new Date(Date.now() + pendingPoll.hours * 3600 * 1000).toISOString(),
+    });
+    if (pollError) {
+      await sb.from('feed_posts').delete().eq('id', newPost.id); // don't leave a question with no options behind
+      btn.disabled = false;
+      showToast(pollError.message, true);
+      return;
+    }
+  }
   btn.disabled = false;
-  if (error) { showToast(error.message, true); return; }
+  closePollBuilder();
 
   input.value = '';
   updateCharCount();
@@ -546,10 +571,14 @@ function linkifyHashtags(content) {
   const withHashtags = escapeHtml(content).replace(/(^|[\s])#([a-zA-Z][a-zA-Z0-9_]{1,30})/g, (match, pre, tag) =>
     `${pre}<a href="/feed/?tag=${encodeURIComponent(tag.toLowerCase())}" data-hashtag-link="${escapeHtml(tag.toLowerCase())}" style="color:var(--blue); text-decoration:none;">#${escapeHtml(tag)}</a>`
   );
+  // @username → profile link (the DB trigger notifies the mentioned player)
+  const withMentions = withHashtags.replace(/(^|[\s])@([A-Za-z0-9_]+(?:\.[A-Za-z0-9_]+)?)/g, (match, pre, name) =>
+    `${pre}<a href="/player/?u=${encodeURIComponent(name)}" class="fp-mention">@${escapeHtml(name)}</a>`
+  );
   // Bare URLs pasted into a post (e.g. a YouTube/TikTok link) aren't clickable by default —
   // linkify them too, on top of the embed card rendered separately below the post.
   // `withHashtags` is already HTML-escaped (quotes included), so `url` can't break out of the attribute.
-  return withHashtags.replace(/(^|[\s])(https?:\/\/[^\s<]+)/g, (match, pre, url) =>
+  return withMentions.replace(/(^|[\s])(https?:\/\/[^\s<]+)/g, (match, pre, url) =>
     `${pre}<a href="${url}" target="_blank" rel="noopener noreferrer nofollow" style="color:var(--sea); text-decoration:underline; word-break:break-all;">${url}</a>`
   );
 }
@@ -698,10 +727,17 @@ function renderPost(p) {
   const tools = isOwner
     ? `<button class="fp-tool${isPinned ? ' is-on' : ''}" data-pin-post="${p.id}" aria-label="${isPinned ? 'Unpin from profile' : 'Pin to profile'}" title="${isPinned ? 'Unpin from profile' : 'Pin to profile'}"><i data-lucide="pin" class="icon-sm"></i></button>
        <button class="fp-tool fp-tool-bad" data-delete-post="${p.id}" aria-label="Delete post" title="Delete"><i data-lucide="trash-2" class="icon-sm"></i></button>`
-    : (currentUser ? `<button class="fp-tool" data-report-post="${p.id}" aria-label="Report post" title="Report"><i data-lucide="flag" class="icon-sm"></i></button>` : '');
+    : (currentUser ? `<div class="fp-menu-wrap">
+         <button class="fp-tool" data-post-menu aria-haspopup="menu" aria-expanded="false" aria-label="More actions" title="More"><i data-lucide="more-horizontal" class="icon-sm"></i></button>
+         <div class="fp-menu" role="menu" hidden>
+           <button type="button" role="menuitem" data-report-post="${p.id}"><i data-lucide="flag" class="icon-sm"></i>Report post</button>
+           <button type="button" role="menuitem" data-hide-user="${p.user_id}" data-hide-kind="mute" data-username="${escapeHtml(p.username || '')}"><i data-lucide="volume-x" class="icon-sm"></i>Mute @${escapeHtml(p.username || '')}</button>
+           <button type="button" role="menuitem" class="is-danger" data-hide-user="${p.user_id}" data-hide-kind="block" data-username="${escapeHtml(p.username || '')}"><i data-lucide="ban" class="icon-sm"></i>Block @${escapeHtml(p.username || '')}</button>
+         </div>
+       </div>` : '');
 
   return `
-    <article class="panel feed-post-card hover-lift-card${isPinned ? ' is-pinned-post' : ''}" data-post-id="${p.id}" id="post-${p.id}">
+    <article class="panel feed-post-card hover-lift-card${isPinned ? ' is-pinned-post' : ''}" data-post-id="${p.id}" data-author="${p.user_id}" id="post-${p.id}">
       <header class="fp-head">
         <a href="${profileUrl}" class="fp-avatar" aria-label="${escapeHtml(displayNameFor(profile))}">${avatarHtml(profile, 44)}</a>
         <div class="fp-who">
@@ -711,6 +747,7 @@ function renderPost(p) {
         <div class="fp-tools">${tools}</div>
       </header>
       ${(p.content || '').trim() ? `<div class="fp-text">${linkifyHashtags(p.content)}</div>` : ''}
+      <div class="fp-poll" data-poll-for="${p.id}" hidden></div>
       ${img ? `<a href="${img || '#'}" target="_blank" rel="noopener noreferrer" class="fp-media"><img src="${img}" alt="" loading="lazy"></a>` : ''}
       ${!p.image_url ? embedHtml(embed) : ''}
       ${p.tagged_item_id ? taggedItemEmbedHtml(p) : ''}
@@ -735,8 +772,137 @@ function renderPost(p) {
   `;
 }
 
+// --- Block / mute (reuses blocked_users, same table the DMs use) ---------------------------
+
+function applyBlockFilter(root) {
+  if (!blockedMap.size) return;
+  const nodes = [...(root.matches && root.matches('[data-author]') ? [root] : []), ...root.querySelectorAll('[data-author]')];
+  nodes.forEach(el => { if (blockedMap.has(el.dataset.author)) el.style.display = 'none'; });
+}
+
+function wirePostMenus(root) {
+  root.querySelectorAll('[data-post-menu]').forEach(btn => {
+    if (btn.dataset.wired) return;
+    btn.dataset.wired = '1';
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const menu = btn.parentElement.querySelector('.fp-menu');
+      const willOpen = menu.hidden;
+      closePostMenus();
+      menu.hidden = !willOpen;
+      btn.setAttribute('aria-expanded', String(willOpen));
+    });
+  });
+  root.querySelectorAll('[data-hide-user]').forEach(btn => {
+    if (btn.dataset.wired) return;
+    btn.dataset.wired = '1';
+    btn.addEventListener('click', async () => {
+      const { hideUser: userId, hideKind: kind, username } = btn.dataset;
+      if (kind === 'block' && !window.confirm(`Block @${username}? You won't see their posts or comments, and they can't message you.`)) return;
+      const { error } = await sb.from('blocked_users').upsert({ blocker_id: currentUser.id, blocked_id: userId, kind }, { onConflict: 'blocker_id,blocked_id' });
+      if (error) { showToast(error.message, true); return; }
+      blockedMap.set(userId, kind);
+      document.querySelectorAll(`[data-author="${userId}"]`).forEach(el => { el.style.display = 'none'; });
+      showToast(kind === 'block' ? `Blocked @${username}. You can undo this in Settings.` : `Muted @${username}. You can undo this in Settings.`);
+    });
+  });
+}
+
+function closePostMenus() {
+  document.querySelectorAll('.fp-menu:not([hidden])').forEach(m => {
+    m.hidden = true;
+    m.parentElement.querySelector('[data-post-menu]')?.setAttribute('aria-expanded', 'false');
+  });
+}
+document.addEventListener('click', closePostMenus);
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closePostMenus(); });
+
+// --- Polls ----------------------------------------------------------------------------------
+
+function pollTimeLeft(endsAt) {
+  const ms = new Date(endsAt) - Date.now();
+  if (ms <= 0) return 'Final results';
+  const m = Math.round(ms / 60000);
+  if (m < 60) return `${m}m left`;
+  const h = Math.round(m / 60);
+  return h < 48 ? `${h}h left` : `${Math.round(h / 24)}d left`;
+}
+
+function renderPollHtml(r) {
+  const counts = r.counts || [];
+  const total = counts.reduce((a, b) => a + b, 0);
+  const ended = new Date(r.ends_at) <= Date.now();
+  const showResults = ended || r.my_vote != null || !currentUser;
+  const body = (r.options || []).map((label, i) => {
+    if (!showResults) return `<button type="button" class="fp-poll-vote" data-poll-vote="${i}">${escapeHtml(label)}</button>`;
+    const pct = total ? Math.round((counts[i] / total) * 100) : 0;
+    return `<div class="fp-poll-bar${r.my_vote === i ? ' is-mine' : ''}" style="--pct:${pct}%;"><span class="fp-poll-label">${r.my_vote === i ? '✓ ' : ''}${escapeHtml(label)}</span><b>${pct}%</b></div>`;
+  }).join('');
+  return `${body}<p class="fp-poll-foot">${total} vote${total === 1 ? '' : 's'} · ${pollTimeLeft(r.ends_at)}${!currentUser ? ' · <a href="/auth/">Sign in</a> to vote' : ''}</p>`;
+}
+
+async function hydratePolls(root) {
+  const holders = [...root.querySelectorAll('[data-poll-for]')];
+  if (!holders.length) return;
+  const ids = holders.map(h => h.dataset.pollFor);
+  const { data, error } = await sb.rpc('get_feed_poll_results', { p_post_ids: ids });
+  if (error || !data) return;
+  const byId = new Map(data.map(r => [r.post_id, r]));
+  holders.forEach(h => {
+    const r = byId.get(h.dataset.pollFor);
+    if (r) paintPoll(h, r);
+  });
+}
+
+function paintPoll(holder, r) {
+  holder.innerHTML = renderPollHtml(r);
+  holder.hidden = false;
+  holder.querySelectorAll('[data-poll-vote]').forEach(btn => btn.addEventListener('click', async () => {
+    holder.querySelectorAll('button').forEach(b => { b.disabled = true; });
+    const { error } = await sb.from('feed_poll_votes').insert({ post_id: holder.dataset.pollFor, user_id: currentUser.id, option_idx: Number(btn.dataset.pollVote) });
+    if (error) { showToast(error.message, true); holder.querySelectorAll('button').forEach(b => { b.disabled = false; }); return; }
+    const { data } = await sb.rpc('get_feed_poll_results', { p_post_ids: [holder.dataset.pollFor] });
+    if (data && data[0]) paintPoll(holder, data[0]);
+  }));
+}
+
+// Poll builder (compose box)
+function openPollBuilder() {
+  pendingPoll = { options: ['', ''], hours: 24 };
+  renderPollBuilder();
+}
+function closePollBuilder() {
+  pendingPoll = null;
+  const el = document.getElementById('feed-poll-builder');
+  el.hidden = true; el.innerHTML = '';
+  document.getElementById('feed-poll-btn')?.classList.remove('is-on');
+}
+function renderPollBuilder() {
+  const el = document.getElementById('feed-poll-builder');
+  if (!pendingPoll) return;
+  el.hidden = false;
+  document.getElementById('feed-poll-btn')?.classList.add('is-on');
+  el.innerHTML = `
+    <div class="fpb-head"><strong>Poll</strong><span class="muted">The post text is your question.</span><button type="button" class="btn btn-ghost btn-sm" id="fpb-remove" aria-label="Remove poll"><i data-lucide="x" class="icon-sm"></i></button></div>
+    ${pendingPoll.options.map((o, i) => `<input type="text" class="fpb-opt" data-opt="${i}" maxlength="40" placeholder="Option ${i + 1}" value="${escapeHtml(o)}">`).join('')}
+    <div class="fpb-foot">
+      ${pendingPoll.options.length < 4 ? `<button type="button" class="btn btn-ghost btn-sm" id="fpb-add"><i data-lucide="plus" class="icon-sm icon-inline"></i>Add option</button>` : '<span></span>'}
+      <label class="fpb-dur">Ends in
+        <select id="fpb-hours">${[[1, '1 hour'], [6, '6 hours'], [24, '1 day'], [72, '3 days'], [168, '7 days']].map(([h, l]) => `<option value="${h}" ${h === pendingPoll.hours ? 'selected' : ''}>${l}</option>`).join('')}</select>
+      </label>
+    </div>`;
+  el.querySelectorAll('.fpb-opt').forEach(inp => inp.addEventListener('input', () => { pendingPoll.options[Number(inp.dataset.opt)] = inp.value; }));
+  el.querySelector('#fpb-hours').addEventListener('change', (e) => { pendingPoll.hours = Number(e.target.value); });
+  el.querySelector('#fpb-remove').addEventListener('click', closePollBuilder);
+  el.querySelector('#fpb-add')?.addEventListener('click', () => { pendingPoll.options.push(''); renderPollBuilder(); });
+  refreshIcons();
+}
+
 function wirePostActions(root) {
   root = root || document;
+  applyBlockFilter(root);
+  hydratePolls(root);
+  wirePostMenus(root);
   root.querySelectorAll('[data-pin-post]').forEach(btn => {
     btn.addEventListener('click', () => togglePinPost(btn.dataset.pinPost));
   });
@@ -843,35 +1009,66 @@ async function toggleCommentsPanel(postId) {
   await renderCommentsPanel(postId, panel);
 }
 
+function commentHtml(c, { isReply = false, parentId = null } = {}) {
+  const canReply = !!currentUser;
+  return `
+    <div class="feed-comment-row${isReply ? ' is-reply' : ''}" data-comment-id="${c.id}">
+      ${avatarHtml({ username: c.username, display_name: c.display_name, avatar_url: c.avatar_url, avatar_frame: c.avatar_frame }, isReply ? 26 : 30)}
+      <div class="fc-main">
+        <div class="fc-bubble">
+          <div class="fc-top"><a href="/player/?u=${encodeURIComponent(c.username || '')}" class="fc-name">${escapeHtml(displayNameFor(c))}</a><span class="fc-time">${timeAgo(c.created_at)}</span></div>
+          <p class="fc-text">${linkifyHashtags(c.content)}</p>
+        </div>
+        ${canReply ? `<button type="button" class="fc-reply-btn" data-reply-parent="${parentId || c.id}" data-reply-name="${escapeHtml(c.username || '')}">Reply</button>` : ''}
+      </div>
+    </div>`;
+}
+
 async function renderCommentsPanel(postId, panel) {
   panel.innerHTML = `<div class="skeleton" style="height:40px;"></div>`;
 
   const { data, error } = await sb.rpc('get_feed_post_comments', { p_post_id: postId });
-  const comments = error || !data ? [] : data;
+  const all = (error || !data ? [] : data).filter(c => !blockedMap.has(c.user_id));
+  const top = all.filter(c => !c.parent_id);
+  const repliesByParent = new Map();
+  all.filter(c => c.parent_id).forEach(c => {
+    if (!repliesByParent.has(c.parent_id)) repliesByParent.set(c.parent_id, []);
+    repliesByParent.get(c.parent_id).push(c);
+  });
+  // Replies whose parent got filtered out (muted/blocked author) are hidden with it.
 
   panel.innerHTML = `
     <div data-comments-list>
-      ${comments.length
-        ? comments.map(c => `
-          <div class="feed-comment-row">
-            ${avatarHtml({ username: c.username, display_name: c.display_name, avatar_url: c.avatar_url, avatar_frame: c.avatar_frame }, 30)}
-            <div class="fc-bubble">
-              <div class="fc-top"><a href="/player/?u=${encodeURIComponent(c.username || '')}" class="fc-name">${escapeHtml(displayNameFor(c))}</a><span class="fc-time">${timeAgo(c.created_at)}</span></div>
-              <p class="fc-text">${linkifyHashtags(c.content)}</p>
-            </div>
-          </div>
-        `).join('')
+      ${top.length
+        ? top.map(c => `
+          <div class="fc-thread">
+            ${commentHtml(c)}
+            ${(repliesByParent.get(c.id) || []).length ? `<div class="fc-replies">${repliesByParent.get(c.id).map(r => commentHtml(r, { isReply: true, parentId: c.id })).join('')}</div>` : ''}
+          </div>`).join('')
         : `<p class="muted" style="margin:0 0 10px; font-size:0.8rem;">No comments yet — say something first.</p>`}
     </div>
     ${currentUser ? `
+      <div class="fc-replying" data-replying hidden><span data-replying-label></span><button type="button" class="fc-replying-x" data-replying-cancel aria-label="Cancel reply">✕</button></div>
       <form data-comment-form="${postId}" class="fc-form">
         <input type="text" maxlength="280" placeholder="Write a comment…" autocomplete="off">
-        <button type="submit" class="btn btn-primary btn-sm">Reply</button>
+        <button type="submit" class="btn btn-primary btn-sm">Send</button>
       </form>
     ` : `<p class="muted" style="margin:8px 0 0; font-size:0.78rem;"><a href="/auth/">Sign in</a> to comment.</p>`}
   `;
 
-  panel.querySelector(`[data-comment-form="${postId}"]`)?.addEventListener('submit', (e) => handleAddComment(e, postId, panel));
+  const form = panel.querySelector(`[data-comment-form="${postId}"]`);
+  form?.addEventListener('submit', (e) => handleAddComment(e, postId, panel));
+  const replyBar = panel.querySelector('[data-replying]');
+  const clearReply = () => { panel._replyTo = null; if (replyBar) replyBar.hidden = true; };
+  panel.querySelector('[data-replying-cancel]')?.addEventListener('click', clearReply);
+  panel.querySelectorAll('[data-reply-parent]').forEach(btn => btn.addEventListener('click', () => {
+    panel._replyTo = { parentId: btn.dataset.replyParent, name: btn.dataset.replyName };
+    replyBar.querySelector('[data-replying-label]').textContent = `Replying to @${btn.dataset.replyName}`;
+    replyBar.hidden = false;
+    const input = form.querySelector('input');
+    input.value = `@${btn.dataset.replyName} `;
+    input.focus();
+  }));
   refreshIcons();
 }
 
@@ -881,9 +1078,11 @@ async function handleAddComment(e, postId, panel) {
   const content = input.value.trim();
   if (!content) return;
 
-  const { error } = await sb.from('feed_comments').insert({ post_id: postId, user_id: currentUser.id, content });
+  const reply = panel._replyTo;
+  const { error } = await sb.from('feed_comments').insert({ post_id: postId, user_id: currentUser.id, content, parent_id: reply ? reply.parentId : null });
   if (error) { showToast(error.message, true); return; }
 
+  panel._replyTo = null;
   await renderCommentsPanel(postId, panel);
 
   const countEl = document.querySelector(`[data-post-id="${postId}"] [data-comment-count]`);

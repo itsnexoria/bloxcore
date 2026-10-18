@@ -74,11 +74,17 @@ function xpProgress(xp, level) {
   return { current: xp - base, needed: next - base, pct };
 }
 
+// DB rate limits (check_rate_limit / trg_rate_limit) raise plain-English exceptions. Turn them into a
+// friendly "slow down" toast instead of showing the raw server message as an error.
+const RATE_LIMIT_RE = /too many attempts|slow down|rate limit|too often/i;
+
 function showToast(message, isError = false) {
+  const slow = isError && RATE_LIMIT_RE.test(String(message || ''));
+  if (slow) { message = "⏳ Slow down — you're doing that too fast. Give it a few minutes and try again."; isError = false; }
   const existing = document.querySelector('.toast');
   if (existing) existing.remove();
   const toast = document.createElement('div');
-  toast.className = 'toast' + (isError ? ' error' : '');
+  toast.className = 'toast' + (isError ? ' error' : '') + (slow ? ' toast-slow' : '');
   toast.textContent = message;
   // Screen readers otherwise never announce a toast at all — role="alert" for errors
   // (interrupts immediately, since it's often the only feedback a failed action gets)
@@ -90,6 +96,37 @@ function showToast(message, isError = false) {
     toast.classList.add('leaving');
     setTimeout(() => toast.remove(), 250);
   }, 3750);
+}
+
+// --- Scam signals (shared: DMs today; usable for offer notes / listing notes) -------------------
+// Client-side hints only — they warn the reader, they never block or censor a message.
+const SAFE_LINK_HOSTS = ['bloxcores.com', 'roblox.com', 'discord.com', 'discord.gg', 'youtube.com', 'youtu.be', 'twitch.tv', 'tiktok.com', 'x.com', 'twitter.com'];
+const LINK_SHORTENERS = ['bit.ly', 'tinyurl.com', 'cutt.ly', 'rb.gy', 'is.gd', 't.co', 'shorturl.at', 'goo.gl'];
+
+function scamSignals(text) {
+  const s = String(text || '');
+  const lower = s.toLowerCase();
+  const reasons = [];
+
+  const hosts = [];
+  for (const m of lower.matchAll(/(?:https?:\/\/|www\.)([a-z0-9.-]+\.[a-z]{2,})|\b([a-z0-9-]+\.(?:com|net|org|gg|xyz|io|me|ly|tv|ru|shop|store|link|app|co|site|online|click|top|win))\b/g)) {
+    hosts.push((m[1] || m[2]).replace(/^www\./, ''));
+  }
+  const isSafe = (h) => SAFE_LINK_HOSTS.some(d => h === d || h.endsWith('.' + d));
+  if (hosts.some(h => LINK_SHORTENERS.includes(h))) reasons.push('a shortened link that hides where it goes');
+  else if (hosts.some(h => !isSafe(h))) reasons.push('a link to an outside website');
+
+  if (/\b(password|roblosecurity|\.?cookie|2fa|verification code|login code|auth(?:entication)? code)\b/.test(lower)) reasons.push('a request for account details');
+  if (/\b(paypal|cash ?app|venmo|zelle|crypto|bitcoin|btc|usdt|gift ?card|steam card|western union)\b/.test(lower)
+      || (/\b(robux|rbx)\b/.test(lower) && /(\d|pay|send|buy|sell|gamepass|donate)/.test(lower))) reasons.push('payment with Robux or real money');
+  if (/\b(you|u)\s+(go|send|pay)\s+first\b|\b(go|send|pay)\s+first\b|\btrust me\b|\bi(?:'| a)?m\s+(?:a\s+)?(?:trusted\s+)?middle\s?man\b/.test(lower)) reasons.push('pressure to go first or "trust me"');
+  return reasons;
+}
+
+function scamWarningHtml(text) {
+  const reasons = scamSignals(text);
+  if (!reasons.length) return '';
+  return `<div class="chat-scam-warn" role="note"><i data-lucide="shield-alert" class="icon-sm"></i><span><strong>Possible scam:</strong> this message has ${escapeHtml(reasons.join(', '))}. Trade inside Roblox only, never pay or send first, and never share your password.</span></div>`;
 }
 
 // Consistent "couldn't load" state — was previously ~50 near-identical plain-text <p>
@@ -1076,3 +1113,28 @@ function pvpTierTagHtml(rating) {
   const t = pvpTier(rating);
   return `<span class="pvp-tier" style="--tier-color:${t.color};" title="${t.name} tier"><i data-lucide="${t.icon}" class="icon-sm icon-inline"></i>${t.name}</span>`;
 }
+
+// --- Performance: keep Lucide + the ad network off the critical path -------------------------------
+// Lucide is loaded with `defer` on every page, so it executes after parsing but before DOMContentLoaded.
+// Anything that calls refreshIcons() earlier safely no-ops (see its window.lucide guard) — this renders
+// the icons that were in the HTML as soon as the library is ready.
+document.addEventListener('DOMContentLoaded', () => refreshIcons());
+
+// The ad script is injected after the page has fully loaded and the browser is idle, instead of being a
+// <script async> in the middle of the page that competes with first paint / LCP.
+(function loadAdAfterPaint() {
+  const ID = '1dd0069cb22b02f6884ad8e7e72afcb2';
+  const inject = () => {
+    const container = document.getElementById(`container-${ID}`);
+    if (!container || document.querySelector('script[data-bc-ad]')) return;
+    const s = document.createElement('script');
+    s.async = true;
+    s.setAttribute('data-cfasync', 'false');
+    s.dataset.bcAd = '1';
+    s.src = `https://pl31528379.profitableratecpmnetwork.com/${ID}/invoke.js`;
+    container.parentNode.insertBefore(s, container);
+  };
+  const schedule = () => ('requestIdleCallback' in window ? requestIdleCallback(inject, { timeout: 4000 }) : setTimeout(inject, 2000));
+  if (document.readyState === 'complete') schedule();
+  else window.addEventListener('load', schedule, { once: true });
+})();

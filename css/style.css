@@ -1443,6 +1443,7 @@ select option {
   from { opacity: 1; transform: translateY(0) scale(1); }
   to { opacity: 0; transform: translateY(10px) scale(0.97); }
 }
+.toast.toast-slow { border-color: var(--gold); box-shadow: 0 10px 30px rgb(var(--shadow-rgb) / 0.5), 0 0 20px rgb(var(--gold-rgb) / 0.2); }
 .toast.error { border-color: var(--blood); box-shadow: 0 10px 30px rgb(var(--shadow-rgb) / 0.5), 0 0 20px rgba(251,113,133,0.18); }
 .skeleton {
   background: linear-gradient(90deg, var(--navy) 25%, var(--navy-light) 37%, var(--navy) 63%);
@@ -2615,3 +2616,13 @@ h1.nav-page-title { margin-block: 0; line-height: 1.2; font-family: inherit; col
 .value-tile-name { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 0.7rem; font-weight: 600; color: var(--bone); }
 .value-tile-val { font-family: var(--font-mono); font-size: 0.68rem; font-weight: 700; color: var(--gold-bright); }
 .value-tile .tag { font-size: 0.58rem; padding: 1px 7px; letter-spacing: 0.03em; }
+
+/* Scam warnings in DMs */
+.chat-scam-warn, .chat-scam-hint { display: flex; align-items: flex-start; gap: 8px; font-size: 0.76rem; line-height: 1.45; color: #fde68a; background: rgb(251 191 36 / 0.1); border: 1px solid rgb(251 191 36 / 0.4); border-radius: 10px; padding: 8px 10px; }
+.chat-scam-warn { margin-top: 6px; max-width: 360px; }
+.chat-scam-warn svg, .chat-scam-hint svg { flex-shrink: 0; margin-top: 1px; color: #fbbf24; }
+.chat-scam-hint { margin: 0 16px 8px; }
+.chat-scam-hint[hidden] { display: none; }
+
+/* Lucide loads deferred: reserve the icon's box until it is swapped for the <svg> (avoids layout shift) */
+i[data-lucide] { display: inline-block; vertical-align: -0.125em; }

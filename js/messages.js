@@ -45,6 +45,12 @@ onReady(async () => {
     if (activeFriendId) reportContent('profile', activeFriendId);
   });
   document.getElementById('thread-input').addEventListener('input', broadcastTyping);
+  document.getElementById('thread-input').addEventListener('input', (e) => {
+    const hint = document.getElementById('thread-scam-hint');
+    const reasons = scamSignals(e.target.value);
+    hint.hidden = !reasons.length;
+    if (reasons.length) { hint.innerHTML = `<i data-lucide="shield-alert" class="icon-sm"></i><span>Heads up — your message has ${escapeHtml(reasons.join(', '))}. Scammers use these; make sure you're not being rushed or tricked.</span>`; refreshIcons(); }
+  });
   document.querySelectorAll('[data-goto-friends-tab]').forEach(btn => {
     btn.addEventListener('click', () => switchHubTab('friends'));
   });
@@ -417,6 +423,7 @@ function renderMessageBubble(m) {
     <div class="chat-row ${mine ? 'mine' : ''}" data-message-id="${m.id}">
       <div class="chat-row-body">
         <div class="chat-bubble">${escapeHtml(m.message)}</div>
+        ${mine ? '' : scamWarningHtml(m.message)}
         <p class="chat-row-meta">${timeAgo(m.created_at)}${receipt ? ` ${receipt}` : ''}</p>
       </div>
     </div>

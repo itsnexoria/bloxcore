@@ -122,3 +122,9 @@
 @media (prefers-reduced-motion: reduce) {
   .ls-dot.next { animation: none; }
 }
+
+/* Getting-started progress */
+.onb-progress { display: flex; align-items: center; gap: 12px; }
+.onb-progress-track { flex: 1; height: 8px; border-radius: 999px; background: rgb(255 255 255 / 0.08); overflow: hidden; }
+.onb-progress-track span { display: block; height: 100%; border-radius: 999px; background: linear-gradient(90deg, var(--brass), var(--gold-bright)); transition: width .4s ease; }
+.onb-progress b { font-family: var(--font-mono); font-size: 0.8rem; color: var(--brass-bright); }

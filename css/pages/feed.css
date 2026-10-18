@@ -170,3 +170,47 @@ a.fs-row:hover, .fs-row:hover { background: var(--glass-bg); }
   .fs-row { margin: 0; }
 }
 @media (prefers-reduced-motion: reduce) { .feed-post-card.is-flash { animation: none; } }
+
+/* ---- Post menu (report / mute / block) ---- */
+.fp-menu-wrap { position: relative; }
+.fp-menu { position: absolute; right: 0; top: calc(100% + 4px); z-index: 30; min-width: 190px; padding: 6px; border-radius: 12px; background: var(--navy); border: 1px solid var(--glass-border); box-shadow: 0 18px 40px -12px rgb(0 0 0 / 0.7); }
+.fp-menu[hidden] { display: none; }
+.fp-menu button { display: flex; align-items: center; gap: 10px; width: 100%; padding: 9px 10px; border: 0; border-radius: 8px; background: none; color: var(--bone); font: inherit; font-size: 0.84rem; text-align: left; cursor: pointer; }
+.fp-menu button:hover { background: var(--glass-bg-strong); }
+.fp-menu button.is-danger { color: var(--blood); }
+.fp-menu button.is-danger:hover { background: rgba(251,113,133,.1); }
+.fp-tool.is-on { color: var(--brass-bright); }
+.fp-mention { color: var(--sea); font-weight: 600; text-decoration: none; }
+.fp-mention:hover { text-decoration: underline; }
+
+/* ---- Polls: builder + results ---- */
+.feed-poll-builder { margin: 10px 0; padding: 12px; border-radius: var(--radius-sm); border: 1px dashed rgb(var(--brass-rgb) / 0.4); background: rgb(var(--brass-rgb) / 0.05); display: grid; gap: 8px; }
+.feed-poll-builder[hidden] { display: none; }
+.fpb-head { display: flex; align-items: center; gap: 10px; font-size: 0.82rem; }
+.fpb-head .muted { flex: 1; font-size: 0.76rem; }
+.fpb-opt { margin: 0; font-size: 0.88rem; padding: 8px 12px; }
+.fpb-foot { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+.fpb-dur { display: flex; align-items: center; gap: 8px; font-size: 0.78rem; color: var(--ash); }
+.fpb-dur select { margin: 0; width: auto; font-size: 0.78rem; padding: 5px 10px; }
+.fp-poll { margin-top: 14px; display: grid; gap: 8px; }
+.fp-poll[hidden] { display: none; }
+.fp-poll-vote { width: 100%; padding: 11px 14px; border-radius: 12px; border: 1px solid var(--glass-border); background: var(--glass-bg); color: var(--bone); font: inherit; font-size: 0.9rem; font-weight: 600; text-align: left; cursor: pointer; transition: border-color .15s, background .15s, transform .15s; }
+.fp-poll-vote:hover:not(:disabled) { border-color: rgb(var(--brass-rgb) / 0.6); background: rgb(var(--brass-rgb) / 0.1); transform: translateY(-1px); }
+.fp-poll-vote:disabled { opacity: 0.6; cursor: wait; }
+.fp-poll-bar { position: relative; display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 11px 14px; border-radius: 12px; border: 1px solid var(--glass-border); background: linear-gradient(90deg, rgb(var(--blue-rgb) / 0.28) var(--pct), rgb(255 255 255 / 0.03) var(--pct)); font-size: 0.9rem; overflow: hidden; }
+.fp-poll-bar.is-mine { border-color: rgb(var(--brass-rgb) / 0.6); background: linear-gradient(90deg, rgb(var(--brass-rgb) / 0.32) var(--pct), rgb(255 255 255 / 0.03) var(--pct)); }
+.fp-poll-label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600; }
+.fp-poll-bar b { font-family: var(--font-mono); font-size: 0.82rem; }
+.fp-poll-foot { margin: 0; font-size: 0.74rem; color: var(--ash); }
+
+/* ---- Threaded replies ---- */
+.fc-thread { margin-bottom: 4px; }
+.fc-main { min-width: 0; flex: 1; }
+.fc-reply-btn { margin: 3px 0 0 12px; padding: 0; border: 0; background: none; color: var(--ash); font: inherit; font-size: 0.72rem; font-weight: 700; cursor: pointer; }
+.fc-reply-btn:hover { color: var(--brass-bright); }
+.fc-replies { margin-left: 40px; padding-left: 12px; border-left: 2px solid var(--glass-border); }
+.feed-comment-row.is-reply .fc-bubble { background: rgb(255 255 255 / 0.02); }
+.fc-replying { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 10px; padding: 6px 12px; border-radius: 999px; background: rgb(var(--brass-rgb) / 0.1); font-size: 0.76rem; color: var(--brass-bright); }
+.fc-replying[hidden] { display: none; }
+.fc-replying-x { border: 0; background: none; color: inherit; cursor: pointer; font-size: 0.8rem; }
+.fc-replying + .fc-form { margin-top: 6px; }

@@ -57,6 +57,7 @@ async function loadPlayer() {
   loadPlayerVouches(profile.id, viewerId, isOwnProfile);
   if (!hidden.has('pvp_history')) loadPlayerPvpHistory(profile.id);
   if (!hidden.has('trade_history')) loadPlayerTradeHistory(profile.id);
+  if (!hidden.has('trade_history')) loadPlayerConfirmedTrades(profile.id);
   if (profile.pinned_feed_post_id) loadPlayerPinnedPost(profile.id);
 }
 
@@ -377,6 +378,11 @@ function renderProfile(p, crew, isOwnProfile) {
     <div id="player-pvp-history-section" style="display:none; margin-top:20px;">
       <p class="muted" style="margin:0 0 10px; font-size:0.8rem; text-transform:uppercase; letter-spacing:0.05em;"><i data-lucide="crosshair" class="icon-sm icon-inline"></i>Combat Record</p>
       <div id="player-pvp-history-list" style="display:flex; flex-direction:column; gap:6px;"></div>
+    </div>
+
+    <div id="player-confirmed-trades-section" style="display:none; margin-top:20px;">
+      <p class="muted" style="margin:0 0 10px; font-size:0.8rem; text-transform:uppercase; letter-spacing:0.05em;"><i data-lucide="badge-check" class="icon-sm icon-inline" style="color:var(--sea);"></i>Verified Trades <span style="text-transform:none; letter-spacing:0;">— both traders confirmed</span></p>
+      <div id="player-confirmed-trades-list" style="display:flex; flex-direction:column; gap:6px;"></div>
     </div>
 
     <div id="player-trade-history-section" style="display:none; margin-top:20px;">
@@ -970,4 +976,32 @@ async function loadPlayerTradeHistory(profileId) {
     </div>
   `).join('');
   section.style.display = 'block';
+}
+
+// Trades the other person also confirmed (trade_confirmations.status = 'confirmed') — unlike the self-reported
+// "Trade History" above, these can't be faked: both sides have to agree it happened.
+async function loadPlayerConfirmedTrades(profileId) {
+  const section = document.getElementById('player-confirmed-trades-section');
+  const list = document.getElementById('player-confirmed-trades-list');
+  if (!section || !list) return;
+  const { data: rows, error } = await sb.rpc('get_confirmed_trades', { p_user_id: profileId, p_limit: 8 });
+  if (error || !rows || !rows.length) return;
+
+  const ids = new Set();
+  rows.forEach(r => { [...(r.gave || []), ...(r.got || [])].forEach(e => ids.add(e.id)); });
+  const { data: items } = await sb.from('bf_items').select('id, name').in('id', [...ids]);
+  const byId = new Map((items || []).map(i => [i.id, i]));
+  const label = (entries) => (entries || []).map(e => escapeHtml(byId.get(e.id)?.name || 'Unknown item')).join(', ') || '—';
+
+  list.innerHTML = rows.map(r => `
+    <div class="panel panel-plain" style="padding:10px 14px; display:flex; align-items:center; gap:12px;">
+      ${avatarHtml({ username: r.partner_username, display_name: r.partner_display_name, avatar_url: r.partner_avatar_url }, 32)}
+      <div style="min-width:0; flex:1;">
+        <p style="margin:0; font-size:0.85rem;"><span style="color:var(--sea);">${label(r.gave)}</span> <span class="muted">for</span> <span style="color:var(--gold-bright);">${label(r.got)}</span></p>
+        <p class="muted" style="margin:2px 0 0; font-size:0.72rem;">with <a href="/player/?u=${encodeURIComponent(r.partner_username || '')}">${escapeHtml(r.partner_display_name || r.partner_username || 'a player')}</a> · ${timeAgo(r.confirmed_at)}</p>
+      </div>
+    </div>
+  `).join('');
+  section.style.display = 'block';
+  refreshIcons();
 }
