@@ -409,6 +409,16 @@ async function getAvatarFramesCatalog() {
   return _avatarFramesLoaded;
 }
 
+// Initials avatar background: a stable colour per name, so a missing/stale profile picture still looks
+// intentional (and different people are easy to tell apart) instead of being a grey circle.
+const _AVATAR_HUES = [262, 199, 38, 160, 350, 221, 330, 172];
+function avatarFallbackBg(name) {
+  let h = 0;
+  for (const ch of String(name || '?')) h = (h * 31 + ch.charCodeAt(0)) >>> 0;
+  const hue = _AVATAR_HUES[h % _AVATAR_HUES.length];
+  return `linear-gradient(150deg, hsl(${hue} 68% 48%), hsl(${(hue + 40) % 360} 62% 28%))`;
+}
+
 function avatarHtml(profile, size, extraStyle = '', presence = null) {
   const name = displayNameFor(profile);
   const initial = escapeHtml((name[0] || '?').toUpperCase());
@@ -420,7 +430,7 @@ function avatarHtml(profile, size, extraStyle = '', presence = null) {
   const avatarExtra = (frame || presence) ? '' : extraStyle;
   const wrapExtra = (frame && !presence) ? extraStyle : '';
 
-  const fallback = `<div style="width:${size}px;height:${size}px;border-radius:50%;background:linear-gradient(150deg, var(--navy-light), var(--navy));display:flex;align-items:center;justify-content:center;font-size:${Math.round(size * 0.4)}px;flex-shrink:0;color:var(--ash);font-family:var(--font-stamp);${ring}${avatarExtra}">${initial}</div>`;
+  const fallback = `<div style="width:${size}px;height:${size}px;border-radius:50%;background:${avatarFallbackBg(name)};display:flex;align-items:center;justify-content:center;font-size:${Math.round(size * 0.4)}px;flex-shrink:0;color:#fff;text-shadow:0 1px 3px rgb(0 0 0 / 0.45);font-weight:700;font-family:var(--font-stamp);${ring}${avatarExtra}">${initial}</div>`;
   const avatarInner = (!profile?.avatar_url) ? fallback : (() => {
     const escapedFallback = fallback.replace(/"/g, '&quot;');
     return `<img src="${safeImgUrl(profile.avatar_url)}" alt="" loading="lazy" style="width:${size}px;height:${size}px;border-radius:50%;object-fit:cover;flex-shrink:0;${ring}${avatarExtra}" onerror="this.onerror=null; if (this.parentNode) this.outerHTML='${escapedFallback}';">`;

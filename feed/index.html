@@ -94,6 +94,15 @@
   <div class="container" style="max-width:1080px;">
     <div class="feed-layout" style="margin-top:20px;">
       <div class="feed-main">
+        <header class="feed-hero">
+          <div class="feed-hero-text">
+            <span class="feed-hero-kicker"><span class="feed-live-dot" aria-hidden="true"></span>Live from the seas</span>
+            <h2>What's the crew up to?</h2>
+            <p>Wins, grinds, trades and screenshots from across BloxCore.</p>
+          </div>
+          <i data-lucide="waves" class="feed-hero-art" aria-hidden="true"></i>
+        </header>
+
         <div id="feed-signed-out" class="panel feed-signin" style="display:none;">
           <div class="feed-signin-inner"><div><h2>Join the conversation</h2><p class="muted">Sign in to post, like, comment and follow other players.</p></div>
           <a href="/auth/" class="btn btn-primary">Sign in</a></div>
@@ -122,9 +131,9 @@
               <div class="flex-between" style="margin-top:10px; flex-wrap:wrap; gap:10px;">
                 <div style="display:flex; align-items:center; gap:4px;">
                   <input type="file" id="feed-image-input" accept="image/png,image/jpeg,image/gif,image/webp" style="display:none;">
-                  <button type="button" class="btn btn-ghost btn-sm" id="feed-attach-btn" title="Attach image" aria-label="Attach image"><i data-lucide="image" class="icon-sm"></i></button>
-                  <button type="button" class="btn btn-ghost btn-sm" id="feed-attach-item-btn" title="Tag an item" aria-label="Tag an item"><i data-lucide="gem" class="icon-sm"></i></button>
-                  <button type="button" class="btn btn-ghost btn-sm" id="feed-poll-btn" title="Add a poll" aria-label="Add a poll"><i data-lucide="bar-chart-3" class="icon-sm"></i></button>
+                  <button type="button" class="btn btn-ghost btn-sm feed-chip-btn" id="feed-attach-btn" title="Attach image" aria-label="Attach image"><i data-lucide="image" class="icon-sm"></i><span>Photo</span></button>
+                  <button type="button" class="btn btn-ghost btn-sm feed-chip-btn" id="feed-attach-item-btn" title="Tag an item" aria-label="Tag an item"><i data-lucide="gem" class="icon-sm"></i><span>Item</span></button>
+                  <button type="button" class="btn btn-ghost btn-sm feed-chip-btn" id="feed-poll-btn" title="Add a poll" aria-label="Add a poll"><i data-lucide="bar-chart-3" class="icon-sm"></i><span>Poll</span></button>
                   <div id="feed-compose-visibility" style="display:none;">
                     <select id="feed-post-visibility" style="margin:0; width:auto; font-size:0.78rem; padding:5px 10px;">
                       <option value="public">🌐 Public Feed</option>
@@ -137,7 +146,7 @@
                     <circle cx="11" cy="11" r="9" fill="none" stroke="var(--navy-light)" stroke-width="2.5"></circle>
                     <circle id="feed-char-ring-progress" cx="11" cy="11" r="9" fill="none" stroke="var(--brass-bright)" stroke-width="2.5" stroke-dasharray="56.5" stroke-dashoffset="56.5" stroke-linecap="round" transform="rotate(-90 11 11)"></circle>
                   </svg>
-                  <button type="button" class="btn btn-primary btn-sm" id="feed-post-btn">Post</button>
+                  <button type="button" class="btn btn-primary btn-sm" id="feed-post-btn"><span>Post</span><i data-lucide="send" class="icon-sm"></i></button>
                 </div>
               </div>
             </div>

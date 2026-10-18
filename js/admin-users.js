@@ -26,6 +26,14 @@ async function initUsersTab() {
       debounceTimer = setTimeout(() => loadUsers(e.target.value.trim(), 0), 250);
     });
 
+    // A player picked in the admin command palette (Ctrl+K) arrives via sessionStorage.
+    let presetQuery = null;
+    try { presetQuery = sessionStorage.getItem('adm_user_q'); sessionStorage.removeItem('adm_user_q'); } catch (_) { /* storage blocked */ }
+    if (presetQuery) {
+      document.getElementById('user-search').value = presetQuery;
+      loadUsers(presetQuery, 0);
+    }
+
     document.getElementById('users-table').addEventListener('click', (e) => {
       if (e.target.id === 'u-prev') loadUsers(currentQuery, usersPage - 1);
       if (e.target.id === 'u-next') loadUsers(currentQuery, usersPage + 1);

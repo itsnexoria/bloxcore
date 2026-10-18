@@ -170,54 +170,64 @@ async function fetchCrewsPage(offset, pageSize) {
 // for crews that haven't customized anything yet, so cards are visually distinct without
 // re-rolling color on every reload (hashed from the crew's own id, not Math.random()).
 const CREW_CARD_PALETTE = ['167 139 250', '56 189 248', '251 191 36', '52 211 153', '248 113 113', '37 99 235', '244 114 182', '45 212 191'];
+function crewCardRgb(c) {
+  if (c.accent_color) return c.accent_color;
+  let hash = 0;
+  const key = String(c.id || c.name || '');
+  for (let i = 0; i < key.length; i++) hash = (hash * 31 + key.charCodeAt(i)) >>> 0;
+  return CREW_CARD_PALETTE[hash % CREW_CARD_PALETTE.length];
+}
+// Colour usable as a CSS value for either storage format (#hex or "r g b").
+function crewCardAccentCss(c) {
+  const rgb = crewCardRgb(c);
+  return typeof rgb === 'string' && rgb.startsWith('#') ? rgb : `rgb(${rgb})`;
+}
 function crewCardBannerStyle(c) {
   if (c.banner_url) return `background:url('${safeImgUrl(c.banner_url)}') center/cover;`;
-  let rgb;
-  if (c.accent_color) {
-    rgb = c.accent_color;
-  } else {
-    let hash = 0;
-    const key = String(c.id || c.name || '');
-    for (let i = 0; i < key.length; i++) hash = (hash * 31 + key.charCodeAt(i)) >>> 0;
-    rgb = CREW_CARD_PALETTE[hash % CREW_CARD_PALETTE.length];
-  }
+  const rgb = crewCardRgb(c);
   const isHex = typeof rgb === 'string' && rgb.startsWith('#');
-  const c1 = isHex ? `${rgb}59` : `rgb(${rgb} / 0.35)`;
-  const c2 = isHex ? `${rgb}38` : `rgb(${rgb} / 0.22)`;
-  return `background: radial-gradient(circle at 30% 0%, ${c1}, transparent 65%), linear-gradient(120deg, ${c2}, var(--navy) 80%);`;
+  const c1 = isHex ? `${rgb}73` : `rgb(${rgb} / 0.45)`;
+  const c2 = isHex ? `${rgb}38` : `rgb(${rgb} / 0.2)`;
+  return `background: radial-gradient(circle at 25% 0%, ${c1}, transparent 70%), radial-gradient(circle at 90% 100%, ${c2}, transparent 60%), linear-gradient(120deg, ${c2}, var(--navy) 85%);`;
+}
+
+// A logo that fails to load becomes the same coloured initial tile crews without a logo get.
+function crewLogoFallback(img) {
+  const d = document.createElement('div');
+  d.className = 'crew-card-logo crew-card-initial';
+  d.textContent = img.dataset.initial || '?';
+  img.replaceWith(d);
 }
 
 function renderCrewCard(c) {
+  const members = c._memberCount;
   return `
-    <div class="panel crew-card hover-lift-card">
-      <div class="crew-card-banner" style="${crewCardBannerStyle(c)}"></div>
-      <div class="crew-card-top">
+    <article class="panel crew-card hover-lift-card" style="--crew-accent:${crewCardAccentCss(c)};">
+      <div class="crew-card-banner" style="${crewCardBannerStyle(c)}">
+        ${c.recruiting ? `<span class="crew-card-recruit"><i data-lucide="user-plus" class="icon-sm icon-inline"></i>Recruiting</span>` : '<span></span>'}
+        <span class="crew-card-bounty-chip" title="Crew bounty"><i data-lucide="coins" style="width:12px;height:12px;"></i>${formatBounty(c._bounty || 0)}</span>
+      </div>
+      <div class="crew-card-body">
         <div class="crew-card-logo-ring">
           ${c.logo_url
-            ? `<img src="${safeImgUrl(c.logo_url)}" alt="" loading="lazy" class="crew-card-logo" onerror="this.style.display='none';">`
-            : `<div class="crew-card-logo crew-card-logo-fallback">${escapeHtml((c.name[0] || '?').toUpperCase())}</div>`}
+            ? `<img src="${safeImgUrl(c.logo_url)}" alt="" loading="lazy" class="crew-card-logo" data-initial="${escapeHtml((c.name[0] || '?').toUpperCase())}" onerror="crewLogoFallback(this)">`
+            : `<div class="crew-card-logo crew-card-initial">${escapeHtml((c.name[0] || '?').toUpperCase())}</div>`}
         </div>
-        <div style="min-width:0; flex:1;">
-          <div class="flex-between" style="align-items:flex-start; gap:8px;">
-            <h3 title="${escapeHtml(c.name)}" style="margin:0;">${escapeHtml(c.name)}</h3>
-            <span class="crew-card-bounty-chip"><i data-lucide="coins" style="width:12px;height:12px;"></i>${formatBounty(c._bounty || 0)}</span>
-          </div>
-          <div style="display:flex; gap:6px; margin-top:6px; flex-wrap:wrap;">
-            ${c.tag ? `<span class="tag tag-legendary">${escapeHtml(c.tag)}</span>` : ''}
-            ${c.recruiting ? `<span class="tag" style="background:rgb(52 211 153 / 0.15); color:var(--sea);"><i data-lucide="user-plus" class="icon-sm icon-inline"></i>Recruiting</span>` : ''}
-          </div>
+        <div class="crew-card-title">
+          <h3 title="${escapeHtml(c.name)}">${escapeHtml(c.name)}</h3>
+          ${c.tag ? `<span class="crew-card-tag">${escapeHtml(c.tag)}</span>` : ''}
         </div>
-      </div>
-      <p class="muted crew-card-desc">${escapeHtml(c.description)}</p>
-      ${c.recruiting && (c.recruit_message || c.min_level) ? `<p style="margin:0 0 10px; font-size:0.8rem; color:var(--sea);">${c.min_level ? `Min level ${c.min_level}${c.recruit_message ? ' · ' : ''}` : ''}${c.recruit_message ? escapeHtml(c.recruit_message) : ''}</p>` : ''}
-      <div class="crew-card-footer">
-        <span class="muted crew-card-members"><i data-lucide="users" class="icon-sm icon-inline"></i>${c._memberCount} member${c._memberCount === 1 ? '' : 's'}</span>
-        <div style="display:flex; gap:6px;">
-          <a href="/crew-compare/?a=${encodeURIComponent(c.name)}" class="btn btn-ghost btn-sm" title="Compare this crew" aria-label="Compare"><i data-lucide="swords" class="icon-sm"></i></a>
-          <a href="/crew/?name=${encodeURIComponent(c.name)}" class="btn btn-primary btn-sm">View Crew</a>
+        <p class="crew-card-desc${c.description ? '' : ' is-empty'}">${c.description ? escapeHtml(c.description) : 'No description yet.'}</p>
+        ${c.recruiting && (c.recruit_message || c.min_level) ? `<p class="crew-card-recruit-note"><i data-lucide="megaphone" class="icon-sm icon-inline"></i>${c.min_level ? `Lv ${c.min_level}+${c.recruit_message ? ' · ' : ''}` : ''}${c.recruit_message ? escapeHtml(c.recruit_message) : ''}</p>` : ''}
+        <div class="crew-card-meta">
+          <span><i data-lucide="users" class="icon-sm icon-inline"></i>${members} member${members === 1 ? '' : 's'}</span>
         </div>
       </div>
-    </div>
+      <div class="crew-card-actions">
+        <a href="/crew/?name=${encodeURIComponent(c.name)}" class="btn btn-primary btn-sm crew-card-view">View Crew</a>
+        <a href="/crew-compare/?a=${encodeURIComponent(c.name)}" class="btn btn-ghost btn-sm crew-card-compare" title="Compare this crew" aria-label="Compare ${escapeHtml(c.name)}"><i data-lucide="swords" class="icon-sm"></i></a>
+      </div>
+    </article>
   `;
 }
 

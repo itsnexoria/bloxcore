@@ -699,10 +699,6 @@ section.section h2.center::after { margin-left: auto; margin-right: auto; }
 .tag-hard { background: linear-gradient(160deg, rgb(var(--brass-rgb) / 0.24), rgb(var(--brass-rgb) / 0.1)); color: var(--brass-bright); }
 .tag-legendary { background: linear-gradient(160deg, rgb(var(--purple-rgb) / 0.26), rgb(var(--purple-rgb) / 0.1)); color: var(--purple); }
 
-.crew-card-banner {
-  height: 56px;
-  margin: 0 0 -28px;
-}
 
 .crew-card-logo-fallback { background: linear-gradient(150deg, var(--navy-light), var(--navy)); display: flex; align-items: center; justify-content: center; color: var(--ash); font-family: var(--font-stamp); font-size: 1.3rem; }
 

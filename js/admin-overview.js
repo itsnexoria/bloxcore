@@ -104,11 +104,11 @@ function renderHero() {
 function renderAttention() {
   const d = OV.data, x = OV.extras || {};
   const cards = [
-    { id: 'a-reports', label: 'Open reports', n: d.open_reports, icon: 'flag', href: '/admin/reports/', hint: d.open_reports ? `oldest ${ovAge(x.oldest_report_hours)}` : '', urgent: (x.oldest_report_hours || 0) > 72 },
+    { id: 'a-reports', label: 'Open reports', n: d.open_reports, icon: 'flag', href: '/admin/#reports', hint: d.open_reports ? `oldest ${ovAge(x.oldest_report_hours)}` : '', urgent: (x.oldest_report_hours || 0) > 72 },
     { id: 'a-flags', label: 'Auto-mod flags', n: d.open_flags, icon: 'shield-alert', href: '#ov-flags', hint: d.high_flags ? `${d.high_flags} high severity` : d.open_flags ? `oldest ${ovAge(x.oldest_flag_hours)}` : '', urgent: d.high_flags > 0 },
-    { id: 'a-subs', label: 'Quest submissions', n: d.pending_submissions, icon: 'inbox', href: '/admin/', hint: '' },
-    { id: 'a-appeals', label: 'Ban appeals', n: d.pending_appeals, icon: 'gavel', href: '/admin/appeals/', hint: '' },
-    { id: 'a-giveaways', label: 'Giveaways to review', n: d.pending_giveaways + d.pending_giveaway_proofs, icon: 'gift', href: '/admin/giveaways/', hint: d.pending_giveaway_proofs ? `${d.pending_giveaway_proofs} proof${d.pending_giveaway_proofs === 1 ? '' : 's'}` : '' },
+    { id: 'a-subs', label: 'Quest submissions', n: d.pending_submissions, icon: 'inbox', href: '/admin/#submissions', hint: '' },
+    { id: 'a-appeals', label: 'Ban appeals', n: d.pending_appeals, icon: 'gavel', href: '/admin/#appeals', hint: '' },
+    { id: 'a-giveaways', label: 'Giveaways to review', n: d.pending_giveaways + d.pending_giveaway_proofs, icon: 'gift', href: '/admin/#giveaways', hint: d.pending_giveaway_proofs ? `${d.pending_giveaway_proofs} proof${d.pending_giveaway_proofs === 1 ? '' : 's'}` : '' },
     { id: 'a-pvp', label: 'PvP results', n: d.pvp_to_review, icon: 'swords', href: '/admin/manage/#pvp', hint: '' },
   ];
   cards.sort((a, b) => (b.urgent ? 2 : b.n > 0 ? 1 : 0) - (a.urgent ? 2 : a.n > 0 ? 1 : 0));

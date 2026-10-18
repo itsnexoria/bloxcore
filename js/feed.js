@@ -341,7 +341,8 @@ async function loadSidebarTrending() {
   const { data } = await sb.rpc('get_feed_page', { p_limit: 3, p_offset: 0, p_trending: true });
 
   if (!data || !data.length) {
-    el.innerHTML = `<p class="muted" style="margin:0; font-size:0.8rem;">Nothing trending yet.</p>`;
+    el.innerHTML = `<div class="fs-empty"><i data-lucide="flame" class="icon-md"></i><p>Nothing trending yet.<br>Like and comment to get things moving.</p></div>`;
+    refreshIcons();
     return;
   }
 
@@ -963,6 +964,7 @@ async function toggleLike(btn) {
   // Optimistic update — instant feedback, matches the site's other tap-to-react patterns.
   btn.classList.toggle('is-active', !wasActive);
   countEl.textContent = Number(countEl.textContent) + (wasActive ? -1 : 1);
+  if (!wasActive) { btn.classList.add('is-pop'); setTimeout(() => btn.classList.remove('is-pop'), 500); }
 
   const { error } = wasActive
     ? await sb.from('feed_likes').delete().eq('post_id', postId).eq('user_id', auth.user.id)

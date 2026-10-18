@@ -119,7 +119,7 @@ a.ov-kpi:hover { border-color: color-mix(in srgb, var(--c) 60%, transparent); }
 
 .ov-spark { width: 100%; height: 34px; margin-top: 4px; display: block; }
 
-.ov-two { display: grid; grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr); gap: 14px; margin-top: 14px; align-items: start; }
+.ov-two { display: grid; grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr); gap: 14px; margin-top: 14px; align-items: stretch; }
 
 .ov-two-flags { grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); margin-top: 30px; align-items: start; }
 
@@ -227,3 +227,15 @@ a.ov-kpi:hover { border-color: color-mix(in srgb, var(--c) 60%, transparent); }
 .ov-mrow-spark .ov-spark { height: 22px; margin: 0; }
 .ov-mrow b { font-family: var(--font-mono); min-width: 28px; text-align: right; }
 @media (max-width: 560px) { .ov-cstats { grid-template-columns: repeat(2, minmax(0, 1fr)); } .ov-mrow { grid-template-columns: 10px 84px minmax(0, 1fr) auto; } }
+
+/* Right column: exactly as tall as the chart card (height:0 + min-height:100% lets the grid row be sized by the
+   left card only), with the long scheduled-jobs list scrolling inside its own panel. */
+.ov-side { display: flex; flex-direction: column; gap: 14px; height: 0; min-height: 100%; min-width: 0; }
+.ov-side > .ov-panel { margin: 0; }
+.ov-cron-panel { flex: 1 1 0; min-height: 0; display: flex; flex-direction: column; }
+.ov-cron-panel[hidden] { display: none; }
+.ov-cron-panel .ov-cron { flex: 1 1 0; min-height: 0; overflow-y: auto; padding-right: 6px; scrollbar-width: thin; }
+@media (max-width: 920px) {
+  .ov-side { height: auto; min-height: 0; }
+  .ov-cron-panel .ov-cron { max-height: 340px; }
+}
