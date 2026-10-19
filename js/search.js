@@ -219,6 +219,6 @@ async function runSiteSearch(query) {
         </a>
       `).join('')}
     </div>
-  `).join('');
+  `).join('') + `<a href="/search/?q=${encodeURIComponent(query)}" style="display:block; margin:6px 10px 10px; padding:10px 12px; border-radius:var(--radius-sm); text-align:center; font-size:0.82rem; font-weight:600; color:var(--brass-bright); text-decoration:none; border:1px solid var(--glass-border);">See all results for "${escapeHtml(query)}" →</a>`;
   refreshIcons();
 }

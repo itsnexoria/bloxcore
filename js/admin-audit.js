@@ -1,0 +1,121 @@
+// BloxCore — /admin/audit/ (admin only): who did what, and when. Data: get_admin_audit_log() — rows are
+// written by database triggers whenever staff ban/unban, change roles, rule on queues or remove content.
+
+const AUDIT_PAGE_SIZE = 50;
+const AUDIT_ACTIONS = [
+  ['', 'All actions'], ['user:banned', 'Bans'], ['user:unbanned', 'Unbans'], ['user:role_changed', 'Role changes'],
+  ['user:shadow_muted', 'Shadow mutes'], ['report', 'Reports'], ['appeal', 'Ban appeals'], ['giveaway', 'Giveaways'],
+  ['submission', 'Quest submissions'], ['pvp', 'PvP rulings'], ['war', 'Crew wars'], ['flag', 'Auto-mod flags'],
+  ['content:deleted', 'Content removed'], ['note:added', 'Mod notes'],
+];
+let auditRows = [];
+let auditTotal = 0;
+let auditActorId = null;
+let auditTargetId = null;
+
+onReady(async () => {
+  const auth = await requireAdmin();
+  if (!auth) return;
+  document.getElementById('audit-content').style.display = 'block';
+  document.getElementById('audit-action').innerHTML = AUDIT_ACTIONS.map(([v, l]) => `<option value="${v}">${l}</option>`).join('');
+
+  document.getElementById('audit-action').addEventListener('change', reloadAudit);
+  let timer;
+  ['audit-actor', 'audit-target'].forEach(id => document.getElementById(id).addEventListener('input', () => { clearTimeout(timer); timer = setTimeout(reloadAudit, 450); }));
+  document.getElementById('audit-clear').addEventListener('click', () => {
+    document.getElementById('audit-action').value = '';
+    document.getElementById('audit-actor').value = '';
+    document.getElementById('audit-target').value = '';
+    reloadAudit();
+  });
+  document.getElementById('audit-more').addEventListener('click', () => fetchAudit(true));
+  document.getElementById('audit-export').addEventListener('click', exportAuditCsv);
+
+  // Deep links: /admin/audit/?u=<username> (e.g. from a player's admin card) pre-filters to that player.
+  const u = new URLSearchParams(location.search).get('u');
+  if (u) document.getElementById('audit-target').value = u;
+  reloadAudit();
+});
+
+async function resolveUsername(inputId) {
+  const name = document.getElementById(inputId).value.trim();
+  if (!name) return { id: null, ok: true };
+  const { data } = await sb.from('profiles').select('id').ilike('username', name.replace(/[%_]/g, '\\$&')).limit(1);
+  return data && data[0] ? { id: data[0].id, ok: true } : { id: null, ok: false };
+}
+
+async function reloadAudit() {
+  const [actor, target] = await Promise.all([resolveUsername('audit-actor'), resolveUsername('audit-target')]);
+  const list = document.getElementById('audit-list');
+  if (!actor.ok || !target.ok) {
+    auditRows = []; auditTotal = 0;
+    list.innerHTML = '<div class="empty-state">No player with that username.</div>';
+    document.getElementById('audit-summary').textContent = '';
+    document.getElementById('audit-more').style.display = 'none';
+    return;
+  }
+  auditActorId = actor.id; auditTargetId = target.id;
+  auditRows = [];
+  await fetchAudit(false);
+}
+
+async function fetchAudit(append) {
+  const list = document.getElementById('audit-list');
+  const action = document.getElementById('audit-action').value || null;
+  if (!append) list.innerHTML = '<div class="skeleton" style="height:64px;"></div><div class="skeleton" style="height:64px;"></div>';
+  const { data, error } = await sb.rpc('get_admin_audit_log', {
+    p_limit: AUDIT_PAGE_SIZE, p_offset: append ? auditRows.length : 0, p_action: action, p_actor: auditActorId, p_target: auditTargetId,
+  });
+  if (error) { logError(error); list.innerHTML = errorStateHtml("Couldn't load the audit log.", 'reloadAudit()'); refreshIcons(); return; }
+  auditRows = append ? auditRows.concat(data || []) : (data || []);
+  auditTotal = data && data[0] ? Number(data[0].total) : (append ? auditTotal : 0);
+  renderAudit();
+}
+
+function auditTone(action) {
+  if (/banned|deleted|denied|rejected|role_changed|shadow_muted/.test(action)) return 'danger';
+  if (/approved|resolved|unbanned|shadow_unmuted/.test(action)) return 'ok';
+  return 'neutral';
+}
+function auditIcon(action) {
+  const k = action.split(':')[0];
+  return ({ user: 'user-cog', report: 'flag', appeal: 'gavel', giveaway: 'gift', submission: 'inbox', pvp: 'crosshair', war: 'swords', flag: 'shield-alert', content: 'trash-2', note: 'notebook-pen' })[k] || 'activity';
+}
+
+function renderAudit() {
+  const list = document.getElementById('audit-list');
+  document.getElementById('audit-summary').textContent = auditRows.length ? `Showing ${auditRows.length} of ${auditTotal}` : '';
+  document.getElementById('audit-more').style.display = auditRows.length < auditTotal ? 'inline-flex' : 'none';
+  if (!auditRows.length) { list.innerHTML = '<div class="empty-state">Nothing logged for these filters yet.</div>'; return; }
+  list.innerHTML = auditRows.map(r => {
+    const d = r.details || {};
+    const extra = [d.reason && `Reason: ${d.reason}`, d.response && `Reply: ${d.response}`, d.note && `Note: ${d.note}`, d.excerpt && `“${d.excerpt}”`, d.title].filter(Boolean);
+    return `
+      <div class="audit-row audit-${auditTone(r.action)}">
+        <span class="audit-icon"><i data-lucide="${auditIcon(r.action)}" class="icon-sm"></i></span>
+        <div class="audit-main">
+          <p class="audit-summary">${escapeHtml(r.summary)}</p>
+          ${extra.length ? `<p class="audit-extra">${extra.map(escapeHtml).join(' · ')}</p>` : ''}
+          <p class="audit-meta"><span class="audit-action">${escapeHtml(r.action)}</span>
+            by ${r.actor_username ? `<a href="/player/?u=${encodeURIComponent(r.actor_username)}">@${escapeHtml(r.actor_username)}</a>` : '<span>unknown</span>'}
+            ${r.target_username ? ` · about <a href="/admin/audit/?u=${encodeURIComponent(r.target_username)}">@${escapeHtml(r.target_username)}</a>` : ''}</p>
+        </div>
+        <time class="audit-time" datetime="${r.created_at}" title="${new Date(r.created_at).toLocaleString()}">${timeAgo(r.created_at)}</time>
+      </div>`;
+  }).join('');
+  refreshIcons();
+}
+
+function exportAuditCsv() {
+  if (!auditRows.length) { showToast('Nothing to export.', true); return; }
+  // Prefix cells that start like a spreadsheet formula so opening the CSV in Excel can't run them.
+  const q = (v) => { let s = String(v ?? ''); if (/^[=+\-@\t\r]/.test(s)) s = "'" + s; return `"${s.replace(/"/g, '""')}"`; };
+  const lines = [['time', 'staff', 'action', 'player', 'summary'].join(',')].concat(
+    auditRows.map(r => [r.created_at, r.actor_username, r.action, r.target_username, r.summary].map(q).join(',')));
+  const blob = new Blob([lines.join('\n')], { type: 'text/csv' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `bloxcore-audit-${new Date().toISOString().slice(0, 10)}.csv`;
+  a.click();
+  URL.revokeObjectURL(a.href);
+}

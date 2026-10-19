@@ -397,6 +397,8 @@ function openComposeModal(prefill, mode = null) {
   offeringEntries = prefill?.offering ? prefill.offering.map(e => ({ ...e })) : [];
   requestingEntries = prefill?.requesting ? prefill.requesting.map(e => ({ ...e })) : [];
   document.getElementById('trade-note').value = prefill?.note || '';
+  attachScamHint(document.getElementById('trade-note'));
+  document.getElementById('trade-note').dispatchEvent(new Event('input'));
   applyComposeModeUi();
   renderSlotList('offering');
   renderSlotList('requesting');
@@ -748,7 +750,7 @@ function renderListing(t) {
         <div class="tc-tools">${tools}</div>
       </header>
 
-      ${t.note ? `<blockquote class="tc-note">${escapeHtml(t.note)}</blockquote>` : ''}
+      ${t.note ? `<blockquote class="tc-note">${escapeHtml(t.note)}</blockquote>${!isOwner ? scamWarningHtml(t.note) : ''}` : ''}
 
       <div class="tc-deal">
         <section class="tc-side tc-side-offer" aria-label="Offering">
@@ -999,7 +1001,7 @@ async function loadOffers() {
           <div><span class="muted" style="font-size:0.72rem;">You give</span><div class="confirm-card-tiles">${gives.tiles || '<span class="muted">—</span>'}</div></div>
           <div><span class="muted" style="font-size:0.72rem;">You get</span><div class="confirm-card-tiles">${gets.tiles || '<span class="muted">—</span>'}</div></div>
         </div>
-        ${o.message ? `<p class="muted" style="margin:10px 0 0; font-size:0.85rem;">“${escapeHtml(o.message)}”</p>` : ''}
+        ${o.message ? `<p class="muted" style="margin:10px 0 0; font-size:0.85rem;">“${escapeHtml(o.message)}”</p>${currentUser && o.from_id !== currentUser.id ? scamWarningHtml(o.message) : ''}` : ''}
         ${kind === 'accepted' ? '<p class="muted" style="margin:10px 0 0; font-size:0.8rem;">Agree on the details, trade in-game, then use <strong>Mark completed</strong> on the listing so it counts for both of you.</p>' : ''}
         <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:12px;">${actions}</div>
       </div>`;

@@ -36,6 +36,7 @@
     { group: 'Community & system', items: [
       { id: 'm-users', label: 'Users', icon: 'users', href: '/admin/manage/#users', admin: true },
       { id: 'm-analytics', label: 'Analytics', icon: 'bar-chart-2', href: '/admin/manage/#analytics', admin: true },
+      { id: 'audit', label: 'Audit log', icon: 'history', href: '/admin/audit/', admin: true },
       { id: 'm-site', label: 'Site controls', icon: 'settings', href: '/admin/manage/#site', admin: true },
     ] },
   ];
@@ -50,6 +51,7 @@
 
   // ---- state --------------------------------------------------------------------------------------
   let role = 'mod';
+  let meId = null;
   let counts = {};
   let paletteOpen = false;
   let kbdIdx = -1;
@@ -242,6 +244,8 @@
         const name = u.display_name || u.username;
         palItems.push({ type: 'user', run: () => { closePalette(); location.href = `/player/?u=${encodeURIComponent(u.username)}`; } });
         rows.push({ group: 'Players', html: palRow(avatarSafe(u), `${esc(name)} <small>@${esc(u.username)}${u.banned ? ' · banned' : ''}${u.role && u.role !== 'user' ? ' · ' + esc(u.role) : ''}</small>`, 'Open profile') });
+        palItems.push({ type: 'notes', run: () => { closePalette(); openNotes(u.id, u.username); } });
+        rows.push({ group: 'Players', html: palRow('<i data-lucide="notebook-pen" class="icon-sm"></i>', `Mod notes for ${esc(name)}`, 'Private') });
         if (isAdmin()) {
           palItems.push({ type: 'manage', run: () => { closePalette(); openUserInManage(u.username); } });
           rows.push({ group: 'Players', html: palRow('<i data-lucide="user-cog" class="icon-sm"></i>', `Manage ${esc(name)}`, 'Users tab') });
@@ -392,6 +396,102 @@
     icons();
   }
 
+
+  // ---- dialogs: private mod notes + reply-with-templates ------------------------------------------
+  function dialog(inner, label) {
+    const wrap = document.createElement('div');
+    wrap.className = 'adm-pal-wrap is-center';
+    wrap.innerHTML = `<div class="adm-pal adm-dialog" role="dialog" aria-modal="true" aria-label="${esc(label)}">${inner}</div>`;
+    document.body.appendChild(wrap);
+    const close = () => { wrap.remove(); document.removeEventListener('keydown', onKey, true); };
+    const onKey = (e) => { if (e.key === 'Escape') { e.stopPropagation(); close(); wrap.dispatchEvent(new Event('adm:closed')); } };
+    document.addEventListener('keydown', onKey, true);
+    wrap.addEventListener('mousedown', (e) => { if (e.target === wrap) { close(); wrap.dispatchEvent(new Event('adm:closed')); } });
+    wrap.querySelectorAll('[data-adm-close]').forEach(b => b.addEventListener('click', () => { close(); wrap.dispatchEvent(new Event('adm:closed')); }));
+    icons();
+    return { wrap, close };
+  }
+
+  async function openNotes(userId, username) {
+    const { wrap, close } = dialog(`
+      <div class="adm-dialog-head"><div><strong>Mod notes</strong><span class="adm-dialog-sub">@${esc(username)} · private to staff</span></div>
+        <button type="button" class="adm-iconbtn" data-adm-close aria-label="Close"><i data-lucide="x" class="icon-sm"></i></button></div>
+      <div class="adm-notes-list" id="adm-notes-list"><div class="skeleton" style="height:56px;"></div></div>
+      <form class="adm-notes-form" id="adm-notes-form">
+        <textarea id="adm-notes-input" maxlength="1000" rows="3" placeholder="What should the next mod know? (warnings given, context, links…)" aria-label="New note"></textarea>
+        <div class="adm-dialog-actions"><span class="adm-dialog-sub" id="adm-notes-count">0 / 1000</span><button type="submit" class="btn btn-primary btn-sm">Add note</button></div>
+      </form>`, 'Mod notes');
+    const list = wrap.querySelector('#adm-notes-list'); const input = wrap.querySelector('#adm-notes-input');
+    input.addEventListener('input', () => { wrap.querySelector('#adm-notes-count').textContent = `${input.value.length} / 1000`; });
+    async function load() {
+      const { data, error } = await sb.rpc('get_user_mod_notes', { p_user_id: userId });
+      if (error) { list.innerHTML = '<p class="muted">Couldn\'t load notes.</p>'; return; }
+      list.innerHTML = (data || []).length ? data.map(n => `
+        <div class="adm-note"><div class="adm-note-top"><strong>@${esc(n.author_username || 'former staff')}</strong><span>${typeof timeAgo === 'function' ? timeAgo(n.created_at) : ''}</span>
+          ${(n.author_id === meId || isAdmin()) ? `<button type="button" class="adm-note-del" data-del-note="${n.id}" aria-label="Delete note" title="Delete note"><i data-lucide="trash-2" class="icon-sm"></i></button>` : ''}</div>
+          <p>${esc(n.note)}</p></div>`).join('') : '<p class="muted adm-notes-empty">No notes yet.</p>';
+      list.querySelectorAll('[data-del-note]').forEach(b => b.addEventListener('click', async () => {
+        const { error: e } = await sb.from('user_mod_notes').delete().eq('id', b.dataset.delNote);
+        if (e) { showToast(e.message, true); return; }
+        load();
+      }));
+      icons();
+    }
+    wrap.querySelector('#adm-notes-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const note = input.value.trim();
+      if (!note || !meId) return;
+      const btn = e.target.querySelector('button[type="submit"]'); btn.disabled = true;
+      const { error } = await sb.from('user_mod_notes').insert({ user_id: userId, author_id: meId, note });
+      btn.disabled = false;
+      if (error) { showToast(error.message, true); return; }
+      input.value = ''; wrap.querySelector('#adm-notes-count').textContent = '0 / 1000';
+      load();
+    });
+    load();
+    input.focus();
+    return close;
+  }
+
+  // Canned replies (edit freely). `kind` picks the set; the textarea stays fully editable.
+  const TEMPLATES = {
+    approve: [
+      ['Welcome back', 'Welcome back — your appeal has been accepted and your account is unbanned. Please re-read the rules so it doesn\'t happen again.'],
+      ['Second chance', 'Appeal accepted. Your ban has been lifted, but further violations may result in a permanent ban.'],
+      ['Ban was too harsh', 'We looked at the context and agree the ban was too harsh. Sorry about that — you\'re unbanned.'],
+    ],
+    deny: [
+      ['Keep ban', 'After reviewing your case we\'re keeping the ban in place. You\'re welcome to appeal again in 30 days.'],
+      ['Doesn\'t address reason', 'Your appeal doesn\'t address the reason for the ban, so we can\'t lift it.'],
+      ['Alt / evasion', 'Using another account to get around a ban isn\'t allowed, so this appeal is denied.'],
+      ['Scam / fraud', 'Scamming or trade fraud is a permanent offence on BloxCore, so we can\'t reverse this ban.'],
+    ],
+  };
+  // Resolves to the reply text ('' = no message) or null if cancelled.
+  function askResponse({ title, kind = 'deny', confirmLabel = 'Confirm', hint = 'Visible to the user.' }) {
+    return new Promise((resolve) => {
+      const tpls = TEMPLATES[kind] || [];
+      const { wrap, close } = dialog(`
+        <div class="adm-dialog-head"><div><strong>${esc(title)}</strong><span class="adm-dialog-sub">${esc(hint)}</span></div>
+          <button type="button" class="adm-iconbtn" data-adm-close aria-label="Cancel"><i data-lucide="x" class="icon-sm"></i></button></div>
+        <div class="adm-tpl-row">${tpls.map((t, i) => `<button type="button" class="adm-tpl" data-tpl="${i}">${esc(t[0])}</button>`).join('')}</div>
+        <textarea id="adm-resp-input" maxlength="500" rows="4" placeholder="Optional message to the user…" aria-label="Message"></textarea>
+        <div class="adm-dialog-actions"><button type="button" class="btn btn-ghost btn-sm" data-adm-close>Cancel</button>
+          <button type="button" class="btn ${kind === 'approve' ? 'btn-primary' : 'btn-danger'} btn-sm" id="adm-resp-ok">${esc(confirmLabel)}</button></div>`, title);
+      const input = wrap.querySelector('#adm-resp-input');
+      let done = false;
+      const finish = (v) => { if (done) return; done = true; resolve(v); };
+      wrap.querySelectorAll('[data-tpl]').forEach(b => b.addEventListener('click', () => { input.value = tpls[Number(b.dataset.tpl)][1]; input.focus(); }));
+      wrap.querySelector('#adm-resp-ok').addEventListener('click', () => { finish(input.value.trim()); close(); });
+      wrap.addEventListener('adm:closed', () => finish(null));
+      input.focus();
+    });
+  }
+  document.addEventListener('click', (e) => {
+    const b = e.target.closest && e.target.closest('[data-mod-notes]');
+    if (b) { e.preventDefault(); openNotes(b.dataset.modNotes, b.dataset.username || 'user'); }
+  });
+
   // ---- global key handling ------------------------------------------------------------------------
   const typing = () => { const el = document.activeElement; return !!el && (/^(input|textarea|select)$/i.test(el.tagName) || el.isContentEditable); };
   document.addEventListener('keydown', (e) => {
@@ -432,7 +532,8 @@
     build();
     if (!$('.adm-shell')) return;
     try {
-      const { profile } = await getCurrentProfile();
+      const { user, profile } = await getCurrentProfile();
+      meId = user?.id ?? null;
       if (profile?.role === 'admin') role = 'admin'; else if (profile?.role === 'mod') role = 'mod';
     } catch (_) { /* the page's own requireMod() handles redirects; keep the mod view */ }
     renderSide();
@@ -443,5 +544,5 @@
   }
   if (typeof onReady === 'function') onReady(init); else document.addEventListener('DOMContentLoaded', init);
 
-  window.admShell = { refreshCounts, openPalette };
+  window.admShell = { refreshCounts, openPalette, openNotes, askResponse };
 })();

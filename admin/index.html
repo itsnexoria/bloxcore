@@ -139,6 +139,16 @@
         <button type="button" class="btn btn-ghost btn-sm" data-status="denied">Denied</button>
       </div>
 
+      <div id="appeal-bulk-bar" class="panel panel-plain" style="margin-top:16px; padding:12px 20px; display:none; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap;">
+        <label style="display:flex; align-items:center; gap:8px; text-transform:none; font-weight:600; margin:0;">
+          <input type="checkbox" id="appeal-select-all" style="width:auto; margin:0;">
+          <span id="appeal-select-count">0 selected</span>
+        </label>
+        <div style="display:flex; gap:10px;">
+          <button class="btn btn-primary btn-sm" id="appeal-bulk-approve" disabled>Approve Selected</button>
+          <button class="btn btn-danger btn-sm" id="appeal-bulk-deny" disabled>Deny Selected</button>
+        </div>
+      </div>
       <div id="appeals-list" style="margin-top:20px;">
         <div class="skeleton" style="height:130px; margin-bottom:10px;"></div>
       </div>

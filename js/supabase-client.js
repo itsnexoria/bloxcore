@@ -123,6 +123,27 @@ function scamSignals(text) {
   return reasons;
 }
 
+// Live heads-up under a text box (listing notes, offer messages). Warns the writer; never blocks.
+function attachScamHint(input) {
+  if (!input || input.dataset.scamHint) return;
+  input.dataset.scamHint = '1';
+  const hint = document.createElement('div');
+  hint.className = 'chat-scam-hint';
+  hint.style.margin = '6px 0 0';
+  hint.hidden = true;
+  input.insertAdjacentElement('afterend', hint);
+  const update = () => {
+    const reasons = scamSignals(input.value);
+    hint.hidden = !reasons.length;
+    if (reasons.length) {
+      hint.innerHTML = `<i data-lucide="shield-alert" class="icon-sm"></i><span>Heads up — this has ${escapeHtml(reasons.join(', '))}. Scammers use these; never pay or send first, and keep trades inside Roblox.</span>`;
+      refreshIcons();
+    }
+  };
+  input.addEventListener('input', update);
+  update();
+}
+
 function scamWarningHtml(text) {
   const reasons = scamSignals(text);
   if (!reasons.length) return '';

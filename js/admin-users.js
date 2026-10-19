@@ -315,6 +315,8 @@ function renderUserRow(u, isLast) {
         ? `<button class="btn btn-ghost btn-sm" data-unban="${u.id}">Unban</button>`
         : `<button class="btn btn-danger btn-sm" data-ban="${u.id}">Ban</button>`);
 
+  const notesControl = `<button type="button" class="btn btn-ghost btn-sm" data-mod-notes="${u.id}" data-username="${escapeHtml(u.username || '')}" title="Private staff notes"><i data-lucide="notebook-pen" class="icon-sm icon-inline"></i>Notes</button>`;
+
   const muteControl = isSelf || isAdminUser
     ? ''
     : `<button class="btn btn-ghost btn-sm" data-toggle-shadow-mute="${u.id}" data-next="${!u.shadow_muted}" title="Shadow-muted posts are hidden from everyone but the poster and staff">${u.shadow_muted ? 'Un-mute' : 'Shadow-Mute'}</button>`;
@@ -341,7 +343,7 @@ function renderUserRow(u, isLast) {
             <option value="admin" ${u.role === 'admin' ? 'selected' : ''}>Admin</option>
           </select>
           ${muteControl}
-          ${banControl}
+          ${notesControl}${banControl}
         </div>
       </div>
       <form data-xp-form="${u.id}" style="display:flex; gap:8px; align-items:center; margin-top:10px;">

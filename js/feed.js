@@ -49,6 +49,7 @@ onReady(async () => {
   document.getElementById('feed-image-remove-btn').addEventListener('click', clearImageSelection);
   document.getElementById('feed-attach-item-btn').addEventListener('click', openFeedItemPicker);
   document.getElementById('feed-poll-btn').addEventListener('click', () => (pendingPoll ? closePollBuilder() : openPollBuilder()));
+  attachMentionAutocomplete(document.getElementById('feed-post-input'));
   document.getElementById('feed-item-picker-close').addEventListener('click', () => {
     document.getElementById('feed-item-picker-modal').classList.remove('open');
   });
@@ -73,6 +74,7 @@ onReady(async () => {
   loadPulseStats();
   loadSidebarTrending();
   loadSidebarTopPlayers();
+  loadTrendingTags();
   if (currentUser) loadSidebarSuggestions();
   else document.getElementById('feed-sidebar-suggestions-card').style.display = 'none';
 
@@ -156,6 +158,10 @@ function applyTagFilter(tag, shouldLoad = true) {
   feedTag = tag.toLowerCase();
   document.getElementById('feed-tag-banner').style.display = 'flex';
   document.getElementById('feed-tag-banner-text').textContent = `#${feedTag}`;
+  const bannerTag = feedTag;
+  sb.from('feed_post_tags').select('post_id', { count: 'exact', head: true }).eq('tag', bannerTag).then(({ count }) => {
+    if (feedTag === bannerTag && count != null) document.getElementById('feed-tag-banner-text').textContent = `#${bannerTag} · ${count} post${count === 1 ? '' : 's'}`;
+  });
   document.querySelectorAll('#feed-tabs [data-feed-tab]').forEach(btn => { btn.className = 'btn btn-sm btn-ghost'; });
   const url = new URL(window.location.href);
   url.searchParams.set('tag', feedTag);
@@ -754,10 +760,15 @@ function renderPost(p) {
       ${p.tagged_item_id ? taggedItemEmbedHtml(p) : ''}
       ${p.repost_trade_listing_id ? `<div class="fp-embed">${buildTradeEmbedHtml(p)}</div>` : ''}
       ${p.repost_crew_war_id ? `<div class="fp-embed">${buildWarEmbedHtml(p)}</div>` : ''}
+      <div class="fp-reactions" data-reactions-for="${p.id}" hidden></div>
       <footer class="fp-actions">
         <button class="feed-action-btn ${p.liked_by_me ? 'is-active' : ''}" data-like-post="${p.id}" ${!currentUser ? 'disabled' : ''} title="Like">
           <i data-lucide="heart" class="icon-sm"></i><span data-like-count>${p.like_count}</span>
         </button>
+        <div class="fp-react-wrap">
+          <button class="feed-action-btn" data-react-toggle ${!currentUser ? 'disabled' : ''} title="React" aria-haspopup="menu" aria-label="Add a reaction"><i data-lucide="smile-plus" class="icon-sm"></i></button>
+          <div class="fp-react-pop" role="menu" hidden>${REACTIONS.map(([k, e, l]) => `<button type="button" role="menuitem" data-react="${k}" title="${l}" aria-label="${l}">${e}</button>`).join('')}</div>
+        </div>
         <button class="feed-action-btn" data-toggle-comments="${p.id}" title="Comments">
           <i data-lucide="message-square" class="icon-sm"></i><span data-comment-count>${p.comment_count}</span>
         </button>
@@ -771,6 +782,147 @@ function renderPost(p) {
       <div class="feed-comments-panel" data-comments-panel="${p.id}" style="display:none;"></div>
     </article>
   `;
+}
+
+
+// --- Reactions (one per user per post, on top of likes) -----------------------------------------
+const REACTIONS = [['fire', '🔥', 'Fire'], ['w', '🏆', 'W'], ['laugh', '😂', 'Haha'], ['shock', '😮', 'Wow']];
+const reactionState = new Map(); // postId -> { counts: {kind: n}, mine: kind|null }
+
+function paintReactions(postId) {
+  const holder = document.querySelector(`[data-reactions-for="${postId}"]`);
+  if (!holder) return;
+  const s = reactionState.get(postId) || { counts: {}, mine: null };
+  const chips = REACTIONS.filter(([k]) => s.counts[k] > 0).map(([k, e, l]) =>
+    `<button type="button" class="fp-rx-chip${s.mine === k ? ' is-mine' : ''}" data-react="${k}" title="${l}" ${!currentUser ? 'disabled' : ''}><span>${e}</span><b>${s.counts[k]}</b></button>`);
+  holder.innerHTML = chips.join('');
+  holder.hidden = !chips.length;
+}
+
+async function loadReactionCounts(postIds) {
+  if (!postIds.length) return;
+  const { data, error } = await sb.rpc('get_feed_reaction_counts', { p_post_ids: postIds });
+  if (error) return;
+  postIds.forEach(id => reactionState.set(id, { counts: {}, mine: null }));
+  (data || []).forEach(r => {
+    const s = reactionState.get(r.post_id);
+    s.counts[r.kind] = Number(r.n);
+    if (r.mine) s.mine = r.kind;
+  });
+  postIds.forEach(paintReactions);
+}
+
+function hydrateReactions(root) {
+  const ids = [...root.querySelectorAll('[data-reactions-for]')].map(h => h.dataset.reactionsFor);
+  loadReactionCounts(ids);
+}
+
+async function setReaction(postId, kind) {
+  const s = reactionState.get(postId) || { counts: {}, mine: null };
+  let error;
+  if (s.mine === kind) ({ error } = await sb.from('feed_reactions').delete().eq('post_id', postId).eq('user_id', currentUser.id));
+  else ({ error } = await sb.from('feed_reactions').upsert({ post_id: postId, user_id: currentUser.id, kind }, { onConflict: 'post_id,user_id' }));
+  if (error) { showToast(error.message, true); return; }
+  await loadReactionCounts([postId]);
+}
+
+// Delegated, so it also covers posts appended later by "load more".
+document.addEventListener('click', (e) => {
+  const toggle = e.target.closest('[data-react-toggle]');
+  if (toggle) {
+    e.stopPropagation();
+    const pop = toggle.parentElement.querySelector('.fp-react-pop');
+    const willOpen = pop.hidden;
+    closePostMenus();
+    pop.hidden = !willOpen;
+    return;
+  }
+  const pick = e.target.closest('[data-react]');
+  if (pick && currentUser) {
+    const card = pick.closest('[data-post-id]');
+    if (card) { closePostMenus(); setReaction(card.dataset.postId, pick.dataset.react); }
+  }
+});
+
+// --- @mention autocomplete -----------------------------------------------------------------
+function attachMentionAutocomplete(input) {
+  if (!input || input.dataset.mentionAc) return;
+  input.dataset.mentionAc = '1';
+  let box = null, items = [], idx = 0, timer = 0, seq = 0;
+
+  const close = () => { if (box) box.remove(); box = null; items = []; };
+  const token = () => {
+    const pos = input.selectionStart ?? input.value.length;
+    const m = input.value.slice(0, pos).match(/(^|\s)@([A-Za-z0-9_.]{0,20})$/);
+    return m ? { q: m[2], start: pos - m[2].length - 1, end: pos } : null;
+  };
+  const choose = (i) => {
+    const tk = token(); const u = items[i];
+    if (!tk || !u) return close();
+    const insert = `@${u.username} `;
+    input.value = input.value.slice(0, tk.start) + insert + input.value.slice(tk.end);
+    const caret = tk.start + insert.length;
+    input.setSelectionRange(caret, caret);
+    input.dispatchEvent(new Event('input', { bubbles: true }));
+    close();
+    input.focus();
+  };
+  const render = () => {
+    if (!items.length) return close();
+    if (!box) { box = document.createElement('div'); box.className = 'fp-mention-box'; box.setAttribute('role', 'listbox'); document.body.appendChild(box); }
+    const r = input.getBoundingClientRect();
+    box.style.left = `${Math.max(8, r.left)}px`;
+    box.style.top = `${r.bottom + 6}px`;
+    box.style.minWidth = `${Math.min(280, Math.max(200, r.width))}px`;
+    box.innerHTML = items.map((u, i) => `
+      <div class="fp-mention-row${i === idx ? ' is-sel' : ''}" data-i="${i}" role="option">
+        ${avatarHtml(u, 26)}<span class="fp-mention-name">${escapeHtml(displayNameFor(u))}</span><span class="fp-mention-user">@${escapeHtml(u.username)}</span>
+      </div>`).join('');
+    box.querySelectorAll('[data-i]').forEach(el => {
+      el.addEventListener('mousedown', (e) => { e.preventDefault(); choose(Number(el.dataset.i)); }); // mousedown: keeps the input focused
+      el.addEventListener('mousemove', () => { idx = Number(el.dataset.i); box.querySelectorAll('.fp-mention-row').forEach((n, j) => n.classList.toggle('is-sel', j === idx)); });
+    });
+  };
+  const search = async () => {
+    const tk = token();
+    if (!tk) return close();
+    const mine = ++seq;
+    let rows = [];
+    const cols = 'id, username, display_name, avatar_url, avatar_frame';
+    if (!tk.q) {
+      if (!currentUser || !followingIds.size) return close();
+      ({ data: rows } = await sb.from('profiles').select(cols).in('id', [...followingIds].slice(0, 50)).eq('profile_visibility', 'public').limit(5));
+    } else {
+      ({ data: rows } = await sb.from('profiles').select(cols).eq('profile_visibility', 'public').ilike('username', tk.q.replace(/[%_]/g, '\\$&') + '%').limit(8));
+    }
+    if (mine !== seq) return; // a newer keystroke superseded this lookup
+    items = (rows || []).filter(u => !blockedMap.has(u.id)).sort((a, b) => (followingIds.has(b.id) - followingIds.has(a.id)) || a.username.localeCompare(b.username));
+    idx = 0;
+    render();
+  };
+
+  input.addEventListener('input', () => { clearTimeout(timer); timer = setTimeout(search, 120); });
+  input.addEventListener('keydown', (e) => {
+    if (!box) return;
+    if (e.key === 'ArrowDown') { e.preventDefault(); idx = (idx + 1) % items.length; render(); }
+    else if (e.key === 'ArrowUp') { e.preventDefault(); idx = (idx - 1 + items.length) % items.length; render(); }
+    else if (e.key === 'Enter' || e.key === 'Tab') { e.preventDefault(); e.stopPropagation(); choose(idx); }
+    else if (e.key === 'Escape') { e.stopPropagation(); close(); }
+  }, true);
+  input.addEventListener('blur', () => setTimeout(close, 120));
+  window.addEventListener('scroll', close, { passive: true, once: false });
+}
+
+// --- Trending tags (sidebar) --------------------------------------------------------------------
+async function loadTrendingTags() {
+  const card = document.getElementById('feed-trending-tags-card');
+  const el = document.getElementById('feed-trending-tags');
+  if (!card || !el) return;
+  const { data, error } = await sb.rpc('get_trending_tags', { p_days: 7, p_limit: 10 });
+  if (error || !data || !data.length) { card.style.display = 'none'; return; }
+  el.innerHTML = data.map(r => `<a href="/feed/?tag=${encodeURIComponent(r.tag)}" class="fs-tag" data-tag-chip="${escapeHtml(r.tag)}">#${escapeHtml(r.tag)}<small>${r.post_count}</small></a>`).join('');
+  el.querySelectorAll('[data-tag-chip]').forEach(a => a.addEventListener('click', (e) => { e.preventDefault(); applyTagFilter(a.dataset.tagChip); window.scrollTo({ top: 0, behavior: 'smooth' }); }));
+  card.style.display = '';
 }
 
 // --- Block / mute (reuses blocked_users, same table the DMs use) ---------------------------
@@ -810,6 +962,7 @@ function wirePostMenus(root) {
 }
 
 function closePostMenus() {
+  document.querySelectorAll('.fp-react-pop:not([hidden])').forEach(m => { m.hidden = true; });
   document.querySelectorAll('.fp-menu:not([hidden])').forEach(m => {
     m.hidden = true;
     m.parentElement.querySelector('[data-post-menu]')?.setAttribute('aria-expanded', 'false');
@@ -903,6 +1056,7 @@ function wirePostActions(root) {
   root = root || document;
   applyBlockFilter(root);
   hydratePolls(root);
+  hydrateReactions(root);
   wirePostMenus(root);
   root.querySelectorAll('[data-pin-post]').forEach(btn => {
     btn.addEventListener('click', () => togglePinPost(btn.dataset.pinPost));
@@ -1060,6 +1214,7 @@ async function renderCommentsPanel(postId, panel) {
 
   const form = panel.querySelector(`[data-comment-form="${postId}"]`);
   form?.addEventListener('submit', (e) => handleAddComment(e, postId, panel));
+  attachMentionAutocomplete(form?.querySelector('input'));
   const replyBar = panel.querySelector('[data-replying]');
   const clearReply = () => { panel._replyTo = null; if (replyBar) replyBar.hidden = true; };
   panel.querySelector('[data-replying-cancel]')?.addEventListener('click', clearReply);
