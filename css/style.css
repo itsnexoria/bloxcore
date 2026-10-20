@@ -2622,3 +2622,18 @@ h1.nav-page-title { margin-block: 0; line-height: 1.2; font-family: inherit; col
 
 /* Lucide loads deferred: reserve the icon's box until it is swapped for the <svg> (avoids layout shift) */
 i[data-lucide] { display: inline-block; vertical-align: -0.125em; }
+
+/* Report dialog */
+.rep-wrap { position: fixed; inset: 0; z-index: 600; display: flex; align-items: center; justify-content: center; padding: 16px; background: rgb(3 6 12 / 0.7); backdrop-filter: blur(6px); }
+.rep-dialog { width: min(480px, 100%); max-height: calc(100vh - 32px); overflow-y: auto; display: flex; flex-direction: column; gap: 10px; padding: 20px 22px 18px; border-radius: 20px; border: 1px solid var(--glass-border); background: var(--navy); box-shadow: 0 44px 90px -24px #000; }
+.rep-head { display: flex; align-items: center; justify-content: space-between; font-size: 1.05rem; }
+.rep-x { border: 0; background: none; color: var(--ash); font-size: 1rem; cursor: pointer; }
+.rep-sub, .rep-hint { margin: 0; font-size: 0.78rem; color: var(--ash); line-height: 1.5; }
+.rep-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.rep-chip { padding: 6px 14px; border-radius: 999px; border: 1px solid var(--glass-border); background: var(--glass-bg); color: var(--ash); font: inherit; font-size: 0.8rem; font-weight: 600; cursor: pointer; transition: color .15s, border-color .15s, background .15s; }
+.rep-chip:hover { color: var(--bone); border-color: rgb(var(--brass-rgb) / 0.5); }
+.rep-chip.is-on { color: #fff; border-color: transparent; background: linear-gradient(135deg, var(--brass), color-mix(in srgb, var(--brass) 60%, var(--brass-bright))); }
+.rep-dialog textarea, .rep-dialog input { margin: 0; }
+.rep-label { margin: 4px 0 -4px; font-size: 0.74rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--ash); }
+.rep-label span { text-transform: none; letter-spacing: 0; }
+.rep-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 4px; }

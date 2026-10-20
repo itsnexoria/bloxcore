@@ -378,3 +378,10 @@
 .quest-progress-step.done { background: linear-gradient(145deg, var(--brass), var(--brass-bright)); border-color: var(--brass-bright); color: #05070d; }
 
 .quest-progress-step-label { font-size: 0.68rem; color: var(--ash); white-space: nowrap; }
+
+.quest-card-hero { position: relative; }
+.quest-share { position: absolute; top: 10px; right: 10px; z-index: 2; display: inline-grid; place-items: center; width: 30px; height: 30px; padding: 0; border: 1px solid var(--glass-border); border-radius: 50%; background: rgb(6 15 26 / 0.6); color: var(--ash); cursor: pointer; backdrop-filter: blur(6px); transition: color .15s, border-color .15s; }
+.quest-share:hover { color: var(--brass-bright); border-color: rgb(var(--brass-rgb) / 0.6); }
+.quest-card.is-shared-flash { animation: questFlash 2s ease both; }
+@keyframes questFlash { 0%, 60% { box-shadow: 0 0 0 3px rgb(var(--brass-rgb) / 0.7), 0 0 44px rgb(var(--brass-rgb) / 0.45); } 100% { box-shadow: none; } }
+@media (prefers-reduced-motion: reduce) { .quest-card.is-shared-flash { animation: none; } }

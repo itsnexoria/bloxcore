@@ -296,16 +296,54 @@ const BOUNTY_TIERS = [
 // codebase that writes HTML containing a <i data-lucide="..."> tag calls this right after.
 // Shared across trading/sea-events — a quick reason prompt is enough for an MVP report flow;
 // staff review the actual content on the /admin/reports/ page before acting on it.
+const REPORT_REASONS = ['Scam / fraud', 'Inappropriate content', 'Spam or ads', 'Harassment', 'Other'];
+
+// Report dialog: pick a reason, add optional context + an evidence link (e.g. a screenshot on Imgur/Gyazo),
+// then submit_report() applies the same rate limit + banned-user check for every caller.
 async function reportContent(targetType, targetId) {
-  const reason = window.prompt('What\'s wrong with this? (scam, inappropriate link, etc.)');
-  if (!reason || !reason.trim()) return;
   const { data: { session } } = await sb.auth.getSession();
   if (!session) { showToast('Sign in to report content.', true); return; }
-  // Goes through the submit_report RPC (not a raw insert) so every caller gets the same
-  // rate limit (5/hour) and banned-user check, in one place.
-  const { error } = await sb.rpc('submit_report', { p_target_type: targetType, p_target_id: targetId, p_reason: reason.trim() });
-  if (error) { showToast(error.message, true); return; }
-  showToast('Reported — staff will take a look.');
+  if (document.getElementById('rep-wrap')) return;
+
+  const wrap = document.createElement('div');
+  wrap.className = 'rep-wrap'; wrap.id = 'rep-wrap';
+  wrap.innerHTML = `
+    <div class="rep-dialog" role="dialog" aria-modal="true" aria-label="Report">
+      <div class="rep-head"><strong>Report this</strong><button type="button" class="rep-x" id="rep-close" aria-label="Close">✕</button></div>
+      <p class="rep-sub">Pick what fits best. Staff review every report; reporting someone isn't shared with them.</p>
+      <div class="rep-chips" id="rep-chips">${REPORT_REASONS.map(r => `<button type="button" class="rep-chip" data-reason="${escapeHtml(r)}">${escapeHtml(r)}</button>`).join('')}</div>
+      <textarea id="rep-details" maxlength="1000" rows="3" placeholder="What happened? Names, trade details, anything that helps (optional)"></textarea>
+      <label class="rep-label" for="rep-evidence">Evidence link <span>(optional)</span></label>
+      <input type="url" id="rep-evidence" maxlength="500" placeholder="https://i.imgur.com/… — link to a screenshot" autocomplete="off">
+      <p class="rep-hint">Upload the screenshot to Imgur, Gyazo or Lightshot and paste the link. Never include passwords or codes.</p>
+      <div class="rep-actions"><button type="button" class="btn btn-ghost btn-sm" id="rep-cancel">Cancel</button><button type="button" class="btn btn-primary btn-sm" id="rep-send" disabled>Send report</button></div>
+    </div>`;
+  document.body.appendChild(wrap);
+  const $ = (id) => wrap.querySelector('#' + id);
+  let reason = '';
+  const close = () => { wrap.remove(); document.removeEventListener('keydown', onKey, true); };
+  const onKey = (e) => { if (e.key === 'Escape') { e.stopPropagation(); close(); } };
+  document.addEventListener('keydown', onKey, true);
+  wrap.addEventListener('mousedown', (e) => { if (e.target === wrap) close(); });
+  $('rep-close').addEventListener('click', close);
+  $('rep-cancel').addEventListener('click', close);
+  $('rep-chips').querySelectorAll('[data-reason]').forEach(b => b.addEventListener('click', () => {
+    reason = b.dataset.reason;
+    $('rep-chips').querySelectorAll('.rep-chip').forEach(c => c.classList.toggle('is-on', c === b));
+    $('rep-send').disabled = false;
+  }));
+  $('rep-send').addEventListener('click', async () => {
+    const details = $('rep-details').value.trim();
+    const evidence = $('rep-evidence').value.trim();
+    if (reason === 'Other' && !details) { showToast('Add a few words about what happened.', true); $('rep-details').focus(); return; }
+    if (evidence && !/^https:\/\/\S+$/i.test(evidence)) { showToast('The evidence link must start with https://', true); $('rep-evidence').focus(); return; }
+    $('rep-send').disabled = true;
+    const { error } = await sb.rpc('submit_report', { p_target_type: targetType, p_target_id: targetId, p_reason: reason, p_details: details || null, p_evidence_url: evidence || null });
+    if (error) { showToast(error.message, true); $('rep-send').disabled = false; return; }
+    close();
+    showToast('Reported — staff will take a look.');
+  });
+  $('rep-chips').querySelector('button').focus();
 }
 
 const VIDEO_PLATFORM_HOSTS = ['youtube.com', 'youtu.be', 'streamable.com', 'medal.tv', 'twitch.tv', 'clips.twitch.tv', 'vimeo.com', 'tiktok.com', 'drive.google.com'];

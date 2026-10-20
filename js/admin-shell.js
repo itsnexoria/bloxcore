@@ -37,6 +37,7 @@
       { id: 'm-users', label: 'Users', icon: 'users', href: '/admin/manage/#users', admin: true },
       { id: 'm-analytics', label: 'Analytics', icon: 'bar-chart-2', href: '/admin/manage/#analytics', admin: true },
       { id: 'audit', label: 'Audit log', icon: 'history', href: '/admin/audit/', admin: true },
+      { id: 'errors', label: 'Client errors', icon: 'bug', href: '/admin/errors/', admin: true },
       { id: 'm-site', label: 'Site controls', icon: 'settings', href: '/admin/manage/#site', admin: true },
     ] },
   ];
@@ -99,10 +100,11 @@
         <div class="adm-top">
           <button type="button" class="adm-iconbtn adm-burger" id="adm-burger" aria-label="Open admin menu"><i data-lucide="menu" class="icon-sm"></i></button>
           <div class="adm-crumb" id="adm-crumb"></div>
-          <label class="adm-filter" id="adm-filter" hidden><i data-lucide="filter" class="icon-sm"></i><input type="search" id="adm-filter-input" placeholder="Filter this queue…" aria-label="Filter this queue" autocomplete="off"></label>
+          <label class="adm-filter" id="adm-filter" hidden><i data-lucide="filter" class="icon-sm"></i><input type="search" id="adm-filter-input" placeholder="Filter this queue…" aria-label="Filter this queue" autocomplete="off"><button type="button" class="adm-filter-save" id="adm-filter-save" hidden title="Save this filter" aria-label="Save this filter"><i data-lucide="bookmark-plus" class="icon-sm"></i></button></label>
           <button type="button" class="adm-palette-btn" id="adm-palette-btn" aria-label="Search the admin panel"><i data-lucide="search" class="icon-sm"></i><span>Search…</span><kbd>Ctrl K</kbd></button>
           <button type="button" class="adm-iconbtn" id="adm-help-btn" aria-label="Keyboard shortcuts" title="Keyboard shortcuts (?)"><i data-lucide="keyboard" class="icon-sm"></i></button>
         </div>
+        <div class="adm-saved" id="adm-saved" hidden></div>
       </div>`;
     main.parentNode.insertBefore(shell, main);
     $('.adm-body', shell).appendChild(main);
@@ -111,7 +113,8 @@
     $('#adm-scrim').addEventListener('click', () => toggleDrawer(false));
     $('#adm-palette-btn').addEventListener('click', openPalette);
     $('#adm-help-btn').addEventListener('click', toggleHelp);
-    $('#adm-filter-input').addEventListener('input', (e) => { queueFilter = e.target.value.trim().toLowerCase(); applyQueueFilter(); });
+    $('#adm-filter-input').addEventListener('input', (e) => { queueFilter = e.target.value.trim().toLowerCase(); applyQueueFilter(); updateSaveBtn(); });
+    $('#adm-filter-save').addEventListener('click', saveCurrentFilter);
   }
 
   function toggleDrawer(force) {
@@ -244,6 +247,8 @@
         const name = u.display_name || u.username;
         palItems.push({ type: 'user', run: () => { closePalette(); location.href = `/player/?u=${encodeURIComponent(u.username)}`; } });
         rows.push({ group: 'Players', html: palRow(avatarSafe(u), `${esc(name)} <small>@${esc(u.username)}${u.banned ? ' · banned' : ''}${u.role && u.role !== 'user' ? ' · ' + esc(u.role) : ''}</small>`, 'Open profile') });
+        palItems.push({ type: 'alts', run: () => { closePalette(); openAltHints(u.id, u.username); } });
+        rows.push({ group: 'Players', html: palRow('<i data-lucide="users-round" class="icon-sm"></i>', `Alt hints for ${esc(name)}`, 'Signals') });
         palItems.push({ type: 'notes', run: () => { closePalette(); openNotes(u.id, u.username); } });
         rows.push({ group: 'Players', html: palRow('<i data-lucide="notebook-pen" class="icon-sm"></i>', `Mod notes for ${esc(name)}`, 'Private') });
         if (isAdmin()) {
@@ -404,7 +409,9 @@
     wrap.innerHTML = `<div class="adm-pal adm-dialog" role="dialog" aria-modal="true" aria-label="${esc(label)}">${inner}</div>`;
     document.body.appendChild(wrap);
     const close = () => { wrap.remove(); document.removeEventListener('keydown', onKey, true); };
-    const onKey = (e) => { if (e.key === 'Escape') { e.stopPropagation(); close(); wrap.dispatchEvent(new Event('adm:closed')); } };
+    // Only the topmost dialog reacts to Esc (the reply dialog can have the template editor open above it).
+    const isTop = () => { const all = document.querySelectorAll('.adm-pal-wrap.is-center'); return all[all.length - 1] === wrap; };
+    const onKey = (e) => { if (e.key === 'Escape' && isTop()) { e.stopImmediatePropagation(); close(); wrap.dispatchEvent(new Event('adm:closed')); } };
     document.addEventListener('keydown', onKey, true);
     wrap.addEventListener('mousedown', (e) => { if (e.target === wrap) { close(); wrap.dispatchEvent(new Event('adm:closed')); } });
     wrap.querySelectorAll('[data-adm-close]').forEach(b => b.addEventListener('click', () => { close(); wrap.dispatchEvent(new Event('adm:closed')); }));
@@ -453,41 +460,179 @@
     return close;
   }
 
-  // Canned replies (edit freely). `kind` picks the set; the textarea stays fully editable.
-  const TEMPLATES = {
+  // Canned replies live in mod_canned_replies (editable in the reply dialog). These built-ins are only the
+  // fallback if the table can't be read.
+  const FALLBACK_TEMPLATES = {
     approve: [
       ['Welcome back', 'Welcome back — your appeal has been accepted and your account is unbanned. Please re-read the rules so it doesn\'t happen again.'],
       ['Second chance', 'Appeal accepted. Your ban has been lifted, but further violations may result in a permanent ban.'],
-      ['Ban was too harsh', 'We looked at the context and agree the ban was too harsh. Sorry about that — you\'re unbanned.'],
     ],
     deny: [
       ['Keep ban', 'After reviewing your case we\'re keeping the ban in place. You\'re welcome to appeal again in 30 days.'],
-      ['Doesn\'t address reason', 'Your appeal doesn\'t address the reason for the ban, so we can\'t lift it.'],
       ['Alt / evasion', 'Using another account to get around a ban isn\'t allowed, so this appeal is denied.'],
-      ['Scam / fraud', 'Scamming or trade fraud is a permanent offence on BloxCore, so we can\'t reverse this ban.'],
     ],
   };
+  async function loadTemplates(kind) {
+    const { data, error } = await sb.from('mod_canned_replies').select('id, label, body, created_by').eq('kind', kind).order('sort').order('created_at');
+    if (error || !data || !data.length) return (FALLBACK_TEMPLATES[kind] || []).map(([label, body]) => ({ id: null, label, body, created_by: null }));
+    return data;
+  }
+  const canEditTemplate = (tpl) => tpl.id && (isAdmin() || tpl.created_by === meId);
+
+  // Manage dialog: add / edit / delete templates of one kind. `onDone` refreshes whoever opened it.
+  async function manageTemplates(kind, onDone) {
+    const { wrap, close } = dialog(`
+      <div class="adm-dialog-head"><div><strong>Edit ${kind === 'approve' ? 'approval' : 'denial'} replies</strong><span class="adm-dialog-sub">Shared with all staff. You can edit your own; admins can edit all.</span></div>
+        <button type="button" class="adm-iconbtn" data-adm-close aria-label="Close"><i data-lucide="x" class="icon-sm"></i></button></div>
+      <div class="adm-tpl-edit" id="adm-tpl-edit"></div>
+      <form class="adm-tpl-add" id="adm-tpl-add">
+        <input type="text" id="adm-tpl-label" maxlength="40" placeholder="Short name (e.g. Keep ban)" aria-label="Template name">
+        <textarea id="adm-tpl-body" maxlength="500" rows="2" placeholder="Message sent to the player…" aria-label="Template message"></textarea>
+        <div class="adm-dialog-actions"><button type="submit" class="btn btn-primary btn-sm">Add reply</button></div>
+      </form>`, 'Edit replies');
+    wrap.addEventListener('adm:closed', () => onDone && onDone());
+    const list = wrap.querySelector('#adm-tpl-edit');
+    async function paint() {
+      const items = await loadTemplates(kind);
+      list.innerHTML = items.map((tpl, i) => `
+        <div class="adm-tpl-item" data-i="${i}">
+          <input type="text" value="${esc(tpl.label)}" maxlength="40" ${canEditTemplate(tpl) ? '' : 'disabled'} aria-label="Name">
+          <textarea rows="2" maxlength="500" ${canEditTemplate(tpl) ? '' : 'disabled'} aria-label="Message">${esc(tpl.body)}</textarea>
+          ${canEditTemplate(tpl) ? `<div class="adm-tpl-btns"><button type="button" class="btn btn-ghost btn-sm" data-save="${i}">Save</button><button type="button" class="btn btn-ghost btn-sm" data-del="${i}">Delete</button></div>` : '<span class="adm-dialog-sub">Not yours to edit</span>'}
+        </div>`).join('');
+      list.querySelectorAll('[data-save]').forEach(b => b.addEventListener('click', async () => {
+        const tpl = items[Number(b.dataset.save)]; const row = b.closest('.adm-tpl-item');
+        const label = row.querySelector('input').value.trim(); const body = row.querySelector('textarea').value.trim();
+        if (!label || !body) { showToast('Name and message are both required.', true); return; }
+        const { error } = await sb.from('mod_canned_replies').update({ label, body }).eq('id', tpl.id);
+        if (error) { showToast(error.message, true); return; }
+        showToast('Saved.'); paint();
+      }));
+      list.querySelectorAll('[data-del]').forEach(b => b.addEventListener('click', async () => {
+        const tpl = items[Number(b.dataset.del)];
+        if (!window.confirm(`Delete "${tpl.label}"?`)) return;
+        const { error } = await sb.from('mod_canned_replies').delete().eq('id', tpl.id);
+        if (error) { showToast(error.message, true); return; }
+        paint();
+      }));
+    }
+    wrap.querySelector('#adm-tpl-add').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const label = wrap.querySelector('#adm-tpl-label').value.trim(); const body = wrap.querySelector('#adm-tpl-body').value.trim();
+      if (!label || !body || !meId) return;
+      const { error } = await sb.from('mod_canned_replies').insert({ kind, label, body, sort: 100, created_by: meId });
+      if (error) { showToast(error.message, true); return; }
+      wrap.querySelector('#adm-tpl-label').value = ''; wrap.querySelector('#adm-tpl-body').value = '';
+      paint();
+    });
+    paint();
+  }
+
   // Resolves to the reply text ('' = no message) or null if cancelled.
   function askResponse({ title, kind = 'deny', confirmLabel = 'Confirm', hint = 'Visible to the user.' }) {
-    return new Promise((resolve) => {
-      const tpls = TEMPLATES[kind] || [];
+    return new Promise(async (resolve) => {
+      let tpls = await loadTemplates(kind);
       const { wrap, close } = dialog(`
         <div class="adm-dialog-head"><div><strong>${esc(title)}</strong><span class="adm-dialog-sub">${esc(hint)}</span></div>
           <button type="button" class="adm-iconbtn" data-adm-close aria-label="Cancel"><i data-lucide="x" class="icon-sm"></i></button></div>
-        <div class="adm-tpl-row">${tpls.map((t, i) => `<button type="button" class="adm-tpl" data-tpl="${i}">${esc(t[0])}</button>`).join('')}</div>
+        <div class="adm-tpl-row" id="adm-tpl-row"></div>
         <textarea id="adm-resp-input" maxlength="500" rows="4" placeholder="Optional message to the user…" aria-label="Message"></textarea>
-        <div class="adm-dialog-actions"><button type="button" class="btn btn-ghost btn-sm" data-adm-close>Cancel</button>
+        <div class="adm-dialog-actions"><button type="button" class="btn btn-ghost btn-sm" id="adm-tpl-manage" style="margin-right:auto;"><i data-lucide="pencil" class="icon-sm icon-inline"></i>Edit replies</button>
+          <button type="button" class="btn btn-ghost btn-sm" data-adm-close>Cancel</button>
           <button type="button" class="btn ${kind === 'approve' ? 'btn-primary' : 'btn-danger'} btn-sm" id="adm-resp-ok">${esc(confirmLabel)}</button></div>`, title);
       const input = wrap.querySelector('#adm-resp-input');
+      const paintChips = () => {
+        wrap.querySelector('#adm-tpl-row').innerHTML = tpls.map((tpl, i) => `<button type="button" class="adm-tpl" data-tpl="${i}">${esc(tpl.label)}</button>`).join('');
+        wrap.querySelectorAll('[data-tpl]').forEach(b => b.addEventListener('click', () => { input.value = tpls[Number(b.dataset.tpl)].body; input.focus(); }));
+      };
+      paintChips();
       let done = false;
       const finish = (v) => { if (done) return; done = true; resolve(v); };
-      wrap.querySelectorAll('[data-tpl]').forEach(b => b.addEventListener('click', () => { input.value = tpls[Number(b.dataset.tpl)][1]; input.focus(); }));
+      wrap.querySelector('#adm-tpl-manage').addEventListener('click', () => manageTemplates(kind, async () => { tpls = await loadTemplates(kind); paintChips(); }));
       wrap.querySelector('#adm-resp-ok').addEventListener('click', () => { finish(input.value.trim()); close(); });
       wrap.addEventListener('adm:closed', () => finish(null));
       input.focus();
     });
   }
+
+  // ---- alt-account hints (staff only; signals, not proof) -----------------------------------------
+  async function openAltHints(userId, username) {
+    const { wrap } = dialog(`
+      <div class="adm-dialog-head"><div><strong>Alt-account hints</strong><span class="adm-dialog-sub">@${esc(username)} · signals only, not proof</span></div>
+        <button type="button" class="adm-iconbtn" data-adm-close aria-label="Close"><i data-lucide="x" class="icon-sm"></i></button></div>
+      <div id="adm-alt-body"><div class="skeleton" style="height:70px;"></div></div>`, 'Alt-account hints');
+    const body = wrap.querySelector('#adm-alt-body');
+    const { data, error } = await sb.rpc('get_alt_hints', { p_user_id: userId });
+    if (error || !data) { body.innerHTML = '<p class="muted">Couldn\'t load hints.</p>'; return; }
+    const ageH = Number(data.account_age_hours || 0);
+    const age = ageH < 48 ? `${ageH} hours` : `${Math.round(ageH / 24)} days`;
+    const list = (title, rows, why) => rows && rows.length ? `<div class="adm-alt-group"><h4>${esc(title)} <span>${rows.length}</span></h4><p class="adm-dialog-sub">${esc(why)}</p>
+        ${rows.map(r => `<div class="adm-alt-row"><a href="/player/?u=${encodeURIComponent(r.username)}" target="_blank" rel="noopener">@${esc(r.username)}</a>${r.banned ? '<span class="adm-alt-ban">banned</span>' : ''}<small>joined ${typeof timeAgo === 'function' ? timeAgo(r.created_at) : ''}</small><a class="adm-alt-hist" href="/admin/audit/?u=${encodeURIComponent(r.username)}">history</a></div>`).join('')}</div>` : '';
+    const groups = [
+      data.new_account_with_links ? `<div class="adm-alt-flag"><i data-lucide="alert-triangle" class="icon-sm"></i>Account is ${esc(age)} old and has posted ${data.links_posted} link${data.links_posted === 1 ? '' : 's'} (feed, comments or listing notes).</div>` : '',
+      list('Same referrer, joined within 48h', data.same_referrer, 'Signed up through the same referral link at nearly the same time.'),
+      list('Look-alike usernames', data.lookalike_names, 'Same name once digits, dots and underscores are removed.'),
+      list('Same custom avatar', data.same_avatar, 'Identical profile picture (default avatars are ignored).'),
+      list('Same Roblox account', data.same_roblox, 'Linked to the same Roblox user id.'),
+      list('Same Discord account', data.same_discord, 'Linked to the same Discord id.'),
+    ].filter(Boolean);
+    body.innerHTML = `
+      <div class="adm-alt-meta"><span>Account age <strong>${esc(age)}</strong></span><span>Links posted <strong>${data.links_posted}</strong></span></div>
+      ${groups.length ? groups.join('') : '<div class="adm-alt-clear"><i data-lucide="check-circle-2" class="icon-sm"></i>No matching signals found.</div>'}
+      <p class="adm-dialog-sub adm-alt-foot">IP addresses aren't collected, so IP-based matching isn't possible. Shared signals can have innocent explanations (friends, siblings, a shared referral) — check history and notes before acting.</p>`;
+    icons();
+  }
+
+  // ---- saved queue filters (per mod, per queue) ---------------------------------------------------
+  let savedFilters = [];
+  async function loadSavedFilters() {
+    if (!meId) return;
+    const { data } = await sb.from('mod_saved_filters').select('id, tab, name, query').eq('user_id', meId).order('created_at');
+    savedFilters = data || [];
+    renderSavedFilters();
+  }
+  function renderSavedFilters() {
+    const bar = $('#adm-saved');
+    if (!bar) return;
+    const tab = activeTab();
+    const mine = normPath(location.pathname) === '/admin/' ? savedFilters.filter(f => f.tab === tab) : [];
+    bar.hidden = !mine.length;
+    bar.innerHTML = mine.length ? `<span class="adm-saved-label"><i data-lucide="bookmark" class="icon-sm"></i>Saved</span>${mine.map(f => `
+      <span class="adm-saved-chip"><button type="button" data-apply-filter="${f.id}" title="Filter: ${esc(f.query)}">${esc(f.name)}</button><button type="button" class="adm-saved-x" data-del-filter="${f.id}" aria-label="Delete saved filter ${esc(f.name)}">✕</button></span>`).join('')}` : '';
+    bar.querySelectorAll('[data-apply-filter]').forEach(b => b.addEventListener('click', () => {
+      const f = savedFilters.find(x => x.id === b.dataset.applyFilter); if (!f) return;
+      const input = $('#adm-filter-input'); input.value = f.query; queueFilter = f.query.toLowerCase(); applyQueueFilter(); updateSaveBtn();
+    }));
+    bar.querySelectorAll('[data-del-filter]').forEach(b => b.addEventListener('click', async () => {
+      await sb.from('mod_saved_filters').delete().eq('id', b.dataset.delFilter); loadSavedFilters();
+    }));
+    icons();
+  }
+  function updateSaveBtn() {
+    const btn = $('#adm-filter-save'); if (!btn) return;
+    const q = $('#adm-filter-input').value.trim();
+    btn.hidden = !q || savedFilters.some(f => f.tab === activeTab() && f.query.toLowerCase() === q.toLowerCase());
+  }
+  async function saveCurrentFilter() {
+    const query = $('#adm-filter-input').value.trim(); const tab = activeTab();
+    if (!query || !tab || !meId) return;
+    const { wrap, close } = dialog(`
+      <div class="adm-dialog-head"><div><strong>Save this filter</strong><span class="adm-dialog-sub">Shows up as a one-click chip on the ${esc(tab)} queue.</span></div>
+        <button type="button" class="adm-iconbtn" data-adm-close aria-label="Close"><i data-lucide="x" class="icon-sm"></i></button></div>
+      <form id="adm-sf-form"><input type="text" id="adm-sf-name" maxlength="30" value="${esc(query.slice(0, 30))}" aria-label="Filter name"><div class="adm-dialog-actions" style="margin-top:12px;"><button type="submit" class="btn btn-primary btn-sm">Save</button></div></form>`, 'Save filter');
+    const input = wrap.querySelector('#adm-sf-name'); input.select();
+    wrap.querySelector('#adm-sf-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const name = input.value.trim(); if (!name) return;
+      const { error } = await sb.from('mod_saved_filters').insert({ user_id: meId, tab, name, query });
+      if (error) { showToast(error.message, true); return; }
+      close(); loadSavedFilters();
+    });
+  }
+
   document.addEventListener('click', (e) => {
+    const alt = e.target.closest && e.target.closest('[data-alt-hints]');
+    if (alt) { e.preventDefault(); openAltHints(alt.dataset.altHints, alt.dataset.username || 'user'); return; }
     const b = e.target.closest && e.target.closest('[data-mod-notes]');
     if (b) { e.preventDefault(); openNotes(b.dataset.modNotes, b.dataset.username || 'user'); }
   });
@@ -512,7 +657,7 @@
   // sidebar highlight and breadcrumb follow tab changes.
   const _replace = history.replaceState;
   history.replaceState = function () { const r = _replace.apply(this, arguments); window.dispatchEvent(new Event('adm:statechange')); return r; };
-  const onNav = () => { renderSide(); queueFilter = ''; const fi = $('#adm-filter-input'); if (fi) fi.value = ''; setKbdFocus(-1); watchQueue(); };
+  const onNav = () => { renderSide(); queueFilter = ''; const fi = $('#adm-filter-input'); if (fi) fi.value = ''; setKbdFocus(-1); watchQueue(); renderSavedFilters(); updateSaveBtn(); };
   window.addEventListener('hashchange', onNav);
   window.addEventListener('adm:statechange', onNav);
 
@@ -539,10 +684,11 @@
     renderSide();
     watchQueue();
     refreshCounts();
+    loadSavedFilters();
     setInterval(() => { if (!document.hidden) refreshCounts(); }, 45000);
     document.addEventListener('visibilitychange', () => { if (!document.hidden) refreshCounts(); });
   }
   if (typeof onReady === 'function') onReady(init); else document.addEventListener('DOMContentLoaded', init);
 
-  window.admShell = { refreshCounts, openPalette, openNotes, askResponse };
+  window.admShell = { refreshCounts, openPalette, openNotes, askResponse, openAltHints };
 })();

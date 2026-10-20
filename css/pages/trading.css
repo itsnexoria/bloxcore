@@ -120,3 +120,19 @@
 }
 
 .tc-note + .chat-scam-warn { margin: 8px 0 0; max-width: none; }
+
+/* ---- Offer chat thread ---- */
+.offer-thread { margin-top: 12px; padding: 12px; border-radius: 14px; border: 1px solid var(--glass-border); background: rgb(0 0 0 / 0.18); }
+.offer-thread[hidden] { display: none; }
+.ot-log { display: flex; flex-direction: column; gap: 8px; max-height: 260px; overflow-y: auto; padding-right: 4px; scrollbar-width: thin; }
+.ot-empty { margin: 0; font-size: 0.8rem; }
+.ot-msg { display: flex; flex-direction: column; align-items: flex-start; gap: 3px; }
+.ot-msg.is-mine { align-items: flex-end; }
+.ot-bubble { max-width: 85%; padding: 8px 13px; border-radius: 4px 14px 14px 14px; background: var(--glass-bg-strong); border: 1px solid var(--glass-border); font-size: 0.86rem; line-height: 1.45; white-space: pre-wrap; overflow-wrap: anywhere; }
+.ot-msg.is-mine .ot-bubble { border-radius: 14px 4px 14px 14px; background: rgb(var(--brass-rgb) / 0.18); border-color: rgb(var(--brass-rgb) / 0.4); }
+.ot-msg small { font-size: 0.66rem; color: var(--ash); }
+.ot-msg .chat-scam-warn { max-width: 85%; margin: 0; }
+.ot-form { display: flex; gap: 8px; margin-top: 10px; }
+.ot-form input { margin: 0; flex: 1; font-size: 0.86rem; border-radius: 999px; padding: 9px 16px; }
+.ot-form + .chat-scam-hint, .offer-thread .chat-scam-hint { margin-top: 8px; }
+.ot-form .btn { border-radius: 999px; }

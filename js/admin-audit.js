@@ -30,6 +30,14 @@ onReady(async () => {
   });
   document.getElementById('audit-more').addEventListener('click', () => fetchAudit(true));
   document.getElementById('audit-export').addEventListener('click', exportAuditCsv);
+  document.querySelectorAll('[data-audit-tab]').forEach(b => b.addEventListener('click', () => {
+    const tab = b.dataset.auditTab;
+    document.querySelectorAll('[data-audit-tab]').forEach(x => { x.classList.toggle('is-on', x === b); x.setAttribute('aria-selected', String(x === b)); });
+    document.getElementById('audit-panel-log').hidden = tab !== 'log';
+    document.getElementById('audit-panel-activity').hidden = tab !== 'activity';
+    if (tab === 'activity') loadActivity();
+  }));
+  document.getElementById('act-weeks').addEventListener('change', loadActivity);
 
   // Deep links: /admin/audit/?u=<username> (e.g. from a player's admin card) pre-filters to that player.
   const u = new URLSearchParams(location.search).get('u');
@@ -118,4 +126,35 @@ function exportAuditCsv() {
   a.download = `bloxcore-audit-${new Date().toISOString().slice(0, 10)}.csv`;
   a.click();
   URL.revokeObjectURL(a.href);
+}
+
+// ---- Mod activity: actions per mod per week ----
+async function loadActivity() {
+  const weeks = Number(document.getElementById('act-weeks').value) || 8;
+  const out = document.getElementById('act-table');
+  out.innerHTML = '<div class="skeleton" style="height:48px;"></div>';
+  const { data, error } = await sb.rpc('get_mod_activity_stats', { p_weeks: weeks });
+  if (error) { logError(error); out.innerHTML = errorStateHtml("Couldn't load activity.", 'loadActivity()'); refreshIcons(); return; }
+  const rows = data || [];
+  if (!rows.length) { out.innerHTML = '<div class="empty-state">No staff actions logged in this range yet.</div>'; return; }
+
+  // Build the week columns (oldest -> newest), including quiet weeks.
+  const monday = (d) => { const x = new Date(d); x.setUTCHours(0, 0, 0, 0); x.setUTCDate(x.getUTCDate() - ((x.getUTCDay() + 6) % 7)); return x; };
+  const weekKeys = [];
+  const start = monday(Date.now());
+  for (let i = weeks - 1; i >= 0; i--) { const d = new Date(start); d.setUTCDate(d.getUTCDate() - i * 7); weekKeys.push(d.toISOString().slice(0, 10)); }
+
+  const byMod = new Map();
+  rows.forEach(r => {
+    const key = r.actor_id || 'unknown';
+    if (!byMod.has(key)) byMod.set(key, { name: r.actor_username || 'former staff', weeks: {}, total: 0, bans: 0, rulings: 0, removals: 0, notes: 0 });
+    const m = byMod.get(key);
+    m.weeks[String(r.week_start).slice(0, 10)] = Number(r.actions);
+    m.total += Number(r.actions); m.bans += Number(r.bans); m.rulings += Number(r.rulings); m.removals += Number(r.removals); m.notes += Number(r.notes);
+  });
+  const mods = [...byMod.values()].sort((a, b) => b.total - a.total);
+  const max = Math.max(1, ...mods.flatMap(m => Object.values(m.weeks)));
+
+  out.innerHTML = `<div style="overflow-x:auto;"><table class="act-table"><thead><tr><th>Staff</th>${weekKeys.map(k => `<th>${new Date(k + 'T00:00:00Z').toLocaleDateString(undefined, { month: 'short', day: 'numeric', timeZone: 'UTC' })}</th>`).join('')}<th>Total</th><th>Bans</th><th>Rulings</th><th>Removals</th><th>Notes</th></tr></thead>
+    <tbody>${mods.map(m => `<tr><td>@${escapeHtml(m.name)}</td>${weekKeys.map(k => { const n = m.weeks[k] || 0; return `<td class="act-cell" style="--w:${Math.round((n / max) * 100)}%;">${n || '·'}</td>`; }).join('')}<td class="act-total">${m.total}</td><td>${m.bans}</td><td>${m.rulings}</td><td>${m.removals}</td><td>${m.notes}</td></tr>`).join('')}</tbody></table></div>`;
 }

@@ -392,6 +392,127 @@ const MOVED_PAGES = {
   '/build-planner/': ['/build/', 'planner'],
 };
 
+
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+// /feed/?post=<id> — shareable post link: rewrite title/description/og:image for crawlers and chat unfurls.
+async function handleFeed(request, env, url) {
+  const id = url.searchParams.get('post');
+  if (!id || !UUID_RE.test(id)) return env.ASSETS.fetch(request);
+  const [post, response] = await Promise.all([
+    supabaseGet(`feed_posts?id=eq.${id}&select=content,user_id,visibility`),
+    env.ASSETS.fetch(request),
+  ]);
+  if (!post || post.visibility !== 'public') return response;
+  const author = await supabaseGet(`profiles?id=eq.${post.user_id}&select=username,display_name`);
+  const name = author?.display_name || author?.username || 'A pirate';
+  const snippet = (post.content || '').replace(/\s+/g, ' ').trim();
+  return rewriteMeta(response, {
+    title: `${name} on BloxCore: “${snippet.slice(0, 60)}${snippet.length > 60 ? '…' : ''}”`,
+    description: (snippet || 'A post on the BloxCore feed.').slice(0, 200),
+    image: `https://bloxcores.com/og/post.png?id=${id}`,
+    imageAlt: `${name}'s post on BloxCore`,
+    url: `https://bloxcores.com/feed/?post=${id}`,
+  });
+}
+
+// /challenges/?c=<id> — shareable bounty link.
+async function handleChallenges(request, env, url) {
+  const id = url.searchParams.get('c');
+  if (!id || !UUID_RE.test(id)) return env.ASSETS.fetch(request);
+  const [c, response] = await Promise.all([
+    supabaseGet(`challenges?id=eq.${id}&select=title,description,difficulty,xp_reward`),
+    env.ASSETS.fetch(request),
+  ]);
+  if (!c) return response;
+  return rewriteMeta(response, {
+    title: `${c.title} — ${c.difficulty} Bounty (+${c.xp_reward} XP) — BloxCore`,
+    description: (c.description || `A ${c.difficulty} bounty worth ${c.xp_reward} XP on BloxCore.`).slice(0, 200),
+    image: `https://bloxcores.com/og/bounty.png?id=${id}`,
+    imageAlt: `${c.title} bounty card`,
+    url: `https://bloxcores.com/challenges/?c=${id}`,
+  });
+}
+
+async function handleOgPostImage(request, env, url) {
+  const fallback = () => Response.redirect('https://bloxcores.com/assets/og-banner.jpg', 302);
+  const id = url.searchParams.get('id');
+  if (!id || !UUID_RE.test(id)) return fallback();
+  try {
+    const post = await supabaseGet(`feed_posts?id=eq.${id}&select=content,user_id,image_url,visibility`);
+    if (!post || post.visibility !== 'public') return fallback();
+    const [author, likes, comments] = await Promise.all([
+      supabaseGet(`profiles?id=eq.${post.user_id}&select=username,display_name,avatar_url`),
+      supabaseGet(`feed_likes?post_id=eq.${id}&select=count`),
+      supabaseGet(`feed_comments?post_id=eq.${id}&select=count`),
+    ]);
+    const name = escapeAttr(author?.display_name || author?.username || 'A pirate');
+    const text = escapeAttr((post.content || '').replace(/\s+/g, ' ').trim().slice(0, 230) + ((post.content || '').length > 230 ? '…' : ''));
+    const [avatarData, imageData] = await Promise.all([
+      fetchImageAsDataUri(bigAvatar(author?.avatar_url)),
+      post.image_url ? fetchImageAsDataUri(post.image_url) : Promise.resolve(null),
+    ]);
+    const avatar = avatarData
+      ? `<img src="${avatarData}" width="84" height="84" style="border-radius:50%; border:3px solid #d6a841; object-fit:cover;" />`
+      : `<div style="display:flex; align-items:center; justify-content:center; width:84px; height:84px; border-radius:50%; border:3px solid #d6a841; background:rgba(214,168,65,0.12); color:#d6a841; font-size:38px; font-weight:700;">${name.charAt(0).toUpperCase()}</div>`;
+    const html = `
+      <div style="display:flex; flex-direction:column; width:1200px; height:630px; background:linear-gradient(135deg, #0a0e17, #131c2e); padding:56px; font-family:sans-serif;">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <div style="display:flex; color:#d6a841; font-size:30px; font-weight:700; letter-spacing:2px;">BLOXCORE</div>
+          <div style="display:flex; color:#8892a6; font-size:22px;">bloxcores.com/feed</div>
+        </div>
+        <div style="display:flex; flex:1; gap:40px; margin-top:28px;">
+          <div style="display:flex; flex-direction:column; flex:1;">
+            <div style="display:flex; align-items:center; gap:20px;">
+              ${avatar}
+              <div style="display:flex; color:#f4f2ea; font-size:40px; font-weight:800;">${name}</div>
+            </div>
+            <div style="display:flex; flex:1; margin-top:28px; color:#f4f2ea; font-size:${text.length > 140 ? 34 : 42}px; line-height:1.35; overflow:hidden;">${text || 'Shared a post on the BloxCore feed.'}</div>
+            <div style="display:flex; gap:28px; color:#8892a6; font-size:26px;">
+              <div style="display:flex;">♥ ${likes?.count ?? 0}</div>
+              <div style="display:flex;">💬 ${comments?.count ?? 0}</div>
+            </div>
+          </div>
+          ${imageData ? `<div style="display:flex; width:380px; height:380px; align-self:center; border-radius:20px; overflow:hidden; border:2px solid rgba(214,168,65,0.35);"><img src="${imageData}" width="380" height="380" style="object-fit:cover;" /></div>` : ''}
+        </div>
+      </div>`;
+    return new ImageResponse(html, { width: 1200, height: 630 });
+  } catch {
+    return fallback();
+  }
+}
+
+async function handleOgBountyImage(request, env, url) {
+  const fallback = () => Response.redirect('https://bloxcores.com/assets/og-banner.jpg', 302);
+  const id = url.searchParams.get('id');
+  if (!id || !UUID_RE.test(id)) return fallback();
+  try {
+    const c = await supabaseGet(`challenges?id=eq.${id}&select=title,description,difficulty,xp_reward`);
+    if (!c) return fallback();
+    const tone = { easy: '#34d399', medium: '#fbbf24', hard: '#fb7185', insane: '#c084fc' }[String(c.difficulty).toLowerCase()] || '#d6a841';
+    const title = escapeAttr(c.title);
+    const desc = escapeAttr((c.description || '').replace(/\s+/g, ' ').slice(0, 170) + ((c.description || '').length > 170 ? '…' : ''));
+    const html = `
+      <div style="display:flex; flex-direction:column; width:1200px; height:630px; background:linear-gradient(135deg, #0a0e17, #131c2e); padding:60px; font-family:sans-serif;">
+        <div style="display:flex; flex-direction:column;">
+          <div style="display:flex; color:#d6a841; font-size:30px; font-weight:700; letter-spacing:2px;">BLOXCORE · BOUNTY</div>
+          <div style="display:flex; color:#8892a6; font-size:22px; margin-top:4px;">bloxcores.com/challenges</div>
+        </div>
+        <div style="display:flex; flex-direction:column; flex:1; justify-content:center;">
+          <div style="display:flex; margin-bottom:22px;"><div style="display:flex; padding:8px 26px; border-radius:999px; border:3px solid ${tone}; color:${tone}; font-size:28px; font-weight:800; text-transform:uppercase;">${escapeAttr(String(c.difficulty))}</div></div>
+          <div style="display:flex; color:#f4f2ea; font-size:${title.length > 38 ? 54 : 70}px; font-weight:800; line-height:1.12;">${title}</div>
+          <div style="display:flex; color:#8892a6; font-size:28px; line-height:1.4; margin-top:22px;">${desc}</div>
+        </div>
+        <div style="display:flex; align-items:center; gap:16px;">
+          <div style="display:flex; background:rgba(255,255,255,0.05); border:2px solid rgba(214,168,65,0.45); border-radius:16px; padding:14px 28px; color:#d6a841; font-size:40px; font-weight:800;">+${c.xp_reward} XP</div>
+        </div>
+      </div>`;
+    return new ImageResponse(html, { width: 1200, height: 630 });
+  } catch {
+    return fallback();
+  }
+}
+
 function movedPageRedirect(url) {
   const key = url.pathname.endsWith('/') ? url.pathname : `${url.pathname}/`;
   const target = MOVED_PAGES[key];
@@ -421,6 +542,10 @@ export default {
       if (url.pathname === '/auth/') return await handleAuth(request, env, url);
       if (url.pathname === '/crew/') return await handleCrew(request, env, url);
       if (url.pathname === '/trading/') return await handleTrading(request, env, url);
+      if (url.pathname === '/feed/') return await handleFeed(request, env, url);
+      if (url.pathname === '/challenges/') return await handleChallenges(request, env, url);
+      if (url.pathname === '/og/post.png') return withOgCache(await handleOgPostImage(request, env, url));
+      if (url.pathname === '/og/bounty.png') return withOgCache(await handleOgBountyImage(request, env, url));
       if (url.pathname === '/og/trade.png') return withOgCache(await handleOgTradeImage(request, env, url));
       if (url.pathname === '/og/player.png') return withOgCache(await handleOgPlayerImage(request, env, url));
       if (url.pathname === '/og/crew.png') return withOgCache(await handleOgCrewImage(request, env, url));

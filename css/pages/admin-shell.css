@@ -156,3 +156,61 @@ kbd { display: inline-block; min-width: 20px; padding: 1px 6px; border-radius: 6
 .audit-action { display: inline-block; margin-right: 6px; padding: 0 8px; border-radius: 999px; font-family: var(--font-mono); font-size: 0.66rem; background: rgb(255 255 255 / 0.07); color: var(--bone); }
 .audit-time { font-family: var(--font-mono); font-size: 0.72rem; color: var(--ash); white-space: nowrap; padding-top: 2px; }
 @media (max-width: 620px) { .audit-row { grid-template-columns: 34px minmax(0, 1fr); } .audit-time { grid-column: 2; } }
+
+/* ---- Editable reply templates ---- */
+.adm-tpl-edit { display: flex; flex-direction: column; gap: 10px; max-height: 42vh; overflow-y: auto; scrollbar-width: thin; }
+.adm-tpl-item { display: grid; gap: 6px; padding: 10px; border-radius: 12px; background: var(--glass-bg); border: 1px solid var(--glass-border); }
+.adm-tpl-item input, .adm-tpl-item textarea, .adm-tpl-add input, .adm-tpl-add textarea { margin: 0; font-size: 0.84rem; }
+.adm-tpl-btns { display: flex; gap: 6px; justify-content: flex-end; }
+.adm-tpl-add { display: grid; gap: 8px; padding-top: 10px; border-top: 1px solid var(--glass-border); }
+
+/* ---- Alt-account hints ---- */
+.adm-alt-meta { display: flex; gap: 18px; flex-wrap: wrap; font-size: 0.8rem; color: var(--ash); }
+.adm-alt-meta strong { color: var(--bone); margin-left: 4px; }
+.adm-alt-flag, .adm-alt-clear { display: flex; align-items: flex-start; gap: 8px; margin-top: 10px; padding: 10px 12px; border-radius: 12px; font-size: 0.82rem; line-height: 1.45; }
+.adm-alt-flag { color: #fde68a; background: rgb(251 191 36 / 0.1); border: 1px solid rgb(251 191 36 / 0.4); }
+.adm-alt-clear { color: var(--sea); background: rgb(52 211 153 / 0.08); border: 1px solid rgb(52 211 153 / 0.3); align-items: center; }
+.adm-alt-group { margin-top: 14px; }
+.adm-alt-group h4 { margin: 0; font-size: 0.82rem; display: flex; align-items: center; gap: 8px; }
+.adm-alt-group h4 span { padding: 0 8px; border-radius: 999px; font-family: var(--font-mono); font-size: 0.68rem; background: rgb(251 113 133 / 0.18); color: var(--blood); }
+.adm-alt-row { display: flex; align-items: center; gap: 10px; padding: 6px 10px; margin-top: 6px; border-radius: 10px; background: var(--glass-bg); font-size: 0.84rem; }
+.adm-alt-row > a:first-child { color: var(--bone); font-weight: 600; text-decoration: none; }
+.adm-alt-row small { color: var(--ash); margin-right: auto; }
+.adm-alt-hist { font-size: 0.74rem; color: var(--brass-bright); text-decoration: none; }
+.adm-alt-ban { padding: 0 8px; border-radius: 999px; font-size: 0.66rem; background: rgb(251 113 133 / 0.18); color: var(--blood); }
+.adm-alt-foot { margin-top: 14px; line-height: 1.5; }
+
+/* ---- Saved queue filters ---- */
+.adm-filter-save { display: inline-grid; place-items: center; width: 26px; height: 26px; padding: 0; border: 0; border-radius: 50%; background: rgb(var(--brass-rgb) / 0.16); color: var(--brass-bright); cursor: pointer; }
+.adm-filter-save[hidden] { display: none; }
+.adm-saved { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; padding: 8px 28px; border-bottom: 1px solid var(--glass-border); background: color-mix(in srgb, var(--ink) 70%, transparent); font-size: 0.76rem; }
+.adm-saved[hidden] { display: none; }
+.adm-saved-label { display: inline-flex; align-items: center; gap: 6px; color: var(--ash); font-family: var(--font-mono); font-size: 0.64rem; letter-spacing: 0.12em; text-transform: uppercase; }
+.adm-saved-chip { display: inline-flex; align-items: center; border-radius: 999px; border: 1px solid var(--glass-border); background: var(--glass-bg); overflow: hidden; }
+.adm-saved-chip button { padding: 4px 10px; border: 0; background: none; color: var(--bone); font: inherit; font-size: 0.76rem; font-weight: 600; cursor: pointer; }
+.adm-saved-chip button:hover { color: var(--brass-bright); }
+.adm-saved-chip .adm-saved-x { padding: 4px 8px 4px 2px; color: var(--ash); font-size: 0.68rem; }
+@media (max-width: 920px) { .adm-saved { padding: 8px 16px; } }
+
+/* ---- Audit page tabs + mod activity ---- */
+.audit-tabs { display: flex; gap: 6px; margin-top: 18px; }
+.audit-tab { padding: 7px 16px; border-radius: 999px; border: 1px solid var(--glass-border); background: var(--glass-bg); color: var(--ash); font: inherit; font-size: 0.8rem; font-weight: 600; cursor: pointer; }
+.audit-tab.is-on { color: #fff; border-color: transparent; background: linear-gradient(135deg, var(--brass), color-mix(in srgb, var(--brass) 60%, var(--brass-bright))); }
+.act-table { width: 100%; border-collapse: separate; border-spacing: 0 6px; font-size: 0.84rem; }
+.act-table th { padding: 4px 10px; text-align: right; font-family: var(--font-mono); font-size: 0.64rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ash); }
+.act-table th:first-child, .act-table td:first-child { text-align: left; }
+.act-table td { padding: 9px 10px; text-align: right; font-family: var(--font-mono); background: var(--glass-bg); }
+.act-table td:first-child { border-radius: 12px 0 0 12px; font-family: inherit; font-weight: 600; }
+.act-table td:last-child { border-radius: 0 12px 12px 0; }
+.act-cell { background-image: linear-gradient(90deg, rgb(var(--brass-rgb) / 0.35) var(--w, 0%), transparent var(--w, 0%)); }
+.act-total { color: var(--brass-bright); font-weight: 700; }
+
+/* ---- Client errors ---- */
+.err-row { padding: 12px 16px; margin-bottom: 8px; border-radius: 14px; background: var(--glass-bg); border: 1px solid var(--glass-border); border-left: 3px solid var(--blood); }
+.err-top { display: flex; align-items: flex-start; gap: 12px; }
+.err-msg { flex: 1; min-width: 0; margin: 0; font-family: var(--font-mono); font-size: 0.82rem; line-height: 1.45; overflow-wrap: anywhere; }
+.err-count { flex-shrink: 0; padding: 1px 10px; border-radius: 999px; font-family: var(--font-mono); font-size: 0.78rem; font-weight: 700; color: #fff; background: rgb(251 113 133 / 0.8); }
+.err-meta { margin: 6px 0 0; font-size: 0.74rem; color: var(--ash); }
+.err-meta a { color: var(--brass-bright); text-decoration: none; }
+.err-actions { display: flex; gap: 6px; margin-top: 8px; }
+.err-stack { margin: 8px 0 0; padding: 10px 12px; max-height: 220px; overflow: auto; border-radius: 10px; background: rgb(0 0 0 / 0.3); font-family: var(--font-mono); font-size: 0.72rem; line-height: 1.5; white-space: pre-wrap; overflow-wrap: anywhere; color: var(--ash); }

@@ -274,3 +274,10 @@ a.fs-row:hover, .fs-row:hover { background: var(--glass-bg); }
 .fs-tag { display: inline-flex; align-items: center; gap: 6px; padding: 5px 12px; border-radius: 999px; background: rgb(var(--blue-rgb) / 0.12); border: 1px solid rgb(var(--blue-rgb) / 0.3); color: var(--blue); font-size: 0.8rem; font-weight: 600; text-decoration: none; transition: background .15s, transform .15s; }
 .fs-tag small { font-family: var(--font-mono); font-size: 0.68rem; color: var(--ash); }
 .fs-tag:hover { background: rgb(var(--blue-rgb) / 0.22); transform: translateY(-1px); }
+
+/* ---- Shared post (permalink) ---- */
+.feed-shared { margin: 18px 0 4px; padding: 14px; border-radius: 24px; border: 1px dashed rgb(var(--brass-rgb) / 0.45); background: rgb(var(--brass-rgb) / 0.05); }
+.feed-shared-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 0 6px 10px; font-size: 0.8rem; color: var(--brass-bright); font-weight: 600; }
+.feed-shared-head a { color: var(--ash); text-decoration: none; font-weight: 400; }
+.feed-shared-head a:hover { color: var(--bone); text-decoration: underline; }
+.feed-shared .feed-post-card { margin: 0; }

@@ -954,6 +954,65 @@ async function loadTradeConfirmations() {
 
 // --- Offers & counter-offers -------------------------------------------------------------
 // Anyone can answer a listing with an offer (pre-filled "as listed"); the owner can accept, decline or counter.
+
+// --- Offer chat threads: a small private thread per offer, with the scam warnings kept visible ---------
+function offerThreadHtml(msgs) {
+  if (!msgs.length) return '<p class="muted ot-empty">No messages yet. Agree on the details here, then trade inside Roblox.</p>';
+  return msgs.map(m => {
+    const mine = m.author_id === currentUser.id;
+    return `<div class="ot-msg${mine ? ' is-mine' : ''}"><div class="ot-bubble">${escapeHtml(m.body)}</div>${mine ? '' : scamWarningHtml(m.body)}<small>${timeAgo(m.created_at)}</small></div>`;
+  }).join('');
+}
+
+async function paintOfferThread(offerId, box, scroll) {
+  const { data, error } = await sb.from('trade_offer_messages').select('id, author_id, body, created_at').eq('offer_id', offerId).order('created_at', { ascending: true }).limit(200);
+  const log = box.querySelector('.ot-log');
+  if (!log) return;
+  if (error) { log.innerHTML = '<p class="muted ot-empty">Couldn\'t load the chat.</p>'; return; }
+  const nearBottom = log.scrollHeight - log.scrollTop - log.clientHeight < 40;
+  log.innerHTML = offerThreadHtml(data || []);
+  if (scroll || nearBottom) log.scrollTop = log.scrollHeight;
+  refreshIcons();
+}
+
+function openOfferThread(offerId, box, btn) {
+  box.hidden = false;
+  btn.setAttribute('aria-expanded', 'true');
+  box.innerHTML = `
+    <div class="ot-log" aria-live="polite"><div class="skeleton" style="height:40px;"></div></div>
+    <form class="ot-form"><input type="text" maxlength="500" placeholder="Message about this offer…" autocomplete="off" aria-label="Message"><button type="submit" class="btn btn-primary btn-sm">Send</button></form>`;
+  const input = box.querySelector('input');
+  attachScamHint(input);
+  box.querySelector('form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const body = input.value.trim();
+    if (!body) return;
+    const send = box.querySelector('button[type="submit"]'); send.disabled = true;
+    const { error } = await sb.from('trade_offer_messages').insert({ offer_id: offerId, author_id: currentUser.id, body });
+    send.disabled = false;
+    if (error) { showToast(error.message, true); return; }
+    input.value = ''; input.dispatchEvent(new Event('input'));
+    paintOfferThread(offerId, box, true);
+  });
+  paintOfferThread(offerId, box, true);
+  clearInterval(offerThreadTimers.get(offerId));
+  offerThreadTimers.set(offerId, setInterval(() => {
+    if (!document.body.contains(box) || box.hidden) { clearInterval(offerThreadTimers.get(offerId)); return; }
+    if (!document.hidden) paintOfferThread(offerId, box, false);
+  }, 12000));
+  input.focus();
+}
+
+const offerThreadTimers = new Map();
+function wireOfferThreads(list) {
+  list.querySelectorAll('[data-offer-chat]').forEach(btn => btn.addEventListener('click', () => {
+    const id = btn.dataset.offerChat;
+    const box = list.querySelector(`[data-offer-thread="${id}"]`);
+    if (!box.hidden) { box.hidden = true; btn.setAttribute('aria-expanded', 'false'); clearInterval(offerThreadTimers.get(id)); return; }
+    openOfferThread(id, box, btn);
+  }));
+}
+
 async function loadOffers() {
   const section = document.getElementById('trade-offers');
   const list = document.getElementById('trade-offers-list');
@@ -1003,7 +1062,8 @@ async function loadOffers() {
         </div>
         ${o.message ? `<p class="muted" style="margin:10px 0 0; font-size:0.85rem;">“${escapeHtml(o.message)}”</p>${currentUser && o.from_id !== currentUser.id ? scamWarningHtml(o.message) : ''}` : ''}
         ${kind === 'accepted' ? '<p class="muted" style="margin:10px 0 0; font-size:0.8rem;">Agree on the details, trade in-game, then use <strong>Mark completed</strong> on the listing so it counts for both of you.</p>' : ''}
-        <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:12px;">${actions}</div>
+        <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:12px;">${actions}<button class="btn btn-ghost btn-sm" data-offer-chat="${o.id}" aria-expanded="false"><i data-lucide="message-square" class="icon-sm icon-inline"></i>Chat</button></div>
+        <div class="offer-thread" data-offer-thread="${o.id}" hidden></div>
       </div>`;
   };
 
@@ -1023,6 +1083,7 @@ async function loadOffers() {
     showToast(okMsg);
     loadOffers();
   };
+  wireOfferThreads(list);
   list.querySelectorAll('[data-offer-accept]').forEach(b => b.addEventListener('click', () => act(b, () => sb.rpc('respond_trade_offer', { p_id: b.dataset.offerAccept, p_accept: true }), 'Offer accepted — arrange the trade with them.')));
   list.querySelectorAll('[data-offer-decline]').forEach(b => b.addEventListener('click', () => act(b, () => sb.rpc('respond_trade_offer', { p_id: b.dataset.offerDecline, p_accept: false }), 'Offer declined.')));
   list.querySelectorAll('[data-offer-withdraw]').forEach(b => b.addEventListener('click', () => act(b, () => sb.rpc('withdraw_trade_offer', { p_id: b.dataset.offerWithdraw }), 'Offer withdrawn.')));

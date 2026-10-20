@@ -206,6 +206,8 @@ function renderReportCard(r) {
           <div>
             <span class="tag tag-medium">${label}</span>
             <p style="margin:6px 0 0;">${escapeHtml(r.reason)}</p>
+            ${r.details ? `<p style="margin:6px 0 0; font-size:0.85rem; color:var(--ash); white-space:pre-wrap; overflow-wrap:anywhere;">${escapeHtml(r.details)}</p>` : ''}
+            ${r.evidence_url ? `<p style="margin:8px 0 0;"><a href="${escapeHtml(safeUrl(r.evidence_url))}" target="_blank" rel="noopener noreferrer nofollow" class="tag tag-medium" title="External link supplied by the reporter — opens in a new tab"><i data-lucide="paperclip" class="icon-sm icon-inline"></i>Evidence · ${escapeHtml((() => { try { return new URL(r.evidence_url).hostname.replace(/^www\./, ''); } catch { return 'link'; } })())} ↗</a></p>` : ''}
             <p class="muted" style="margin:6px 0 0; font-size:0.78rem;">Reported by ${escapeHtml(displayNameFor(r.profiles || {}))} · ${timeAgo(r.created_at)}</p>
             ${dm ? `<p style="margin:8px 0 0; font-size:0.82rem; padding:8px 10px; background:rgb(var(--shadow-rgb) / 0.25); border-radius:var(--radius-sm, 8px);"><strong>${escapeHtml(dm.sender)}:</strong> ${escapeHtml(dm.message)}</p>` : ''}
           </div>

@@ -343,7 +343,7 @@ function renderUserRow(u, isLast) {
             <option value="admin" ${u.role === 'admin' ? 'selected' : ''}>Admin</option>
           </select>
           ${muteControl}
-          ${notesControl}${banControl}
+          ${notesControl}<button type="button" class="btn btn-ghost btn-sm" data-alt-hints="${u.id}" data-username="${escapeHtml(u.username || '')}" title="Possible alt accounts"><i data-lucide="users-round" class="icon-sm icon-inline"></i>Alts</button><a class="btn btn-ghost btn-sm" href="/admin/audit/?u=${encodeURIComponent(u.username || '')}" title="Everything staff did about this player"><i data-lucide="history" class="icon-sm icon-inline"></i>History</a>${banControl}
         </div>
       </div>
       <form data-xp-form="${u.id}" style="display:flex; gap:8px; align-items:center; margin-top:10px;">

@@ -24,6 +24,7 @@ onReady(async () => {
     document.getElementById('feed-compose').style.display = 'block';
     document.getElementById('feed-compose-avatar').innerHTML = avatarHtml(currentProfile, 44);
     document.getElementById('feed-tab-saved').style.display = 'inline-flex';
+    document.getElementById('feed-tab-foryou').style.display = 'inline-flex';
 
     const [{ data: followData }, { data: membership }, { data: relData }] = await Promise.all([
       sb.from('follows').select('followed_id').eq('follower_id', currentUser.id),
@@ -75,6 +76,7 @@ onReady(async () => {
   loadSidebarTrending();
   loadSidebarTopPlayers();
   loadTrendingTags();
+  maybeLoadSharedPost();
   if (currentUser) loadSidebarSuggestions();
   else document.getElementById('feed-sidebar-suggestions-card').style.display = 'none';
 
@@ -144,7 +146,7 @@ async function loadPendingRepostFromUrl() {
 let feedTab = 'latest';
 
 function switchFeedTab(tab) {
-  if (tab === feedTab || (tab === 'following' && !currentUser)) return;
+  if (tab === feedTab || ((tab === 'following' || tab === 'for-you') && !currentUser)) return;
   feedTab = tab;
   if (feedTag) clearTagFilter(false);
   document.querySelectorAll('#feed-tabs [data-feed-tab]').forEach(btn => {
@@ -435,7 +437,7 @@ async function loadFeed() {
   const data = await fetchFeedPage(0, FEED_PAGE_SIZE);
   if (data === null || !data.length) {
     container.innerHTML = '';
-    empty.textContent = feedTag
+    const emptyMsg = feedTag
       ? `No posts tagged #${feedTag} yet.`
       : feedTab === 'trending'
       ? 'Nothing trending in the last 24 hours yet.'
@@ -445,7 +447,12 @@ async function loadFeed() {
       ? "You haven't saved any posts yet — tap the bookmark icon on a post to save it."
       : feedTab === 'crew'
       ? "No crew-only posts yet — start the conversation."
+      : feedTab === 'for-you'
+      ? "Nothing to recommend yet — like, comment and follow a few people and this tab learns what you enjoy."
       : 'No posts yet — be the first to share something.';
+    empty.innerHTML = '<i data-lucide="message-square-plus" class="icon-lg"></i><p></p>';
+    empty.querySelector('p').textContent = emptyMsg;
+    refreshIcons();
     empty.style.display = 'block';
     return;
   }
@@ -486,6 +493,7 @@ async function fetchFeedPage(offset, pageSize) {
     p_tag: feedTag,
     p_bookmarked_only: !feedTag && feedTab === 'saved',
     p_crew_only: !feedTag && feedTab === 'crew',
+    p_for_you: !feedTag && feedTab === 'for-you',
   });
   if (error) { logError('Failed to load feed', error); return null; }
   await hydrateRepostItemCache(data);
@@ -913,6 +921,39 @@ function attachMentionAutocomplete(input) {
   window.addEventListener('scroll', close, { passive: true, once: false });
 }
 
+// --- Shared post (/feed/?post=<id>, also reached from #post-<id> notification links) ------------
+async function maybeLoadSharedPost() {
+  const params = new URLSearchParams(location.search);
+  let id = params.get('post');
+  if (!id && location.hash.startsWith('#post-')) {
+    // Hash links are only useful when the post is already in the loaded page; otherwise show it on its own.
+    const hashId = location.hash.slice(6);
+    setTimeout(() => { if (!document.getElementById('post-' + hashId)) loadSharedPost(hashId); }, 1800);
+    return;
+  }
+  if (id) loadSharedPost(id);
+}
+
+async function loadSharedPost(id) {
+  if (!/^[0-9a-f-]{36}$/i.test(id) || document.getElementById('feed-shared')) return;
+  const { data, error } = await sb.rpc('get_feed_post', { p_post_id: id });
+  const holder = document.createElement('div');
+  holder.id = 'feed-shared';
+  holder.className = 'feed-shared';
+  if (error || !data || !data[0]) {
+    holder.innerHTML = `<div class="feed-shared-head"><span><i data-lucide="link-2-off" class="icon-sm icon-inline"></i>That post isn't available — it may have been removed or is only visible to a crew.</span><a href="/feed/">Back to feed</a></div>`;
+  } else {
+    await hydrateRepostItemCache(data);
+    holder.innerHTML = `<div class="feed-shared-head"><span><i data-lucide="share-2" class="icon-sm icon-inline"></i>Shared post</span><a href="/feed/">Back to feed</a></div>${renderPost(data[0])}`;
+    const article = holder.querySelector('article');
+    if (article) article.id = 'shared-post-' + id; // the same post may also be in the list below
+  }
+  document.getElementById('feed-tabs').insertAdjacentElement('beforebegin', holder);
+  wirePostActions(holder);
+  refreshIcons();
+  holder.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
 // --- Trending tags (sidebar) --------------------------------------------------------------------
 async function loadTrendingTags() {
   const card = document.getElementById('feed-trending-tags-card');
@@ -1075,7 +1116,7 @@ function wirePostActions(root) {
   });
   root.querySelectorAll('[data-copy-post]').forEach(btn => {
     btn.addEventListener('click', async () => {
-      const url = `${location.origin}/feed/#post-${btn.dataset.copyPost}`;
+      const url = `${location.origin}/feed/?post=${btn.dataset.copyPost}`;
       try { await navigator.clipboard.writeText(url); showToast('Link copied.'); } catch { showToast(url); }
     });
   });

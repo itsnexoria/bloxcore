@@ -296,8 +296,9 @@ function renderChallengeCard(c) {
     : `<button class="quest-card-claim-btn" data-claim-id="${c.id}" data-claim-title="${escapeHtml(c.title)}">Claim Bounty <i data-lucide="chevron-right" class="icon-sm"></i></button>`;
 
   return `
-    <div class="quest-card ${isDone || onCooldown || isPending ? 'is-inactive' : ''}" data-difficulty="${c.difficulty}">
+    <div class="quest-card ${isDone || onCooldown || isPending ? 'is-inactive' : ''}" data-difficulty="${c.difficulty}" id="bounty-${c.id}">
       <div class="quest-card-hero">
+        <button type="button" class="quest-share" data-share-bounty="${c.id}" title="Copy link to this bounty" aria-label="Copy link to this bounty"><i data-lucide="link" class="icon-sm"></i></button>
         <i data-lucide="${questIconFor(c)}" class="quest-card-hero-icon"></i>
         <span class="quest-card-wanted-pill"><i data-lucide="star" style="width:10px;height:10px;"></i> WANTED <i data-lucide="star" style="width:10px;height:10px;"></i></span>
         <span class="quest-card-badge quest-card-badge-img">${QUEST_DIFFICULTY_BADGE[c.difficulty] ? `<img src="${QUEST_DIFFICULTY_BADGE[c.difficulty]}" alt="${escapeHtml(c.difficulty)}">` : `<i data-lucide="${questIconFor(c)}" class="icon-md"></i>`}</span>
@@ -623,3 +624,26 @@ async function loadSuggestedChallenges() {
   });
   refreshIcons();
 }
+
+
+// Shareable bounty links: /challenges/?c=<id> (the Worker adds a preview card for chat unfurls).
+document.addEventListener('click', async (e) => {
+  const b = e.target.closest && e.target.closest('[data-share-bounty]');
+  if (!b) return;
+  const url = `${location.origin}/challenges/?c=${b.dataset.shareBounty}`;
+  try { await navigator.clipboard.writeText(url); showToast('Bounty link copied.'); } catch { showToast(url); }
+});
+(function flashSharedBounty() {
+  const id = new URLSearchParams(location.search).get('c');
+  if (!id || !/^[0-9a-f-]{36}$/i.test(id)) return;
+  const tryFlash = () => {
+    const el = document.getElementById('bounty-' + id);
+    if (!el) return false;
+    el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    el.classList.add('is-shared-flash');
+    return true;
+  };
+  const obs = new MutationObserver(() => { if (tryFlash()) obs.disconnect(); });
+  obs.observe(document.body, { childList: true, subtree: true });
+  setTimeout(() => obs.disconnect(), 10000);
+})();

@@ -757,6 +757,8 @@ async function loadPlayerVouches(profileId, viewerId, isOwnProfile) {
     statEl.innerHTML = (positive + negative) === 0
       ? `<span class="muted" style="font-size:0.85rem;">No vouches yet</span>`
       : `<span style="color:var(--gold-bright);"><i data-lucide="thumbs-up" class="icon-sm icon-inline"></i>${positive}</span> &nbsp; <span style="color:${negative ? 'var(--blood-dim)' : 'var(--ash)'};"><i data-lucide="thumbs-down" class="icon-sm icon-inline"></i>${negative}</span>`;
+    const uParam = new URLSearchParams(location.search).get('u');
+    if (uParam) statEl.insertAdjacentHTML('beforeend', ` &nbsp; <a href="/trader/?u=${encodeURIComponent(uParam)}" style="font-size:0.8rem; color:var(--brass-bright); text-decoration:none;">Trader profile →</a>`);
     refreshIcons();
   }
 
@@ -794,6 +796,15 @@ async function loadPlayerVouches(profileId, viewerId, isOwnProfile) {
   formPanel.style.display = 'block';
 
   const { data: mine } = await sb.from('vouches').select('direction, comment').eq('voucher_id', viewerId).eq('target_id', profileId).maybeSingle();
+  // New vouches need a confirmed trade together (site setting; staff exempt). Editing an existing vouch never does.
+  if (!mine) {
+    const { data: vs } = await sb.rpc('get_vouch_status', { p_target_id: profileId });
+    if (vs && vs.requires_trade && !vs.has_trade && !vs.is_staff) {
+      formPanel.innerHTML = `<p class="muted" style="margin:0; font-size:0.85rem;"><i data-lucide="lock" class="icon-sm icon-inline"></i>You can vouch for this player after you've completed a confirmed trade with them. <a href="/trading/">Find a trade</a></p>`;
+      refreshIcons();
+      return;
+    }
+  }
   let dir = mine?.direction || null;
   const commentInput = document.getElementById('vouch-comment');
   const submitBtn = document.getElementById('vouch-submit-btn');
