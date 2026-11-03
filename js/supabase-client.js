@@ -743,22 +743,58 @@ async function getCurrentProfile() {
 // cached user object, so we call getUser() here to force a round-trip to the Auth server for the
 // current identity. Throttled like touchLastActive so it's not a write on every single page view.
 async function syncDiscordAvatar(user, profile) {
+  const cur = profile?.avatar_url || '';
+  const prefix = `/avatars/${user.id}/`;
+  const isHosted = cur.includes('/storage/v1/object/public' + prefix);
+  const isMirror = isHosted && cur.includes(prefix + 'discord-');
+  // A manually uploaded avatar (hosted by us, not a Discord mirror) is never overwritten.
+  if (isHosted && !isMirror) return;
+
+  // Hotlinked Discord CDN URLs are what go stale/break, so migrate those immediately (no throttle).
+  const needsMigration = /cdn\.discordapp\.com|discord\.com\/embed/.test(cur);
   const key = 'bc_avatar_sync_' + user.id;
   const last = Number(localStorage.getItem(key) || 0);
-  if (Date.now() - last < 5 * 60 * 1000) return;
+  if (!needsMigration && Date.now() - last < 5 * 60 * 1000) return;
   localStorage.setItem(key, String(Date.now()));
 
   const { data: { user: freshUser } } = await sb.auth.getUser();
   const discordIdentity = freshUser?.identities?.find(i => i.provider === 'discord');
+  if (!discordIdentity && !needsMigration) return;
   const idData = discordIdentity?.identity_data || freshUser?.user_metadata || {};
-  let discordAvatar = idData.avatar_url || idData.picture;
-  if (!discordAvatar && idData.avatar && (idData.provider_id || idData.sub)) {
-    discordAvatar = `https://cdn.discordapp.com/avatars/${idData.provider_id || idData.sub}/${idData.avatar}.png`;
-  }
-  if (!discordAvatar || discordAvatar === profile?.avatar_url) return;
+  const discordId = idData.provider_id || idData.sub;
+  let src = idData.avatar_url || idData.picture;
+  if (!src && idData.avatar && discordId) src = `https://cdn.discordapp.com/avatars/${discordId}/${idData.avatar}.png`;
+  if (!src) return;
 
-  const { error } = await sb.from('profiles').update({ avatar_url: discordAvatar }).eq('id', user.id);
-  if (!error) profile.avatar_url = discordAvatar;
+  // Stable name derived from Discord's avatar hash: same pfp => same file, new pfp => new file.
+  const m = src.match(/\/avatars\/\d+\/([a-z0-9_]+)\.\w+/i);
+  const hash = m ? m[1] : (src.match(/\/avatars\/(\d+)\.\w+/i)?.[1] ? 'default' + src.match(/\/avatars\/(\d+)\.\w+/i)[1] : null);
+  if (!hash) return;
+  if (isMirror && cur.includes(`discord-${hash}.`)) return;
+
+  const animated = hash.startsWith('a_');
+  const base = m ? `https://cdn.discordapp.com/avatars/${discordId}/${hash}` : src.replace(/\.\w+(\?.*)?$/, '');
+  const candidates = m ? (animated ? [`${base}.gif?size=512`, `${base}.png?size=512`] : [`${base}.png?size=512`]) : [`${base}.png`];
+
+  let blob = null;
+  for (const url of candidates) {
+    try {
+      const res = await fetch(url);
+      if (!res.ok) continue;
+      const b = await res.blob();
+      if (b.size && b.size <= 5 * 1024 * 1024 && /^image\/(png|gif|webp|jpeg)$/.test(b.type)) { blob = b; break; }
+    } catch (e) { /* try next */ }
+  }
+  if (!blob) return;
+
+  const ext = blob.type === 'image/jpeg' ? 'jpg' : blob.type.split('/')[1];
+  const path = `${user.id}/discord-${hash}.${ext}`;
+  const { error: upErr } = await sb.storage.from('avatars').upload(path, blob, { contentType: blob.type });
+  if (upErr && !/exist|duplicate|409/i.test(upErr.message + (upErr.statusCode || ''))) return;
+
+  const { data: urlData } = sb.storage.from('avatars').getPublicUrl(path);
+  const { error } = await sb.from('profiles').update({ avatar_url: urlData.publicUrl }).eq('id', user.id);
+  if (!error) profile.avatar_url = urlData.publicUrl;
 }
 
 // Downscales + recompresses an image file before upload — avatars/banners already get
