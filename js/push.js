@@ -1,6 +1,6 @@
-// BloxCore — Web Push subscribe/unsubscribe. Registers the service worker on every
-// page load (cheap, idempotent); actually subscribing only happens when the user
-// opts in from Settings, since it needs a permission prompt.
+// BloxCore — Web Push subscribe/unsubscribe. The service worker itself is registered site-wide
+// from install-prompt.js (re-registering here is cheap and idempotent); actually subscribing only
+// happens when the user opts in from Settings, since it needs a permission prompt.
 
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {

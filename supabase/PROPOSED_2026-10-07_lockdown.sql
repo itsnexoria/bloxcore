@@ -1,4 +1,4 @@
--- PROPOSED (not yet applied) — from the 2026-10-07 Supabase advisor + function audit of BloxCore (hpvwxaubgiyqgqtyjofb).
+-- APPLIED — verified live on 2026-11-04: every function below is already revoked from public/anon/authenticated and has search_path set on the project (hpvwxaubgiyqgqtyjofb). Kept for history.
 -- Problem: these SECURITY DEFINER functions have no auth guard and are callable by anyone with the public anon key
 -- via /rest/v1/rpc/<name>. They are only ever called by pg_cron jobs or by other SECURITY DEFINER functions owned by
 -- postgres (verified), never by the client or RLS policies, so revoking client roles is safe.

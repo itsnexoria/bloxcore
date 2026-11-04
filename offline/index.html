@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>You're offline — BloxCore</title>
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#0a0e17">
+<style>
+  /* Self-contained on purpose: this page is served by the service worker when the network is down,
+     so it can't depend on any other request. */
+  *{box-sizing:border-box}
+  html,body{height:100%;margin:0}
+  body{display:flex;align-items:center;justify-content:center;padding:24px;background:#0a0e17;color:#e8ebf2;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;text-align:center}
+  main{max-width:420px}
+  .code{font-family:ui-monospace,Menlo,Consolas,monospace;letter-spacing:.2em;font-size:.8rem;color:#8b93a7;margin:0 0 8px}
+  h1{font-size:clamp(1.8rem,6vw,2.4rem);margin:0 0 12px}
+  h1 span{color:#d6a841}
+  p{color:#8b93a7;line-height:1.6;margin:0 0 26px}
+  button{font:inherit;font-weight:600;cursor:pointer;border:0;border-radius:10px;padding:12px 26px;background:#d6a841;color:#14110a}
+  button:hover{filter:brightness(1.08)}
+  button:focus-visible{outline:2px solid #fff;outline-offset:2px}
+</style>
+</head>
+<body>
+<main>
+  <p class="code">NO CONNECTION</p>
+  <h1>Blox<span>Core</span> is offline</h1>
+  <p>Looks like you've lost your connection. Check your Wi-Fi or mobile data, then try again.</p>
+  <button type="button" id="retry">Try again</button>
+</main>
+<script>
+  document.getElementById('retry').addEventListener('click', function () { location.reload(); });
+  window.addEventListener('online', function () { location.reload(); });
+</script>
+</body>
+</html>

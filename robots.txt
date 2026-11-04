@@ -1,8 +1,5 @@
 User-agent: *
 Allow: /
 Disallow: /admin/
-Disallow: /dashboard/
-Disallow: /messages/
-Disallow: /onboarding/
 
 Sitemap: https://bloxcores.com/sitemap.xml

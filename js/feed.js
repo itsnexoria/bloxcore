@@ -13,6 +13,23 @@ let feedItemCategory = 'fruit';
 let allFeedTagItems = [];
 
 const FEED_PAGE_SIZE = 20;
+// Lazy-loaded parts of the feed (feed-sidebar.js, feed-poll-builder.js, feed-comments.js): plain scripts fetched
+// on first use. They share this file's globals (currentUser, pendingPoll, ...), so they can't be ES modules.
+const _feedModules = {};
+function loadFeedModule(name) {
+  if (!_feedModules[name]) {
+    _feedModules[name] = new Promise((resolve, reject) => {
+      const s = document.createElement('script');
+      s.src = `/js/${name}.js`;
+      s.onload = resolve;
+      s.onerror = () => { delete _feedModules[name]; reject(new Error('Failed to load ' + name)); };
+      document.head.appendChild(s);
+    });
+  }
+  return _feedModules[name];
+}
+function refreshPulseStats() { if (typeof loadPulseStats === 'function') loadPulseStats(); }
+
 const CHAR_RING_CIRCUMFERENCE = 2 * Math.PI * 9; // r=9, matches the SVG in feed/index.html
 
 onReady(async () => {
@@ -49,7 +66,10 @@ onReady(async () => {
   document.getElementById('feed-image-input').addEventListener('change', handleImageSelect);
   document.getElementById('feed-image-remove-btn').addEventListener('click', clearImageSelection);
   document.getElementById('feed-attach-item-btn').addEventListener('click', openFeedItemPicker);
-  document.getElementById('feed-poll-btn').addEventListener('click', () => (pendingPoll ? closePollBuilder() : openPollBuilder()));
+  document.getElementById('feed-poll-btn').addEventListener('click', async () => {
+    try { await loadFeedModule('feed-poll-builder'); } catch { showToast('Couldn\'t load the poll builder.', true); return; }
+    pendingPoll ? closePollBuilder() : openPollBuilder();
+  });
   attachMentionAutocomplete(document.getElementById('feed-post-input'));
   document.getElementById('feed-item-picker-close').addEventListener('click', () => {
     document.getElementById('feed-item-picker-modal').classList.remove('open');
@@ -72,13 +92,15 @@ onReady(async () => {
   });
   document.getElementById('feed-tag-clear-btn').addEventListener('click', clearTagFilter);
 
-  loadPulseStats();
-  loadSidebarTrending();
-  loadSidebarTopPlayers();
+  loadFeedModule('feed-sidebar').then(() => {
+    loadPulseStats();
+    loadSidebarTrending();
+    loadSidebarTopPlayers();
+    if (currentUser) loadSidebarSuggestions();
+  }).catch((e) => logError('feed sidebar failed to load:', e));
   loadTrendingTags();
   maybeLoadSharedPost();
-  if (currentUser) loadSidebarSuggestions();
-  else document.getElementById('feed-sidebar-suggestions-card').style.display = 'none';
+  if (!currentUser) document.getElementById('feed-sidebar-suggestions-card').style.display = 'none';
 
   if (currentUser) await loadPendingRepostFromUrl();
 
@@ -304,7 +326,7 @@ async function handlePost() {
     }
   }
   btn.disabled = false;
-  closePollBuilder();
+  if (pendingPoll) closePollBuilder(); // only set once the poll-builder module has been opened
 
   input.value = '';
   updateCharCount();
@@ -321,110 +343,10 @@ async function handlePost() {
   }
   showToast('Posted!');
   loadFeed();
-  loadPulseStats();
+  refreshPulseStats();
 }
 
-// --- Sidebar ---------------------------------------------------------------
-
-async function loadPulseStats() {
-  const el = document.getElementById('feed-pulse-stats');
-  const since24h = new Date(Date.now() - 24 * 3600 * 1000).toISOString();
-  const since7d = new Date(Date.now() - 7 * 24 * 3600 * 1000).toISOString();
-
-  const [{ count: todayCount }, { count: weekCount }] = await Promise.all([
-    sb.from('feed_posts').select('id', { count: 'exact', head: true }).gte('created_at', since24h),
-    sb.from('feed_posts').select('id', { count: 'exact', head: true }).gte('created_at', since7d),
-  ]);
-
-  el.innerHTML = `
-    <div class="fs-stats">
-      <div class="fs-stat"><strong class="feed-pulse-number">${todayCount ?? 0}</strong><span>post${todayCount === 1 ? '' : 's'} today</span></div>
-      <div class="fs-stat"><strong class="feed-pulse-number">${weekCount ?? 0}</strong><span>post${weekCount === 1 ? '' : 's'} this week</span></div>
-    </div>
-  `;
-}
-
-async function loadSidebarTrending() {
-  const el = document.getElementById('feed-sidebar-trending');
-  const { data } = await sb.rpc('get_feed_page', { p_limit: 3, p_offset: 0, p_trending: true });
-
-  if (!data || !data.length) {
-    el.innerHTML = `<div class="fs-empty"><i data-lucide="flame" class="icon-md"></i><p>Nothing trending yet.<br>Like and comment to get things moving.</p></div>`;
-    refreshIcons();
-    return;
-  }
-
-  el.innerHTML = data.map((p, i) => `
-    <a href="/feed/#post-${p.id}" class="feed-sidebar-trending-row fs-row">
-      <span class="fs-rank">${i + 1}</span>
-      ${avatarHtml({ username: p.username, display_name: p.display_name, avatar_url: p.avatar_url, avatar_frame: p.avatar_frame }, 30)}
-      <div class="fs-row-main">
-        <p class="fs-row-title">${escapeHtml(p.content)}</p>
-        <p class="fs-row-sub"><i data-lucide="heart" class="icon-sm icon-inline"></i>${p.like_count} <i data-lucide="message-square" class="icon-sm icon-inline" style="margin-left:6px;"></i>${p.comment_count}</p>
-      </div>
-    </a>
-  `).join('');
-  refreshIcons();
-}
-
-async function loadSidebarTopPlayers() {
-  const el = document.getElementById('feed-sidebar-top-players');
-  if (!el) return;
-  const { data } = await sb.from('profiles')
-    .select('id, username, display_name, avatar_url, avatar_frame, level')
-    .eq('hide_from_leaderboard', false)
-    .order('level', { ascending: false })
-    .order('xp', { ascending: false })
-    .limit(5);
-  if (!data || !data.length) { el.closest('.feed-sidebar-card').style.display = 'none'; return; }
-  el.innerHTML = data.map((p, i) => `
-    <div class="feed-sidebar-suggestion-row fs-row">
-      <span class="fs-rank fs-rank-${i + 1}">${i + 1}</span>
-      <a href="/player/?u=${encodeURIComponent(p.username || '')}" class="fs-row-link">
-        ${avatarHtml(p, 30)}
-        <span class="fs-row-name">${escapeHtml(displayNameFor(p))}</span>
-      </a>
-      <span class="fs-lv">Lv ${p.level ?? 1}</span>
-    </div>
-  `).join('');
-}
-
-async function loadSidebarSuggestions() {
-  const card = document.getElementById('feed-sidebar-suggestions-card');
-  const el = document.getElementById('feed-sidebar-suggestions');
-
-  const { data } = await sb.from('profiles')
-    .select('id, username, display_name, avatar_url, avatar_frame')
-    .neq('id', currentUser.id)
-    .eq('hide_from_leaderboard', false)
-    .order('last_active_at', { ascending: false })
-    .limit(12);
-
-  const suggestions = (data || []).filter(p => !followingIds.has(p.id)).slice(0, 3);
-  if (!suggestions.length) { card.style.display = 'none'; return; }
-  card.style.display = 'block';
-
-  el.innerHTML = suggestions.map(p => `
-    <div class="feed-sidebar-suggestion-row fs-row">
-      <a href="/player/?u=${encodeURIComponent(p.username || '')}" class="fs-row-link">
-        ${avatarHtml(p, 30)}
-        <span class="fs-row-name">${escapeHtml(displayNameFor(p))}</span>
-      </a>
-      <button type="button" class="btn btn-ghost btn-sm fs-follow" data-follow-user="${p.id}">Follow</button>
-    </div>
-  `).join('');
-
-  el.querySelectorAll('[data-follow-user]').forEach(btn => {
-    btn.addEventListener('click', async () => {
-      btn.disabled = true;
-      const { error } = await sb.from('follows').insert({ follower_id: currentUser.id, followed_id: btn.dataset.followUser });
-      if (error) { showToast(error.message, true); btn.disabled = false; return; }
-      followingIds.add(btn.dataset.followUser);
-      btn.closest('.feed-sidebar-suggestion-row').remove();
-      if (!el.children.length) card.style.display = 'none';
-    });
-  });
-}
+// (sidebar loaders live in feed-sidebar.js, lazy-loaded — see loadFeedModule below)
 
 // --- Feed list ---------------------------------------------------------------
 
@@ -1061,37 +983,6 @@ function paintPoll(holder, r) {
   }));
 }
 
-// Poll builder (compose box)
-function openPollBuilder() {
-  pendingPoll = { options: ['', ''], hours: 24 };
-  renderPollBuilder();
-}
-function closePollBuilder() {
-  pendingPoll = null;
-  const el = document.getElementById('feed-poll-builder');
-  el.hidden = true; el.innerHTML = '';
-  document.getElementById('feed-poll-btn')?.classList.remove('is-on');
-}
-function renderPollBuilder() {
-  const el = document.getElementById('feed-poll-builder');
-  if (!pendingPoll) return;
-  el.hidden = false;
-  document.getElementById('feed-poll-btn')?.classList.add('is-on');
-  el.innerHTML = `
-    <div class="fpb-head"><strong>Poll</strong><span class="muted">The post text is your question.</span><button type="button" class="btn btn-ghost btn-sm" id="fpb-remove" aria-label="Remove poll"><i data-lucide="x" class="icon-sm"></i></button></div>
-    ${pendingPoll.options.map((o, i) => `<input type="text" class="fpb-opt" data-opt="${i}" maxlength="40" placeholder="Option ${i + 1}" value="${escapeHtml(o)}">`).join('')}
-    <div class="fpb-foot">
-      ${pendingPoll.options.length < 4 ? `<button type="button" class="btn btn-ghost btn-sm" id="fpb-add"><i data-lucide="plus" class="icon-sm icon-inline"></i>Add option</button>` : '<span></span>'}
-      <label class="fpb-dur">Ends in
-        <select id="fpb-hours">${[[1, '1 hour'], [6, '6 hours'], [24, '1 day'], [72, '3 days'], [168, '7 days']].map(([h, l]) => `<option value="${h}" ${h === pendingPoll.hours ? 'selected' : ''}>${l}</option>`).join('')}</select>
-      </label>
-    </div>`;
-  el.querySelectorAll('.fpb-opt').forEach(inp => inp.addEventListener('input', () => { pendingPoll.options[Number(inp.dataset.opt)] = inp.value; }));
-  el.querySelector('#fpb-hours').addEventListener('change', (e) => { pendingPoll.hours = Number(e.target.value); });
-  el.querySelector('#fpb-remove').addEventListener('click', closePollBuilder);
-  el.querySelector('#fpb-add')?.addEventListener('click', () => { pendingPoll.options.push(''); renderPollBuilder(); });
-  refreshIcons();
-}
 
 function wirePostActions(root) {
   root = root || document;
@@ -1108,7 +999,7 @@ function wirePostActions(root) {
       const { error } = await sb.from('feed_posts').delete().eq('id', btn.dataset.deletePost);
       if (error) { showToast(error.message, true); return; }
       loadFeed();
-      loadPulseStats();
+      refreshPulseStats();
     });
   });
   root.querySelectorAll('[data-report-post]').forEach(btn => {
@@ -1136,7 +1027,10 @@ function wirePostActions(root) {
     btn.addEventListener('click', () => toggleBookmark(btn));
   });
   root.querySelectorAll('[data-toggle-comments]').forEach(btn => {
-    btn.addEventListener('click', () => toggleCommentsPanel(btn.dataset.toggleComments));
+    btn.addEventListener('click', async () => {
+      try { await loadFeedModule('feed-comments'); } catch { showToast('Couldn\'t load comments.', true); return; }
+      toggleCommentsPanel(btn.dataset.toggleComments);
+    });
   });
 }
 
@@ -1191,98 +1085,4 @@ async function toggleBookmark(btn) {
   }
   showToast(wasActive ? 'Removed from saved.' : 'Saved!');
   if (feedTab === 'saved' && wasActive) btn.closest('[data-post-id]')?.remove();
-}
-
-// --- Inline comments (expand under the post, no modal) ----------------------
-
-async function toggleCommentsPanel(postId) {
-  const panel = document.querySelector(`[data-comments-panel="${postId}"]`);
-  if (!panel) return;
-
-  const isOpen = panel.style.display !== 'none';
-  if (isOpen) { panel.style.display = 'none'; return; }
-
-  panel.style.display = 'block';
-  await renderCommentsPanel(postId, panel);
-}
-
-function commentHtml(c, { isReply = false, parentId = null } = {}) {
-  const canReply = !!currentUser;
-  return `
-    <div class="feed-comment-row${isReply ? ' is-reply' : ''}" data-comment-id="${c.id}">
-      ${avatarHtml({ username: c.username, display_name: c.display_name, avatar_url: c.avatar_url, avatar_frame: c.avatar_frame }, isReply ? 26 : 30)}
-      <div class="fc-main">
-        <div class="fc-bubble">
-          <div class="fc-top"><a href="/player/?u=${encodeURIComponent(c.username || '')}" class="fc-name">${escapeHtml(displayNameFor(c))}</a><span class="fc-time">${timeAgo(c.created_at)}</span></div>
-          <p class="fc-text">${linkifyHashtags(c.content)}</p>
-        </div>
-        ${canReply ? `<button type="button" class="fc-reply-btn" data-reply-parent="${parentId || c.id}" data-reply-name="${escapeHtml(c.username || '')}">Reply</button>` : ''}
-      </div>
-    </div>`;
-}
-
-async function renderCommentsPanel(postId, panel) {
-  panel.innerHTML = `<div class="skeleton" style="height:40px;"></div>`;
-
-  const { data, error } = await sb.rpc('get_feed_post_comments', { p_post_id: postId });
-  const all = (error || !data ? [] : data).filter(c => !blockedMap.has(c.user_id));
-  const top = all.filter(c => !c.parent_id);
-  const repliesByParent = new Map();
-  all.filter(c => c.parent_id).forEach(c => {
-    if (!repliesByParent.has(c.parent_id)) repliesByParent.set(c.parent_id, []);
-    repliesByParent.get(c.parent_id).push(c);
-  });
-  // Replies whose parent got filtered out (muted/blocked author) are hidden with it.
-
-  panel.innerHTML = `
-    <div data-comments-list>
-      ${top.length
-        ? top.map(c => `
-          <div class="fc-thread">
-            ${commentHtml(c)}
-            ${(repliesByParent.get(c.id) || []).length ? `<div class="fc-replies">${repliesByParent.get(c.id).map(r => commentHtml(r, { isReply: true, parentId: c.id })).join('')}</div>` : ''}
-          </div>`).join('')
-        : `<p class="muted" style="margin:0 0 10px; font-size:0.8rem;">No comments yet — say something first.</p>`}
-    </div>
-    ${currentUser ? `
-      <div class="fc-replying" data-replying hidden><span data-replying-label></span><button type="button" class="fc-replying-x" data-replying-cancel aria-label="Cancel reply">✕</button></div>
-      <form data-comment-form="${postId}" class="fc-form">
-        <input type="text" maxlength="280" placeholder="Write a comment…" autocomplete="off">
-        <button type="submit" class="btn btn-primary btn-sm">Send</button>
-      </form>
-    ` : `<p class="muted" style="margin:8px 0 0; font-size:0.78rem;"><a href="/auth/">Sign in</a> to comment.</p>`}
-  `;
-
-  const form = panel.querySelector(`[data-comment-form="${postId}"]`);
-  form?.addEventListener('submit', (e) => handleAddComment(e, postId, panel));
-  attachMentionAutocomplete(form?.querySelector('input'));
-  const replyBar = panel.querySelector('[data-replying]');
-  const clearReply = () => { panel._replyTo = null; if (replyBar) replyBar.hidden = true; };
-  panel.querySelector('[data-replying-cancel]')?.addEventListener('click', clearReply);
-  panel.querySelectorAll('[data-reply-parent]').forEach(btn => btn.addEventListener('click', () => {
-    panel._replyTo = { parentId: btn.dataset.replyParent, name: btn.dataset.replyName };
-    replyBar.querySelector('[data-replying-label]').textContent = `Replying to @${btn.dataset.replyName}`;
-    replyBar.hidden = false;
-    const input = form.querySelector('input');
-    input.value = `@${btn.dataset.replyName} `;
-    input.focus();
-  }));
-  refreshIcons();
-}
-
-async function handleAddComment(e, postId, panel) {
-  e.preventDefault();
-  const input = e.target.querySelector('input');
-  const content = input.value.trim();
-  if (!content) return;
-
-  const reply = panel._replyTo;
-  const { error } = await sb.from('feed_comments').insert({ post_id: postId, user_id: currentUser.id, content, parent_id: reply ? reply.parentId : null });
-  if (error) { showToast(error.message, true); return; }
-
-  panel._replyTo = null;
-  await renderCommentsPanel(postId, panel);
-
-  const countEl = document.querySelector(`[data-post-id="${postId}"] [data-comment-count]`);
-  if (countEl) countEl.textContent = Number(countEl.textContent) + 1;
 }

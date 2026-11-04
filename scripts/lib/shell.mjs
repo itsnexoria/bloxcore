@@ -133,6 +133,14 @@ export function breadcrumbLd(crumbs) {
   };
 }
 
+// schema.org ItemList of pages (e.g. a tier list's items). entries: [{ name, url }] in rank order.
+export function itemListLd(name, entries) {
+  return {
+    '@context': 'https://schema.org', '@type': 'ItemList', name, numberOfItems: entries.length,
+    itemListElement: entries.map((e, i) => ({ '@type': 'ListItem', position: i + 1, name: e.name, url: e.url })),
+  };
+}
+
 export function breadcrumbHtml(crumbs) {
   return `<nav aria-label="Breadcrumb" style="margin-bottom:14px;"><ol style="list-style:none; display:flex; gap:6px; padding:0; margin:0; font-size:0.8rem; flex-wrap:wrap;" class="muted">${
     crumbs.map((c, i) => i === crumbs.length - 1

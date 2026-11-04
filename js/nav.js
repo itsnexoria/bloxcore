@@ -99,7 +99,30 @@ function showPageBlockOverlay(title, message) {
   document.body.style.overflow = 'hidden';
 }
 
+// Keyboard "skip to content" link: first focusable element on every page. The target is the page's
+// <main> when it has one, otherwise the first block after the nav bar — found at runtime so no page
+// markup (including the generated pages) has to carry it.
+function renderSkipLink() {
+  if (document.querySelector('.skip-link')) return;
+  let target = document.querySelector('main, [role="main"]');
+  if (!target) {
+    const nav = document.querySelector('.nav-bar') || document.querySelector('nav');
+    let el = nav ? nav.nextElementSibling : null;
+    while (el && !['SECTION', 'DIV', 'ARTICLE'].includes(el.tagName)) el = el.nextElementSibling;
+    target = el;
+  }
+  if (!target) return;
+  if (!target.id) target.id = 'main-content';
+  target.setAttribute('tabindex', '-1');
+  const a = document.createElement('a');
+  a.className = 'skip-link';
+  a.href = '#' + target.id;
+  a.textContent = 'Skip to content';
+  document.body.insertBefore(a, document.body.firstChild);
+}
+
 document.addEventListener('DOMContentLoaded', () => {
+  renderSkipLink();
   checkPageAccess();
   renderSiteBanners();
 

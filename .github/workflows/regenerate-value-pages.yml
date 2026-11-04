@@ -59,6 +59,10 @@ jobs:
       - name: Rebuild sitemap (adds lastmod)
         run: node scripts/generate-sitemap.mjs .
 
+      # Refuses to push a bad regeneration (broken links / missing meta / syntax errors).
+      - name: Smoke check generated output
+        run: node scripts/check-site.mjs .
+
       - name: Commit and push if anything changed
         run: |
           git config user.name "bloxcore-bot"

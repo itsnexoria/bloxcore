@@ -97,7 +97,14 @@ function pageHtml(item, related) {
   const title = `${item.name} Value in Blox Fruits (2026) — ${rarity ? rarity + ' ' : ''}${categoryLabel} Price & Demand | BloxCore`;
   const description = `${item.name} Blox Fruits value: ${regularFmt ? `~${regularFmt}${hasPermanent ? ` physical / ${permFmt} permanent` : ''}` : 'see current price'}. ${rarity ? rarity + ' ' : ''}${categoryLabel.toLowerCase()} — demand, trend, and live trades on BloxCore.`;
 
-  const relatedHtml = related.map(r => `<li><a href="/blox-fruits-values/${slugify(r.name)}/" class="muted" style="font-size:0.85rem;">${r.name}</a></li>`).join('');
+  // "Similar value" cards: the items in this category priced closest to this one (computed in main()).
+  const pctVs = r => {
+    if (!item.regular_value || !r.regular_value) return '';
+    const d = Math.round((r.regular_value / item.regular_value - 1) * 100);
+    return d === 0 ? 'same value' : `${d > 0 ? '+' : '−'}${Math.abs(d)}% vs ${escAttr(item.name)}`;
+  };
+  const relatedHtml = related.map(r => `<a href="/blox-fruits-values/${slugify(r.name)}/" class="panel hover-lift-card" style="display:flex; align-items:center; gap:10px; padding:10px 12px; text-decoration:none; color:inherit;">${r.icon_url ? `<img src="${escAttr(r.icon_url)}" alt="" loading="lazy" width="36" height="36" style="width:36px; height:36px; object-fit:contain; flex-shrink:0;">` : ''}<span style="min-width:0;"><strong style="display:block; font-size:0.9rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${escAttr(r.name)}</strong><span class="muted" style="font-size:0.78rem;"><span style="font-family:var(--font-mono);">${formatValue(r.regular_value)}</span> · ${pctVs(r)}</span></span></a>`).join('');
+  const TIER_LIST_URL = { fruit: '/blox-fruits-tier-list/', limited: '/blox-fruits-limited-tier-list/', gamepass: '/blox-fruits-gamepass-tier-list/' };
 
   const demandTrend = `${demandCopy(item.demand)}${item.trend && TREND_COPY[item.trend] ? ` It's also ${TREND_COPY[item.trend]}.` : ''}`;
   const faq = [
@@ -204,11 +211,16 @@ ${shell.nav}
     <h2 style="font-size:1.3rem;">Demand &amp; Trend</h2>
     <p>${demandCopy(item.demand)}${item.trend && TREND_COPY[item.trend] ? ` It's also ${TREND_COPY[item.trend]}.` : ''}</p>
     ${historyHtml(item, historyByItem.get(item.id), formatValue)}
+    <div id="value-vote" class="panel" data-item-id="${item.id}" style="margin:20px 0;">
+      <h2 style="font-size:1.15rem; margin:0;">Is ${escAttr(item.name)} fairly priced?</h2>
+      <p class="muted" style="margin:4px 0 0; font-size:0.85rem;">Vote from what you see on the trading board. Community votes from the last 30 days count, and strong leans show up in Trending on the homepage.</p>
+      <div class="vote-body"><noscript><p class="muted">Turn on JavaScript to vote.</p></noscript></div>
+    </div>
     <h2 style="font-size:1.3rem;">How to Trade ${item.name}</h2>
     <p>Values shift with the trend above, so always confirm the current going rate before agreeing to a trade — check the live <a href="/trading/">Trading board</a> for active listings involving ${item.name}, or post your own offer if you're looking to buy or sell. See our <a href="/blox-fruits-values/">full guide to how Blox Fruits values work</a> for more on reading physical vs. permanent pricing, rarity tiers, and spotting inflated value claims.</p>
     <h2 style="font-size:1.3rem;">${escAttr(item.name)} FAQ</h2>
     ${faqHtml}
-    ${related.length ? `<h2 style="font-size:1.3rem;">Other ${categoryLabel} Values</h2><ul style="padding-left:20px; columns:2; column-gap:24px;">${relatedHtml}</ul>` : ''}
+    ${related.length ? `<h2 style="font-size:1.3rem;">Similar Value to ${escAttr(item.name)}</h2><p class="muted" style="margin:0 0 12px; font-size:0.88rem;">Other ${categoryLabel.toLowerCase()}s priced closest to ${escAttr(item.name)} — useful when you're looking for a fair swap.${TIER_LIST_URL[item.category] ? ` See the full <a href="${TIER_LIST_URL[item.category]}">tier list</a>.` : ''}</p><div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(210px, 1fr)); gap:10px;">${relatedHtml}</div>` : ''}
   </div>
 </section>
 
@@ -229,6 +241,7 @@ ${shell.footer}
 <script src="/js/animations.js"></script>
 <script src="/js/install-prompt.js"></script>
 <script src="/js/supabase-client.js"></script>
+<script src="/js/item-votes.js"></script>
 <script src="/js/nav.js"></script>
 <script src="/js/search.js"></script>
 </body>
@@ -290,9 +303,12 @@ async function main() {
     if (seenSlugs.has(slug)) slug = `${slug}-${item.category}`; // rare name collision across categories
     seenSlugs.add(slug);
 
+    // Closest in value first (6 nearest), shown highest-value first.
     const related = (byCategory[item.category] || [])
       .filter(i => i.id !== item.id)
-      .slice(0, 6);
+      .sort((a, b) => Math.abs(a.regular_value - item.regular_value) - Math.abs(b.regular_value - item.regular_value) || b.regular_value - a.regular_value)
+      .slice(0, 6)
+      .sort((a, b) => b.regular_value - a.regular_value);
 
     const dir = path.join(OUT_DIR, slug);
     fs.mkdirSync(dir, { recursive: true });

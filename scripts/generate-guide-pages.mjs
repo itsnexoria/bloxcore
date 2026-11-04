@@ -13,7 +13,7 @@
 
 import fs from 'node:fs';
 import path from 'node:path';
-import { loadShell, renderPage, esc, slugify, formatValue, breadcrumbLd, breadcrumbHtml, ctaSectionHtml, adSlotTop, adSlotMiddle, adSlotBottom } from './lib/shell.mjs';
+import { loadShell, renderPage, esc, slugify, formatValue, breadcrumbLd, itemListLd, breadcrumbHtml, ctaSectionHtml, adSlotTop, adSlotMiddle, adSlotBottom } from './lib/shell.mjs';
 
 const SUPABASE_URL = 'https://hpvwxaubgiyqgqtyjofb.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_g14CxS8Kbu5hjGIpRGirQg_L5SY7ZWW';
@@ -81,7 +81,7 @@ ${wrapSection(`
     <p>S tier starts at ${formatValue(TIERS[0].min)}, A at ${formatValue(TIERS[1].min)}, B at ${formatValue(TIERS[2].min)} and C at ${formatValue(TIERS[3].min)}; everything below that is D. Values come from the community and shift with demand, so check the live <a href="/trading/">Trading board</a> before agreeing to a trade. You can also <a href="/blox-fruits-compare/">compare any two top fruits</a> side by side.</p>`)}
 ${ctaSectionHtml({ heading: 'Know what your fruits are worth?', body: 'Create a free account to post trades, set price alerts, and track your own collection.' })}
 ${adSlotBottom()}`;
-  write('blox-fruits-tier-list', renderPage(shell, { title, description, url, ld: [breadcrumbLd(crumbs)], body }));
+  write('blox-fruits-tier-list', renderPage(shell, { title, description, url, ld: [breadcrumbLd(crumbs), itemListLd('Blox Fruits value tier list', fruits.map(f => ({ name: f.name, url: `${SITE}/blox-fruits-values/${valueSlug(f.name)}/` })))], body }));
 }
 
 // Limiteds and gamepasses have very different value ranges than fruits (a mid-tier limited is
@@ -120,7 +120,7 @@ ${wrapSection(`
     <p>Each tier holds about a fifth of all ${items.length} ${itemLabel}s with a known value, ranked highest to lowest — S is the top fifth, D the bottom. Values come from the community and shift with demand, so check the live <a href="/trading/">Trading board</a> before agreeing to a trade. You can also <a href="/blox-fruits-compare/">compare two items</a> side by side.</p>`)}
 ${ctaSectionHtml({ heading: 'Know what your items are worth?', body: 'Create a free account to post trades, set price alerts, and track your own collection.' })}
 ${adSlotBottom()}`;
-  write(urlSlug, renderPage(shell, { title, description, url, ld: [breadcrumbLd(crumbs)], body }));
+  write(urlSlug, renderPage(shell, { title, description, url, ld: [breadcrumbLd(crumbs), itemListLd(pageTitle, tiers.flatMap(t => t.items).map(f => ({ name: f.name, url: `${SITE}/blox-fruits-values/${valueSlug(f.name)}/` })))], body }));
   return url;
 }
 
@@ -195,7 +195,10 @@ ${wrapSection(`<p>Pick any two of the most valuable items to see which is worth 
     ${adSlotMiddle()}`)}
 ${ctaSectionHtml({ heading: 'Ready to trade?', body: 'Create a free account to post a listing and get real offers.' })}
 ${adSlotBottom()}`;
-  write('blox-fruits-compare', renderPage(shell, { title, description, url, ld: [breadcrumbLd(crumbs)], body }));
+  const hubEntries = sections.flatMap(sec => sec.items.flatMap((f, i) => sec.items.slice(i + 1).map(o => ({
+    name: `${f.name} vs ${o.name}`, url: `${SITE}/blox-fruits-compare/${sec.urlPrefix}${slugify(f.name)}-vs-${slugify(o.name)}/`,
+  }))));
+  write('blox-fruits-compare', renderPage(shell, { title, description, url, ld: [breadcrumbLd(crumbs), itemListLd('Blox Fruits value comparisons', hubEntries)], body }));
   return url;
 }
 
@@ -260,7 +263,7 @@ async function main() {
   console.log(`${fruits.length} fruits, ${limiteds.length} limiteds, ${gamepasses.length} gamepasses with values.`);
 
   const urls = [];
-  calculatorPage(shell); urls.push(`${SITE}/trading/`);
+  urls.push(`${SITE}/trading/`); // /trading/ is hand-authored now (calculator tab) — only listed for the sitemap
   guidePage(shell); urls.push(`${SITE}/blox-fruits-trading-guide/`);
 
   tierListPage(shell, fruits); urls.push(`${SITE}/blox-fruits-tier-list/`);

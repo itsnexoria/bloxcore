@@ -55,8 +55,8 @@ function slugifyItemName(name) {
   return name.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
 }
 
-// "Trending" here means the community-flagged trend on bf_items (up/overpaid/underpaid/
-// unstable), not a computed week-over-week % change — the price-history table exists but is
+// "Trending" here means members' value votes (>= 5 votes, >= 60% one way) plus the trend flag on
+// bf_items (up/overpaid/underpaid/unstable), not a computed week-over-week % change — the price-history table exists but is
 // too sparse right now (everything on record is from one same-value bulk save) for a real
 // "moved X% this week" claim to be honest. This uses what's actually true today instead.
 const TREND_LABEL = { up: 'Trending Up', overpaid: 'Overpaid', underpaid: 'Underpaid', unstable: 'Unstable' };
@@ -70,22 +70,34 @@ async function loadTrending() {
   const section = document.getElementById('trending-section');
   const grid = document.getElementById('trending-grid');
   if (!section || !grid) return;
-  const { data, error } = await sb.from('bf_items')
-    .select('name, category, regular_value, icon_url, trend')
-    .neq('trend', 'stable')
-    .not('regular_value', 'is', null)
-    .order('regular_value', { ascending: false })
-    .limit(6);
-  if (error || !data || !data.length) return; // stays hidden — no fake/empty widget
+  // Community picks (members' Overpaid/Underpaid votes, see js/item-votes.js) come first, then the
+  // trend flags set on bf_items fill the remaining slots. Either source failing just drops that source.
+  const [community, flagged] = await Promise.all([
+    sb.rpc('get_community_trending', { p_limit: 6 }),
+    sb.from('bf_items')
+      .select('name, category, regular_value, icon_url, trend')
+      .neq('trend', 'stable')
+      .not('regular_value', 'is', null)
+      .order('regular_value', { ascending: false })
+      .limit(6),
+  ]);
+  const picks = (community.data || []).map((r) => ({
+    name: r.name, regular_value: r.regular_value, icon_url: r.icon_url, trend: r.verdict,
+    community: `${r.share}% of ${r.votes} votes`,
+  }));
+  const seen = new Set(picks.map((p) => p.name));
+  const data = [...picks, ...(flagged.data || []).filter((i) => !seen.has(i.name))].slice(0, 6);
+  if (!data.length) return; // stays hidden — no fake/empty widget
   grid.innerHTML = data.map((item, i) => {
     const t = TREND_STYLE[item.trend] || { color: 'var(--ash)', icon: 'minus' };
+    const label = (item.community ? 'Community: ' : '') + (TREND_LABEL[item.trend] || item.trend);
     return `
-      <a href="/blox-fruits-values/${slugifyItemName(item.name)}/" class="panel trending-tile hover-lift-card" style="--tile-accent:${t.color};">
+      <a href="/blox-fruits-values/${slugifyItemName(item.name)}/" class="panel trending-tile hover-lift-card" style="--tile-accent:${t.color};"${item.community ? ` title="${escapeHtml(item.community)} say ${escapeHtml(item.trend)}"` : ''}>
         <span class="trending-tile-rank">#${i + 1}</span>
         <span class="trending-tile-img">${item.icon_url ? `<img src="${escapeHtml(item.icon_url)}" alt="" loading="lazy" width="52" height="52">` : '<i data-lucide="sparkles"></i>'}</span>
         <span class="trending-tile-name" title="${escapeHtml(item.name)}">${escapeHtml(item.name)}</span>
         <span class="trending-tile-value">${formatValue(item.regular_value)}</span>
-        <span class="trending-tile-badge"><i data-lucide="${t.icon}"></i>${TREND_LABEL[item.trend] || item.trend}</span>
+        <span class="trending-tile-badge"><i data-lucide="${t.icon}"></i>${escapeHtml(label)}</span>
       </a>`;
   }).join('');
   section.style.display = '';

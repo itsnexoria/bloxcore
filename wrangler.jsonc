@@ -6,7 +6,8 @@
   "assets": {
     "directory": ".",
     "binding": "ASSETS",
-    "run_worker_first": ["/player/*", "/auth/*", "/crew/*", "/trading/*", "/feed/*", "/challenges/*", "/og/*", "/trade-calculator*", "/blox-fruits-value-changes*", "/scam-check*", "/blox-fruits-updates*", "/tier-maker*", "/build-planner*"]
+    "not_found_handling": "404-page",
+    "run_worker_first": ["/player/*", "/auth/*", "/crew/*", "/trading/*", "/feed/*", "/challenges/*", "/og/*", "/csp-report", "/trade-calculator*", "/blox-fruits-value-changes*", "/scam-check*", "/blox-fruits-updates*", "/tier-maker*", "/build-planner*"]
   },
   "observability": {
     "enabled": true

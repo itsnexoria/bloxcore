@@ -7,6 +7,13 @@
 
 let _deferredInstallPrompt = null;
 
+// Register the service worker on every page (it provides the offline fallback + push). Idempotent.
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js').catch((e) => { if (typeof logError === 'function') logError('SW registration failed:', e); });
+  });
+}
+
 window.addEventListener('beforeinstallprompt', (e) => {
   e.preventDefault();
   _deferredInstallPrompt = e;

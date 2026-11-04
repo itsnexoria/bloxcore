@@ -532,11 +532,31 @@ function withOgCache(res) {
   return out;
 }
 
+// CSP violation sink (Content-Security-Policy-Report-Only in _headers points here). Logs a compact line
+// to Workers observability so the policy can be tightened from real data; always answers 204.
+async function handleCspReport(request) {
+  if (request.method !== 'POST') return new Response(null, { status: 405 });
+  try {
+    const text = (await request.text()).slice(0, 8192);
+    const j = JSON.parse(text);
+    const list = Array.isArray(j) ? j.map(r => r.body || r) : [j['csp-report'] || j];
+    for (const r of list.slice(0, 5)) {
+      console.warn('csp-violation', JSON.stringify({
+        directive: r['violated-directive'] || r.effectiveDirective || r['effective-directive'],
+        blocked: r['blocked-uri'] || r.blockedURL || r.blockedURI,
+        page: r['document-uri'] || r.documentURL || r.documentURI,
+      }));
+    }
+  } catch { /* malformed report — ignore */ }
+  return new Response(null, { status: 204 });
+}
+
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
     const moved = movedPageRedirect(url);
     if (moved) return moved;
+    if (url.pathname === '/csp-report') return handleCspReport(request);
     try {
       if (url.pathname === '/player/') return await handlePlayer(request, env, url);
       if (url.pathname === '/auth/') return await handleAuth(request, env, url);
