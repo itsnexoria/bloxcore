@@ -1,16 +1,21 @@
 // BloxCore — Supabase client
 // Loaded as a plain <script> (via CDN UMD build) on every page, before other /js files.
 
-const SUPABASE_URL = 'https://hpvwxaubgiyqgqtyjofb.supabase.co';
-const SUPABASE_ANON_KEY = 'sb_publishable_g14CxS8Kbu5hjGIpRGirQg_L5SY7ZWW';
+var SUPABASE_URL = 'https://hpvwxaubgiyqgqtyjofb.supabase.co';
+var SUPABASE_ANON_KEY = 'sb_publishable_g14CxS8Kbu5hjGIpRGirQg_L5SY7ZWW';
 
 // `supabase` global comes from the CDN script tag included in each HTML page.
-const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+var sb = window.sb || supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+// Top-level declarations in this file use `var` on purpose: if a browser/in-app webview ever executes the
+// script twice, `const` would throw "Identifier ... has already been declared" and break the whole page.
 
 // Client-side crash reporting — best-effort, fire-and-forget, capped per page load so a
 // crash loop can't hammer the DB. Never awaited, never blocks, never throws.
-let _clientErrorCount = 0;
-function reportClientError(message, stack) {
+var _clientErrorCount = 0;
+var _THIRD_PARTY_RE = /(?:chrome|moz|safari|safari-web|ms-browser)-extension:\/\//i;
+function reportClientError(message, stack, source) {
+  if (_THIRD_PARTY_RE.test(`${stack || ''} ${source || ''} ${message || ''}`) || /^Script error\.?$/i.test(String(message || ''))) return;
   if (_clientErrorCount >= 5) return;
   _clientErrorCount++;
   sb.from('client_errors').insert({
@@ -21,7 +26,7 @@ function reportClientError(message, stack) {
     user_agent: navigator.userAgent,
   }).then(() => {}, () => {}); // swallow — logging a failure to log isn't worth it
 }
-window.addEventListener('error', (e) => reportClientError(e.message, e.error?.stack));
+window.addEventListener('error', (e) => reportClientError(e.message, e.error?.stack, e.filename));
 window.addEventListener('unhandledrejection', (e) => reportClientError(e.reason?.message || String(e.reason), e.reason?.stack));
 
 // Flip to true locally for full error objects/stack traces in the console. Left false in
@@ -29,13 +34,13 @@ window.addEventListener('unhandledrejection', (e) => reportClientError(e.reason?
 // queries), not debug noise, so they still print — just trimmed to the message only, so a
 // live bug report's console output stays short and readable instead of dumping full
 // PostgrestError/Error objects.
-const DEBUG = false;
+var DEBUG = false;
 function logError(...args) {
   if (DEBUG) { console.error(...args); return; }
   console.error(...args.map(a => (a && typeof a === 'object' && 'message' in a) ? a.message : a));
 }
 
-const RANK_THRESHOLDS = [
+var RANK_THRESHOLDS = [
   { level: 250, title: 'Eternal One' },
   { level: 200, title: 'Reaper of the Grand Line' },
   { level: 175, title: 'God of the Sea' },
@@ -76,7 +81,7 @@ function xpProgress(xp, level) {
 
 // DB rate limits (check_rate_limit / trg_rate_limit) raise plain-English exceptions. Turn them into a
 // friendly "slow down" toast instead of showing the raw server message as an error.
-const RATE_LIMIT_RE = /too many attempts|slow down|rate limit|too often/i;
+var RATE_LIMIT_RE = /too many attempts|slow down|rate limit|too often/i;
 
 function showToast(message, isError = false) {
   const slow = isError && RATE_LIMIT_RE.test(String(message || ''));
@@ -100,8 +105,55 @@ function showToast(message, isError = false) {
 
 // --- Scam signals (shared: DMs today; usable for offer notes / listing notes) -------------------
 // Client-side hints only — they warn the reader, they never block or censor a message.
-const SAFE_LINK_HOSTS = ['bloxcores.com', 'roblox.com', 'discord.com', 'discord.gg', 'youtube.com', 'youtu.be', 'twitch.tv', 'tiktok.com', 'x.com', 'twitter.com'];
-const LINK_SHORTENERS = ['bit.ly', 'tinyurl.com', 'cutt.ly', 'rb.gy', 'is.gd', 't.co', 'shorturl.at', 'goo.gl'];
+var SAFE_LINK_HOSTS = ['bloxcores.com', 'roblox.com', 'discord.com', 'discord.gg', 'youtube.com', 'youtu.be', 'twitch.tv', 'tiktok.com', 'x.com', 'twitter.com'];
+var LINK_SHORTENERS = ['bit.ly', 'tinyurl.com', 'cutt.ly', 'rb.gy', 'is.gd', 't.co', 'shorturl.at', 'goo.gl'];
+
+function scamSignals(text) {
+  const s = String(text || '');
+  const lower = s.toLowerCase();
+  const reasons = [];
+
+  const hosts = [];
+  for (const m of lower.matchAll(/(?:https?:\/\/|www\.)([a-z0-9.-]+\.[a-z]{2,})|\b([a-z0-9-]+\.(?:com|net|org|gg|xyz|io|me|ly|tv|ru|shop|store|link|app|co|site|online|click|top|win))\b/g)) {
+    hosts.push((m[1] || m[2]).replace(/^www\./, ''));
+  }
+  const isSafe = (h) => SAFE_LINK_HOSTS.some(d => h === d || h.endsWith('.' + d));
+  if (hosts.some(h => LINK_SHORTENERS.includes(h))) reasons.push('a shortened link that hides where it goes');
+  else if (hosts.some(h => !isSafe(h))) reasons.push('a link to an outside website');
+
+  if (/\b(password|roblosecurity|\.?cookie|2fa|verification code|login code|auth(?:entication)? code)\b/.test(lower)) reasons.push('a request for account details');
+  if (/\b(paypal|cash ?app|venmo|zelle|crypto|bitcoin|btc|usdt|gift ?card|steam card|western union)\b/.test(lower)
+      || (/\b(robux|rbx)\b/.test(lower) && /(\d|pay|send|buy|sell|gamepass|donate)/.test(lower))) reasons.push('payment with Robux or real money');
+  if (/\b(you|u)\s+(go|send|pay)\s+first\b|\b(go|send|pay)\s+first\b|\btrust me\b|\bi(?:'| a)?m\s+(?:a\s+)?(?:trusted\s+)?middle\s?man\b/.test(lower)) reasons.push('pressure to go first or "trust me"');
+  return reasons;
+}
+
+// Live heads-up under a text box (listing notes, offer messages). Warns the writer; never blocks.
+function attachScamHint(input) {
+  if (!input || input.dataset.scamHint) return;
+  input.dataset.scamHint = '1';
+  const hint = document.createElement('div');
+  hint.className = 'chat-scam-hint';
+  hint.style.margin = '6px 0 0';
+  hint.hidden = true;
+  input.insertAdjacentElement('afterend', hint);
+  const update = () => {
+    const reasons = scamSignals(input.value);
+    hint.hidden = !reasons.length;
+    if (reasons.length) {
+      hint.innerHTML = `<i data-lucide="shield-alert" class="icon-sm"></i><span>Heads up — this has ${escapeHtml(reasons.join(', '))}. Scammers use these; never pay or send first, and keep trades inside Roblox.</span>`;
+      refreshIcons();
+    }
+  };
+  input.addEventListener('input', update);
+  update();
+}
+
+function scamWarningHtml(text) {
+  const reasons = scamSignals(text);
+  if (!reasons.length) return '';
+  return `<div class="chat-scam-warn" role="note"><i data-lucide="shield-alert" class="icon-sm"></i><span><strong>Possible scam:</strong> this message has ${escapeHtml(reasons.join(', '))}. Trade inside Roblox only, never pay or send first, and never share your password.</span></div>`;
+}
 
 // Consistent "couldn't load" state — was previously ~50 near-identical plain-text <p>
 // tags copy-pasted across every list/grid on the site. retryFn, when given, must be the
@@ -116,6 +168,15 @@ function errorStateHtml(message, retryFn) {
       ${retryFn ? `<button type="button" class="btn btn-ghost btn-sm" onclick="${retryFn}"><i data-lucide="refresh-cw" class="icon-sm icon-inline"></i>Retry</button>` : ''}
     </div>
   `;
+}
+
+// Same as errorStateHtml() but as a single <tr><td>, for tables where a <div> inside
+// <tbody> would be invalid markup (admin crew/war tables).
+function errorStateTableRow(colspan, message, retryFn) {
+  return `<tr><td colspan="${colspan}" class="muted" style="padding:20px; text-align:center;">
+    ${escapeHtml(message)}
+    ${retryFn ? ` <button type="button" class="btn btn-ghost btn-sm" onclick="${retryFn}"><i data-lucide="refresh-cw" class="icon-sm icon-inline"></i>Retry</button>` : ''}
+  </td></tr>`;
 }
 
 // Escapes quotes too, so it is safe inside attribute values (title="...", data-x="...", href="...").
@@ -149,6 +210,47 @@ function safeImgUrl(raw) {
   return u.replace(/['"()<>`\\\s]/g, c => '%' + c.charCodeAt(0).toString(16).toUpperCase().padStart(2, '0'));
 }
 
+// Small, dependency-free markdown -> HTML for admin-authored content (changelog posts). Escapes
+// first, then only ever adds tags itself — so even if something raw-HTML-shaped is in the
+// source text, it's already neutralized before any markdown syntax is applied. Supports the
+// common subset: headers, bold/italic, links, inline code, code blocks, lists, quotes.
+function markdownToHtml(raw) {
+  const escaped = escapeHtml(raw ?? '');
+  const codeBlocks = [];
+  let text = escaped.replace(/```([\s\S]*?)```/g, (_, code) => {
+    codeBlocks.push(`<pre style="background:rgba(255,255,255,0.04); border:1px solid var(--glass-border); border-radius:var(--radius-sm); padding:10px; overflow-x:auto;"><code>${code.trim()}</code></pre>`);
+    return `\u0000CODEBLOCK${codeBlocks.length - 1}\u0000`;
+  });
+
+  // Bullet lists — group consecutive "- item" or "* item" lines into one <ul>. Runs
+  // before bold/italic so a bullet's leading "* " is stripped first; otherwise a lone
+  // leading asterisk on a list line can get mistaken for the start of an *italic* span.
+  text = text.replace(/(^[-*] .*(?:\n[-*] .*)*)/gm, block =>
+    `<ul style="margin:8px 0; padding-left:20px;">${block.split('\n').map(l => `<li>${l.replace(/^[-*] /, '')}</li>`).join('')}</ul>`
+  );
+
+  text = text
+    .replace(/^### (.*)$/gm, '<h4 style="margin:14px 0 4px; font-size:1rem; font-family:var(--font-body); text-transform:none; letter-spacing:normal;">$1</h4>')
+    .replace(/^## (.*)$/gm, '<h3 style="margin:16px 0 6px; font-size:1.05rem; font-family:var(--font-body); text-transform:none; letter-spacing:normal;">$1</h3>')
+    .replace(/^&gt; (.*)$/gm, '<blockquote style="margin:8px 0; padding-left:12px; border-left:2px solid var(--brass); color:var(--ash);">$1</blockquote>')
+    .replace(/^(?:---|\*\*\*|___)$/gm, '\u0000HR\u0000')
+    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+    .replace(/\*(.+?)\*/g, '<em>$1</em>')
+    .replace(/`(.+?)`/g, '<code style="background:rgba(255,255,255,0.06); padding:1px 5px; border-radius:4px; font-size:0.9em;">$1</code>')
+    .replace(/\[(.+?)\]\((https?:\/\/[^\s)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer" style="color:var(--brass-bright);">$1</a>');
+
+  text = text
+    .split('\n')
+    .map(line => {
+      const trimmed = line.trim();
+      if (trimmed === '\u0000HR\u0000') return '<hr style="margin:16px 0; border:none; border-top:1px solid var(--glass-border);">';
+      return /^<(h3|h4|ul|blockquote)/.test(trimmed) ? line : line ? `<p style="margin:6px 0;">${line}</p>` : '';
+    })
+    .join('');
+
+  return text.replace(/\u0000CODEBLOCK(\d+)\u0000/g, (_, i) => codeBlocks[i]);
+}
+
 function formatDate(iso) {
   return new Date(iso).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
 }
@@ -165,15 +267,91 @@ function timeAgo(iso) {
   return formatDate(iso);
 }
 
+function formatBounty(n) {
+  const num = Number(n) || 0;
+  if (num <= 0) return 'Unranked';
+  if (num >= 1_000_000) {
+    const millions = num / 1_000_000;
+    const rounded = Math.round(millions * 10) / 10;
+    const label = Number.isInteger(rounded) ? String(rounded) : rounded.toFixed(1);
+    return `${label}M`;
+  }
+  return num.toLocaleString('en-US');
+}
+
+// Fixed bounty tiers (2.5M steps, 2.5M-30M) — used for both Pirate and Marine Bounty selects.
+var BOUNTY_TIERS = [
+  { value: 2500000, label: '2.5M' },
+  { value: 5000000, label: '5M+' },
+  { value: 7500000, label: '7.5M+' },
+  { value: 10000000, label: '10M+' },
+  { value: 12500000, label: '12.5M+' },
+  { value: 15000000, label: '15M+' },
+  { value: 17500000, label: '17.5M+' },
+  { value: 20000000, label: '20M+' },
+  { value: 22500000, label: '22.5M+' },
+  { value: 25000000, label: '25M+' },
+  { value: 27500000, label: '27.5M+' },
+  { value: 30000000, label: '30M' },
+];
+
 // Lucide icons only render for elements present in the DOM when lucide.createIcons() runs
 // (nav.js calls it once on page load) — anything injected afterward via innerHTML (chat
 // messages, challenge cards, admin rows, etc.) needs this called again. Every place in this
 // codebase that writes HTML containing a <i data-lucide="..."> tag calls this right after.
 // Shared across trading/sea-events — a quick reason prompt is enough for an MVP report flow;
 // staff review the actual content on the /admin/reports/ page before acting on it.
-const REPORT_REASONS = ['Scam / fraud', 'Inappropriate content', 'Spam or ads', 'Harassment', 'Other'];
+var REPORT_REASONS = ['Scam / fraud', 'Inappropriate content', 'Spam or ads', 'Harassment', 'Other'];
 
-const VIDEO_PLATFORM_HOSTS = ['youtube.com', 'youtu.be', 'streamable.com', 'medal.tv', 'twitch.tv', 'clips.twitch.tv', 'vimeo.com', 'tiktok.com', 'drive.google.com'];
+// Report dialog: pick a reason, add optional context + an evidence link (e.g. a screenshot on Imgur/Gyazo),
+// then submit_report() applies the same rate limit + banned-user check for every caller.
+async function reportContent(targetType, targetId) {
+  const { data: { session } } = await sb.auth.getSession();
+  if (!session) { showToast('Sign in to report content.', true); return; }
+  if (document.getElementById('rep-wrap')) return;
+
+  const wrap = document.createElement('div');
+  wrap.className = 'rep-wrap'; wrap.id = 'rep-wrap';
+  wrap.innerHTML = `
+    <div class="rep-dialog" role="dialog" aria-modal="true" aria-label="Report">
+      <div class="rep-head"><strong>Report this</strong><button type="button" class="rep-x" id="rep-close" aria-label="Close">✕</button></div>
+      <p class="rep-sub">Pick what fits best. Staff review every report; reporting someone isn't shared with them.</p>
+      <div class="rep-chips" id="rep-chips">${REPORT_REASONS.map(r => `<button type="button" class="rep-chip" data-reason="${escapeHtml(r)}">${escapeHtml(r)}</button>`).join('')}</div>
+      <textarea id="rep-details" maxlength="1000" rows="3" placeholder="What happened? Names, trade details, anything that helps (optional)"></textarea>
+      <label class="rep-label" for="rep-evidence">Evidence link <span>(optional)</span></label>
+      <input type="url" id="rep-evidence" maxlength="500" placeholder="https://i.imgur.com/… — link to a screenshot" autocomplete="off">
+      <p class="rep-hint">Upload the screenshot to Imgur, Gyazo or Lightshot and paste the link. Never include passwords or codes.</p>
+      <div class="rep-actions"><button type="button" class="btn btn-ghost btn-sm" id="rep-cancel">Cancel</button><button type="button" class="btn btn-primary btn-sm" id="rep-send" disabled>Send report</button></div>
+    </div>`;
+  document.body.appendChild(wrap);
+  const $ = (id) => wrap.querySelector('#' + id);
+  let reason = '';
+  const close = () => { wrap.remove(); document.removeEventListener('keydown', onKey, true); };
+  const onKey = (e) => { if (e.key === 'Escape') { e.stopPropagation(); close(); } };
+  document.addEventListener('keydown', onKey, true);
+  wrap.addEventListener('mousedown', (e) => { if (e.target === wrap) close(); });
+  $('rep-close').addEventListener('click', close);
+  $('rep-cancel').addEventListener('click', close);
+  $('rep-chips').querySelectorAll('[data-reason]').forEach(b => b.addEventListener('click', () => {
+    reason = b.dataset.reason;
+    $('rep-chips').querySelectorAll('.rep-chip').forEach(c => c.classList.toggle('is-on', c === b));
+    $('rep-send').disabled = false;
+  }));
+  $('rep-send').addEventListener('click', async () => {
+    const details = $('rep-details').value.trim();
+    const evidence = $('rep-evidence').value.trim();
+    if (reason === 'Other' && !details) { showToast('Add a few words about what happened.', true); $('rep-details').focus(); return; }
+    if (evidence && !/^https:\/\/\S+$/i.test(evidence)) { showToast('The evidence link must start with https://', true); $('rep-evidence').focus(); return; }
+    $('rep-send').disabled = true;
+    const { error } = await sb.rpc('submit_report', { p_target_type: targetType, p_target_id: targetId, p_reason: reason, p_details: details || null, p_evidence_url: evidence || null });
+    if (error) { showToast(error.message, true); $('rep-send').disabled = false; return; }
+    close();
+    showToast('Reported — staff will take a look.');
+  });
+  $('rep-chips').querySelector('button').focus();
+}
+
+var VIDEO_PLATFORM_HOSTS = ['youtube.com', 'youtu.be', 'streamable.com', 'medal.tv', 'twitch.tv', 'clips.twitch.tv', 'vimeo.com', 'tiktok.com', 'drive.google.com'];
 function isVideoPlatformLink(url) {
   try {
     const host = new URL(url).hostname.toLowerCase().replace(/^www\./, '');
@@ -203,7 +381,64 @@ function displayNameFor(profile) {
 // A poster who's both brand new (<72h old) and has zero vouches either way is exactly
 // the profile scam listings tend to have — flag it inline so buyers/sellers notice
 // before they DM someone with no track record at all.
-const NEW_ACCOUNT_WINDOW_MS = 72 * 60 * 60 * 1000;
+var NEW_ACCOUNT_WINDOW_MS = 72 * 60 * 60 * 1000;
+function newAccountBadge(profile, repPositive, repNegative) {
+  if (!profile?.created_at) return '';
+  const isNew = (Date.now() - new Date(profile.created_at).getTime()) < NEW_ACCOUNT_WINDOW_MS;
+  const hasNoVouches = !repPositive && !repNegative;
+  if (!isNew || !hasNoVouches) return '';
+  return `<span class="new-account-badge" title="Account created within the last 3 days and has no vouches yet — take extra care."><i data-lucide="triangle-alert" class="icon-sm icon-inline"></i>New account</span>`;
+}
+
+// Batches a reputation lookup for a set of posters (e.g. everyone shown on a page of
+// listings) into one query instead of one round-trip per card, then drops a small badge
+// into every element carrying data-rep-for="<userId>" found under container. Also flags
+// posters whose account is new and has no vouches yet (see newAccountBadge above) into
+// any matching data-new-account-for="<userId>" element.
+async function loadReputationBadges(container, posters) {
+  const list = posters.map(p => (typeof p === 'string' ? { id: p, createdAt: null } : { id: p.id, createdAt: p.createdAt }));
+  const ids = [...new Set(list.map(p => p.id))].filter(Boolean);
+  if (!ids.length) return;
+  const createdAtById = new Map(list.map(p => [p.id, p.createdAt]));
+
+  const [{ data }, { data: verifiedRows }, { data: confirmedRows }] = await Promise.all([
+    sb.from('vouches').select('target_id, direction').in('target_id', ids),
+    sb.rpc('get_verified_traders', { p_user_ids: ids }),
+    sb.rpc('get_confirmed_trade_counts', { p_user_ids: ids }),
+  ]);
+  const confirmedById = new Map((confirmedRows || []).map(r => [r.user_id, Number(r.n)]));
+  const scores = {};
+  (data || []).forEach(v => {
+    scores[v.target_id] = scores[v.target_id] || { positive: 0, negative: 0 };
+    scores[v.target_id][v.direction === 1 ? 'positive' : 'negative']++;
+  });
+  const verifiedIds = new Set((verifiedRows || []).map(r => r.user_id));
+
+  container.querySelectorAll('[data-rep-for]').forEach(el => {
+    const s = scores[el.dataset.repFor];
+    if (!s || (!s.positive && !s.negative)) return;
+    el.innerHTML = `<span class="rep-badge" title="${s.positive} positive, ${s.negative} negative vouch${s.positive + s.negative === 1 ? '' : 'es'}"><i data-lucide="thumbs-up" class="icon-sm icon-inline"></i>${s.positive}${s.negative ? ` <i data-lucide="thumbs-down" class="icon-sm icon-inline" style="margin-left:4px;"></i>${s.negative}` : ''}</span>`;
+  });
+
+  container.querySelectorAll('[data-new-account-for]').forEach(el => {
+    const userId = el.dataset.newAccountFor;
+    const s = scores[userId] || { positive: 0, negative: 0 };
+    el.innerHTML = newAccountBadge({ created_at: createdAtById.get(userId) }, s.positive, s.negative);
+  });
+
+  container.querySelectorAll('[data-confirmed-trades-for]').forEach(el => {
+    const n = confirmedById.get(el.dataset.confirmedTradesFor);
+    if (!n) return;
+    el.innerHTML = `<span class="rep-badge" style="color:var(--brass-bright);" title="${n} trade${n === 1 ? '' : 's'} confirmed by both sides"><i data-lucide="handshake" class="icon-sm icon-inline"></i>${n} confirmed</span>`;
+  });
+
+  container.querySelectorAll('[data-verified-trader-for]').forEach(el => {
+    if (!verifiedIds.has(el.dataset.verifiedTraderFor)) return;
+    el.innerHTML = `<span class="rep-badge" style="color:var(--sea); background:rgb(52 211 153 / 0.12);" title="Verified trader — enough completed trades with no open reports"><i data-lucide="badge-check" class="icon-sm icon-inline"></i>Verified</span>`;
+  });
+
+  refreshIcons();
+}
 
 // Shared circular avatar renderer. Discord CDN avatar URLs can go stale when a user changes
 // their pfp (the old hash 404s), which otherwise shows the browser's broken-image icon —
@@ -215,9 +450,9 @@ const NEW_ACCOUNT_WINDOW_MS = 72 * 60 * 60 * 1000;
 // literals throughout the site), and a small, rarely-changing table is safe to
 // front with a plain module-level cache rather than threading an async fetch
 // through every single caller.
-let _avatarFrames = {};
-let _avatarFramesList = [];
-const _avatarFramesLoaded = (async () => {
+var _avatarFrames = {};
+var _avatarFramesList = [];
+var _avatarFramesLoaded = (async () => {
   try {
     const { data, error } = await sb.from('avatar_frames').select('id, key, name, image_url, min_level, exclusive').order('sort_order', { ascending: true });
     if (error) throw error;
@@ -240,7 +475,7 @@ async function getAvatarFramesCatalog() {
 
 // Initials avatar background: a stable colour per name, so a missing/stale profile picture still looks
 // intentional (and different people are easy to tell apart) instead of being a grey circle.
-const _AVATAR_HUES = [262, 199, 38, 160, 350, 221, 330, 172];
+var _AVATAR_HUES = [262, 199, 38, 160, 350, 221, 330, 172];
 function avatarFallbackBg(name) {
   let h = 0;
   for (const ch of String(name || '?')) h = (h * 31 + ch.charCodeAt(0)) >>> 0;
@@ -328,10 +563,23 @@ function titleColorStyle(c) {
 
 // Curated so every option stays readable on the site's dark background — no colors dark
 // enough to disappear against navy panels.
-const CHAT_NAME_COLOR_PALETTE = [
+var CHAT_NAME_COLOR_PALETTE = [
   '#f87171', '#fb923c', '#fbbf24', '#a3e635', '#34d399', '#22d3ee',
   '#60a5fa', '#a78bfa', '#e879f9', '#f472b6', '#fb7185', '#2dd4bf',
 ];
+
+function chatNameColor(profile) {
+  if (profile?.chat_name_color) return profile.chat_name_color;
+  if (profile?.role === 'mod' || profile?.role === 'admin') return 'var(--blood-dim)';
+  // Deterministic so the same person always lands on the same color without storing one —
+  // simple string hash over their (stable) user id, not their display name.
+  const id = profile?.id || profile?.username || '';
+  let hash = 0;
+  for (let i = 0; i < id.length; i++) {
+    hash = (hash * 31 + id.charCodeAt(i)) >>> 0;
+  }
+  return CHAT_NAME_COLOR_PALETTE[hash % CHAT_NAME_COLOR_PALETTE.length];
+}
 
 function titleBadge(profile) {
   if (!profile?.titles?.name) return '';
@@ -344,6 +592,21 @@ function titleBadge(profile) {
   }
   return `<span style="font-size:0.68rem; font-weight:700; text-transform:uppercase; letter-spacing:0.04em; padding:3px 10px; border-radius:999px; border:1px solid ${c}; color:${c}; background:${c}1a;">${escapeHtml(profile.titles.name)}</span>`;
 }
+
+// A curated set of colors users can recolor their equipped title with — not a free color
+// picker, so every combination still fits the site's palette. 'default' means "use the
+// title's own color" (title_color_override = null); 'rainbow' is the special animated style.
+var TITLE_COLOR_PRESETS = [
+  { key: 'default', label: 'Default', swatch: null },
+  { key: '#ef4444', label: 'Red', swatch: '#ef4444' },
+  { key: '#fbbf24', label: 'Gold', swatch: '#fbbf24' },
+  { key: '#a78bfa', label: 'Purple', swatch: '#a78bfa' },
+  { key: '#38bdf8', label: 'Blue', swatch: '#38bdf8' },
+  { key: '#34d399', label: 'Green', swatch: '#34d399' },
+  { key: '#fb7185', label: 'Rose', swatch: '#fb7185' },
+  { key: '#f5f5f7', label: 'White', swatch: '#f5f5f7' },
+  { key: 'rainbow', label: 'Rainbow', swatch: 'rainbow' },
+];
 
 // Theme: localStorage is the source of truth for instant, flash-free application (every
 // page has an inline script in <head> that applies it before paint). For signed-in users,
@@ -414,7 +677,7 @@ function clearCustomTheme() {
 
 // Simple, generic glyphs for each platform (not pixel-exact brand logos) — used instead
 // of plain text labels on social links.
-const SOCIAL_ICONS = {
+var SOCIAL_ICONS = {
   roblox: '<svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M5.5 3 3 18.5 18.5 21 21 5.5 5.5 3zm7.9 6.1 1.5 5.8-5.8 1.5-1.5-5.8 5.8-1.5z"/></svg>',
   youtube: '<svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><rect x="1" y="5" width="22" height="14" rx="4"/><path d="M10 8.5v7l6-3.5z" fill="var(--ink)"/></svg>',
   twitch: '<svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M4 2 2 6v14h6v2h3l2-2h4l4-4V2H4zm14 12-3 3h-4l-2 2v-2H6V4h12v10z"/><rect x="9" y="7" width="2" height="5" fill="var(--ink)"/><rect x="14" y="7" width="2" height="5" fill="var(--ink)"/></svg>',
@@ -449,7 +712,7 @@ function renderNotifActions(n) {
 // this caches the in-flight/resolved promise so the second caller reuses the first fetch
 // instead of re-querying. Deliberately not time-based (no TTL) — a page load is short-lived
 // enough that the profile isn't expected to change under it.
-let _profileFetchPromise = null;
+var _profileFetchPromise = null;
 // Call this immediately after writing to the current user's own profiles row, before
 // re-calling getCurrentProfile() to render the fresh result — otherwise the memoized
 // cache below would keep serving the pre-save data for the rest of the page's life.
@@ -619,6 +882,67 @@ async function requireAdmin() {
   return result;
 }
 
+// --- Fruit skin/mutation picker -------------------------------------------
+// Some fruits have known equippable skins or mutations (e.g. Dragon has Eclipse,
+// Tiger has Werewolf). Any fruit selector can call maybePromptFruitSkin() after a
+// fruit is chosen — it only prompts when that fruit actually has linked skins in
+// bf_items, and injects its own modal into the page the first time it's needed.
+
+function ensureFruitSkinModal() {
+  if (document.getElementById('fruit-skin-modal')) return;
+  const overlay = document.createElement('div');
+  overlay.id = 'fruit-skin-modal';
+  overlay.className = 'build-modal-overlay';
+  overlay.setAttribute('role', 'dialog');
+  overlay.setAttribute('aria-modal', 'true');
+  overlay.setAttribute('aria-labelledby', 'fruit-skin-modal-title');
+  overlay.innerHTML = `
+    <div class="panel build-modal">
+      <div class="flex-between" style="margin-bottom:14px;">
+        <h3 style="font-size:1.05rem; margin:0;" id="fruit-skin-modal-title">Choose a Skin</h3>
+        <button type="button" class="btn btn-ghost btn-sm" id="fruit-skin-modal-close" aria-label="Close"><i data-lucide="x" class="icon-md"></i></button>
+      </div>
+      <p class="muted" style="margin:0 0 14px; font-size:0.82rem;">This fruit has known skins/mutations — pick the one you're using in-game, or Base for the plain fruit.</p>
+      <div id="fruit-skin-modal-grid" class="build-modal-grid"></div>
+    </div>
+  `;
+  document.body.appendChild(overlay);
+  document.getElementById('fruit-skin-modal-close').addEventListener('click', () => overlay.classList.remove('open'));
+  overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.classList.remove('open'); });
+}
+
+async function maybePromptFruitSkin(fruitName, currentSkin, onSelect) {
+  if (!fruitName) { onSelect(null); return; }
+
+  const { data: skins } = await sb.from('bf_items').select('id, name, icon_url').eq('category', 'limited').eq('base_fruit', fruitName);
+  if (!skins || !skins.length) { onSelect(null); return; }
+
+  ensureFruitSkinModal();
+  const overlay = document.getElementById('fruit-skin-modal');
+  document.getElementById('fruit-skin-modal-title').textContent = `${fruitName} — Choose Your Skin`;
+  const grid = document.getElementById('fruit-skin-modal-grid');
+
+  const noneTile = `<div class="build-modal-tile ${!currentSkin ? 'selected' : ''}" data-skin-name=""><i data-lucide="ban" class="icon-lg"></i><span>Base ${escapeHtml(fruitName)}</span></div>`;
+  const tiles = skins.map(s => `
+    <div class="build-modal-tile ${currentSkin === s.name ? 'selected' : ''}" data-skin-name="${escapeHtml(s.name)}">
+      <img src="${safeImgUrl(s.icon_url)}" alt="${escapeHtml(s.name)}" loading="lazy">
+      <span>${escapeHtml(s.name)}</span>
+    </div>
+  `).join('');
+  grid.innerHTML = noneTile + tiles;
+  refreshIcons();
+
+  grid.querySelectorAll('[data-skin-name]').forEach(tile => {
+    tile.addEventListener('click', () => {
+      overlay.classList.remove('open');
+      const name = tile.dataset.skinName || null;
+      const iconUrl = name ? (skins.find(s => s.name === name)?.icon_url || null) : null;
+      onSelect(name, iconUrl);
+    });
+  });
+  overlay.classList.add('open');
+}
+
 // --- Global Escape-to-close for modals ---------------------------------
 // Every modal on the site already closes on a backdrop click via its own
 // `overlay.addEventListener('click', e => { if (e.target === overlay) ... })`
@@ -634,7 +958,7 @@ document.addEventListener('keydown', (e) => {
   });
 });
 
-let _siteSettingsCache = null;
+var _siteSettingsCache = null;
 
 async function getSiteSettings() {
   if (_siteSettingsCache) return _siteSettingsCache;
@@ -704,9 +1028,65 @@ function onReady(fn) {
   });
 }
 
+// --- Shared "Load More" pagination helper ----------------------------------
+// Renders a Load More button under `container`; each click fetches the next
+// page via `fetchPage(offset, pageSize)` (must return an array), appends the
+// rendered rows via `renderItem`, and hides itself once a short page comes
+// back (fewer rows than pageSize means there's nothing left to load).
+function attachLoadMore(container, { pageSize = 20, initialOffset = 0, fetchPage, renderItem, onAppend, wrapId } = {}) {
+  let offset = initialOffset;
+  let loading = false;
+  wrapId = wrapId || `load-more-wrap-${Math.random().toString(36).slice(2, 9)}`;
+  const existing = document.getElementById(wrapId);
+  if (existing) existing.remove();
+  const btnId = `${wrapId}-btn`;
+  container.insertAdjacentHTML('afterend', `<div id="${wrapId}" style="text-align:center; margin-top:16px;"><button id="${btnId}" class="btn btn-ghost btn-sm" style="display:none;">Load more</button></div>`);
+  const btn = document.getElementById(btnId);
+
+  async function loadNext() {
+    if (loading) return;
+    loading = true;
+    btn.disabled = true;
+    btn.textContent = 'Loading…';
+    try {
+      const rows = await fetchPage(offset, pageSize);
+      if (rows.length) {
+        container.insertAdjacentHTML('beforeend', rows.map(renderItem).join(''));
+        offset += rows.length;
+        if (onAppend) onAppend(rows);
+      }
+      btn.style.display = rows.length < pageSize ? 'none' : 'inline-flex';
+    } catch (e) {
+      logError('Load more failed:', e);
+      btn.textContent = 'Couldn\'t load more — retry';
+    } finally {
+      loading = false;
+      btn.disabled = false;
+      if (btn.style.display !== 'none') btn.textContent = 'Load more';
+    }
+  }
+
+  btn.addEventListener('click', loadNext);
+  return { loadNext, reset: () => { offset = initialOffset; btn.style.display = 'none'; } };
+}
+
 // ---- Roblox OAuth connect (used by /profile/ and /roblox-callback/) ----
 
-const ROBLOX_OAUTH_CLIENT_ID = '3264730958979795688';
+var ROBLOX_OAUTH_CLIENT_ID = '3264730958979795688';
+
+function startRobloxOAuthConnect(returnTo) {
+  const state = crypto.randomUUID();
+  sessionStorage.setItem('bc_roblox_oauth_state', state);
+  sessionStorage.setItem('bc_roblox_oauth_return', returnTo || location.pathname);
+  const redirectUri = `${location.origin}/roblox-callback/`;
+  const url = new URL('https://apis.roblox.com/oauth/v1/authorize');
+  url.searchParams.set('client_id', ROBLOX_OAUTH_CLIENT_ID);
+  url.searchParams.set('redirect_uri', redirectUri);
+  url.searchParams.set('scope', 'openid profile');
+  url.searchParams.set('response_type', 'code');
+  url.searchParams.set('state', state);
+  location.href = url.toString();
+}
 
 // ---- Keyboard accessibility for .build-modal-tile picker grids -------------------------
 // This class is used site-wide (trading/services item pickers, giveaway prize pickers,
@@ -751,7 +1131,7 @@ function isDialogVisible(el) {
   return getComputedStyle(el).display !== 'none';
 }
 
-let _lastFocusedBeforeDialog = null;
+var _lastFocusedBeforeDialog = null;
 
 function handleDialogOpened(dialog) {
   _lastFocusedBeforeDialog = document.activeElement;
@@ -808,6 +1188,42 @@ async function claimDailyLoginIfNeeded() {
   }
 }
 
+// First-visit dismissible tip banner — shown once per browser until the person
+// dismisses it, tracked purely in localStorage (no account-level state needed).
+function initFirstVisitBanner(bannerId, dismissBtnId, storageKey) {
+  const banner = document.getElementById(bannerId);
+  const dismissBtn = document.getElementById(dismissBtnId);
+  if (!banner || !dismissBtn) return;
+
+  if (!localStorage.getItem(storageKey)) {
+    banner.style.display = 'block';
+    refreshIcons();
+  }
+
+  dismissBtn.addEventListener('click', () => {
+    banner.style.display = 'none';
+    localStorage.setItem(storageKey, '1');
+  });
+}
+
+// ---- PvP rating tiers (1v1 Elo, everyone starts at 1000) ---------------------------------
+var PVP_TIERS = [
+  { name: 'Master',   min: 1650, icon: 'crown',   color: '#f472b6' },
+  { name: 'Diamond',  min: 1500, icon: 'gem',     color: '#60a5fa' },
+  { name: 'Platinum', min: 1350, icon: 'shield',  color: '#2dd4bf' },
+  { name: 'Gold',     min: 1200, icon: 'medal',   color: '#fbbf24' },
+  { name: 'Silver',   min: 1050, icon: 'award',   color: '#cbd5e1' },
+  { name: 'Bronze',   min: 0,    icon: 'swords',  color: '#d9895a' },
+];
+function pvpTier(rating) {
+  const r = Number(rating) || 1000;
+  return PVP_TIERS.find(t => r >= t.min) || PVP_TIERS[PVP_TIERS.length - 1];
+}
+function pvpTierTagHtml(rating) {
+  const t = pvpTier(rating);
+  return `<span class="pvp-tier" style="--tier-color:${t.color};" title="${t.name} tier"><i data-lucide="${t.icon}" class="icon-sm icon-inline"></i>${t.name}</span>`;
+}
+
 // --- Performance: keep Lucide + the ad network off the critical path -------------------------------
 // Lucide is loaded with `defer` on every page, so it executes after parsing but before DOMContentLoaded.
 // Anything that calls refreshIcons() earlier safely no-ops (see its window.lucide guard) — this renders
@@ -831,4 +1247,28 @@ document.addEventListener('DOMContentLoaded', () => refreshIcons());
   const schedule = () => ('requestIdleCallback' in window ? requestIdleCallback(inject, { timeout: 4000 }) : setTimeout(inject, 2000));
   if (document.readyState === 'complete') schedule();
   else window.addEventListener('load', schedule, { once: true });
+})();
+
+// ---- Live visitors + visit counts (feeds /admin/overview/) ----------------------------------------
+// Anonymous random id in localStorage, pageview on load + a heartbeat every 45 s while the tab is visible.
+// No IP, no query string. Skipped for /admin, bots, webdrivers and Do-Not-Track.
+(function trackVisit() {
+  try {
+    const path = location.pathname;
+    if (path.startsWith('/admin') || navigator.webdriver || navigator.doNotTrack === '1') return;
+    if (/bot|crawl|spider|slurp|headless|lighthouse|preview|facebookexternalhit/i.test(navigator.userAgent)) return;
+    let vid = localStorage.getItem('bc_vid');
+    if (!vid || !/^[0-9a-f-]{36}$/i.test(vid)) {
+      vid = (crypto.randomUUID ? crypto.randomUUID() : 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => { const r = Math.random() * 16 | 0; return (c === 'x' ? r : (r & 3 | 8)).toString(16); }));
+      localStorage.setItem('bc_vid', vid);
+    }
+    const send = (fn) => sb.rpc(fn, { p_visitor: vid, p_path: path }).then(() => {}, () => {});
+    const start = () => {
+      send('track_pageview');
+      setInterval(() => { if (!document.hidden) send('track_heartbeat'); }, 45000);
+      document.addEventListener('visibilitychange', () => { if (!document.hidden) send('track_heartbeat'); });
+    };
+    if (document.hidden) document.addEventListener('visibilitychange', function once() { if (document.hidden) return; document.removeEventListener('visibilitychange', once); start(); });
+    else start();
+  } catch (e) { /* tracking must never break a page */ }
 })();
