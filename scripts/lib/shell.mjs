@@ -59,6 +59,7 @@ ${shell.themeScript}
 <link rel="preconnect" href="https://unpkg.com">
 <link rel="preconnect" href="https://cdn.jsdelivr.net">
 <link rel="stylesheet" href="/css/style.css">
+<link rel="stylesheet" href="/css/pages/seo.css">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Space+Grotesk:wght@400;500;600;700&family=Sora:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap">
@@ -69,7 +70,7 @@ ${shell.themeScript}
 <meta name="theme-color" content="#0a0e17">
 ${ld.map(o => `<script type="application/ld+json">${JSON.stringify(o)}</script>`).join('\n')}
 </head>
-<body>
+<body class="seo-page">
 
 ${shell.nav}
 <main>
@@ -130,14 +131,6 @@ export function breadcrumbLd(crumbs) {
   return {
     '@context': 'https://schema.org', '@type': 'BreadcrumbList',
     itemListElement: crumbs.map((c, i) => ({ '@type': 'ListItem', position: i + 1, name: c.name, item: c.url })),
-  };
-}
-
-// schema.org ItemList of pages (e.g. a tier list's items). entries: [{ name, url }] in rank order.
-export function itemListLd(name, entries) {
-  return {
-    '@context': 'https://schema.org', '@type': 'ItemList', name, numberOfItems: entries.length,
-    itemListElement: entries.map((e, i) => ({ '@type': 'ListItem', position: i + 1, name: e.name, url: e.url })),
   };
 }
 

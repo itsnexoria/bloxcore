@@ -1,0 +1,170 @@
+/* ==========================================================================
+   SEO landing pages — item values, comparisons, tier lists, guides, calculators, codes.
+   Generated pages carry <body class="seo-page"> and link this file; everything is
+   scoped under that class and built from theme variables so custom themes still work.
+   ========================================================================== */
+
+/* ---- Hero ---- */
+:is(body.seo-page > nav.nav + section.section, body.seo-page > nav.nav + main > section.section:first-child) {
+  background: radial-gradient(70% 140% at 15% 0%, rgb(var(--brass-rgb) / 0.13), transparent 70%);
+  padding-bottom: 8px !important;
+}
+:is(body.seo-page > nav.nav + section.section, body.seo-page > nav.nav + main > section.section:first-child) h1 {
+  font-family: var(--font-display);
+  letter-spacing: 0.01em;
+  font-size: clamp(1.55rem, 4.6vw, 2.15rem) !important;
+  text-wrap: balance;
+}
+:is(body.seo-page > nav.nav + section.section, body.seo-page > nav.nav + main > section.section:first-child) img {
+  padding: 8px;
+  background: var(--glass-bg-strong);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius);
+  box-shadow: 0 0 28px rgb(var(--brass-rgb) / 0.22);
+}
+body.seo-page nav[aria-label="Breadcrumb"] a { text-decoration: none; transition: color 0.15s; }
+body.seo-page nav[aria-label="Breadcrumb"] a:hover { color: var(--brass-bright); }
+body.seo-page nav[aria-label="Breadcrumb"] li[aria-hidden] { opacity: 0.35; }
+body.seo-page nav[aria-label="Breadcrumb"] li[aria-current] { color: var(--bone); }
+
+/* ---- Article body ---- */
+body.seo-page main p { text-wrap: pretty; }
+body.seo-page main .container > p a,
+body.seo-page main .container > ol a:not(.btn),
+body.seo-page main .container > ul a:not(.btn) {
+  color: var(--brass-bright);
+  text-decoration: underline;
+  text-decoration-color: rgb(var(--brass-rgb) / 0.4);
+  text-underline-offset: 3px;
+}
+body.seo-page main .container > p a:hover { text-decoration-color: currentColor; }
+body.seo-page main a:focus-visible,
+body.seo-page main summary:focus-visible {
+  outline: 2px solid var(--brass-bright);
+  outline-offset: 3px;
+  border-radius: 6px;
+}
+
+/* Section headings get an accent bar (not inside cards/CTA panels) */
+body.seo-page main h2 {
+  position: relative;
+  padding-left: 14px;
+  margin-top: 2.1rem;
+  font-family: var(--font-display);
+  letter-spacing: 0.01em;
+}
+body.seo-page main h2::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 0.18em; bottom: 0.18em;
+  width: 4px;
+  border-radius: 4px;
+  background: linear-gradient(var(--brass-bright), var(--brass));
+}
+body.seo-page main .panel h2 { padding-left: 0; margin-top: 0; }
+body.seo-page main .panel h2::before { display: none; }
+
+/* ---- Value stat row (item pages) ---- */
+body.seo-page main .panel[style*="gap:24px"] {
+  display: grid !important;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 14px !important;
+}
+body.seo-page main .panel[style*="gap:24px"] > div {
+  padding: 12px 14px;
+  background: rgb(var(--brass-rgb) / 0.06);
+  border: 1px solid rgb(var(--brass-rgb) / 0.18);
+  border-radius: var(--radius-sm);
+}
+body.seo-page main .panel[style*="gap:24px"] p[style*="uppercase"] { letter-spacing: 0.06em; }
+body.seo-page main .panel[style*="gap:24px"] p[style*="font-mono"] {
+  font-size: 1.55rem !important;
+  line-height: 1.2;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---- FAQ question/answer pairs (item pages) ---- */
+body.seo-page main h3[style*="margin:18px 0 4px"] {
+  margin: 16px 0 4px !important;
+  padding-top: 16px;
+  border-top: 1px solid var(--glass-border);
+}
+body.seo-page main h2 + h3[style*="margin:18px 0 4px"] { margin-top: 10px !important; padding-top: 0; border-top: 0; }
+body.seo-page main h3[style*="margin:18px 0 4px"] + p { color: var(--ash); }
+
+/* ---- Related items / links → pill chips ---- */
+body.seo-page main ul[style*="columns:2"] {
+  columns: auto !important;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  list-style: none;
+  padding-left: 0 !important;
+}
+body.seo-page main li > a.muted[style*="font-size:0.85rem"] {
+  display: inline-block;
+  padding: 6px 12px;
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: 999px;
+  text-decoration: none;
+  transition: border-color 0.15s, color 0.15s, background 0.15s, transform 0.15s;
+}
+body.seo-page main li > a.muted[style*="font-size:0.85rem"]:hover {
+  color: var(--bone);
+  background: rgb(var(--brass-rgb) / 0.12);
+  border-color: rgb(var(--brass-rgb) / 0.5);
+  transform: translateY(-1px);
+}
+
+/* ---- Closing CTA ---- */
+body.seo-page main .container.panel[style*="space-between"] {
+  background: linear-gradient(120deg, rgb(var(--brass-rgb) / 0.14), transparent 70%), var(--glass-bg);
+  border-color: rgb(var(--brass-rgb) / 0.35);
+}
+body.seo-page main .container.panel[style*="space-between"] .btn { padding-inline: 22px; }
+
+/* ---- Guide index cards ---- */
+body.seo-page main a.panel { transition: border-color 0.15s, transform 0.15s; }
+body.seo-page main a.panel:hover { border-color: rgb(var(--brass-rgb) / 0.5); }
+
+/* ---- Tier lists ---- */
+body.seo-page .tier-row {
+  gap: 12px;
+  padding: 10px;
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-sm);
+}
+body.seo-page .tier-label { box-shadow: 0 4px 14px rgb(var(--shadow-rgb) / 0.35); }
+body.seo-page .tier-chip { transition: transform 0.15s, background 0.15s, border-color 0.15s; }
+body.seo-page .tier-chip:hover { transform: translateY(-1px); border-color: rgb(var(--brass-rgb) / 0.5); }
+
+/* ---- Tables (compare / codes / calculators) ---- */
+body.seo-page .compare-table thead img { padding: 4px; background: var(--glass-bg-strong); border-radius: var(--radius-sm); }
+body.seo-page .compare-table thead th,
+body.seo-page .codes-table thead th { border-bottom: 2px solid rgb(var(--brass-rgb) / 0.35); }
+body.seo-page .compare-table tbody tr,
+body.seo-page .codes-table tbody tr { transition: background 0.12s; }
+body.seo-page .compare-table tbody tr:hover,
+body.seo-page .codes-table tbody tr:hover { background: rgba(255, 255, 255, 0.035); }
+body.seo-page .compare-table td { font-variant-numeric: tabular-nums; }
+
+/* ---- FAQ accordions ---- */
+body.seo-page .settings-accordion { transition: border-color 0.15s; }
+body.seo-page .settings-accordion:hover,
+body.seo-page .settings-accordion[open] { border-color: rgb(var(--brass-rgb) / 0.35); }
+
+/* ---- Phones ---- */
+@media (max-width: 640px) {
+  body.seo-page main .panel[style*="gap:24px"] { grid-template-columns: repeat(2, 1fr); }
+  body.seo-page main .panel[style*="gap:24px"] p[style*="font-mono"] { font-size: 1.3rem !important; }
+  body.seo-page .tier-row { flex-direction: column; }
+  body.seo-page .tier-label { flex: 0 0 auto; padding: 4px 0; font-size: 1.3rem; }
+  body.seo-page table { display: block; overflow-x: auto; max-width: 100%; }
+  body.seo-page main .container.panel[style*="space-between"] { text-align: center; justify-content: center; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body.seo-page * { transition: none !important; }
+}
