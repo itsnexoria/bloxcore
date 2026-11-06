@@ -356,6 +356,7 @@ section.section h2.center::after { margin-left: auto; margin-right: auto; }
   display: flex;
   align-items: center;
   gap: 12px;
+  text-decoration: none;
   color: var(--ash);
   font-weight: 600;
   font-size: 0.92rem;
@@ -1350,26 +1351,6 @@ select option {
 
 /* Visually hides content while keeping it in the accessibility tree — for page <h1>s
    and similar landmarks that don't have a natural spot in the visual design. */
-/* Community value vote widget (/blox-fruits-values/<item>/, js/item-votes.js) */
-.vote-buttons { display: flex; gap: 8px; flex-wrap: wrap; margin: 12px 0; }
-.vote-btn.is-selected { border-color: var(--brass-bright, #d6a841); background: rgb(var(--brass-rgb, 214 168 65) / 0.14); }
-.vote-btn.vote-overpaid.is-selected { border-color: #f87171; background: rgb(248 113 113 / 0.14); }
-.vote-btn.vote-underpaid.is-selected { border-color: var(--sea, #38bdf8); background: rgb(56 189 248 / 0.14); }
-.vote-bar { display: flex; height: 10px; border-radius: 999px; overflow: hidden; background: rgb(255 255 255 / 0.06); }
-.vote-seg-overpaid { background: #f87171; }
-.vote-seg-fair { background: #94a3b8; }
-.vote-seg-underpaid { background: var(--sea, #38bdf8); }
-.vote-legend { margin: 8px 0 0; font-size: 0.8rem; }
-
-.skip-link {
-  position: absolute; left: 12px; top: -64px; z-index: 10000;
-  padding: 10px 16px; border-radius: 8px; font-weight: 600; text-decoration: none;
-  background: var(--brass-bright, #d6a841); color: #14110a;
-  transition: top 0.15s ease;
-}
-.skip-link:focus { top: 12px; outline: 2px solid #fff; outline-offset: 2px; }
-[tabindex="-1"]:focus { outline: none; }
-
 .sr-only {
   position: absolute;
   width: 1px; height: 1px;
@@ -2657,3 +2638,16 @@ i[data-lucide] { display: inline-block; vertical-align: -0.125em; }
 .rep-label { margin: 4px 0 -4px; font-size: 0.74rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--ash); }
 .rep-label span { text-transform: none; letter-spacing: 0; }
 .rep-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 4px; }
+
+/* ---- Mobile audit fixes ---- */
+html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+body { overflow-x: clip; } /* safety net: one over-wide element must not make the whole page scroll sideways */
+@media (max-width: 760px) {
+  /* iOS Safari zooms the page on focus for any field under 16px */
+  input, select, textarea { font-size: 16px; }
+}
+@media (pointer: coarse) {
+  .btn { min-height: 44px; }
+  .btn-sm { min-height: 40px; }
+  .nav-toggle { min-width: 44px; min-height: 44px; }
+}

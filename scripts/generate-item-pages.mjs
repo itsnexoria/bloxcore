@@ -9,7 +9,8 @@
 
 import fs from 'node:fs';
 import path from 'node:path';
-import { loadShell } from './lib/shell.mjs';
+import { loadShell, adSlotTop, adSlotMiddle, adSlotBottom } from './lib/shell.mjs';
+import { cap, TREND_META, rarityChip, trendChip, demandLabel, demandMeter, statCard, iconImg, fmtRatio, ladderHtml, faqAccordion, faqLd as buildFaqLd } from './lib/seo-ui.mjs';
 import { historyHtml } from './lib/sparkline.mjs';
 
 const SUPABASE_URL = 'https://hpvwxaubgiyqgqtyjofb.supabase.co';
@@ -38,6 +39,8 @@ function formatValue(n) {
   if (n >= 1_000) return (n / 1_000).toFixed(n % 1_000 === 0 ? 0 : 1) + 'K';
   return String(n);
 }
+
+const PLURAL = { fruit: 'fruits', gamepass: 'gamepasses', limited: 'limited items' };
 
 const TREND_COPY = {
   up: 'trending upward right now — it\'s worth more today than it was a week ago',
@@ -79,11 +82,12 @@ const escAttr = t => String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;').repl
 
 let shell; // nav/footer read from the homepage at run time (see lib/shell.mjs)
 
-function pageHtml(item, related) {
+function pageHtml(item, related, ctx) {
   const categoryLabel = CATEGORY_LABEL[item.category] || item.category;
-  const slug = slugify(item.name);
+  const slug = ctx.slug;
   const url = `https://bloxcores.com/blox-fruits-values/${slug}/`;
   const rarity = item.rarity ? item.rarity.charAt(0).toUpperCase() + item.rarity.slice(1) : null;
+  const rarityPrefix = rarity && rarity.toLowerCase() !== categoryLabel.toLowerCase() ? rarity + ' ' : ''; // avoid "Limited Limited" / "Gamepass Gamepass"
   const regularFmt = formatValue(item.regular_value);
   const permFmt = formatValue(item.permanent_value);
   const hasPermanent = item.category === 'fruit' && permFmt;
@@ -94,19 +98,50 @@ function pageHtml(item, related) {
     ? `${item.name} currently trades for around <strong>${regularFmt}</strong> on the community market.`
     : `${item.name} doesn't have an established community value yet — check the live <a href="/trading/">Trading board</a> for current offers.`;
 
-  const title = `${item.name} Value in Blox Fruits (2026) — ${rarity ? rarity + ' ' : ''}${categoryLabel} Price & Demand | BloxCore`;
-  const description = `${item.name} Blox Fruits value: ${regularFmt ? `~${regularFmt}${hasPermanent ? ` physical / ${permFmt} permanent` : ''}` : 'see current price'}. ${rarity ? rarity + ' ' : ''}${categoryLabel.toLowerCase()} — demand, trend, and live trades on BloxCore.`;
+  const title = `${item.name} Value in Blox Fruits (2026) — ${rarityPrefix}${categoryLabel} Price & Demand | BloxCore`;
+  const description = `${item.name} Blox Fruits value: ${regularFmt ? `~${regularFmt}${hasPermanent ? ` physical / ${permFmt} permanent` : ''}` : 'see current price'}. ${rarityPrefix}${categoryLabel.toLowerCase()} — demand, trend, and live trades on BloxCore.`;
 
-  const relatedHtml = related.map(r => `<li><a href="/blox-fruits-values/${slugify(r.name)}/" class="muted" style="font-size:0.85rem;">${r.name}</a></li>`).join('');
+  const relatedHtml = related.map(r => `<li><a href="${ctx.hrefFor(r)}" class="muted" style="font-size:0.85rem;">${r.name} · ${formatValue(r.regular_value)}</a></li>`).join('');
+
+  const plural = PLURAL[item.category] || `${categoryLabel.toLowerCase()}s`;
+  const { rank, total, top, ladderRows, equal } = ctx;
+  const isTop = top && top.id === item.id;
+  const pctTop = top && top.regular_value ? Math.round((item.regular_value / top.regular_value) * 100) : null;
+  const premium = hasPermanent && item.regular_value ? item.permanent_value / item.regular_value : null;
+  const tm = TREND_META[item.trend];
+  const rankSentence = `${item.name} ranks #${rank} of ${total} ${plural} by physical value${isTop ? ' — the highest-valued one on the list' : top ? `, at ${pctTop}% of the top-ranked ${top.name} (${formatValue(top.regular_value)})` : ''}.`;
+  const equalList = equal.map(e => e.item.name).join(', ');
 
   const demandTrend = `${demandCopy(item.demand)}${item.trend && TREND_COPY[item.trend] ? ` It's also ${TREND_COPY[item.trend]}.` : ''}`;
   const faq = [
     [`What is ${item.name} worth in Blox Fruits?`, stripTags(valueSentence)],
     [`Is ${item.name} in demand right now?`, demandTrend],
+    hasPermanent && [`How much more is a permanent ${item.name} worth?`, `A permanent ${item.name} (${permFmt}) is worth about ${fmtRatio(premium)} a physical one (${regularFmt}) — roughly ${formatValue(item.permanent_value - item.regular_value)} more — because it can never be lost, dropped, or stolen.`],
+    [`Where does ${item.name} rank by value?`, rankSentence],
+    equal.length && [`What trades evenly with ${item.name}?`, `Items within about 20% of ${item.name}'s value include ${equalList}. Use the trade calculator on BloxCore to check an exact offer before you agree to it.`],
     [`How do I trade ${item.name}?`, `Check the live Trading board on BloxCore for active listings involving ${item.name}, or post your own offer. Values shift with the trend, so confirm the current going rate before agreeing to a trade.`],
-  ];
-  const faqLd = { '@context': 'https://schema.org', '@type': 'FAQPage', mainEntity: faq.map(([q, a]) => ({ '@type': 'Question', name: q, acceptedAnswer: { '@type': 'Answer', text: a } })) };
-  const faqHtml = faq.map(([q, a]) => `<h3 style="font-size:1.05rem; margin:18px 0 4px;">${escAttr(q)}</h3><p style="margin:0;">${escAttr(a)}</p>`).join('');
+  ].filter(Boolean);
+  const faqLd = buildFaqLd(faq);
+  const faqHtml = faqAccordion(faq);
+
+  const statCards = [
+    statCard({ label: 'Physical value', value: regularFmt, sub: isTop ? 'Highest on the list' : pctTop != null ? `${pctTop}% of ${top.name}` : '', tone: 'is-primary' }),
+    hasPermanent && statCard({ label: 'Permanent value', value: permFmt, sub: premium ? `${fmtRatio(premium)} the physical price` : '' }),
+    statCard({ label: 'Value rank', value: `#${rank}`, sub: `of ${total} ${plural}` }),
+    item.demand != null && statCard({ label: 'Demand', value: `${item.demand}<small>/10</small>`, sub: demandLabel(item.demand), extra: demandMeter(item.demand) }),
+    tm && statCard({ label: 'Trend', value: `${tm.icon} ${tm.label}`, sub: tm.note, tone: `is-${tm.tone}` }),
+    rarity && statCard({ label: 'Rarity', value: rarity, sub: categoryLabel }),
+  ].filter(Boolean).join('');
+
+  const equalHtml = equal.length ? `
+    <h2>Trades evenly with ${escAttr(item.name)}</h2>
+    <p class="muted">Items within about 20% of ${escAttr(item.name)}'s value — a fair starting point for a 1-for-1 swap.</p>
+    <div class="seo-equal">${equal.map(e => `<a class="seo-equal-card" href="${ctx.hrefFor(e.item)}">${iconImg(e.item, 40)}<span><b>${escAttr(e.item.name)}</b><small>${formatValue(e.item.regular_value)}</small></span><em class="${e.pct >= 0 ? 'up' : 'down'}">${e.pct >= 0 ? '+' : '−'}${Math.abs(e.pct)}%</em></a>`).join('')}</div>` : '';
+
+  const ladder = ladderRows.length >= 2 ? `
+    <h2>Where ${escAttr(item.name)} sits in the value ranking</h2>
+    <p class="muted">${escAttr(rankSentence)} The bars compare each item to the highest in this window.</p>
+    ${ladderHtml(ladderRows, item.id, formatValue, ctx.hrefFor)}` : '';
 
   return `<!DOCTYPE html>
 <html lang="en">
@@ -139,7 +174,8 @@ function pageHtml(item, related) {
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Space+Grotesk:wght@400;500;600;700&family=Sora:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap">
 <link rel="stylesheet" href="/css/animations.css">
-<link rel="icon" type="image/png" href="/assets/logo.png">
+<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="icon" type="image/png" href="/assets/favicon.png">
 <link rel="manifest" href="/manifest.json">
 <link rel="apple-touch-icon" href="/assets/apple-touch-icon.png">
 <meta name="theme-color" content="#0a0e17">
@@ -170,51 +206,55 @@ function pageHtml(item, related) {
 <body class="seo-page">
 
 ${shell.nav}
-<section class="section" style="padding-bottom:0;">
-  <div class="container" style="max-width:820px;">
-    <nav aria-label="Breadcrumb" style="margin-bottom:14px;">
-      <ol style="list-style:none; display:flex; gap:6px; padding:0; margin:0; font-size:0.8rem; flex-wrap:wrap;" class="muted">
-        <li><a href="/" class="muted">Home</a></li>
+<section class="section seo-hero" style="padding-bottom:0;">
+  <div class="container seo-wrap">
+    <nav aria-label="Breadcrumb" class="seo-crumbs">
+      <ol>
+        <li><a href="/">Home</a></li>
         <li aria-hidden="true">/</li>
-        <li><a href="/blox-fruits-values/" class="muted">Values</a></li>
+        <li><a href="/blox-fruits-values/">Values</a></li>
         <li aria-hidden="true">/</li>
         <li aria-current="page">${item.name}</li>
       </ol>
     </nav>
-    <div style="display:flex; align-items:center; gap:16px; flex-wrap:wrap;">
-      ${item.icon_url ? `<img src="${item.icon_url}" alt="${item.name}" style="width:64px; height:64px; object-fit:contain; flex-shrink:0;">` : ''}
-      <div>
-        <h1 style="font-size:1.8rem; line-height:1.15; margin:0;">${item.name} Value in Blox Fruits</h1>
-        <p class="muted" style="margin:4px 0 0;">${rarity ? rarity + ' ' : ''}${categoryLabel} · updated regularly by the BloxCore community</p>
-        <p class="muted" style="margin:2px 0 0; font-size:0.78rem;">Last updated <time datetime="${TODAY}">${TODAY}</time></p>
+    <div class="seo-hero-row">
+      ${item.icon_url ? `<div class="seo-icon"><img src="${item.icon_url}" alt="${escAttr(item.name)}" width="96" height="96" decoding="async"></div>` : ''}
+      <div class="seo-hero-text">
+        <h1>${item.name} Value in Blox Fruits</h1>
+        <div class="seo-chips">${rarityChip(item.rarity)}<span class="seo-chip">${categoryLabel}</span>${trendChip(item.trend)}<span class="seo-chip is-rank">#${rank} of ${total} ${plural}</span></div>
+        <p class="seo-sub">Last updated <time datetime="${TODAY}">${TODAY}</time> · community-estimated values, refreshed daily</p>
       </div>
+      <div class="seo-hero-value"><small>Physical value</small><strong>${regularFmt}</strong>${hasPermanent ? `<span>Permanent ${permFmt}</span>` : ''}</div>
     </div>
   </div>
+${adSlotTop()}
 </section>
 
 <main>
 <section class="section">
-  <div class="container" style="max-width:820px; line-height:1.75; font-size:0.96rem;">
-    <p>${valueSentence}</p>
-    <div class="panel" style="display:flex; gap:24px; flex-wrap:wrap; margin:20px 0;">
-      <div><p class="muted" style="margin:0; font-size:0.75rem; text-transform:uppercase;">Physical Value</p><p style="margin:2px 0 0; font-family:var(--font-mono); font-size:1.3rem; color:var(--brass-bright);">${regularFmt || '—'}</p></div>
-      ${hasPermanent ? `<div><p class="muted" style="margin:0; font-size:0.75rem; text-transform:uppercase;">Permanent Value</p><p style="margin:2px 0 0; font-family:var(--font-mono); font-size:1.3rem; color:var(--brass-bright);">${permFmt}</p></div>` : ''}
-      ${rarity ? `<div><p class="muted" style="margin:0; font-size:0.75rem; text-transform:uppercase;">Rarity</p><p style="margin:2px 0 0; font-size:1.1rem;">${rarity}</p></div>` : ''}
+  <div class="container seo-wrap seo-article">
+    <p class="seo-lead">${valueSentence}</p>
+    <div class="seo-stats">${statCards}</div>
+    <div class="seo-live" data-item-id="${item.id}" data-name="${escAttr(item.name)}" hidden>
+      <span class="seo-live-dot" aria-hidden="true"></span><span class="seo-live-text"></span>
+      <a href="/trading/" class="btn btn-ghost btn-sm">Open trading board</a>
     </div>
     ${affiliateBlockHtml()}
-    <h2 style="font-size:1.3rem;">Demand &amp; Trend</h2>
-    <p>${demandCopy(item.demand)}${item.trend && TREND_COPY[item.trend] ? ` It's also ${TREND_COPY[item.trend]}.` : ''}</p>
+    <h2>${item.name} Demand &amp; Trend</h2>
+    <p>${demandTrend}</p>
     ${historyHtml(item, historyByItem.get(item.id), formatValue)}
-    <h2 style="font-size:1.3rem;">How to Trade ${item.name}</h2>
+    ${ladder}
+    ${equalHtml}
+    <h2>How to Trade ${item.name}</h2>
     <p>Values shift with the trend above, so always confirm the current going rate before agreeing to a trade — check the live <a href="/trading/">Trading board</a> for active listings involving ${item.name}, or post your own offer if you're looking to buy or sell. See our <a href="/blox-fruits-values/">full guide to how Blox Fruits values work</a> for more on reading physical vs. permanent pricing, rarity tiers, and spotting inflated value claims.</p>
-    <h2 style="font-size:1.3rem;">${escAttr(item.name)} FAQ</h2>
+    <h2>${escAttr(item.name)} FAQ</h2>
     ${faqHtml}
-    ${related.length ? `<h2 style="font-size:1.3rem;">Other ${categoryLabel} Values</h2><ul style="padding-left:20px; columns:2; column-gap:24px;">${relatedHtml}</ul>` : ''}
+    ${related.length ? `<h2>Other ${categoryLabel} Values</h2><ul class="seo-pills">${relatedHtml}</ul>` : ''}
   </div>
 </section>
 
 <section class="section" style="padding-top:0;">
-  <div class="container panel" style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:20px; max-width:820px;">
+  <div class="container panel seo-cta" style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:20px; max-width:820px;">
     <div>
       <h2 style="font-size:1.3rem; margin-bottom:6px;">Ready to trade?</h2>
       <p class="muted" style="margin:0;">Join BloxCore and list ${item.name} on the Trading board in seconds.</p>
@@ -224,6 +264,10 @@ ${shell.nav}
 </section>
 </main>
 
+${adSlotMiddle()}
+
+${adSlotBottom()}
+
 ${shell.footer}
 <script defer src="https://unpkg.com/lucide@1.34.0"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.112.4"></script>
@@ -232,6 +276,7 @@ ${shell.footer}
 <script src="/js/supabase-client.js"></script>
 <script src="/js/nav.js"></script>
 <script src="/js/search.js"></script>
+<script defer src="/js/seo-live.js"></script>
 </body>
 </html>
 `;
@@ -282,22 +327,49 @@ async function main() {
     (byCategory[item.category] ||= []).push(item);
   }
 
-  const seenSlugs = new Set();
-  const sitemapUrls = [];
-  let written = 0;
+  // Keep the established /magnet-fruit/ URL + title even though the items table now calls it "Magnet".
+  items = items.map(i => (i.category === 'fruit' && i.name === 'Magnet' ? { ...i, name: 'Magnet Fruit' } : i));
+  for (const k of Object.keys(byCategory)) byCategory[k] = byCategory[k].map(i => items.find(x => x.id === i.id));
 
+  const seenSlugs = new Set();
+  const slugOf = new Map();
   for (const item of items) {
     let slug = slugify(item.name);
     if (seenSlugs.has(slug)) slug = `${slug}-${item.category}`; // rare name collision across categories
     seenSlugs.add(slug);
+    slugOf.set(item.id, slug);
+  }
+  const hrefFor = it => `/blox-fruits-values/${slugOf.get(it.id)}/`;
 
-    const related = (byCategory[item.category] || [])
-      .filter(i => i.id !== item.id)
-      .slice(0, 6);
+  const sortedBy = {};
+  const rankOf = new Map(); // competition ranking: ties share the better rank
+  for (const [cat, list] of Object.entries(byCategory)) {
+    const sorted = [...list].sort((a, b) => b.regular_value - a.regular_value || a.name.localeCompare(b.name));
+    sortedBy[cat] = sorted;
+    for (const it of sorted) rankOf.set(it.id, sorted.filter(x => x.regular_value > it.regular_value).length + 1);
+  }
+
+  const sitemapUrls = [];
+  let written = 0;
+
+  for (const item of items) {
+    const slug = slugOf.get(item.id);
+    const sorted = sortedBy[item.category];
+    const idx = sorted.findIndex(i => i.id === item.id);
+    const window = sorted.slice(Math.max(0, idx - 3), idx + 4);
+    const ladderRows = window.map(it => ({ item: it, rank: rankOf.get(it.id) }));
+    const equal = sorted
+      .filter(c => c.id !== item.id && c.regular_value / item.regular_value >= 0.8 && c.regular_value / item.regular_value <= 1.25)
+      .sort((a, b) => Math.abs(Math.log(a.regular_value / item.regular_value)) - Math.abs(Math.log(b.regular_value / item.regular_value)))
+      .slice(0, 4)
+      .map(c => ({ item: c, pct: Math.round((c.regular_value / item.regular_value - 1) * 100) }));
+
+    const related = sorted.filter(i => i.id !== item.id).slice(0, 6);
+    const ctx = { slug, hrefFor, rank: rankOf.get(item.id), total: sorted.length, top: sorted[0], ladderRows, equal };
 
     const dir = path.join(OUT_DIR, slug);
     fs.mkdirSync(dir, { recursive: true });
-    fs.writeFileSync(path.join(dir, 'index.html'), pageHtml(item, related));
+    fs.writeFileSync(path.join(dir, 'index.html'), pageHtml(item, related, ctx));
     sitemapUrls.push(`https://bloxcores.com/blox-fruits-values/${slug}/`);
     written++;
   }

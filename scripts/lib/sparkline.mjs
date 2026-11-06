@@ -10,7 +10,7 @@ export function buildPoints(rows, currentValue, now = Date.now()) {
   [...rows]
     .sort((a, b) => new Date(a.recorded_at) - new Date(b.recorded_at))
     .forEach(r => {
-      if (r.regular_value == null) return;
+      if (!(Number(r.regular_value) > 0)) return; // skip null and zero placeholders (a 0 start made the % change infinite)
       const last = pts[pts.length - 1];
       if (!last || last.v !== Number(r.regular_value)) pts.push({ t: new Date(r.recorded_at).getTime(), v: Number(r.regular_value) });
     });
