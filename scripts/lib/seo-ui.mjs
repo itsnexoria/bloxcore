@@ -85,10 +85,9 @@ export function faqLd(faq) {
 // Horizontal "share of the pair" bar for comparisons.
 export function versusBar(a, b, fmt) {
   const total = (a.regular_value || 0) + (b.regular_value || 0) || 1;
-  const pa = Math.round((a.regular_value / total) * 100);
-  return `<div class="seo-versus-bar" role="img" aria-label="${esc(a.name)} ${fmt(a.regular_value)} versus ${esc(b.name)} ${fmt(b.regular_value)}">`
-    + `<span class="a" style="width:${pa}%"><b>${esc(a.name)}</b> ${fmt(a.regular_value)}</span>`
-    + `<span class="b" style="width:${100 - pa}%"><b>${esc(b.name)}</b> ${fmt(b.regular_value)}</span></div>`;
+  const pa = Math.round((a.regular_value / total) * 100), pb = 100 - pa;
+  const seg = (cls, f, pct) => `<span class="${cls}" style="width:${pct}%" title="${esc(f.name)} ${fmt(f.regular_value)}">${pct >= 22 ? `<b>${esc(f.name)}</b> ${fmt(f.regular_value)}` : ''}</span>`;
+  return `<div class="seo-versus-bar" role="img" aria-label="${esc(a.name)} ${fmt(a.regular_value)} versus ${esc(b.name)} ${fmt(b.regular_value)}">${seg('a', a, pa)}${seg('b', b, pb)}</div>`;
 }
 
 export function crumbsHtml(crumbs) {

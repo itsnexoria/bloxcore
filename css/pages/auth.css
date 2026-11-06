@@ -57,3 +57,5 @@
   .auth-card #email-auth-tabs .btn { min-height: 44px; }
   .auth-card #signin-captcha, .auth-card #signup-captcha { max-width: 100%; overflow: hidden; }
 }
+
+@media (pointer: coarse) { .auth-card #forgot-password-btn { padding: 12px 10px; min-height: 44px; } }
