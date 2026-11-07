@@ -1,0 +1,19 @@
+--- a/scripts/lib/shell.mjs
++++ b/scripts/lib/shell.mjs
+@@ -59,6 +59,7 @@
+ <link rel="preconnect" href="https://unpkg.com">
+ <link rel="preconnect" href="https://cdn.jsdelivr.net">
+ <link rel="stylesheet" href="/css/style.css">
++<link rel="stylesheet" href="/css/pages/seo.css">
+ <link rel="preconnect" href="https://fonts.googleapis.com">
+ <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+ <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Space+Grotesk:wght@400;500;600;700&family=Sora:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap">
+@@ -69,7 +70,7 @@
+ <meta name="theme-color" content="#0a0e17">
+ ${ld.map(o => `<script type="application/ld+json">${JSON.stringify(o)}</script>`).join('\n')}
+ </head>
+-<body>
++<body class="seo-page">
+ 
+ ${shell.nav}
+ <main>

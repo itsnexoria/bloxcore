@@ -218,6 +218,14 @@ body.seo-page .seo-live-text { flex: 1 1 200px; }
 body.seo-page .seo-ladder { list-style: none; margin: 14px 0; padding: 6px; border-radius: var(--radius); background: var(--glass-bg); border: 1px solid var(--glass-border); }
 body.seo-page .seo-ladder li { display: grid; grid-template-columns: 2.4em 28px minmax(90px, 1.1fr) minmax(60px, 1.4fr) auto 5.5em; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 10px; font-size: 0.88rem; }
 body.seo-page .seo-ladder li.is-current { background: rgb(var(--brass-rgb) / 0.12); box-shadow: inset 3px 0 0 var(--brass-bright); }
+body.seo-page .seo-ladder .seo-rank { grid-column: 1; }
+body.seo-page .seo-ladder .seo-mini { grid-column: 2; }
+body.seo-page .seo-ladder .seo-ladder-name { grid-column: 3; }
+body.seo-page .seo-ladder .seo-ladder-bar { grid-column: 4; }
+body.seo-page .seo-ladder .seo-ladder-val { grid-column: 5; }
+body.seo-page .seo-ladder em { grid-column: 6; }
+body.seo-page main .container > ol.seo-ladder a:not(.btn) { color: inherit; text-decoration: none; }
+body.seo-page main .container > ol.seo-ladder a:not(.btn):hover { color: var(--brass-bright); text-decoration: underline; }
 body.seo-page .seo-rank { font-family: var(--font-mono); color: var(--ash); font-size: 0.78rem; }
 body.seo-page .seo-mini { width: 28px; height: 28px; object-fit: contain; }
 body.seo-page .seo-ladder-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -287,8 +295,9 @@ body.seo-page .ad-slot { max-width: 100%; overflow: hidden; }
   body.seo-page .seo-icon img { width: 64px; height: 64px; }
   body.seo-page .seo-ladder li { grid-template-columns: 2.2em 24px 1fr auto; row-gap: 4px; }
   body.seo-page .seo-ladder-bar { display: none; }
-  body.seo-page .seo-ladder em { grid-column: 3 / -1; text-align: left; font-size: 0.7rem; }
+  body.seo-page .seo-ladder .seo-ladder-name { grid-column: 3; grid-row: 1; }
   body.seo-page .seo-ladder .seo-ladder-val { grid-column: 4; grid-row: 1; }
+  body.seo-page .seo-ladder em { grid-column: 3 / -1; grid-row: 2; text-align: left; font-size: 0.7rem; }
   body.seo-page .seo-vs { grid-template-columns: 1fr 1fr; }
   body.seo-page .seo-vs-badge { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: 36px; height: 36px; z-index: 2; }
   body.seo-page .seo-vs { position: relative; }

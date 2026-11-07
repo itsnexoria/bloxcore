@@ -1,0 +1,29 @@
+--- a/admin/overview/index.html
++++ b/admin/overview/index.html
+@@ -43,11 +43,11 @@
+       <div class="nav-links-scroll">
+         <ul class="nav-link-list">
+           <li><a href="/admin/" class="nav-link" style="--i:0"><span class="nav-link-icon" data-tone="gold"><i data-lucide="shield"></i></span>Admin</a></li>
+-          <li data-requires-role="mod"><a href="/admin/overview/" class="nav-link active" style="--i:0"><span class="nav-link-icon" data-tone="gold"><i data-lucide="layout-dashboard"></i></span>Overview</a></li>
+-          <li><a href="/admin/manage/" class="nav-link active" style="--i:1"><span class="nav-link-icon" data-tone="blue"><i data-lucide="sliders-horizontal"></i></span>Manage</a></li>
+-          <li data-requires-role="admin"><a href="/admin/manage/#game-items" class="nav-link" style="--i:2"><span class="nav-link-icon" data-tone="gold"><i data-lucide="package"></i></span>Game Items</a></li>
+-          <li data-requires-role="admin"><a href="/admin/manage/#users" class="nav-link" style="--i:3"><span class="nav-link-icon" data-tone="purple"><i data-lucide="users"></i></span>Users</a></li>
+-          <li><a href="/" class="nav-link" style="--i:4"><span class="nav-link-icon" data-tone="sea"><i data-lucide="external-link"></i></span>View Site</a></li>
++          <li data-requires-role="mod"><a href="/admin/overview/" class="nav-link active" aria-current="page" style="--i:1"><span class="nav-link-icon" data-tone="gold"><i data-lucide="layout-dashboard"></i></span>Overview</a></li>
++          <li><a href="/admin/manage/" class="nav-link" style="--i:2"><span class="nav-link-icon" data-tone="blue"><i data-lucide="sliders-horizontal"></i></span>Manage</a></li>
++          <li data-requires-role="admin"><a href="/admin/manage/#game-items" class="nav-link" style="--i:3"><span class="nav-link-icon" data-tone="gold"><i data-lucide="package"></i></span>Game Items</a></li>
++          <li data-requires-role="admin"><a href="/admin/manage/#users" class="nav-link" style="--i:4"><span class="nav-link-icon" data-tone="purple"><i data-lucide="users"></i></span>Users</a></li>
++          <li><a href="/" class="nav-link" style="--i:5"><span class="nav-link-icon" data-tone="sea"><i data-lucide="external-link"></i></span>View Site</a></li>
+         </ul>
+       </div>
+       <div id="nav-auth-slot" class="nav-auth-slot"></div>
+@@ -81,6 +81,9 @@
+       <h2 class="ov-h"><i data-lucide="gauge" class="icon-sm icon-inline"></i>At a glance</h2>
+       <div id="ov-kpis" class="ov-kpis"></div>
+ 
++      <h2 class="ov-h"><i data-lucide="activity" class="icon-sm icon-inline"></i>Traffic</h2>
++      <div id="ov-traffic" class="ov-traffic"><p class="muted" style="margin:0;">Loading traffic…</p></div>
++
+       <div class="ov-two">
+         <div class="ov-panel">
+           <div class="ov-panel-head">

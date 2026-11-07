@@ -1,0 +1,72 @@
+--- a/js/admin-overview.js
++++ b/js/admin-overview.js
+@@ -2,7 +2,7 @@
+ // Data: get_admin_overview() (counters), get_admin_overview_extras() (14-day series, hourly errors, activity feed, push/db stats),
+ // get_cron_health() (admin only), mod_flags (auto-moderation queue, staff RLS) + review_mod_flag().
+ 
+-const OV = { timer: null, auto: true, metric: 'signups', sev: 'all', data: null, extras: null, cron: null, isAdmin: false, flags: [], prev: new Map() };
++const OV = { timer: null, trafficTimer: null, auto: true, metric: 'signups', sev: 'all', data: null, extras: null, cron: null, isAdmin: false, flags: [], prev: new Map() };
+ const OV_REDUCED = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+ 
+ onReady(async () => {
+@@ -24,6 +24,7 @@
+ 
+   await refreshOverview();
+   startAuto();
++  OV.trafficTimer = setInterval(() => { if (!document.hidden) refreshTraffic(); }, 20000);
+ });
+ 
+ function ovGreeting() { const h = new Date().getHours(); return h < 5 ? 'Still up' : h < 12 ? 'Good morning' : h < 18 ? 'Good afternoon' : 'Good evening'; }
+@@ -51,6 +52,7 @@
+   if (ex.error) logError('get_admin_overview_extras failed:', ex.error);
+   OV.data = ov.data; OV.extras = ex.data || null; OV.cron = cron.data || null;
+   renderAll();
++  refreshTraffic();
+   await loadFlags();
+   if (manual) showToast('Refreshed.');
+ }
+@@ -61,6 +63,44 @@
+   refreshIcons();
+ }
+ 
++// ---- traffic: live visitors + daily/weekly/monthly visits (get_site_traffic, staff only) ------------
++async function refreshTraffic() {
++  const box = document.getElementById('ov-traffic');
++  if (!box) return;
++  const { data, error } = await sb.rpc('get_site_traffic');
++  if (error || !data) { logError('get_site_traffic failed:', error); if (!OV.traffic) box.innerHTML = '<p class="muted" style="margin:0;">Traffic stats aren\'t available right now.</p>'; return; }
++  OV.traffic = data;
++  renderTraffic();
++}
++function renderTraffic() {
++  const t = OV.traffic, box = document.getElementById('ov-traffic');
++  if (!t || !box) return;
++  const num = (n) => Number(n || 0).toLocaleString();
++  const guests = Math.max(0, t.live - t.live_users);
++  const paths = (t.live_paths || []).slice(0, 4).map(p => `<span><b>${num(p.n)}</b><code>${escapeHtml(p.path)}</code></span>`).join('');
++  const dv = t.yesterday ? t.today.visitors - t.yesterday.visitors : null;
++  const visit = (label, v, extra) => `<div class="ov-visit"><small>${label}</small><strong>${num(v.visitors)}</strong><span>${num(v.pageviews)} page view${v.pageviews === 1 ? '' : 's'}${extra || ''}</span></div>`;
++  const since = t.since ? `Counting since ${new Date(t.since + 'T00:00:00Z').toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' })} · unique visitors per day (UTC)` : 'No visits recorded yet';
++  const spark = (t.daily || []).some(d => d.visitors) ? ovSpark(t.daily.map(d => d.visitors), '#60a5fa') : '';
++  box.innerHTML = `
++    <div class="ov-live">
++      <span class="ov-live-top"><span class="ov-live-dot"></span>Live now</span>
++      <span class="ov-live-n" id="t-live">0</span>
++      <span class="ov-live-sub">${t.live === 1 ? 'person' : 'people'} on the site · ${num(t.live_users)} signed in · ${num(guests)} guest${guests === 1 ? '' : 's'}</span>
++      ${paths ? `<div class="ov-live-paths">${paths}</div>` : ''}
++    </div>
++    <div class="ov-visits">
++      <div class="ov-visit-row">
++        ${visit('Today', t.today, dv == null || !dv ? '' : ` · ${dv > 0 ? '▲' : '▼'} ${Math.abs(dv)} vs yday`)}
++        ${visit('Last 7 days', t.week)}
++        ${visit('Last 30 days', t.month)}
++      </div>
++      ${spark}
++      <div class="ov-visits-foot"><span>${since}</span><span>Live = active in the last 90 s</span></div>
++    </div>`;
++  ovNum(document.getElementById('t-live'), t.live);
++}
++
+ // ---- helpers ----------------------------------------------------------------------------------
+ function ovNum(el, to) {
+   const from = OV.prev.has(el.id) ? OV.prev.get(el.id) : 0;

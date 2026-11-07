@@ -1,0 +1,11 @@
+--- a/css/pages/admin-manage.css
++++ b/css/pages/admin-manage.css
+@@ -60,7 +60,7 @@
+   top: 90px;
+   display: flex;
+   flex-direction: column;
+-  max-height: calc(100vh - 110px);
++  max-height: calc(100vh - 110px); max-height: calc(100dvh - 110px);
+   overflow-y: auto;
+ }
+ 

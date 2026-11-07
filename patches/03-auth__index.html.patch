@@ -1,0 +1,11 @@
+--- a/auth/index.html
++++ b/auth/index.html
+@@ -117,7 +117,7 @@
+     </div>
+ 
+     <!-- Right: the actual sign-in card -->
+-    <div style="display:flex; align-items:center; justify-content:center; padding:32px 24px; position:relative;">
++    <div class="auth-card-side" style="display:flex; align-items:center; justify-content:center; padding:32px 24px; position:relative;">
+       <div aria-hidden="true" style="position:absolute; inset:-40px; background:radial-gradient(circle, rgb(var(--brass-rgb) / 0.18), transparent 70%); filter:blur(10px); animation: stampPulse 4s ease-in-out infinite; z-index:0;"></div>
+ 
+       <div class="poster auth-card" style="position:relative; z-index:1; max-width:400px; width:100%;">

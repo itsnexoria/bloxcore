@@ -1,0 +1,10 @@
+--- a/js/dashboard.js
++++ b/js/dashboard.js
+@@ -506,6 +506,7 @@
+   ]);
+ 
+   const items = [
++    { done: !!profile.avatar_url, label: 'Set your avatar', href: '/profile/', cta: 'Set Avatar' },
+     { done: !!profile.roblox_verified, label: 'Verify your Roblox account', href: '/settings/#account', cta: 'Verify' },
+     { done: !!membership, label: 'Join a crew', href: '/crews/', cta: 'Find a Crew' },
+     { done: (bounty.count || 0) > 0, label: 'Submit your first bounty', href: '/challenges/', cta: 'View Bounties' },

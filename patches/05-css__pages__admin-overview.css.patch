@@ -1,0 +1,31 @@
+--- a/css/pages/admin-overview.css
++++ b/css/pages/admin-overview.css
+@@ -239,3 +239,28 @@
+   .ov-side { height: auto; min-height: 0; }
+   .ov-cron-panel .ov-cron { max-height: 340px; }
+ }
++
++/* ---- Traffic card: live visitors + daily / weekly / monthly visits ---- */
++.ov-traffic { display: grid; grid-template-columns: minmax(220px, 1fr) 2fr; gap: 12px; }
++.ov-live, .ov-visits { border-radius: 16px; border: 1px solid rgb(255 255 255 / 0.08); background: rgb(255 255 255 / 0.03); padding: 16px; }
++.ov-live { display: grid; gap: 6px; align-content: start; background: linear-gradient(140deg, rgb(52 211 153 / 0.12), rgb(255 255 255 / 0.02) 70%); border-color: rgb(52 211 153 / 0.3); }
++.ov-live-top { display: flex; align-items: center; gap: 8px; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--ash); }
++.ov-live-dot { width: 9px; height: 9px; border-radius: 50%; background: #34d399; color: #34d399; box-shadow: 0 0 0 0 currentColor; animation: ov-pulse 2s infinite; }
++.ov-live-n { font-size: 3rem; font-weight: 800; font-family: var(--font-mono); line-height: 1; font-variant-numeric: tabular-nums; }
++.ov-live-sub { font-size: 0.78rem; color: var(--ash); }
++.ov-live-paths { display: grid; gap: 4px; margin-top: 8px; padding-top: 10px; border-top: 1px solid rgb(255 255 255 / 0.08); font-size: 0.76rem; }
++.ov-live-paths span { display: flex; gap: 8px; align-items: baseline; min-width: 0; }
++.ov-live-paths b { font-family: var(--font-mono); color: #34d399; min-width: 1.4em; }
++.ov-live-paths code { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--ash); background: none; padding: 0; }
++.ov-visits { display: grid; gap: 14px; align-content: space-between; }
++.ov-visit-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
++.ov-visit { display: grid; gap: 2px; padding: 10px 12px; border-radius: 12px; background: rgb(var(--brass-rgb) / 0.07); border: 1px solid rgb(var(--brass-rgb) / 0.18); }
++.ov-visit small { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--ash); }
++.ov-visit strong { font-size: 1.7rem; font-family: var(--font-mono); line-height: 1.15; font-variant-numeric: tabular-nums; }
++.ov-visit span { font-size: 0.74rem; color: var(--ash); }
++.ov-visits-foot { display: flex; align-items: center; justify-content: space-between; gap: 12px; font-size: 0.72rem; color: var(--ash); }
++@media (max-width: 760px) {
++  .ov-traffic { grid-template-columns: 1fr; }
++  .ov-visit strong { font-size: 1.35rem; }
++}
++@media (prefers-reduced-motion: reduce) { .ov-live-dot { animation: none; } }

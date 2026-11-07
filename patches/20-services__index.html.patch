@@ -1,0 +1,11 @@
+--- a/services/index.html
++++ b/services/index.html
+@@ -92,7 +92,7 @@
+ <section class="section">
+   <div class="container">
+     <div class="page-toolbar">
+-    <div style="display:flex; gap:8px;" id="service-tabs">
++    <div style="display:flex; gap:8px; flex-wrap:wrap;" id="service-tabs">
+       <button type="button" class="btn btn-primary btn-sm" data-tab="raid"><i data-lucide="skull" class="icon-sm icon-inline"></i>Raids</button>
+       <button type="button" class="btn btn-ghost btn-sm" data-tab="trial"><i data-lucide="shield" class="icon-sm icon-inline"></i>Trials</button>
+       <button type="button" class="btn btn-ghost btn-sm" data-tab="dungeon"><i data-lucide="castle" class="icon-sm icon-inline"></i>Dungeons</button>

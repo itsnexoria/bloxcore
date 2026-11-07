@@ -1,0 +1,82 @@
+--- a/css/style.css
++++ b/css/style.css
+@@ -356,6 +356,7 @@
+   display: flex;
+   align-items: center;
+   gap: 12px;
++  text-decoration: none;
+   color: var(--ash);
+   font-weight: 600;
+   font-size: 0.92rem;
+@@ -2625,7 +2626,7 @@
+ 
+ /* Report dialog */
+ .rep-wrap { position: fixed; inset: 0; z-index: 600; display: flex; align-items: center; justify-content: center; padding: 16px; background: rgb(3 6 12 / 0.7); backdrop-filter: blur(6px); }
+-.rep-dialog { width: min(480px, 100%); max-height: calc(100vh - 32px); overflow-y: auto; display: flex; flex-direction: column; gap: 10px; padding: 20px 22px 18px; border-radius: 20px; border: 1px solid var(--glass-border); background: var(--navy); box-shadow: 0 44px 90px -24px #000; }
++.rep-dialog { width: min(480px, 100%); max-height: calc(100vh - 32px); max-height: calc(100dvh - 32px); overflow-y: auto; display: flex; flex-direction: column; gap: 10px; padding: 20px 22px 18px; border-radius: 20px; border: 1px solid var(--glass-border); background: var(--navy); box-shadow: 0 44px 90px -24px #000; }
+ .rep-head { display: flex; align-items: center; justify-content: space-between; font-size: 1.05rem; }
+ .rep-x { border: 0; background: none; color: var(--ash); font-size: 1rem; cursor: pointer; }
+ .rep-sub, .rep-hint { margin: 0; font-size: 0.78rem; color: var(--ash); line-height: 1.5; }
+@@ -2637,3 +2638,62 @@
+ .rep-label { margin: 4px 0 -4px; font-size: 0.74rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--ash); }
+ .rep-label span { text-transform: none; letter-spacing: 0; }
+ .rep-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 4px; }
++
++/* ---- Mobile audit fixes ---- */
++html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
++body { overflow-x: clip; } /* safety net: one over-wide element must not make the whole page scroll sideways */
++@media (max-width: 760px) {
++  /* iOS Safari zooms the page on focus for any field under 16px */
++  input, select, textarea { font-size: 16px; }
++}
++@media (pointer: coarse) {
++  .btn { min-height: 44px; }
++  .btn-sm { min-height: 40px; }
++  .nav-toggle { min-width: 44px; min-height: 44px; }
++}
++
++/* Footer: brand, centered social icons and Terms/Privacy/Contact collided on phones (the icons are
++   absolutely centred on desktop). Stack them and give the icons a real touch target. */
++@media (max-width: 560px) {
++  footer.site-footer > .container { flex-direction: column; justify-content: center !important; gap: 12px; text-align: center; }
++  footer.site-footer > .container > div[style*="position:absolute"] { position: static !important; left: auto !important; transform: none !important; flex-wrap: wrap; justify-content: center; gap: 2px !important; }
++  footer.site-footer > .container > div:last-child { flex-wrap: wrap; justify-content: center; gap: 4px 14px !important; }
++}
++footer.site-footer a[aria-label] { display: inline-flex; align-items: center; justify-content: center; min-width: 44px; min-height: 44px; }
++footer.site-footer > .container > div:last-child a { display: inline-block; padding: 10px 4px; }
++
++/* Rows of small buttons (filters, tabs) wrap instead of running off a narrow screen */
++@media (max-width: 480px) {
++  /* inline flex rows of buttons/chips that never set flex-wrap ran off the screen (e.g. All/Online/Idle/Offline) */
++  [style*="display:flex"][style*="gap"]:not([style*="flex-wrap"]):not([style*="overflow"]):not([style*="flex-direction:column"]) { flex-wrap: wrap; }
++}
++@media (pointer: coarse) {
++  .hub-tab, .sp-tab { min-height: 44px; }
++}
++
++/* Staff header: brand + ADMIN badge + search + messages + bell + avatar was ~20px wider than a 390px
++   screen (avatar clipped). The role is still shown in the menu, so drop the badge on phones. */
++@media (max-width: 480px) {
++  .nav .brand .admin-badge { display: none; }
++}
++/* Some tools set their own small field size (13.6px) — iOS still zooms the page on focus below 16px */
++@media (max-width: 760px) {
++  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]), select, textarea { font-size: 16px !important; }
++}
++@media (pointer: coarse) {
++  .admin-sidebar-link, .audit-tab, .inv-quick-chip { min-height: 44px; }
++}
++.clip-form-grid > * { min-width: 0; }
++.clip-form-grid input, .clip-form-grid select, .clip-form-grid textarea { max-width: 100%; box-sizing: border-box; }
++/* A grid form's column track was sized by its inputs' default width and pushed the page wider than the screen */
++form.panel > * { min-width: 0; }
++@media (max-width: 340px) {
++  .nav .brand .brand-name { display: none; } /* 320px phones: logo + 4 header buttons only */
++}
++@media (max-width: 600px) {
++  /* inline 3/4-column stat grids stay that wide on phones — fold them to two columns */
++  .grid[style*="repeat(4, 1fr)"], .grid[style*="repeat(3, 1fr)"] { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
++}
++@media (max-width: 480px) {
++  .btn { max-width: 100%; white-space: normal; text-align: center; } /* long labels wrap instead of widening the page */
++}

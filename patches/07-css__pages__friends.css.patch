@@ -1,0 +1,11 @@
+--- a/css/pages/friends.css
++++ b/css/pages/friends.css
+@@ -3,7 +3,7 @@
+   display: grid;
+   grid-template-columns: 320px 1fr;
+   gap: 18px;
+-  height: calc(100vh - 220px);
++  height: calc(100vh - 220px); height: calc(100dvh - 220px);
+   min-height: 480px;
+   margin-top: 4px;
+ }
