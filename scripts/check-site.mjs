@@ -118,6 +118,46 @@ if (fs.existsSync(extrasPath)) {
   }
 }
 
+// Two scripts on the same page must not both declare the same top-level const/let/class (or a var/function that
+// collides with one): the browser throws "Identifier 'X' has already been declared" and the whole later script never
+// runs. This once took down feed reactions, menus and admin tools site-wide (BOUNTY_TIERS declared in both
+// supabase-client.js and client-extras.js), so it is checked for every page's /js/ scripts, in load order.
+{
+  const declCache = new Map();
+  const decls = (relPath) => {
+    if (declCache.has(relPath)) return declCache.get(relPath);
+    const p = path.join(ROOT, relPath);
+    const out = [];
+    if (fs.existsSync(p)) {
+      const src = fs.readFileSync(p, 'utf8');
+      for (const m of src.matchAll(/^(const|let|var|class|function\*?|async\s+function)\s+([A-Za-z_$][\w$]*)/gm)) {
+        out.push([m[2], /^(const|let|class)$/.test(m[1]) ? 'lex' : 'var']);
+      }
+    }
+    declCache.set(relPath, out);
+    return out;
+  };
+  const reported = new Set();
+  for (const f of htmlFiles) {
+    const html = fs.readFileSync(f, 'utf8');
+    const srcs = [...html.matchAll(/<script\b[^>]*\bsrc="(\/js\/[^"?#]+\.js)"/g)].map((m) => m[1].slice(1));
+    const seen = new Map(); // name -> { file, kind }
+    for (const s of srcs) {
+      for (const [name, kind] of decls(s)) {
+        const prev = seen.get(name);
+        if (prev && prev.file !== s && (prev.kind === 'lex' || kind === 'lex')) {
+          const key = `${name}|${prev.file}|${s}`;
+          if (!reported.has(key)) {
+            reported.add(key);
+            fail(`${rel(f)}: "${name}" is declared by both ${prev.file} and ${s} (const/let/class clash -> "already been declared"; the later script never runs)`);
+          }
+        }
+        if (!prev || kind === 'lex') seen.set(name, { file: s, kind });
+      }
+    }
+  }
+}
+
 // Required files
 for (const req of ['404.html', 'offline/index.html', 'sw.js', 'worker.js', 'wrangler.jsonc', '_headers']) {
   if (!fs.existsSync(path.join(ROOT, req))) fail(`missing required file ${req}`);

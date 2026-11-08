@@ -741,3 +741,11 @@ document.addEventListener('DOMContentLoaded', () => {
     if (href !== '/' && (path === href || path.startsWith(href))) { a.classList.add('is-active'); a.setAttribute('aria-current', 'page'); }
   });
 });
+
+// ---- Gentle sign-up prompts + mobile floating "post" buttons (js/engage.js) ----
+(function () {
+  if (window.__bcEngage) return;
+  const s = document.createElement('script');
+  s.src = '/js/engage.js';
+  document.head.appendChild(s);
+})();

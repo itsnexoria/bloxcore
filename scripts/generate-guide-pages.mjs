@@ -57,6 +57,12 @@ const VALUE_SLUG_ALIAS = { magnet: 'magnet-fruit' };
 const valueSlug = n => VALUE_SLUG_ALIAS[slugify(n)] || slugify(n);
 const chip = f => `<a href="/blox-fruits-values/${valueSlug(f.name)}/" class="tier-chip">${f.icon_url ? `<img src="${esc(f.icon_url)}" alt="" loading="lazy" width="34" height="34">` : ''}<span>${esc(f.name)}</span><small class="muted">${formatValue(f.regular_value)}</small></a>`;
 
+// schema.org ItemList for ranked pages (rich-result friendly): top N items in order, each linking to its value page.
+function itemListLd(items, name, n = 25) {
+  return { '@context': 'https://schema.org', '@type': 'ItemList', name, numberOfItems: Math.min(items.length, n),
+    itemListElement: items.slice(0, n).map((f, i) => ({ '@type': 'ListItem', position: i + 1, name: f.name, url: `${SITE}/blox-fruits-values/${valueSlug(f.name)}/` })) };
+}
+
 // Data strip shown above the tier rows: how many are ranked, the top value, the median, and how many are in high demand.
 function summaryStrip(items, label) {
   if (!items.length) return '';
@@ -97,7 +103,7 @@ ${wrapSection(`
     <p>S tier starts at ${formatValue(TIERS[0].min)}, A at ${formatValue(TIERS[1].min)}, B at ${formatValue(TIERS[2].min)} and C at ${formatValue(TIERS[3].min)}; everything below that is D. Values come from the community and shift with demand, so check the live <a href="/trading/">Trading board</a> before agreeing to a trade. You can also <a href="/blox-fruits-compare/">compare any two top fruits</a> side by side.</p>`)}
 ${ctaSectionHtml({ heading: 'Know what your fruits are worth?', body: 'Create a free account to post trades, set price alerts, and track your own collection.' })}
 ${adSlotBottom()}`;
-  write('blox-fruits-tier-list', renderPage(shell, { title, description, url, ld: [breadcrumbLd(crumbs)], body }));
+  write('blox-fruits-tier-list', renderPage(shell, { title, description, url, ld: [itemListLd(fruits, 'Blox Fruits value tier list'), breadcrumbLd(crumbs)], body }));
 }
 
 // Limiteds and gamepasses have very different value ranges than fruits (a mid-tier limited is
@@ -137,7 +143,7 @@ ${wrapSection(`
     <p>Each tier holds about a fifth of all ${items.length} ${itemLabel}s with a known value, ranked highest to lowest — S is the top fifth, D the bottom. Values come from the community and shift with demand, so check the live <a href="/trading/">Trading board</a> before agreeing to a trade. You can also <a href="/blox-fruits-compare/">compare two items</a> side by side.</p>`)}
 ${ctaSectionHtml({ heading: 'Know what your items are worth?', body: 'Create a free account to post trades, set price alerts, and track your own collection.' })}
 ${adSlotBottom()}`;
-  write(urlSlug, renderPage(shell, { title, description, url, ld: [breadcrumbLd(crumbs)], body }));
+  write(urlSlug, renderPage(shell, { title, description, url, ld: [itemListLd(items, pageTitle || title), breadcrumbLd(crumbs)], body }));
   return url;
 }
 

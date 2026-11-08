@@ -305,3 +305,16 @@ body.seo-page .ad-slot { max-width: 100%; overflow: hidden; }
   body.seo-page .seo-vs-val { font-size: 1.2rem; }
   body.seo-page .seo-versus-bar span b { display: none; }
 }
+
+/* ---- Community value vote (js/item-votes.js): Overpaid / Fair / Underpaid ---- */
+#value-vote { margin: 12px 0 18px; }
+.vote-buttons { display: flex; flex-wrap: wrap; gap: 8px; margin: 4px 0 12px; }
+.vote-btn { flex: 1 1 110px; justify-content: center; min-height: 44px; }
+.vote-btn.is-selected { color: var(--bone); border-color: var(--brass-bright); background: rgb(var(--brass-rgb) / 0.16); }
+.vote-btn.vote-overpaid.is-selected { border-color: #f87171; background: rgb(248 113 113 / 0.14); }
+.vote-btn.vote-fair.is-selected { border-color: #60a5fa; background: rgb(96 165 250 / 0.14); }
+.vote-btn.vote-underpaid.is-selected { border-color: #34d399; background: rgb(52 211 153 / 0.14); }
+.vote-bar { display: flex; height: 10px; border-radius: 999px; overflow: hidden; background: rgb(255 255 255 / 0.08); margin: 4px 0 8px; }
+.vote-seg { display: block; height: 100%; }
+.vote-seg-overpaid { background: #f87171; } .vote-seg-fair { background: #60a5fa; } .vote-seg-underpaid { background: #34d399; }
+.vote-legend { margin: 4px 0; font-size: 0.78rem; }

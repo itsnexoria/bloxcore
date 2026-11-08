@@ -242,6 +242,9 @@ ${adSlotTop()}
     ${affiliateBlockHtml()}
     <h2>${item.name} Demand &amp; Trend</h2>
     <p>${demandTrend}</p>
+    <h2>Is ${escAttr(item.name)} overpaid or underpaid?</h2>
+    <p class="muted">Cast your vote — the community's view of whether ${escAttr(item.name)} is overpaid, fair or underpaid right now (last 30 days).</p>
+    <div id="value-vote" class="panel" data-item-id="${item.id}"><div class="vote-body"><p class="muted" style="margin:0;">Loading votes…</p></div></div>
     ${historyHtml(item, historyByItem.get(item.id), formatValue)}
     ${ladder}
     ${equalHtml}
@@ -276,6 +279,7 @@ ${shell.footer}
 <script src="/js/supabase-client.js"></script>
 <script src="/js/nav.js"></script>
 <script src="/js/search.js"></script>
+<script src="/js/item-votes.js"></script>
 <script defer src="/js/seo-live.js"></script>
 </body>
 </html>
