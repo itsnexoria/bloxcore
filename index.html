@@ -425,6 +425,16 @@
 
 <main>
 
+<section class="section home-event-section" id="home-event" style="display:none;" aria-label="Latest game update">
+  <div class="container">
+    <a class="home-event panel hover-lift-card" id="home-event-link" href="/whats-new/">
+      <span class="home-event-badge" id="home-event-badge">New game update</span>
+      <span class="home-event-body"><strong class="home-event-title" id="home-event-title"></strong><span class="home-event-sum" id="home-event-sum"></span></span>
+      <span class="home-event-cta">Read the guide <i data-lucide="arrow-right" class="icon-sm"></i></span>
+    </a>
+  </div>
+</section>
+
 <section class="section live-strip-section" id="live-strip" style="display:none;" aria-label="Live on BloxCore">
   <div class="container">
     <div class="section-head">
@@ -441,6 +451,53 @@
       <a href="/blox-fruits-tier-list/" class="section-head-link">Full tier list <i data-lucide="arrow-right" class="icon-sm icon-inline"></i></a>
     </div>
     <div id="trending-grid" class="trending-grid"></div>
+  </div>
+</section>
+
+<section class="section home-movers-section" id="movers-section" style="display:none;">
+  <div class="container">
+    <div class="section-head">
+      <h2 class="section-title"><i data-lucide="activity" class="icon-sm icon-inline"></i>Biggest Value Moves<span class="home-sub">last 7 days</span></h2>
+      <a href="/value-changes/" class="section-head-link">All value changes <i data-lucide="arrow-right" class="icon-sm icon-inline"></i></a>
+    </div>
+    <div class="home-movers">
+      <div class="panel home-mover-col"><h3 class="home-mover-h up"><i data-lucide="trending-up"></i>Rising</h3><div id="movers-up"></div></div>
+      <div class="panel home-mover-col"><h3 class="home-mover-h down"><i data-lucide="trending-down"></i>Dropping</h3><div id="movers-down"></div></div>
+    </div>
+  </div>
+</section>
+
+<section class="section home-board-section" id="board-section" style="display:none;">
+  <div class="container">
+    <div class="section-head">
+      <h2 class="section-title"><i data-lucide="repeat" class="icon-sm icon-inline"></i>Fresh on the Trading Board</h2>
+      <a href="/trading/" class="section-head-link">Open the board <i data-lucide="arrow-right" class="icon-sm icon-inline"></i></a>
+    </div>
+    <div id="board-grid" class="home-board-grid"></div>
+  </div>
+</section>
+
+<section class="section home-news-section" id="news-section" style="display:none;">
+  <div class="container">
+    <div class="section-head">
+      <h2 class="section-title"><i data-lucide="megaphone" class="icon-sm icon-inline"></i>What's New</h2>
+      <a href="/whats-new/" class="section-head-link">All updates <i data-lucide="arrow-right" class="icon-sm icon-inline"></i></a>
+    </div>
+    <div id="news-grid" class="home-news-grid"></div>
+  </div>
+</section>
+
+<section class="section home-tools-section">
+  <div class="container">
+    <div class="section-head"><h2 class="section-title"><i data-lucide="wrench" class="icon-sm icon-inline"></i>Free Tools</h2></div>
+    <div class="home-tools">
+      <a href="/trading/?tab=calculator" class="panel home-tool hover-lift-card"><div class="icon-badge" data-tone="sea"><i data-lucide="calculator" class="icon-md"></i></div><span><b>Trade Calculator</b><small>Check any offer before you accept it</small></span></a>
+      <a href="/blox-fruits-tier-list/" class="panel home-tool hover-lift-card"><div class="icon-badge" data-tone="gold"><i data-lucide="list-ordered" class="icon-md"></i></div><span><b>Value Tier List</b><small>Every fruit ranked by value</small></span></a>
+      <a href="/blox-fruits-compare/" class="panel home-tool hover-lift-card"><div class="icon-badge" data-tone="purple"><i data-lucide="git-compare" class="icon-md"></i></div><span><b>Compare Fruits</b><small>Side by side, with trade math</small></span></a>
+      <a href="/blox-fruits-values/" class="panel home-tool hover-lift-card"><div class="icon-badge" data-tone="blue"><i data-lucide="tag" class="icon-md"></i></div><span><b>Item Values</b><small>Rank, demand and live listings</small></span></a>
+      <a href="/value-changes/" class="panel home-tool hover-lift-card"><div class="icon-badge" data-tone="blood"><i data-lucide="activity" class="icon-md"></i></div><span><b>Value Changes</b><small>What went up or down this week</small></span></a>
+      <a href="/blox-fruits-codes/" class="panel home-tool hover-lift-card"><div class="icon-badge" data-tone="pink"><i data-lucide="ticket" class="icon-md"></i></div><span><b>Redeem Codes</b><small>Working codes, updated often</small></span></a>
+    </div>
   </div>
 </section>
 
@@ -484,6 +541,18 @@
         <p class="muted">Stay updated with the latest activity and community posts.</p>
         <span class="ffeat-link">Join the Feed <i data-lucide="arrow-right" class="icon-sm"></i></span>
       </a>
+    </div>
+  </div>
+</section>
+
+<section class="section home-join-section" id="home-join" style="display:none;">
+  <div class="container">
+    <div class="panel home-join">
+      <div>
+        <h2>Ready to set sail?</h2>
+        <p class="muted" id="home-join-sub">Free account — takes about 10 seconds with Discord.</p>
+      </div>
+      <a href="/auth/" class="btn btn-primary">Join BloxCore</a>
     </div>
   </div>
 </section>

@@ -176,12 +176,22 @@ section.section h2.center::after { margin-left: auto; margin-right: auto; }
 .nav {
   border-bottom: 1px solid var(--glass-border);
   background: rgba(8, 8, 12, 0.65);
-  backdrop-filter: blur(var(--glass-blur));
-  -webkit-backdrop-filter: blur(var(--glass-blur));
   transition: box-shadow 0.25s ease, background 0.25s ease;
   position: sticky;
   top: 0;
   z-index: 100;
+}
+/* The blur lives on a pseudo-element, NOT on .nav itself: backdrop-filter on an element makes it the containing
+   block for its position:fixed descendants, so the slide-out drawer (inside .nav) was positioned relative to the
+   header instead of the screen — and slid off-screen whenever the page was scrolled before opening it. */
+.nav::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
 }
 .nav::after {
   content: '';
