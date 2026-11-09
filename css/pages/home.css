@@ -199,3 +199,5 @@
   .home-event { padding: 14px 16px; }
   .home-join { padding: 20px; } .home-join .btn { width: 100%; justify-content: center; }
 }
+.home-join-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+@media (max-width: 760px) { .home-join-actions { width: 100%; } .home-join-actions .btn { flex: 1 1 100%; } }
