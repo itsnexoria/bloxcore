@@ -10,6 +10,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { loadShell, adSlotTop, adSlotMiddle, adSlotBottom } from './lib/shell.mjs';
+import { verdictFor, verdictChip, relatedBlock, giveawayStrip } from './lib/guide-ui.mjs';
 import { cap, TREND_META, rarityChip, trendChip, demandLabel, demandMeter, statCard, iconImg, fmtRatio, ladderHtml, faqAccordion, faqLd as buildFaqLd } from './lib/seo-ui.mjs';
 import { historyHtml } from './lib/sparkline.mjs';
 
@@ -111,6 +112,7 @@ function pageHtml(item, related, ctx) {
   const tm = TREND_META[item.trend];
   const rankSentence = `${item.name} ranks #${rank} of ${total} ${plural} by physical value${isTop ? ' — the highest-valued one on the list' : top ? `, at ${pctTop}% of the top-ranked ${top.name} (${formatValue(top.regular_value)})` : ''}.`;
   const equalList = equal.map(e => e.item.name).join(', ');
+  const verdict = verdictFor(item, rank, total);
 
   const demandTrend = `${demandCopy(item.demand)}${item.trend && TREND_COPY[item.trend] ? ` It's also ${TREND_COPY[item.trend]}.` : ''}`;
   const faq = [
@@ -119,6 +121,7 @@ function pageHtml(item, related, ctx) {
     hasPermanent && [`How much more is a permanent ${item.name} worth?`, `A permanent ${item.name} (${permFmt}) is worth about ${fmtRatio(premium)} a physical one (${regularFmt}) — roughly ${formatValue(item.permanent_value - item.regular_value)} more — because it can never be lost, dropped, or stolen.`],
     [`Where does ${item.name} rank by value?`, rankSentence],
     equal.length && [`What trades evenly with ${item.name}?`, `Items within about 20% of ${item.name}'s value include ${equalList}. Use the trade calculator on BloxCore to check an exact offer before you agree to it.`],
+    [`Is ${item.name} worth it?`, `${verdict.label}: ${verdict.text} (Rank #${rank} of ${total} ${plural}; demand ${item.demand != null ? item.demand + '/10' : 'unknown'}.)`],
     [`How do I trade ${item.name}?`, `Check the live Trading board on BloxCore for active listings involving ${item.name}, or post your own offer. Values shift with the trend, so confirm the current going rate before agreeing to a trade.`],
   ].filter(Boolean);
   const faqLd = buildFaqLd(faq);
@@ -164,9 +167,7 @@ function pageHtml(item, related, ctx) {
 <meta name="twitter:title" content="${title}">
 <meta name="twitter:description" content="${description}">
 <meta name="twitter:image" content="${item.icon_url || 'https://bloxcores.com/assets/og-banner.jpg'}">
-<link rel="preconnect" href="https://unpkg.com">
 <link rel="preconnect" href="https://cdn.jsdelivr.net">
-<link rel="dns-prefetch" href="https://unpkg.com">
 <link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
 <link rel="stylesheet" href="/css/style.css">
 <link rel="stylesheet" href="/css/pages/seo.css">
@@ -235,6 +236,7 @@ ${adSlotTop()}
   <div class="container seo-wrap seo-article">
     <p class="seo-lead">${valueSentence}</p>
     <div class="seo-stats">${statCards}</div>
+    ${giveawayStrip()}
     <div class="seo-live" data-item-id="${item.id}" data-name="${escAttr(item.name)}" hidden>
       <span class="seo-live-dot" aria-hidden="true"></span><span class="seo-live-text"></span>
       <a href="/trading/" class="btn btn-ghost btn-sm">Open trading board</a>
@@ -248,10 +250,25 @@ ${adSlotTop()}
     ${historyHtml(item, historyByItem.get(item.id), formatValue)}
     ${ladder}
     ${equalHtml}
+    <h2>Is ${escAttr(item.name)} worth it?</h2>
+    <p>${verdictChip(verdict)} ${escAttr(verdict.text)}</p>
+    <p class="muted" style="font-size:0.85rem;">This verdict is about how ${escAttr(item.name)} <i>trades</i>, not how strong it is in a fight. See the <a href="/blox-fruits-is-it-worth-it/">worth-it guide</a> for the full list${item.category === 'fruit' ? ` and the <a href="/blox-fruits-best-fruit-first-sea/">sea-by-sea fruit guides</a> for how it plays` : ''}.</p>
+    <div id="price-alert" class="panel seo-alert" data-item-id="${item.id}" data-name="${escAttr(item.name)}" data-value="${item.regular_value}">
+      <b class="seo-alert-title">🔔 Price alert for ${escAttr(item.name)}</b>
+      <form class="seo-alert-form" novalidate>
+        <label class="sr-only" for="pa-dir">Alert when</label>
+        <select id="pa-dir" name="dir"><option value="below">Drops to or below</option><option value="above">Rises to or above</option></select>
+        <label class="sr-only" for="pa-target">Target value</label>
+        <input id="pa-target" name="target" type="text" inputmode="decimal" autocomplete="off" placeholder="e.g. 400M">
+        <button type="submit" class="btn btn-primary btn-sm">Set alert</button>
+      </form>
+      <p class="muted seo-alert-msg" style="margin:0;font-size:0.82rem;"></p>
+    </div>
     <h2>How to Trade ${item.name}</h2>
     <p>Values shift with the trend above, so always confirm the current going rate before agreeing to a trade — check the live <a href="/trading/">Trading board</a> for active listings involving ${item.name}, or post your own offer if you're looking to buy or sell. See our <a href="/blox-fruits-values/">full guide to how Blox Fruits values work</a> for more on reading physical vs. permanent pricing, rarity tiers, and spotting inflated value claims.</p>
     <h2>${escAttr(item.name)} FAQ</h2>
     ${faqHtml}
+    ${relatedBlock({ heading: 'Guides & tools' })}
     ${related.length ? `<h2>Other ${categoryLabel} Values</h2><ul class="seo-pills">${relatedHtml}</ul>` : ''}
   </div>
 </section>
@@ -272,7 +289,7 @@ ${adSlotMiddle()}
 ${adSlotBottom()}
 
 ${shell.footer}
-<script defer src="https://unpkg.com/lucide@1.34.0"></script>
+<script defer src="/assets/lucide-lite.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.112.4"></script>
 <script src="/js/animations.js"></script>
 <script src="/js/install-prompt.js"></script>
@@ -280,7 +297,9 @@ ${shell.footer}
 <script src="/js/nav.js"></script>
 <script src="/js/search.js"></script>
 <script src="/js/item-votes.js"></script>
+<script src="/js/price-alert.js"></script>
 <script defer src="/js/seo-live.js"></script>
+<script defer src="/js/giveaway-strip.js"></script>
 </body>
 </html>
 `;

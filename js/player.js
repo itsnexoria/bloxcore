@@ -693,6 +693,7 @@ const ACTIVITY_TYPE_META = {
   challenge_approved: { icon: 'check-circle', color: 'var(--sea)', verb: 'Completed' },
   rank_up: { icon: 'star', color: 'var(--brass-bright)', verb: 'Ranked up to' },
   giveaway_win: { icon: 'gift', color: 'var(--gold)', verb: 'Won' },
+  referral: { icon: 'user-plus', color: 'var(--sea)', verb: 'Recruited' },
 };
 let _activityUserId = null;
 let _activityOffset = 0;

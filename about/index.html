@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<script>(function(){try{var a=localStorage.getItem('bc_accent');if(a==='custom'){var c=JSON.parse(localStorage.getItem('bc_custom_theme')||'null');if(c){var s=document.documentElement.style;s.setProperty('--ink',c.ink);s.setProperty('--navy',c.navy);s.setProperty('--navy-light',c['navy-light']);s.setProperty('--brass',c.brass);s.setProperty('--brass-bright',c['brass-bright']);s.setProperty('--ink-glow',c.navy);var h=c.brass.replace('#','');s.setProperty('--brass-rgb',parseInt(h.substring(0,2),16)+' '+parseInt(h.substring(2,4),16)+' '+parseInt(h.substring(4,6),16));document.documentElement.setAttribute('data-accent','custom');}}else if(a){document.documentElement.setAttribute('data-accent',a);}if(localStorage.getItem('bc_reduce_motion')==='1')document.documentElement.classList.add('reduce-motion');if(localStorage.getItem('bc_compact_mode')==='1')document.documentElement.classList.add('compact-mode');}catch(e){}})();</script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>About BloxCore — How We Set Values &amp; Write Guides</title>
+<meta name="robots" content="index, follow">
+<meta name="description" content="How BloxCore estimates Blox Fruits values, how often they refresh, who writes our guides and how to report a mistake.">
+<link rel="canonical" href="https://bloxcores.com/about/">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="BloxCore">
+<meta property="og:title" content="About BloxCore — How We Set Values &amp; Write Guides">
+<meta property="og:description" content="How BloxCore estimates Blox Fruits values, how often they refresh, who writes our guides and how to report a mistake.">
+<meta property="og:image" content="https://bloxcores.com/assets/og-banner.jpg">
+<meta property="og:url" content="https://bloxcores.com/about/">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="About BloxCore — How We Set Values &amp; Write Guides">
+<meta name="twitter:description" content="How BloxCore estimates Blox Fruits values, how often they refresh, who writes our guides and how to report a mistake.">
+<meta name="twitter:image" content="https://bloxcores.com/assets/og-banner.jpg">
+<link rel="preconnect" href="https://cdn.jsdelivr.net">
+<link rel="stylesheet" href="/css/style.css">
+<link rel="stylesheet" href="/css/pages/seo.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Space+Grotesk:wght@400;500;600;700&family=Sora:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap">
+<link rel="stylesheet" href="/css/animations.css">
+<link rel="icon" type="image/png" href="/assets/logo.png">
+<link rel="manifest" href="/manifest.json">
+<link rel="apple-touch-icon" href="/assets/apple-touch-icon.png">
+<meta name="theme-color" content="#0a0e17">
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"AboutPage","name":"About BloxCore — How We Set Values & Write Guides","description":"How BloxCore estimates Blox Fruits values, how often they refresh, who writes our guides and how to report a mistake.","url":"https://bloxcores.com/about/"}</script>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://bloxcores.com/"},{"@type":"ListItem","position":2,"name":"About","item":"https://bloxcores.com/about/"}]}</script>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[{"@type":"Question","name":"Is BloxCore affiliated with Roblox or Blox Fruits?","acceptedAnswer":{"@type":"Answer","text":"No. BloxCore is an independent fan community and is not affiliated with, endorsed by or sponsored by Roblox Corporation or the developers of Blox Fruits."}},{"@type":"Question","name":"How do I report a mistake in a guide or a value?","acceptedAnswer":{"@type":"Answer","text":"Tell us in the BloxCore Discord or use the report options on the site. We review reports and correct pages."}}]}</script>
+</head>
+<body class="seo-page">
+
+<nav class="nav nav-bar">
+  <div class="nav-inner">
+    <a href="/" class="brand"><img src="/assets/logo.png" alt="BloxCore" class="brand-logo" width="600" height="400"><span class="brand-name">Blox<span>Core</span></span></a>
+
+    <div class="nav-bar-links">
+      <a href="/feed/" class="nav-bar-link"><i data-lucide="rss" class="icon-sm"></i>Feed</a>
+      <a href="/leaderboard/" class="nav-bar-link"><i data-lucide="trophy" class="icon-sm"></i>Leaderboards</a>
+      <a href="/giveaways/" class="nav-bar-link"><i data-lucide="gift" class="icon-sm"></i>Giveaways</a>
+      <a href="/trading/" class="nav-bar-link"><i data-lucide="repeat" class="icon-sm"></i>Trading</a>
+    </div>
+
+    <div class="nav-header-actions">
+      <div class="nav-bar-socials">
+        <a href="https://discord.gg/Kg5XtHpwDU" class="nav-bar-social-btn" aria-label="Discord" title="Join the discord server!" target="_blank" rel="noopener noreferrer"><i class="fa-brands fa-discord"></i></a>
+     </div>
+      <div id="nav-messages-slot"></div>
+      <div id="nav-notif-slot"></div>
+      <div id="nav-profile-slot"></div>
+      <a href="/auth/" id="nav-bar-signin" class="btn btn-primary btn-sm"><i data-lucide="log-in" class="icon-sm icon-inline"></i>Sign In</a>
+      <button type="button" class="nav-toggle" aria-label="Open menu" aria-expanded="false"><i data-lucide="menu" class="icon-md nav-toggle-icon-menu"></i><i data-lucide="x" class="icon-md nav-toggle-icon-close"></i></button>
+    </div>
+
+    <div class="nav-links">
+      <div class="nav-links-glow" aria-hidden="true"></div>
+      <div class="nav-drawer-header">
+        <span class="nav-drawer-title"><i data-lucide="compass" class="icon-sm"></i>Menu</span>
+        <button type="button" class="nav-drawer-close" aria-label="Close menu"><i data-lucide="x" class="icon-sm"></i></button>
+      </div>
+      <div class="nav-links-scroll">
+        <ul class="nav-link-list">
+          <li><a href="/" class="nav-link" style="--i:0"><span class="nav-link-icon" data-tone="gold"><i data-lucide="home"></i></span>Home</a></li>
+          <li><a href="/friends/" class="nav-link" style="--i:1"><span class="nav-link-icon" data-tone="blue"><i data-lucide="heart-handshake"></i></span>Friends</a></li>
+          <li><a href="/feed/" class="nav-link" style="--i:2"><span class="nav-link-icon" data-tone="pink"><i data-lucide="rss"></i></span>Feed</a></li>
+          <li class="nav-group-label" style="--i:3">Compete</li>
+          <li><a href="/pvp/" class="nav-link" style="--i:4"><span class="nav-link-icon" data-tone="blood"><i data-lucide="crosshair"></i></span>PvP</a></li>
+          <li><a href="/challenges/" class="nav-link" style="--i:5"><span class="nav-link-icon" data-tone="purple"><i data-lucide="swords"></i></span>Quests</a></li>
+          <li><a href="/combos/" class="nav-link" style="--i:6"><span class="nav-link-icon" data-tone="pink"><i data-lucide="flame"></i></span>Combos</a></li>
+          <li><a href="/leaderboard/" class="nav-link" style="--i:7"><span class="nav-link-icon" data-tone="gold"><i data-lucide="trophy"></i></span>Leaderboard</a></li>
+          <li class="nav-group-label" style="--i:8">Community</li>
+          <li><a href="/sea-events/" class="nav-link" style="--i:9"><span class="nav-link-icon" data-tone="sea"><i data-lucide="waves"></i></span>Sea Events</a></li>
+          <li><a href="/giveaways/" class="nav-link" style="--i:10"><span class="nav-link-icon" data-tone="purple"><i data-lucide="gift"></i></span>Giveaways</a></li>
+          <li><a href="/crews/" class="nav-link" style="--i:11"><span class="nav-link-icon" data-tone="blue"><i data-lucide="users"></i></span>Crews</a></li>
+          <li><a href="/trading/" class="nav-link" style="--i:12"><span class="nav-link-icon" data-tone="sea"><i data-lucide="repeat"></i></span>Trading</a></li>
+          <li><a href="https://ugc.bloxcores.com/" class="nav-link" style="--i:14" target="_blank" rel="noopener noreferrer"><span class="nav-link-icon" data-tone="gold"><i data-lucide="shirt"></i></span>Create UGC</a></li>
+          <li><a href="/services/" class="nav-link" style="--i:13"><span class="nav-link-icon" data-tone="gold"><i data-lucide="briefcase"></i></span>Services</a></li>
+          <li class="nav-group-label" style="--i:14">More</li>
+          <li><a href="/whats-new/" class="nav-link" style="--i:15"><span class="nav-link-icon" data-tone="pink"><i data-lucide="sparkles"></i></span>What's New</a></li>
+          <li><a href="/notifications/" class="nav-link" style="--i:16"><span class="nav-link-icon" data-tone="blue"><i data-lucide="bell"></i></span>Notifications</a></li><li><a href="/inventory/" class="nav-link" style="--i:17"><span class="nav-link-icon" data-tone="blue"><i data-lucide="package"></i></span>Inventory</a></li>
+        </ul>
+      </div>
+      <div id="nav-auth-slot" class="nav-auth-slot"></div>
+    </div>
+  </div>
+</nav>
+
+<main>
+<section class="section seo-hero" style="padding-bottom:0;"><div class="container seo-wrap"><nav aria-label="Breadcrumb" class="seo-crumbs"><ol><li><a href="/">Home</a></li><li aria-hidden="true">/</li><li aria-current="page">About</li></ol></nav><h1>About BloxCore</h1>
+  <p class="seo-lead">BloxCore is a free community hub for Blox Fruits players: live item values, a trading board, giveaways, crews and guides. Here is how the numbers and the guides are made.</p>
+  <div class="seo-author" itemscope itemtype="https://schema.org/Article">
+    <span class="seo-author-badge" aria-hidden="true">B</span>
+    <div class="seo-author-text">
+      <span>Written by <b>The BloxCore Team</b></span>
+      <span class="muted">Last updated <time datetime="2026-11-15">November 15, 2026</time> · First published November 9, 2026 · <a href="/about/">How we make our guides</a></span>
+    </div>
+  </div></div></section>
+<main><section class="section"><div class="container seo-wrap seo-article">
+  <h2>How we set values</h2>
+  <p>Values are <b>community estimates</b>, not official prices. They are built from what players are actually trading, how much demand each item has, community votes on whether an item is overpaid, fair or underpaid, and review by the BloxCore team. Because the game changes, values can move after any update.</p>
+  <h2>How often values refresh</h2>
+  <p>The value pages, tier lists and comparisons are regenerated automatically every day from our database, and each page shows when it was last updated. The price history on an item page shows how its value has changed over time.</p>
+  <h2>How we write guides</h2>
+  <p>Guides are written by the BloxCore team. Where a guide states a game fact (level ranges, how raids work), we keep it evergreen and avoid numbers that change often; anything time-sensitive is pulled live from the database instead. Each guide shows the date it was last updated.</p>
+  <h2>Disclosures</h2>
+  <p>BloxCore is supported by advertising and may include affiliate links, which are labelled. We are an independent fan site and are not affiliated with Roblox or the Blox Fruits developers.</p>
+  <h2>Contact and corrections</h2>
+  <p>Spotted something wrong? Tell us in the <a href="/discord/">BloxCore Discord</a> and we will look into it.</p>
+  <h2 id="faq">FAQ</h2><div class="faq-list seo-faq"><details class="settings-accordion" open><summary>Is BloxCore affiliated with Roblox or Blox Fruits?</summary><p>No. BloxCore is an independent fan community and is not affiliated with, endorsed by or sponsored by Roblox Corporation or the developers of Blox Fruits.</p></details><details class="settings-accordion"><summary>How do I report a mistake in a guide or a value?</summary><p>Tell us in the BloxCore Discord or use the report options on the site. We review reports and correct pages.</p></details></div>
+  <aside class="seo-related" aria-label="Keep exploring"><h2>Keep exploring</h2><div class="seo-related-cols">
+    <div><b>Guides</b><ul><li><a href="/blox-fruits-best-fruit-first-sea/">Best fruit: First Sea</a></li><li><a href="/blox-fruits-best-fruit-second-sea/">Best fruit: Second Sea</a></li><li><a href="/blox-fruits-best-fruit-third-sea/">Best fruit: Third Sea</a></li><li><a href="/blox-fruits-grinding-guide/">Grinding &amp; leveling guide</a></li><li><a href="/blox-fruits-raid-guide/">Raid &amp; awakening guide</a></li><li><a href="/blox-fruits-is-it-worth-it/">Is this fruit worth it?</a></li><li><a href="/blox-fruits-trading-guide/">Trading guide</a></li></ul></div>
+    <div><b>Values &amp; tools</b><ul><li><a href="/blox-fruits-fruits/">All fruits</a></li><li><a href="/blox-fruits-swords/">Swords</a></li><li><a href="/blox-fruits-guns/">Guns</a></li><li><a href="/blox-fruits-accessories/">Accessories</a></li><li><a href="/blox-fruits-tier-list/">Value tier list</a></li><li><a href="/blox-fruits-compare/">Compare fruits</a></li><li><a href="/blox-fruits-values/">All item values</a></li></ul></div>
+  </div></aside>
+</div></section></main>
+</main>
+
+<footer class="site-footer" style="padding:28px 0;">
+  <div class="container" style="position:relative; display:flex; align-items:center; justify-content:space-between;">
+
+    <!-- Brand -->
+    <a href="/" class="brand" style="display:inline-flex;">
+      <img src="/assets/logo.png"
+           alt="BloxCore"
+           class="brand-logo"
+           style="height:28px;">
+      <span class="brand-name" style="font-size:1rem;">
+        Blox<span>Core</span>
+      </span>
+    </a>
+
+    <!-- Centered Social Icons -->
+    <div style="
+      position:absolute;
+      left:50%;
+      transform:translateX(-50%);
+      display:flex;
+      align-items:center;
+      gap:14px;
+      font-size:1.05rem;
+    ">
+      <a href="https://www.youtube.com/@itsnexoria"
+         target="_blank"
+         rel="noopener noreferrer"
+         class="muted"
+         aria-label="YouTube"
+         title="YouTube">
+        <i class="fa-brands fa-youtube"></i>
+      </a>
+
+      <a href="https://discord.gg/Kg5XtHpwDU"
+         target="_blank"
+         rel="noopener noreferrer"
+         class="muted"
+         aria-label="Discord"
+         title="Discord">
+        <i class="fa-brands fa-discord"></i>
+      </a>
+
+      <a href="https://www.twitch.tv/nxrealm08"
+         target="_blank"
+         rel="noopener noreferrer"
+         class="muted"
+         aria-label="Twitch"
+         title="Twitch">
+        <i class="fa-brands fa-twitch"></i>
+      </a>
+
+      <a href="https://x.com/itsnexoria"
+         target="_blank"
+         rel="noopener noreferrer"
+         class="muted"
+         aria-label="X"
+         title="X">
+        <i class="fa-brands fa-x-twitter"></i>
+      </a>
+
+      <a href="https://www.instagram.com/itsnexoria/"
+         target="_blank"
+         rel="noopener noreferrer"
+         class="muted"
+         aria-label="Instagram"
+         title="Instagram">
+        <i class="fa-brands fa-instagram"></i>
+      </a>
+
+      <a href="https://www.tiktok.com/@nxrealm08"
+         target="_blank"
+         rel="noopener noreferrer"
+         class="muted"
+         aria-label="TikTok"
+         title="TikTok">
+        <i class="fa-brands fa-tiktok"></i>
+      </a>
+    </div>
+
+    <!-- Legal Links -->
+    <div style="display:flex; gap:16px; font-size:0.82rem;">
+      <a href="/terms/" class="muted">Terms</a>
+      <a href="/privacy/" class="muted">Privacy</a>
+      <a href="mailto:support@nexorealm.org" class="muted">Contact</a>
+    </div>
+
+  </div>
+</footer>
+
+<script defer src="/assets/lucide-lite.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.112.4"></script>
+<script src="/js/animations.js"></script>
+<script src="/js/install-prompt.js"></script>
+<script src="/js/supabase-client.js"></script>
+<script src="/js/nav.js"></script>
+<script src="/js/search.js"></script>
+
+</body>
+</html>

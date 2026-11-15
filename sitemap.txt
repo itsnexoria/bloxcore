@@ -120,6 +120,11 @@ https://bloxcores.com/pvp/
 https://bloxcores.com/sea-events/
 https://bloxcores.com/trading/
 https://bloxcores.com/value-changes/
+https://bloxcores.com/about/
+https://bloxcores.com/blox-fruits-accessories/
+https://bloxcores.com/blox-fruits-best-fruit-first-sea/
+https://bloxcores.com/blox-fruits-best-fruit-second-sea/
+https://bloxcores.com/blox-fruits-best-fruit-third-sea/
 https://bloxcores.com/blox-fruits-compare/control-vs-dough/
 https://bloxcores.com/blox-fruits-compare/control-vs-gas/
 https://bloxcores.com/blox-fruits-compare/control-vs-lightning/
@@ -194,6 +199,13 @@ https://bloxcores.com/blox-fruits-compare/yeti-vs-gas/
 https://bloxcores.com/blox-fruits-compare/yeti-vs-lightning/
 https://bloxcores.com/blox-fruits-compare/yeti-vs-t-rex/
 https://bloxcores.com/blox-fruits-compare/yeti-vs-venom/
+https://bloxcores.com/blox-fruits-fruits/
+https://bloxcores.com/blox-fruits-grinding-guide/
+https://bloxcores.com/blox-fruits-guides/
+https://bloxcores.com/blox-fruits-guns/
+https://bloxcores.com/blox-fruits-is-it-worth-it/
+https://bloxcores.com/blox-fruits-raid-guide/
+https://bloxcores.com/blox-fruits-swords/
 https://bloxcores.com/combos/
 https://bloxcores.com/services/
 https://bloxcores.com/blox-fruits-compare/gamepass-1-fruit-storage-vs-2x-boss-drops/

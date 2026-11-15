@@ -87,6 +87,7 @@ onReady(async () => {
 
   renderProfileCard(profile, membership?.crews);
   renderLoginStreakCard(profile);
+  renderReferCard(profile);
   // the daily claim can finish after the first render — refresh the card when it does
   window.addEventListener('bc:login-claimed', async () => { const fresh = await getCurrentProfile(); if (fresh?.profile) renderLoginStreakCard(fresh.profile); }, { once: true });
   initMyListingsTabs(profile.role);
@@ -414,6 +415,22 @@ function renderProfileCard(profile, crew) {
 
 // Daily login streak (claim_daily_login RPC runs automatically on page load, see supabase-client.js).
 // Bonus is 5 XP x streak day, capped at day 7 — so a full week is worth 35 XP a day.
+// "Invite a friend" card: copyable referral link + how many friends joined with it.
+async function renderReferCard(profile) {
+  const card = document.getElementById('refer-card');
+  if (!card || !profile || !profile.username) return;
+  const url = `${location.origin}/auth/?ref=${encodeURIComponent(profile.username)}`;
+  const input = document.getElementById('refer-card-link');
+  input.value = url;
+  card.style.display = '';
+  document.getElementById('refer-card-copy').addEventListener('click', async () => {
+    try { await navigator.clipboard.writeText(url); showToast('Referral link copied.'); } catch { input.select(); showToast('Select and copy the link.'); }
+  });
+  const { count } = await sb.from('profiles').select('id', { count: 'exact', head: true }).eq('referred_by', profile.id);
+  document.getElementById('refer-card-count').textContent = count ? `${count} friend${count === 1 ? '' : 's'} joined so far` : '';
+  refreshIcons();
+}
+
 function renderLoginStreakCard(profile) {
   const card = document.getElementById('login-streak-card');
   if (!card) return;

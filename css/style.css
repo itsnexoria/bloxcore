@@ -2715,3 +2715,10 @@ form.panel > * { min-width: 0; }
 
 /* Native/recommended-content ad block: never wider than the page */
 .ad-slot-native { max-width: 100%; overflow: hidden; }
+
+/* Lazy ad frames (ads/728x90 and ads/300x250 are tiny same-origin pages that run the ad snippet). Fixed sizes mean
+   no layout shift; loading="lazy" means below-the-fold ads cost nothing until the reader scrolls near them. */
+.ad-frame { display: block; margin: 6px auto 0; border: 0; max-width: 100%; background: transparent; }
+.ad-frame-728 { width: 728px; height: 90px; }
+.ad-frame-300 { width: 300px; height: 250px; }
+@media (max-width: 760px) { .ad-slot-top { display: none; } } /* a 728px banner can't fit a phone; the 300x250 slot lower down serves phones */

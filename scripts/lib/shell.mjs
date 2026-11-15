@@ -56,7 +56,6 @@ ${shell.themeScript}
 <meta name="twitter:title" content="${esc(title)}">
 <meta name="twitter:description" content="${esc(description)}">
 <meta name="twitter:image" content="${img}">
-<link rel="preconnect" href="https://unpkg.com">
 <link rel="preconnect" href="https://cdn.jsdelivr.net">
 <link rel="stylesheet" href="/css/style.css">
 <link rel="stylesheet" href="/css/pages/seo.css">
@@ -78,14 +77,14 @@ ${body}
 </main>
 
 ${shell.footer}
-<script defer src="https://unpkg.com/lucide@1.34.0"></script>
+<script defer src="/assets/lucide-lite.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.112.4"></script>
 <script src="/js/animations.js"></script>
 <script src="/js/install-prompt.js"></script>
 <script src="/js/supabase-client.js"></script>
 <script src="/js/nav.js"></script>
 <script src="/js/search.js"></script>
-${extraScripts.map(s => `<script src="${s}"></script>`).join('\n')}
+${[...extraScripts, ...(body.includes('data-giveaway-strip') && !extraScripts.includes('/js/giveaway-strip.js') ? ['/js/giveaway-strip.js'] : [])].map(s => `<script src="${s}"></script>`).join('\n')}
 </body>
 </html>
 `;
@@ -95,17 +94,15 @@ ${extraScripts.map(s => `<script src="${s}"></script>`).join('\n')}
 // in the nav/drawer (those stay ad-free). Three varied slots: a leaderboard banner, a
 // mid-content rectangle, and the native banner already used elsewhere on the site.
 export function adSlotTop() {
-  return `<div class="ad-slot" style="margin:20px auto; max-width:728px; text-align:center;">
+  return `<div class="ad-slot ad-slot-lazy ad-slot-top" style="margin:20px auto; max-width:728px; text-align:center;">
   <span class="ad-slot-label">Advertisement</span>
-  <script>atOptions = { 'key':'3d822fd28f7e2dcb27760223dda2eb9c', 'format':'iframe', 'height':90, 'width':728, 'params':{} };</script>
-  <script src="https://www.highrevenueformat.com/3d822fd28f7e2dcb27760223dda2eb9c/invoke.js"></script>
+  <iframe class="ad-frame ad-frame-728" src="/ads/728x90/" width="728" height="90" loading="lazy" title="Advertisement" scrolling="no" frameborder="0"></iframe>
 </div>`;
 }
 export function adSlotMiddle() {
-  return `<div class="ad-slot" style="margin:24px auto; max-width:300px; text-align:center;">
+  return `<div class="ad-slot ad-slot-lazy" style="margin:24px auto; max-width:300px; text-align:center;">
   <span class="ad-slot-label">Advertisement</span>
-  <script>atOptions = { 'key':'8e6309b4097896ed979f562c5d09f06e', 'format':'iframe', 'height':250, 'width':300, 'params':{} };</script>
-  <script src="https://www.highrevenueformat.com/8e6309b4097896ed979f562c5d09f06e/invoke.js"></script>
+  <iframe class="ad-frame ad-frame-300" src="/ads/300x250/" width="300" height="250" loading="lazy" title="Advertisement" scrolling="no" frameborder="0"></iframe>
 </div>`;
 }
 export function adSlotBottom() {

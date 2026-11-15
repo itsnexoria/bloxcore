@@ -318,3 +318,114 @@ body.seo-page .ad-slot { max-width: 100%; overflow: hidden; }
 .vote-seg { display: block; height: 100%; }
 .vote-seg-overpaid { background: #f87171; } .vote-seg-fair { background: #60a5fa; } .vote-seg-underpaid { background: #34d399; }
 .vote-legend { margin: 4px 0; font-size: 0.78rem; }
+
+/* ==========================================================================
+   Guides, hubs and trust components
+   ========================================================================== */
+body.seo-page .seo-wide { max-width: 1060px; }
+body.seo-page .seo-note { font-size: 0.8rem; margin-top: 28px; }
+
+/* Author / last-updated block */
+body.seo-page .seo-author { display: flex; align-items: center; gap: 12px; margin: 16px 0 4px; padding: 10px 14px; border-radius: var(--radius-sm); background: var(--glass-bg); border: 1px solid var(--glass-border); font-size: 0.84rem; line-height: 1.45; }
+body.seo-page .seo-author-badge { flex: none; display: grid; place-items: center; width: 36px; height: 36px; border-radius: 50%; font-family: var(--font-display); font-weight: 700; color: #fff; background: linear-gradient(135deg, var(--brass), var(--brass-bright)); }
+body.seo-page .seo-author-text { display: grid; gap: 1px; min-width: 0; }
+
+/* Table of contents */
+body.seo-page .seo-toc { margin: 18px 0 22px; padding: 14px 18px; border-radius: var(--radius-sm); background: var(--glass-bg); border: 1px solid var(--glass-border); font-size: 0.9rem; }
+body.seo-page .seo-toc b { display: block; margin-bottom: 6px; font-size: 0.74rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ash); }
+body.seo-page .seo-toc ul { margin: 0; padding-left: 1.1em; display: grid; gap: 3px; }
+body.seo-page .seo-toc a { text-decoration: none; color: var(--brass-bright); }
+body.seo-page .seo-toc a:hover { text-decoration: underline; }
+body.seo-page .seo-article h2[id] { scroll-margin-top: 84px; }
+
+/* Pick cards */
+body.seo-page .seo-picks { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 12px; margin: 14px 0; }
+body.seo-page a.seo-pick { display: grid; gap: 10px; align-content: start; padding: 14px; border-radius: var(--radius); background: var(--glass-bg); border: 1px solid var(--glass-border); text-decoration: none; color: inherit; transition: border-color 0.15s, transform 0.15s; }
+body.seo-page a.seo-pick:hover { border-color: rgb(var(--brass-rgb) / 0.55); transform: translateY(-1px); }
+body.seo-page .seo-pick-top { display: flex; align-items: center; gap: 10px; }
+body.seo-page .seo-pick-top > span { display: grid; gap: 3px; min-width: 0; }
+body.seo-page .seo-pick-top b { font-size: 1.02rem; }
+body.seo-page .seo-pick-img { width: 44px; height: 44px; object-fit: contain; flex: none; }
+body.seo-page .seo-pick-stats { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; font-size: 0.8rem; }
+body.seo-page .seo-pick-stats em { font-style: normal; font-family: var(--font-mono); font-size: 1.05rem; color: var(--brass-bright); font-variant-numeric: tabular-nums; }
+body.seo-page .seo-pick-stats small { color: var(--ash); }
+body.seo-page .seo-pick-why { font-size: 0.86rem; line-height: 1.5; color: var(--ash); }
+
+/* Steps (HowTo) */
+body.seo-page .seo-steps { counter-reset: s; list-style: none; padding: 0; margin: 12px 0 20px; display: grid; gap: 10px; }
+body.seo-page .seo-steps li { counter-increment: s; position: relative; padding: 12px 14px 12px 56px; border-radius: 12px; background: var(--glass-bg); border: 1px solid var(--glass-border); line-height: 1.55; }
+body.seo-page .seo-steps li::before { content: counter(s); position: absolute; left: 14px; top: 14px; width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; font-weight: 700; color: #fff; background: linear-gradient(135deg, var(--brass), var(--brass-bright)); }
+body.seo-page .seo-steps b { display: block; margin-bottom: 2px; }
+
+/* Related-links block */
+body.seo-page .seo-related { margin-top: 34px; padding: 18px 20px; border-radius: var(--radius); background: var(--glass-bg); border: 1px solid var(--glass-border); }
+body.seo-page .seo-related h2 { margin: 0 0 10px; font-size: 1.1rem; }
+body.seo-page .seo-related h2::before { display: none; }
+body.seo-page .seo-related h2 { padding-left: 0; }
+body.seo-page .seo-related-cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; }
+body.seo-page .seo-related b { display: block; margin-bottom: 4px; font-size: 0.74rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ash); }
+body.seo-page .seo-related ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
+body.seo-page .seo-related a { text-decoration: none; color: var(--brass-bright); font-size: 0.92rem; }
+body.seo-page .seo-related a:hover, body.seo-page .seo-related a[aria-current] { text-decoration: underline; }
+
+/* Why-join strip (logged-out visitors only; removed by an inline script for members) */
+body.seo-page .seo-why { display: grid; gap: 10px; margin: 0 0 14px; padding: 16px; border-radius: var(--radius); background: linear-gradient(140deg, rgb(var(--brass-rgb) / 0.16), transparent 75%), var(--glass-bg); border: 1px solid rgb(var(--brass-rgb) / 0.4); }
+body.seo-page .seo-why-title { font-family: var(--font-display); font-size: 1.02rem; }
+body.seo-page .seo-why ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; font-size: 0.86rem; line-height: 1.45; }
+body.seo-page .seo-why li { display: flex; gap: 8px; align-items: flex-start; }
+body.seo-page .seo-why li > span:first-child { flex: none; }
+body.seo-page .seo-why .btn { justify-self: start; }
+body.seo-page .seo-why.is-compact ul { grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
+
+/* Hub layout: table + sticky aside */
+body.seo-page .seo-aside-layout { display: grid; grid-template-columns: minmax(0, 1fr) 290px; gap: 22px; align-items: start; }
+body.seo-page .seo-aside { position: sticky; top: 84px; display: grid; gap: 14px; }
+body.seo-page .seo-aside .seo-toc { margin: 0; }
+body.seo-page .seo-table-wrap { overflow-x: auto; border-radius: var(--radius); border: 1px solid var(--glass-border); background: var(--glass-bg); }
+body.seo-page .seo-table-wrap table { width: 100%; margin: 0; }
+body.seo-page .seo-compare th[scope="row"] .seo-vt-name { color: var(--bone); }
+body.seo-page .seo-vt-name { display: inline-flex; align-items: center; gap: 8px; text-decoration: none; color: inherit; font-weight: 600; }
+body.seo-page .seo-vt-name span { display: grid; line-height: 1.2; }
+body.seo-page .seo-vt-name small { font-weight: 400; font-size: 0.72rem; color: var(--ash); }
+body.seo-page .seo-vt-name:hover { color: var(--brass-bright); }
+body.seo-page .seo-verdicts td, body.seo-page .seo-verdicts th { padding: 8px 12px; }
+body.seo-page .seo-verdicts .seo-meter { display: inline-grid; margin-left: 6px; vertical-align: middle; }
+body.seo-page .seo-verdicts .seo-meter i { min-width: 5px; width: 5px; }
+
+/* Galleries (swords / guns / accessories) */
+body.seo-page .seo-gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 8px; margin: 10px 0 18px; }
+body.seo-page .seo-gal-item { display: flex; align-items: center; gap: 8px; padding: 8px 12px; border-radius: 10px; background: var(--glass-bg); border: 1px solid var(--glass-border); font-size: 0.88rem; }
+body.seo-page .seo-gal-item img { width: 36px; height: 36px; object-fit: contain; flex: none; }
+
+/* Guide hub cards */
+body.seo-page .seo-guide-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 12px; margin: 14px 0 22px; }
+body.seo-page a.seo-guide-card { display: grid; gap: 4px; padding: 16px; text-decoration: none; }
+
+@media (max-width: 900px) {
+  body.seo-page .seo-aside-layout { grid-template-columns: 1fr; }
+  body.seo-page .seo-aside { position: static; order: -1; }
+}
+
+/* Price-alert widget on item pages */
+body.seo-page .seo-alert { display: grid; gap: 10px; margin: 14px 0 18px; padding: 16px; }
+body.seo-page .seo-alert-title { font-family: var(--font-display); font-size: 1.02rem; }
+body.seo-page .seo-alert-form { display: flex; flex-wrap: wrap; gap: 8px; align-items: stretch; }
+body.seo-page .seo-alert-form select, body.seo-page .seo-alert-form input { flex: 1 1 150px; min-height: 44px; margin: 0; }
+body.seo-page .seo-alert-form .btn { min-height: 44px; }
+body.seo-page .seo-alert-clear { border: 0; background: none; padding: 0; color: var(--brass-bright); text-decoration: underline; cursor: pointer; font: inherit; }
+
+/* Live giveaways strip (js/giveaway-strip.js) */
+body.seo-page .seo-giveaways { margin: 0 0 14px; padding: 14px 16px; border-radius: var(--radius); background: linear-gradient(140deg, rgb(52 211 153 / 0.1), transparent 70%), var(--glass-bg); border: 1px solid rgb(52 211 153 / 0.35); }
+body.seo-page .seo-giveaways[hidden] { display: none; }
+body.seo-page .seo-gw-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 8px; font-size: 0.95rem; }
+body.seo-page .seo-gw-head a { font-size: 0.8rem; color: var(--brass-bright); }
+body.seo-page .seo-gw-list { display: grid; gap: 8px; }
+body.seo-page a.seo-gw-card { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 12px; background: rgb(255 255 255 / 0.04); border: 1px solid var(--glass-border); text-decoration: none; color: inherit; min-height: 56px; transition: border-color 0.15s, background 0.15s; }
+body.seo-page a.seo-gw-card:hover { border-color: rgb(52 211 153 / 0.6); background: rgb(52 211 153 / 0.07); }
+body.seo-page .seo-gw-card img, body.seo-page .seo-gw-noimg { flex: none; width: 44px; height: 44px; object-fit: contain; display: grid; place-items: center; font-size: 1.4rem; }
+body.seo-page .seo-gw-body { flex: 1; min-width: 0; display: grid; gap: 1px; }
+body.seo-page .seo-gw-body b { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+body.seo-page .seo-gw-body small { color: var(--ash); font-size: 0.76rem; }
+body.seo-page .seo-gw-cta { flex: none; padding: 6px 14px; border-radius: 999px; font-size: 0.78rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: #052e1d; background: #34d399; }
+body.seo-page .seo-gw-foot { margin: 8px 0 0; font-size: 0.76rem; color: var(--ash); }
+body.seo-page .seo-aside-layout > * { min-width: 0; }

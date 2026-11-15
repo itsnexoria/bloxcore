@@ -1,5 +1,5 @@
 // Rebuilds sitemap.xml + sitemap.txt with <lastmod>. Keeps each URL's existing changefreq/priority,
-// adds any URLs listed in item-page-sitemap-urls.txt / guide-page-sitemap-urls.txt, and skips pages
+// adds any URLs listed in item-page-sitemap-urls.txt / guide-page-sitemap-urls.txt / evergreen-page-sitemap-urls.txt, and skips pages
 // that are missing, noindex or meta-refresh redirects. lastmod = last git commit date of the page
 // (falls back to file mtime when git history isn't available). Run: node scripts/generate-sitemap.mjs .
 import fs from 'node:fs';
@@ -19,7 +19,7 @@ for (const m of read('sitemap.xml').matchAll(/<url>([\s\S]*?)<\/url>/g)) {
     priority: /<priority>([^<]+)/.exec(m[1])?.[1] || '0.6',
   });
 }
-for (const f of ['item-page-sitemap-urls.txt', 'guide-page-sitemap-urls.txt']) {
+for (const f of ['item-page-sitemap-urls.txt', 'guide-page-sitemap-urls.txt', 'evergreen-page-sitemap-urls.txt']) {
   for (const line of read(f).split('\n')) {
     const p = line.trim().replace(ORIGIN, '');
     if (p && !meta.has(p)) meta.set(p, { changefreq: 'weekly', priority: p.includes('/blox-fruits-values/') ? '0.7' : '0.6' });

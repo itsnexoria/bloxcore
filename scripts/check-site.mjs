@@ -158,6 +158,44 @@ if (fs.existsSync(extrasPath)) {
   }
 }
 
+// Internal-link graph: (1) #anchors must exist on the page they point to, (2) every URL in the sitemap should be
+// reachable by an ordinary link from another page. A page nobody links to is hard for Google to discover and
+// passes no ranking value, so zero inbound links is an error and a single one is a warning.
+{
+  const toPagePath = (u) => { const c = decodeURIComponent(u); return c.endsWith('/') ? c : (path.extname(c) ? c : `${c}/`); };
+  const ids = new Map(); // page path -> Set of ids
+  const bodies = new Map();
+  for (const f of htmlFiles) {
+    const html = fs.readFileSync(f, 'utf8');
+    const p = '/' + rel(f).replace(/index\.html$/, '');
+    bodies.set(p, html);
+    ids.set(p, new Set([...html.matchAll(/\bid="([^"]+)"/g)].map((m) => m[1])));
+  }
+  const inbound = new Map();
+  const badAnchors = [];
+  for (const [p, html] of bodies) {
+    // links in <script>/<style> are not navigation; ignore JSON-LD and inline JS strings
+    const markup = html.replace(/<script[\s\S]*?<\/script>/gi, '').replace(/<style[\s\S]*?<\/style>/gi, '');
+    for (const m of markup.matchAll(/<a\b[^>]*\bhref="([^"]+)"/gi)) {
+      const href = m[1];
+      if (/^(https?:|mailto:|tel:|javascript:|\/\/)/i.test(href)) continue;
+      const [pathPart, hash] = [href.split('#')[0].split('?')[0], href.includes('#') ? href.split('#')[1] : ''];
+      const target = pathPart ? toPagePath(pathPart.startsWith('/') ? pathPart : p + pathPart) : p;
+      if (target !== p) inbound.set(target, (inbound.get(target) || 0) + 1);
+      if (hash && ids.has(target) && !ids.get(target).has(hash) && !/^[!/]/.test(hash)) badAnchors.push(`${p} -> ${target}#${hash}`);
+    }
+  }
+  [...new Set(badAnchors)].slice(0, 25).forEach((b) => warns.push(`anchor not found: ${b}`));
+  const sm = fs.existsSync(path.join(ROOT, 'sitemap.txt')) ? fs.readFileSync(path.join(ROOT, 'sitemap.txt'), 'utf8').split('\n').map((l) => l.trim()).filter(Boolean) : [];
+  for (const u of sm) {
+    const p = toPagePath(new URL(u).pathname);
+    if (p === '/') continue;
+    const n = inbound.get(p) || 0;
+    if (n === 0) fail(`orphan page: ${p} is in the sitemap but no page links to it`);
+    else if (n === 1) warns.push(`weakly linked page: ${p} has only 1 internal link pointing to it`);
+  }
+}
+
 // Required files
 for (const req of ['404.html', 'offline/index.html', 'sw.js', 'worker.js', 'wrangler.jsonc', '_headers']) {
   if (!fs.existsSync(path.join(ROOT, req))) fail(`missing required file ${req}`);

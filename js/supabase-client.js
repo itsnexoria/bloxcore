@@ -14,6 +14,9 @@ var sb = window.sb || supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 // crash loop can't hammer the DB. Never awaited, never blocks, never throws.
 var _clientErrorCount = 0;
 var _THIRD_PARTY_RE = /(?:chrome|moz|safari|safari-web|ms-browser)-extension:\/\//i;
+// Build id: replaced at deploy time by scripts/stamp-release.mjs (commit SHA + date). "dev" = an unstamped build.
+// Sent with every client error so /admin/errors/ can show which deploy an error first appeared in.
+var BC_RELEASE = 'dev';
 function reportClientError(message, stack, source) {
   if (_THIRD_PARTY_RE.test(`${stack || ''} ${source || ''} ${message || ''}`) || /^Script error\.?$/i.test(String(message || ''))) return;
   if (_clientErrorCount >= 5) return;
@@ -24,6 +27,7 @@ function reportClientError(message, stack, source) {
     stack: stack ? String(stack).slice(0, 3000) : null,
     page_url: location.pathname + location.search,
     user_agent: navigator.userAgent,
+    release: BC_RELEASE,
   }).then(() => {}, () => {}); // swallow — logging a failure to log isn't worth it
 }
 window.addEventListener('error', (e) => reportClientError(e.message, e.error?.stack, e.filename));

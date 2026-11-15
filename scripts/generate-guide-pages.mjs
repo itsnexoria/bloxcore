@@ -14,6 +14,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { loadShell, renderPage, esc, slugify, formatValue, breadcrumbLd, breadcrumbHtml, ctaSectionHtml, adSlotTop, adSlotMiddle, adSlotBottom } from './lib/shell.mjs';
+import { relatedBlock, whyJoinStrip, giveawayStrip } from './lib/guide-ui.mjs';
 import { statCard, cap, TREND_META, rarityChip, trendChip, demandLabel, demandMeter, iconImg, fmtRatio, versusBar, faqAccordion, faqLd as buildFaqLd, crumbsHtml } from './lib/seo-ui.mjs';
 
 const SUPABASE_URL = 'https://hpvwxaubgiyqgqtyjofb.supabase.co';
@@ -97,10 +98,13 @@ ${wrapSection(`
     <p class="muted" style="font-size:0.85rem;">Also see the <a href="/blox-fruits-limited-tier-list/">limited</a> and <a href="/blox-fruits-gamepass-tier-list/">gamepass</a> tier lists.</p>
     ${adSlotTop()}
     ${summaryStrip(fruits, 'Fruits')}
+    ${whyJoinStrip({ compact: true })}
+    ${giveawayStrip()}
     ${rows}
     ${adSlotMiddle()}
     <h2 style="font-size:1.3rem; margin-top:28px;">How the tiers work</h2>
     <p>S tier starts at ${formatValue(TIERS[0].min)}, A at ${formatValue(TIERS[1].min)}, B at ${formatValue(TIERS[2].min)} and C at ${formatValue(TIERS[3].min)}; everything below that is D. Values come from the community and shift with demand, so check the live <a href="/trading/">Trading board</a> before agreeing to a trade. You can also <a href="/blox-fruits-compare/">compare any two top fruits</a> side by side.</p>`)}
+${wrapSection(relatedBlock({ skip: '/blox-fruits-tier-list/' }))}
 ${ctaSectionHtml({ heading: 'Know what your fruits are worth?', body: 'Create a free account to post trades, set price alerts, and track your own collection.' })}
 ${adSlotBottom()}`;
   write('blox-fruits-tier-list', renderPage(shell, { title, description, url, ld: [itemListLd(fruits, 'Blox Fruits value tier list'), breadcrumbLd(crumbs)], body }));
@@ -137,10 +141,13 @@ ${wrapSection(`
     <p class="muted" style="font-size:0.85rem;">Also see the <a href="/blox-fruits-tier-list/">fruit</a>, <a href="/blox-fruits-limited-tier-list/">limited</a> and <a href="/blox-fruits-gamepass-tier-list/">gamepass</a> tier lists.</p>
     ${adSlotTop()}
     ${summaryStrip(items, cap(itemLabel) + 's')}
+    ${whyJoinStrip({ compact: true })}
+    ${giveawayStrip()}
     ${rows}
     ${adSlotMiddle()}
     <h2 style="font-size:1.3rem; margin-top:28px;">How the tiers work</h2>
     <p>Each tier holds about a fifth of all ${items.length} ${itemLabel}s with a known value, ranked highest to lowest — S is the top fifth, D the bottom. Values come from the community and shift with demand, so check the live <a href="/trading/">Trading board</a> before agreeing to a trade. You can also <a href="/blox-fruits-compare/">compare two items</a> side by side.</p>`)}
+${wrapSection(relatedBlock({ skip: `/${urlSlug}/` }))}
 ${ctaSectionHtml({ heading: 'Know what your items are worth?', body: 'Create a free account to post trades, set price alerts, and track your own collection.' })}
 ${adSlotBottom()}`;
   write(urlSlug, renderPage(shell, { title, description, url, ld: [itemListLd(items, pageTitle || title), breadcrumbLd(crumbs)], body }));
@@ -261,6 +268,8 @@ ${adSlotTop()}
 </section>
 <section class="section"><div class="container seo-wrap seo-article">
     <div class="seo-verdict">${verdict}</div>
+    ${whyJoinStrip({ compact: true })}
+    ${giveawayStrip()}
     <h2>${esc(a.name)} vs ${esc(b.name)}: full comparison</h2>
     <div class="panel" style="overflow-x:auto;">
       <table class="compare-table seo-compare">
@@ -280,6 +289,7 @@ ${adSlotTop()}
     <h2>${esc(a.name)} vs ${esc(b.name)} FAQ</h2>
     ${faqAccordion(faq)}
     ${rel.length ? `<h2>More comparisons</h2><ul class="seo-pills">${rel.join('')}</ul>` : ''}
+    ${relatedBlock({ skip: '/blox-fruits-compare/' })}
     <p class="muted"><a href="${vHref(a)}">${esc(a.name)} value</a> · <a href="${vHref(b)}">${esc(b.name)} value</a> · <a href="/blox-fruits-tier-list/">Value tier list</a> · <a href="/blox-fruits-compare/">All comparisons</a></p>
 </div></section>
 ${ctaSectionHtml({ heading: `Trading one for the other?`, body: 'Create a free account to run it past other traders on the Trading board first.' })}
@@ -306,11 +316,18 @@ function compareHub(shell, sections) {
   const description = `Compare the value of the top ${totalItems} Blox Fruits items side by side — fruits, limiteds and gamepasses, with physical/permanent value, demand and trend.`;
   const crumbs = [{ name: 'Home', url: `${SITE}/` }, { name: 'Compare', url }];
   const sectionsHtml = sections.map(s => categorySectionHtml(s.label, s.items, s.urlPrefix)).join('\n');
+  // Comparisons that fell out of the current top-N (values shifted) stay live — keep them linked so they are not orphaned.
+  const linked = new Set([...sectionsHtml.matchAll(/blox-fruits-compare\/([^/"]+)\//g)].map(m => m[1]));
+  const humanize = n => n.replace(/^(limited|gamepass)-/, '').split('-vs-').map(x => x.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')).join(' vs ');
+  const older = fs.readdirSync(path.join(SITE_ROOT, 'blox-fruits-compare'), { withFileTypes: true }).filter(d => d.isDirectory() && !linked.has(d.name)).map(d => d.name).sort();
+  const archiveHtml = older.length ? `<h2 style="font-size:1.3rem; margin-top:28px;">More comparisons</h2><p class="muted">Earlier head-to-heads that are still live.</p><ul class="seo-pills">${older.map(n => `<li><a href="/blox-fruits-compare/${n}/" class="muted" style="font-size:0.85rem;">${esc(humanize(n))}</a></li>`).join('')}</ul>` : '';
   const body = `${pageHead(crumbs, 'Compare Blox Fruits Values', `Head-to-head value comparisons for the top items in each category.`)}
 ${wrapSection(`<p>Pick any two of the most valuable items to see which is worth more. For anything else, the <a href="/trading/?tab=calculator">trade calculator</a> handles any combination of items, and the <a href="/blox-fruits-tier-list/">tier list</a> ranks every fruit.</p>
     ${adSlotTop()}
     ${sectionsHtml}
+    ${archiveHtml}
     ${adSlotMiddle()}`)}
+${wrapSection(relatedBlock({ skip: '/blox-fruits-compare/' }))}
 ${ctaSectionHtml({ heading: 'Ready to trade?', body: 'Create a free account to post a listing and get real offers.' })}
 ${adSlotBottom()}`;
   write('blox-fruits-compare', renderPage(shell, { title, description, url, ld: [breadcrumbLd(crumbs)], body }));
@@ -344,6 +361,7 @@ ${wrapSection(`
     <p>Never share your account password or login details with anyone. Check a player's profile and vouches before trading, and remember BloxCore doesn't verify or guarantee any trade. Trade listings on BloxCore automatically disappear after 24 hours, so old listings can be stale — confirm the offer is still on.</p>
     <h2 style="font-size:1.3rem;">Ready to trade?</h2>
     <p><a href="/trading/">Browse live trade listings</a> or post your own.</p>`)}
+${wrapSection(relatedBlock({ skip: '/blox-fruits-trading-guide/' }))}
 ${ctaSectionHtml({ heading: 'Put the guide into practice', body: 'Create a free account to post your first trade listing today.' })}
 ${adSlotBottom()}`;
   const faq = { '@context': 'https://schema.org', '@type': 'FAQPage', mainEntity: qa.map(([q, a]) => ({ '@type': 'Question', name: q, acceptedAnswer: { '@type': 'Answer', text: a } })) };

@@ -48,6 +48,9 @@ jobs:
       - name: Regenerate tier-list, compare, calculator & guide pages
         run: node scripts/generate-guide-pages.mjs .
 
+      - name: Regenerate evergreen guides & category hubs
+        run: node scripts/generate-evergreen-guides.mjs .
+
       - name: Regenerate value-converter & permanent-fruit calculator pages
         run: node scripts/generate-calculator-pages.mjs .
 
