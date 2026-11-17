@@ -15,5 +15,6 @@ package-lock.json
 README.md
 *.zip
 *.sql
-guide-page-sitemap-urls.txt
-item-page-sitemap-urls.txt
+*-sitemap-urls.txt
+lighthouserc.json
+.lighthouseci/**
