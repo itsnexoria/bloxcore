@@ -43,17 +43,20 @@ Run from the repo root.
 | `node scripts/generate-item-pages.mjs .` | Regenerates `/blox-fruits-values/*` from the live `bf_items` table |
 | `node scripts/generate-guide-pages.mjs .` | Regenerates tier lists, compare pages, trading guide |
 | `node scripts/generate-calculator-pages.mjs .` | Regenerates the value-converter and permanent-fruit calculator pages |
+| `node scripts/generate-evergreen-guides.mjs .` | Regenerates the evergreen guides (`/blox-fruits-best-fruit-*`, grinding, raids, worth-it), the guides hub, `/about/` and the fruits/swords/guns/accessories hubs. Edit guide copy in that file; it also links every guide into the link graph |
+| `node scripts/build-icons.mjs .` | Rebuilds `js/lucide-lite.js` (the ~40 KB icon subset used instead of the full Lucide library). Run after adding an icon: `npm i -D lucide@1.34.0 && node scripts/build-icons.mjs`. Unknown icons fall back to the full library automatically |
+| `node scripts/stamp-release.mjs` | Stamps the commit SHA into `js/supabase-client.js` (`BC_RELEASE`). Set it as the host's **build command** so `/admin/errors/` can show which deploy an error first appeared in |
 | `node scripts/generate-codes-page.mjs .` | Regenerates `/blox-fruits-codes/` |
 | `node scripts/generate-sitemap.mjs .` | Rebuilds `sitemap.xml` / `sitemap.txt` (skips noindex and redirect pages) |
 | `node scripts/check-css-split.mjs .` | Warns if a page uses classes from a stylesheet bundle it does not link |
-| `node scripts/check-site.mjs .` | Smoke checks: broken local links/assets, robots/canonical/description rules, JS syntax, missing `client-extras.js` |
+| `node scripts/check-site.mjs .` | Smoke checks: broken local links/assets, robots/canonical/description rules, JS syntax, missing `client-extras.js`, **duplicate top-level `const`/`let`/`class` across scripts on one page** (the `BOUNTY_TIERS` outage), `#anchor` targets, and **orphan pages** (in the sitemap but linked from nowhere) |
 
 Generated pages take their nav, footer and theme script from `index.html` (`scripts/lib/shell.mjs`), so edit those in `index.html` and re-run the generators.
 
 ## Automation
 
 - `regenerate-value-pages.yml` - daily 06:00 UTC (and manual): re-runs the generators and commits only if something changed. Needs Settings -> Actions -> General -> Workflow permissions -> Read and write.
-- `ci.yml` - on every push and PR: `check-site.mjs` plus `wrangler deploy --dry-run` against the real `worker.js`.
+- `ci.yml` - on every push and PR: `check-site.mjs` plus `wrangler deploy --dry-run` against the real `worker.js`, then a Lighthouse job (`lighthouserc.json`): accessibility and SEO scores below the thresholds fail it; performance, CLS, TBT and LCP only warn.
 
 ## Conventions
 
@@ -64,3 +67,7 @@ Generated pages take their nav, footer and theme script from `index.html` (`scri
 - New sensitive Postgres RPCs: explicit `GRANT EXECUTE` and `REVOKE ... FROM PUBLIC`, rate-limit via `check_rate_limit()`.
 - JS/CSS are served with `max-age=0, must-revalidate`, so deploys are live immediately; images/fonts cache for 30 days.
 - `Content-Security-Policy-Report-Only` in `_headers` reports to `/csp-report` (visible in Workers logs). Tighten it from real reports, then switch the header to enforcing `Content-Security-Policy`.
+- Ads: the 728x90 and 300x250 units run inside tiny same-origin pages (`/ads/728x90/`, `/ads/300x250/`) loaded by `<iframe loading="lazy">` with fixed sizes (no layout shift, nothing loads until the reader scrolls near it). The 728 slot is hidden below 760px. To change an ad unit, edit the snippet in the matching `ads/*/index.html`. These pages are `noindex`.
+- Giveaway strip, Why-join strip, price-alert box and the item-vote box are placeholders filled/hidden by `js/giveaway-strip.js`, an inline script, `js/price-alert.js` and `js/item-votes.js`; the generators emit the markup (see `scripts/lib/guide-ui.mjs`).
+- First-time badges (`first_listing`, `first_post`, `first_trade`) and their XP live in `check_achievements()`; bonuses are `site_settings` keys `xp_first_trade_listing`, `xp_first_post`, `xp_first_trade`, `xp_referral_welcome`. Migrations are in `supabase/CHANGES_*.sql`.
+- A quiet Discord "value update" post (no role ping) goes to the `trading` webhook via `post_value_changes_digest()` (cron every 15 min, skips small updates). Dry run: `select post_value_changes_digest(true, timestamptz '2026-11-01');`

@@ -1,4 +1,4 @@
-// Builds assets/lucide-lite.js — a drop-in replacement for the full Lucide icon library (~420 KB) containing only
+// Builds js/lucide-lite.js — a drop-in replacement for the full Lucide icon library (~420 KB) containing only
 // the icons the site actually uses (usually ~40 KB). Same createIcons() behaviour as lucide@1.34.0, and if a page ever
 // asks for an icon that is not in the bundle it lazy-loads the full library once as a fallback, so nothing breaks.
 //
@@ -10,7 +10,7 @@ import path from 'node:path';
 import { icons } from 'lucide';
 
 const ROOT = process.argv[2] || '.';
-const OUT = path.join(ROOT, 'assets/lucide-lite.js');
+const OUT = path.join(ROOT, 'js/lucide-lite.js');
 const EXTRA = ['crosshair', 'flame', 'handshake', 'message-circle', 'repeat', 'shield', 'swords', 'thumbs-up', 'trending-up', 'user-plus', 'citrus', 'gem', 'hand', 'shapes', 'shirt', 'sword', 'ticket', 'user', 'package', 'copy', 'check', 'x'];
 const toKebab = (s) => s.replace(/([a-z0-9])([A-Z])/g, '$1-$2').replace(/([A-Za-z])([0-9])/g, '$1-$2').replace(/([0-9])([A-Za-z])/g, '$1-$2').toLowerCase();
 const toPascal = (s) => s.replace(/^([A-Z])|[\s-_]+(\w)/g, (m, a, b) => (b ? b.toUpperCase() : a.toUpperCase())).replace(/^[a-z]/, (c) => c.toUpperCase());
