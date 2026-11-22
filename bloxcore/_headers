@@ -1,0 +1,21 @@
+# Security headers on every response.
+/*
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  Strict-Transport-Security: max-age=31536000
+  Content-Security-Policy: frame-ancestors 'self'; base-uri 'self'; object-src 'none'
+  Content-Security-Policy-Report-Only: default-src 'self'; script-src 'self' 'sha256-+J/d8a4ysg1LRmfef0JKsMmCAq60mCmEYLTmdCClmcE=' 'sha256-2NAFAiN0CCI5dKW8YLV41lxzECw2qv7kNGdJtLXtkLw=' 'sha256-Dh7NC4cWYrSaokX57nRqOnT5+AvmsCqboEkG7ilPHk8=' 'sha256-HEs0sTvZ05YXOJqGcNKUiEH3SwmaOVT9vVOswQI38QI=' 'sha256-V/CZZviT/YLo6Cbm0kLTKCh9OOiSmzAk2LJlqhyPGNg=' 'sha256-hUw9Yl+5ixmEW42IBleaeveOerJO8OD+RmHm+ItkGTc=' 'sha256-mEyUcMJv9PLqWw7KDBss0dZ/q159VPJTML/ob31Kr3s=' 'sha256-tpo8tGl+MSaJXCkhOmCJP11cTEVGQKIJ2WuRkwB7mXc=' https://unpkg.com https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://static.cloudflareinsights.com https://challenges.cloudflare.com https://platform.twitter.com https://www.highrevenueformat.com https://*.profitableratecpmnetwork.com; script-src-attr 'none'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob: https:; media-src 'self' blob: https:; connect-src 'self' https://discord.com https://hpvwxaubgiyqgqtyjofb.supabase.co wss://hpvwxaubgiyqgqtyjofb.supabase.co https://apis.roblox.com https://www.roblox.com https://cloudflareinsights.com https://www.highrevenueformat.com https://*.profitableratecpmnetwork.com; frame-src 'self' https://www.youtube.com https://www.youtube-nocookie.com https://embed.twitch.tv https://player.twitch.tv https://kick.com https://player.kick.com https://challenges.cloudflare.com https://platform.twitter.com https://www.highrevenueformat.com; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'self'; report-uri /csp-report
+  Permissions-Policy: camera=(), microphone=(), geolocation=()
+
+# Images/fonts: long cache (filenames change when the art changes).
+/assets/*
+  Cache-Control: public, max-age=2592000
+
+# CSS/JS: always revalidate (ETag -> cheap 304), so a deploy is live immediately and
+# HTML can never be paired with stale scripts.
+/css/*
+  Cache-Control: public, max-age=0, must-revalidate
+/js/*
+  Cache-Control: public, max-age=0, must-revalidate
+/sw.js
+  Cache-Control: public, max-age=0, must-revalidate

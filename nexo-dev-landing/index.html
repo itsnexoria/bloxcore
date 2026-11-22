@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nexo Dev — A Fast, Focused Code Editor for Windows &amp; Linux</title>
+<meta name="description" content="Nexo Dev is a lightweight, standalone code editor and project manager for Windows and Linux, built on Electron and Monaco. Git, GitHub, npm scripts, terminal and theming, all in one window.">
+<meta name="keywords" content="Nexo Dev, code editor, Monaco editor, Electron editor, project manager, Git client, GitHub client, developer tools, Windows code editor, Linux code editor, VS Code alternative">
+<meta name="author" content="Nexus">
+<meta name="robots" content="index, follow">
+<meta name="theme-color" content="#0b0b0d">
+<link rel="canonical" href="https://dev.nexorealm.org/">
+
+<!-- Favicon -->
+<link rel="icon" type="image/png" href="assets/logo.png">
+<link rel="shortcut icon" href="assets/favicon.ico">
+<link rel="apple-touch-icon" href="assets/logo.png">
+<link rel="manifest" href="site.webmanifest">
+
+<!-- Open Graph -->
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Nexo Dev">
+<meta property="og:title" content="Nexo Dev — A Fast, Focused Code Editor for Windows &amp; Linux">
+<meta property="og:description" content="A lightweight, standalone code editor and project manager built on Electron and Monaco. Git, GitHub, npm scripts, terminal and theming, all in one window.">
+<meta property="og:url" content="https://dev.nexorealm.org/">
+<meta property="og:image" content="https://dev.nexorealm.org/assets/logo.png">
+<meta property="og:image:width" content="256">
+<meta property="og:image:height" content="256">
+<meta property="og:locale" content="en_US">
+
+<!-- Twitter Card -->
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Nexo Dev — A Fast, Focused Code Editor for Windows &amp; Linux">
+<meta name="twitter:description" content="A lightweight, standalone code editor and project manager built on Electron and Monaco. Git, GitHub, npm scripts, terminal and theming, all in one window.">
+<meta name="twitter:image" content="https://dev.nexorealm.org/assets/logo.png">
+
+<link rel="stylesheet" href="style.css">
+
+<!-- Structured data -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  "name": "Nexo Dev",
+  "applicationCategory": "DeveloperApplication",
+  "operatingSystem": "Windows, Linux",
+  "softwareVersion": "1.0.6",
+  "url": "https://dev.nexorealm.org/",
+  "downloadUrl": "https://github.com/itsnexoria/nexo-dev/releases/",
+  "description": "A lightweight, standalone code editor and project manager built on Electron and Monaco, with Git, GitHub, npm scripts, terminal and theming built in.",
+  "license": "https://opensource.org/licenses/MIT",
+  "image": "https://dev.nexorealm.org/assets/logo.png",
+  "author": {
+    "@type": "Organization",
+    "name": "Nexus"
+  },
+  "offers": {
+    "@type": "Offer",
+    "price": "0",
+    "priceCurrency": "USD"
+  }
+}
+</script>
+</head>
+<body>
+
+<header class="nav">
+  <div class="nav-inner">
+    <div class="brand"><img src="assets/logo.png" alt="Nexo Dev"> NEXO<span class="dev">DEV</span></div>
+    <nav class="nav-links">
+      <a href="#features">Features</a>
+      <a href="#git">Git &amp; GitHub</a>
+      <a href="#platforms">Platforms</a>
+      <a href="#requirements">Requirements</a>
+    </nav>
+    <a class="nav-cta" href="https://github.com/itsnexoria/nexo-dev/releases/">Download</a>
+  </div>
+</header>
+
+<section class="hero" style="border-top:none;">
+  <div class="wrap">
+    <img class="hero-logo" src="assets/logo.png" alt="Nexo Dev logo">
+    <h1>A fast, focused editor<br>for your <span class="accent">projects</span>.</h1>
+    <p class="sub">Nexo Dev is a lightweight, standalone code editor and project manager built on Electron and Monaco — the same editor engine behind VS Code. Files, Git, npm scripts and GitHub, all in one window.</p>
+    <div class="hero-actions">
+      <a class="btn btn-primary" href="https://github.com/itsnexoria/nexo-dev/releases/">Download for Windows<small>NSIS installer or portable .exe</small></a>
+      <a class="btn btn-secondary" href="https://github.com/itsnexoria/nexo-dev/releases/">Download for Linux<small>AppImage or .deb</small></a>
+    </div>
+    <div class="hero-note">Free &amp; open · v1.0.6 · x64</div>
+    <div class="hero-shot">
+      <img src="assets/Screenshot_2026-09-08_09-13-05.png" alt="Nexo Dev welcome screen with recent projects">
+    </div>
+  </div>
+</section>
+
+<section id="features">
+  <div class="wrap">
+    <p class="eyebrow">Editor</p>
+    <h2>Everything routes through one tabbed editor</h2>
+    <p class="section-lede">An icon rail on the left switches between workspaces. Files, Search, Git, Scripts, Outline, GitHub and TODOs all share the same tabs, so you're never juggling windows.</p>
+
+    <div class="feature-row">
+      <div class="feature-text">
+        <h3>Files &amp; project management</h3>
+        <p>Open any local folder as a project, start a new one, or clone straight from a URL. The file tree loads lazily and skips <code>node_modules</code> and <code>.git</code> automatically, so it stays quick even on large projects.</p>
+        <ul>
+          <li><b>Crash recovery</b> — open tabs and which one was active are remembered per project, restored silently even after a force-close.</li>
+          <li><b>Multi-tab Monaco editor</b> — syntax highlighting for JS/TS, Python, HTML/CSS, JSON, Markdown and more.</li>
+          <li><b>Split editor</b> (<code>Ctrl+\</code>) — open any tab in a second pane side by side; edits sync instantly between panes.</li>
+          <li><b>Markdown preview</b> with a raw/preview toggle remembered per file.</li>
+        </ul>
+      </div>
+      <div class="feature-shot">
+        <img src="assets/Screenshot_2026-09-08_09-14-28.png" alt="Nexo Dev editor showing main.js source code">
+      </div>
+    </div>
+
+    <div class="feature-row reverse">
+      <div class="feature-text">
+        <h3>Outline &amp; npm Scripts</h3>
+        <p>Jump around large files with a live symbol outline, and run your project's npm scripts — or update outdated packages — without leaving the editor for a terminal.</p>
+        <ul>
+          <li><b>Outline panel</b> lists functions, variables and constants pulled straight from the open file, click to jump to the line.</li>
+          <li><b>Scripts panel</b> reads <code>package.json</code> and gives every script a one-click Run button.</li>
+          <li><b>Outdated packages</b> tab flags packages behind their latest version, with a one-click update per package or an "Update all."</li>
+        </ul>
+      </div>
+      <div class="feature-shot">
+        <img src="assets/Screenshot_2026-09-08_09-14-41.png" alt="Nexo Dev outline panel listing symbols in main.js">
+      </div>
+    </div>
+
+    <div class="feature-row">
+      <div class="feature-text">
+        <h3>Built-in terminal &amp; TODOs</h3>
+        <p>A bottom panel runs one-off commands in your project root with real ANSI colors, so <code>npm install</code>, <code>git pull</code> or your test runner render exactly like they would in a real shell.</p>
+        <ul>
+          <li><b>Terminal</b> (<code>Ctrl+`</code>) — command history, stop button, resizable panel, optional custom shell override in Settings.</li>
+          <li><b>TODOs panel</b> scans your project for <code>TODO</code>, <code>FIXME</code> and <code>HACK</code> comments and lists them with file and line number, click to jump straight there.</li>
+        </ul>
+      </div>
+      <div class="feature-shot">
+        <img src="assets/Screenshot_2026-09-08_09-14-53.png" alt="Nexo Dev TODOs panel listing TODO and FIXME comments">
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="git">
+  <div class="wrap">
+    <p class="eyebrow">Source control</p>
+    <h2>Git and GitHub, without leaving the editor</h2>
+    <p class="section-lede">Git support shells out to your system's <code>git</code> — no bundled native dependency, so it behaves exactly like your normal CLI.</p>
+
+    <div class="feature-row">
+      <div class="feature-shot">
+        <img src="assets/Screenshot_2026-09-08_09-13-41.png" alt="Nexo Dev git panel showing a working tree diff for package.json">
+      </div>
+      <div class="feature-text">
+        <h3>Source control panel</h3>
+        <ul>
+          <li>Auto-detects your repo the moment you open a folder — file tree status badges appear immediately.</li>
+          <li><b>Push / Pull</b> with a live ahead/behind indicator against your upstream; first push on a new branch sets it automatically.</li>
+          <li><b>Branch switching</b> — see all local branches, check one out, or create a new one on the spot.</li>
+          <li>Staged and unstaged changes, each with stage / unstage / discard, plus a colored diff view right in the editor area.</li>
+          <li><b>Commit history</b> tab shows the last 50 commits; click any one for its full diff.</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="grid" style="margin-top:8px;">
+      <div class="cell">
+        <span class="icon">🌿</span>
+        <h4>Merge conflicts</h4>
+        <p>Conflicted files get their own section with an orange badge. Accept Current, Accept Incoming or Accept Both per conflict block, with inline highlighting so you never have to hunt for <code>&lt;&lt;&lt;&lt;&lt;&lt;&lt;</code> markers.</p>
+      </div>
+      <div class="cell">
+        <span class="icon">🐙</span>
+        <h4>GitHub panel</h4>
+        <p>Connect a GitHub token in Settings to browse a repo's pull requests, issues and releases, or create a new GitHub repo from inside the app.</p>
+      </div>
+      <div class="cell">
+        <span class="icon">☁️</span>
+        <h4>Cloudflare Pages deploy</h4>
+        <p>Generate a GitHub Actions workflow that deploys the current project to Cloudflare Pages, straight from the GitHub panel.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <p class="eyebrow">Personalize</p>
+    <h2>Make it yours</h2>
+    <p class="section-lede">Five built-in themes, or design a Custom one from just three colors — background, text, and accent generate the whole palette automatically.</p>
+
+    <div class="feature-row">
+      <div class="feature-shot">
+        <img src="assets/Screenshot_2026-09-08_09-15-09.png" alt="Nexo Dev settings page with theme picker and editor options">
+      </div>
+      <div class="feature-text">
+        <h3>Settings that apply immediately</h3>
+        <div class="theme-strip" style="margin-bottom:22px;">
+          <div class="theme-chip"><span class="dot" style="background:#e6402e;"></span>Nexo Dark</div>
+          <div class="theme-chip"><span class="dot" style="background:#e6402e;"></span>Nexo Light</div>
+          <div class="theme-chip"><span class="dot" style="background:#6d6bd6;"></span>Midnight</div>
+          <div class="theme-chip"><span class="dot" style="background:#e0b93a;"></span>High Contrast</div>
+          <div class="theme-chip"><span class="dot" style="background:#e6402e;"></span>Custom</div>
+        </div>
+        <ul>
+          <li><b>Save named presets</b> to build a small theme library and switch with one click.</li>
+          <li><b>Vim keybindings</b> for the main editor, loaded on demand.</li>
+          <li><b>Format on save</b> runs the project's own local Prettier install before every save.</li>
+          <li>Font size, minimap, word wrap and bracket-pair colorization, all toggled per project needs.</li>
+          <li><b>Zen mode</b> (<code>Ctrl+K Z</code>) hides every panel but your tabs for distraction-free writing.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="platforms">
+  <div class="wrap">
+    <p class="eyebrow">Availability</p>
+    <h2>Runs on Windows and Linux</h2>
+    <p class="section-lede">Built with Electron, packaged natively for both desktops.</p>
+
+    <div class="platforms">
+      <div class="platform-card">
+        <div class="plat-head">
+          <div class="glyph">🪟</div>
+          <h4>Windows</h4>
+        </div>
+        <p class="desc">An NSIS installer registers "Open with Nexo Dev" in Explorer's right-click menu, or grab the portable build for a zero-install .exe.</p>
+        <div class="formats">
+          <span class="format-pill">NSIS installer (x64)</span>
+          <span class="format-pill">Portable .exe (x64)</span>
+        </div>
+      </div>
+      <div class="platform-card">
+        <div class="plat-head">
+          <div class="glyph">🐧</div>
+          <h4>Linux</h4>
+        </div>
+        <p class="desc">Distributed as an AppImage that runs on most distributions with no install step, or a .deb package for Debian-based systems.</p>
+        <div class="formats">
+          <span class="format-pill">AppImage (x64)</span>
+          <span class="format-pill">.deb (x64)</span>
+        </div>
+      </div>
+    </div>
+
+    <div id="requirements" class="reqs">
+      <div class="req"><h5>Engine</h5><div>Electron + Monaco Editor</div></div>
+      <div class="req"><h5>Architecture</h5><div>x64</div></div>
+      <div class="req"><h5>Git integration</h5><div>Requires <code>git</code> on your PATH</div></div>
+    </div>
+  </div>
+</section>
+
+<section id="download" class="cta-section">
+  <div class="wrap">
+    <p class="eyebrow">Get started</p>
+    <h2>Open your first project in seconds</h2>
+    <p class="section-lede">No accounts, no cloud sync required — projects, themes and settings are stored locally.</p>
+    <div class="cta-actions">
+      <a class="btn btn-primary" href="https://github.com/itsnexoria/nexo-dev/releases/">Download for Windows<small>NSIS installer or portable .exe</small></a>
+      <a class="btn btn-secondary" href="https://github.com/itsnexoria/nexo-dev/releases/">Download for Linux<small>AppImage or .deb</small></a>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap foot-inner">
+    <div class="foot-brand"><img src="assets/logo.png" alt="Nexo Dev"> NEXO DEV</div>
+    <div class="foot-links">
+      <a href="#features">Features</a>
+      <a href="#git">Git &amp; GitHub</a>
+      <a href="#platforms">Platforms</a>
+    </div>
+  </div>
+  <div class="wrap foot-note">Nexo Dev v1.0.6 · MIT licensed</div>
+</footer>
+
+<script src="script.js"></script>
+</body>
+</html>

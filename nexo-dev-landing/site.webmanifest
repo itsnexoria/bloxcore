@@ -1,0 +1,12 @@
+{
+  "name": "Nexo Dev",
+  "short_name": "Nexo Dev",
+  "description": "A fast, focused code editor and project manager for Windows and Linux.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0b0b0d",
+  "theme_color": "#0b0b0d",
+  "icons": [
+    { "src": "assets/logo.png", "sizes": "256x256", "type": "image/png" }
+  ]
+}
